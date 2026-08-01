@@ -44,7 +44,7 @@ isahc = { version = "2", default-features = false }
 open = "5"
 wii-disc-info = { git = "https://github.com/mq1/wii-disc-info-rs", branch = "async" }
 async_zip = { version = "0.0.18", features = ["deflate"] }
-twbm-idmap = "0.4"
+twbm-idmap = "0.5"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]

@@ -1532,9 +1532,9 @@ dependencies = [
 
 [[package]]
 name = "hybrid-array"
-version = "0.4.13"
+version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c"
+checksum = "707114b52a152fa7bdb290cd7cd5912d9467273b6d74e21b8d81aca1f8533f6b"
 dependencies = [
  "typenum",
 ]
@@ -2153,9 +2153,9 @@ dependencies = [
 
 [[package]]
 name = "lucide-icons"
-version = "1.27.0"
+version = "1.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c048c5848db78b5cdc13a701efc8e8febe7dc383332c36c767cd4a13d7bf11b3"
+checksum = "2e4d993dabb090c46756c9d7c72f8b9c89211fb80d6f9050e16c61b56886f713"
 dependencies = [
  "iced",
 ]
@@ -3964,9 +3964,9 @@ dependencies = [
 
 [[package]]
 name = "twbm-idmap"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dab7f5aba3f2bb1145090d5dd96627b7ef1fe26f823de2c0276d156d3dcc35f"
+checksum = "4f0e07990928cc63f86e3ce04c7fac153de2cf2aa52002d4cd3cb8cab560a26f"
 
 [[package]]
 name = "typenum"
@@ -4864,9 +4864,9 @@ checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
 
 [[package]]
 name = "xcursor"
-version = "0.3.10"
+version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bec9e4a500ca8864c5b47b8b482a73d62e4237670e5b5f1d6b9e3cae50f28f2b"
+checksum = "163b33ed8786455e2fa5d72f554057ce3f3182425434f756cd39c99839d88e23"
 
 [[package]]
 name = "xkbcommon-dl"
