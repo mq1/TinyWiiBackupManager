@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ViewAs,
     messages::Message,
     state::AppState,
     ui::{
@@ -19,11 +20,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = Some(
         row![
             components::sidebar::view(state),
-            container(match state.current_page {
-                Page::Games => pages::game_grid::view(state),
-                Page::HomebrewApps => pages::homebrew_app_grid::view(state),
-                Page::Settings => pages::settings::view(),
-                Page::Toolbox => pages::toolbox::view(state),
+            container(match (state.current_page, state.config.contents.view_as) {
+                (Page::Games, ViewAs::Grid) => pages::game_grid::view(state),
+                (Page::Games, ViewAs::Table) => pages::game_table::view(state),
+                (Page::HomebrewApps, _) => pages::homebrew_app_grid::view(state),
+                (Page::Settings, _) => pages::settings::view(),
+                (Page::Toolbox, _) => pages::toolbox::view(state),
             })
             .width(Length::Fill)
             .height(Length::Fill)

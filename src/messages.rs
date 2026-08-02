@@ -23,4 +23,6 @@ pub enum Message {
     CloseModal,
     GotDiscInfo(Result<Box<wii_disc_info::Meta>, Error>),
     WroteConfig(Result<(), Error>),
+    ViewAsGrid,
+    ViewAsTable,
 }

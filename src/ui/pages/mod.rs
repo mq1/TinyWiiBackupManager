@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod game_grid;
+pub mod game_table;
 pub mod homebrew_app_grid;
 pub mod settings;
 pub mod toolbox;

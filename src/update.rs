@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message, notifications::Notification, state::AppState, ui::components::Modal,
+    config::ViewAs, messages::Message, notifications::Notification, state::AppState,
+    ui::components::Modal,
 };
 use iced::Task;
 
@@ -97,6 +98,14 @@ impl AppState {
             Message::WroteConfig(Err(e)) => {
                 self.notifications.push(Notification::error(e));
                 Task::none()
+            }
+            Message::ViewAsGrid => {
+                self.config.contents.view_as = ViewAs::Grid;
+                self.write_config_task()
+            }
+            Message::ViewAsTable => {
+                self.config.contents.view_as = ViewAs::Table;
+                self.write_config_task()
             }
         }
     }
