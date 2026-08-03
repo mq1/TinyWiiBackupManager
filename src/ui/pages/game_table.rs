@@ -21,7 +21,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .intersperse_with(|| rule::horizontal(1).into())
         .collect::<Column<_>>();
 
-    column![games_titlebar::view(), card::view(content).padding(0)]
+    column![games_titlebar::view(state), card::view(content).padding(0)]
         .padding(10)
         .spacing(10)
         .into()

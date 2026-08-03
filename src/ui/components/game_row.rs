@@ -9,14 +9,8 @@ use iced::{
 use lucide_icons::iced::{icon_box, icon_info, icon_pointer};
 
 pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
-    let console_icon = if game.is_wii {
-        icon_pointer()
-    } else {
-        icon_box()
-    };
-
     row![
-        console_icon,
+        game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),
         text!("{} [{}]", &game.title, game.id),
         space::horizontal(),
         button(icon_info().center())

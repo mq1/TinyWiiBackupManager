@@ -20,7 +20,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .collect::<Row<_>>()
         .spacing(10);
 
-    column![games_titlebar::view(), content]
+    column![games_titlebar::view(state), content]
         .padding(10)
         .spacing(10)
         .into()
