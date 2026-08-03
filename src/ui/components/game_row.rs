@@ -3,7 +3,7 @@
 
 use crate::{games::game::Game, messages::Message};
 use iced::{
-    Element,
+    Element, padding,
     widget::{button, row, space, text},
 };
 use lucide_icons::iced::{icon_box, icon_info, icon_pointer};
@@ -19,10 +19,14 @@ pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
         console_icon,
         text!("{} [{}]", &game.title, game.id),
         space::horizontal(),
-        button(icon_info())
+        button(icon_info().center())
+            .padding(0)
             .on_press(Message::OpenGameInfo(idx))
             .style(button::text)
+            .width(20)
+            .height(20)
     ]
-    .spacing(10)
+    .spacing(5)
+    .padding(padding::all(2).left(5))
     .into()
 }

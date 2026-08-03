@@ -4,12 +4,13 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{game_row, games_titlebar},
+    ui::components::{card, game_row, games_titlebar},
 };
 use iced::{
     Element,
-    widget::{Column, column},
+    widget::{Column, column, rule},
 };
+use itertools::Itertools;
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = state
@@ -17,10 +18,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .iter()
         .enumerate()
         .map(game_row::view)
-        .collect::<Column<_>>()
-        .spacing(10);
+        .intersperse_with(|| rule::horizontal(1).into())
+        .collect::<Column<_>>();
 
-    column![games_titlebar::view(), content]
+    column![games_titlebar::view(), card::view(content).padding(0)]
         .padding(10)
         .spacing(10)
         .into()
