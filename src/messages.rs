@@ -2,8 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config, errors::Error, games::game::Game, homebrew::homebrew_app::HomebrewApp,
-    ui::pages::Page, util::drive_info::DriveInfo,
+    config::{Config, ViewAs},
+    errors::Error,
+    games::game::Game,
+    homebrew::homebrew_app::HomebrewApp,
+    ui::pages::Page,
+    util::drive_info::DriveInfo,
 };
 use std::{ffi::OsString, path::PathBuf};
 
@@ -23,6 +27,5 @@ pub enum Message {
     CloseModal,
     GotDiscInfo(Result<Box<wii_disc_info::Meta>, Error>),
     WroteConfig(Result<(), Error>),
-    ViewAsGrid,
-    ViewAsTable,
+    SetViewAs(ViewAs),
 }

@@ -11,7 +11,7 @@ use lucide_icons::iced::{icon_layout_grid, icon_table};
 pub fn view(state: &AppState) -> Element<'_, Message> {
     row![
         button(icon_layout_grid())
-            .on_press(Message::ViewAsGrid)
+            .on_press(Message::SetViewAs(ViewAs::Grid))
             .style(|theme, status| {
                 let mut base = button::text(theme, status);
                 let bg = match state.config.contents.view_as {
@@ -23,7 +23,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 base
             }),
         button(icon_table())
-            .on_press(Message::ViewAsTable)
+            .on_press(Message::SetViewAs(ViewAs::Table))
             .style(|theme, status| {
                 let mut base = button::text(theme, status);
                 let bg = match state.config.contents.view_as {

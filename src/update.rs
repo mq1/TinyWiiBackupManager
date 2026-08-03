@@ -99,12 +99,8 @@ impl AppState {
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
-            Message::ViewAsGrid => {
-                self.config.contents.view_as = ViewAs::Grid;
-                self.write_config_task()
-            }
-            Message::ViewAsTable => {
-                self.config.contents.view_as = ViewAs::Table;
+            Message::SetViewAs(view_as) => {
+                self.config.contents.view_as = view_as;
                 self.write_config_task()
             }
         }
