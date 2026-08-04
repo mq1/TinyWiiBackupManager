@@ -49,3 +49,11 @@ pub fn primary(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
         base
     })
 }
+
+pub fn danger(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
+    view(label, icon).style(|theme, status| {
+        let mut base = button::danger(theme, status);
+        base.border.radius = 12.into();
+        base
+    })
+}

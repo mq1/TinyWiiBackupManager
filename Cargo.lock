@@ -439,16 +439,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "borsh"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a88b7ea17d208c4193f2c1e6de3c35fe71f98c96982d5ced308bdcc749ff6e1f"
-dependencies = [
- "bytes",
- "cfg_aliases",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2076,9 +2066,9 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
 name = "libredox"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c943259e342f1e06ff2da7a83eabdfe7f92ce10262688dbf1895ff0b3e6e4652"
+checksum = "2026a5056764a10b2bf5d56488cba40da507f5493a6a429340e2004d9ed085fa"
 dependencies = [
  "bitflags 2.13.1",
  "libc",
@@ -2369,7 +2359,7 @@ checksum = "cf5a574dadd7941adeaa71823ecba5e28331b8313fb2e1c6a5c7e5981ea53ad6"
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.10"
-source = "git+https://github.com/wiidev/nod?branch=fix-block-handling#4742bbea3177d660ca3467a264e567abe511c7d2"
+source = "git+https://github.com/wiidev/nod?branch=fix-block-handling#9a7a6b2ef0a1036ff687f8e8ce0d0238064d4aaf"
 dependencies = [
  "adler2",
  "aes",
@@ -3625,10 +3615,6 @@ name = "smol_str"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4aaa7368fcf4852a4c2dd92df0cace6a71f2091ca0a23391ce7f3a31833f1523"
-dependencies = [
- "borsh",
- "serde_core",
-]
 
 [[package]]
 name = "socket2"
@@ -4468,10 +4454,10 @@ dependencies = [
 
 [[package]]
 name = "wii-disc-info"
-version = "0.9.2"
-source = "git+https://github.com/mq1/wii-disc-info-rs?branch=async#c1c6faa93c99ff87142111f59dff6b105255725f"
+version = "0.10.0"
+source = "git+https://github.com/mq1/wii-disc-info-rs?branch=async#c9a2d1267b35f1c5c6a7fecb202e52f240f2ff0c"
 dependencies = [
- "futures-lite",
+ "futures-util",
  "miniz_oxide 0.9.1",
  "smol_str 0.3.6",
  "strum",

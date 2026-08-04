@@ -11,8 +11,8 @@ use crate::{
     ui::{dialogs, modals::Modal, pages::Page},
     util::drive_info::DriveInfo,
 };
-use iced::Task;
-use smol::fs::File;
+use iced::{Task, futures::TryFutureExt};
+use smol::fs::{self, File};
 use std::path::PathBuf;
 
 pub(crate) struct AppState {
@@ -102,6 +102,13 @@ impl AppState {
                 Ok(meta)
             },
             Message::GotDiscInfo,
+        )
+    }
+
+    pub fn delete_dir_task(&self, path: PathBuf) -> Task<Message> {
+        Task::perform(
+            fs::remove_dir_all(path).map_err(Into::into),
+            Message::DirDeleted,
         )
     }
 }

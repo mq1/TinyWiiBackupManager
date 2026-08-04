@@ -26,6 +26,7 @@ pub fn view((idx, app): (usize, &HomebrewApp)) -> Element<'_, Message> {
                     .width(Length::Fill)
                     .on_press(Message::OpenHomebrewAppInfo(idx)),
                 components::my_button::view(None, Some(Icon::Trash))
+                    .on_press(Message::AskDeleteHomebrewApp(idx))
             ]
             .spacing(5)
         ]

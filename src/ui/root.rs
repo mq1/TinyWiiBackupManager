@@ -48,6 +48,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 Modal::HomebrewAppInfo(idx) => {
                     modals::homebrew_app_info::view(&state.homebrew_apps[*idx])
                 }
+                Modal::DeleteDir(path) => modals::delete_dir::view(path),
             })
             .center(Length::Fill)
             .style(|theme| container::transparent(theme).background(Color::BLACK.scale_alpha(0.7))),

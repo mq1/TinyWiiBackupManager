@@ -86,12 +86,16 @@ impl AppState {
             }
             Message::GotDiscInfo(Ok(new_meta)) => {
                 if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
-                    meta.replace(new_meta);
+                    *meta = Some(new_meta);
                 }
 
                 Task::none()
             }
             Message::GotDiscInfo(Err(e)) => {
+                if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
+                    *meta = None;
+                }
+
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
@@ -103,6 +107,22 @@ impl AppState {
             Message::SetViewAs(view_as) => {
                 self.config.contents.view_as = view_as;
                 self.write_config_task()
+            }
+            Message::AskDeleteGame(idx) => {
+                let path = self.games[idx].path.clone();
+                self.current_modal = Some(Modal::DeleteDir(path));
+                Task::none()
+            }
+            Message::AskDeleteHomebrewApp(idx) => {
+                let path = self.homebrew_apps[idx].path.clone();
+                self.current_modal = Some(Modal::DeleteDir(path));
+                Task::none()
+            }
+            Message::DeleteDir(path) => self.delete_dir_task(path),
+            Message::DirDeleted(Ok(())) => Task::none(),
+            Message::DirDeleted(Err(e)) => {
+                self.notifications.push(Notification::error(e));
+                Task::none()
             }
         }
     }

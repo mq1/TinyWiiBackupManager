@@ -29,4 +29,8 @@ pub enum Message {
     GotDiscInfo(Result<wii_disc_info::Meta, Error>),
     WroteConfig(Result<(), Error>),
     SetViewAs(ViewAs),
+    AskDeleteGame(usize),
+    AskDeleteHomebrewApp(usize),
+    DeleteDir(PathBuf),
+    DirDeleted(Result<(), Error>),
 }

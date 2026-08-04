@@ -27,6 +27,7 @@ pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
                     .width(Length::Fill),
                 components::my_button::view(None, Some(Icon::HardDriveDownload)),
                 components::my_button::view(None, Some(Icon::Trash))
+                    .on_press(Message::AskDeleteGame(idx))
             ]
             .spacing(5)
         ]
