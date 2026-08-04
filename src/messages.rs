@@ -24,8 +24,9 @@ pub enum Message {
     GotDriveInfo(Result<DriveInfo, Error>),
     Open(OsString),
     OpenGameInfo(usize),
+    OpenHomebrewAppInfo(usize),
     CloseModal,
-    GotDiscInfo(Result<Box<wii_disc_info::Meta>, Error>),
+    GotDiscInfo(Result<wii_disc_info::Meta, Error>),
     WroteConfig(Result<(), Error>),
     SetViewAs(ViewAs),
 }

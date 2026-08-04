@@ -6,7 +6,8 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::{
-        components::{self, Modal},
+        components,
+        modals::{self, Modal},
         my_palette,
         pages::{self, Page},
     },
@@ -42,7 +43,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         opaque(
             container(match modal {
                 Modal::GameInfo((idx, disc_info)) => {
-                    components::game_info::view(&state.games[*idx], disc_info.as_deref())
+                    modals::game_info::view(&state.games[*idx], disc_info.as_ref())
+                }
+                Modal::HomebrewAppInfo(idx) => {
+                    modals::homebrew_app_info::view(&state.homebrew_apps[*idx])
                 }
             })
             .center(Length::Fill)

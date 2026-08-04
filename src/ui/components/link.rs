@@ -8,13 +8,16 @@ use iced::{
     widget::{button, column, container, row, text},
 };
 use lucide_icons::Icon;
-use std::ffi::OsStr;
+use std::ffi::OsString;
 
-pub fn view<'a>(
+pub fn view<'a, U>(
     label: impl IntoFragment<'a>,
     icon: Option<Icon>,
-    url: &'a OsStr,
-) -> Element<'a, Message> {
+    url: impl Fn() -> U + 'a,
+) -> Element<'a, Message>
+where
+    U: Into<OsString>,
+{
     let label = row![icon.unwrap_or(Icon::Globe).widget(), text(label)].spacing(5);
 
     let underline = container(row![].height(1).width(Length::Fill)).style(|theme| {
@@ -30,6 +33,6 @@ pub fn view<'a>(
             base
         })
         .padding(0)
-        .on_press_with(|| Message::Open(url.to_os_string()))
+        .on_press_with(move || Message::Open(url().into()))
         .into()
 }

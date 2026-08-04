@@ -3,7 +3,6 @@
 
 pub mod card;
 pub mod game_card;
-pub mod game_info;
 pub mod game_row;
 pub mod games_titlebar;
 pub mod homebrew_app_card;
@@ -14,8 +13,3 @@ pub mod notifications;
 pub mod sidebar;
 pub mod sidebar_button;
 pub mod view_as;
-
-#[derive(Debug, Clone)]
-pub enum Modal {
-    GameInfo((usize, Option<Box<wii_disc_info::Meta>>)),
-}

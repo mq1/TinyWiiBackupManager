@@ -49,7 +49,7 @@ pub fn view<'a>(
                 ]
                 .spacing(5),
             ]
-            .spacing(10),
+            .spacing(5),
             space::horizontal(),
             image(&game.cached_cover_path).height(200),
         ]
@@ -64,11 +64,8 @@ pub fn view<'a>(
         column![
             column![
                 text(&game.title).size(18),
-                components::link::view(
-                    game.path.to_string_lossy(),
-                    Some(Icon::Folder),
-                    game.path.as_os_str()
-                ),
+                components::link::view(game.path.to_string_lossy(), Some(Icon::Folder), || &game
+                    .path),
             ]
             .spacing(10)
             .padding(20),

@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    config::ViewAs, messages::Message, notifications::Notification, state::AppState,
-    ui::components::Modal,
-};
+use crate::{messages::Message, notifications::Notification, state::AppState, ui::modals::Modal};
 use iced::Task;
 
 impl AppState {
@@ -79,13 +76,17 @@ impl AppState {
                 self.current_modal = Some(Modal::GameInfo((idx, None)));
                 self.get_disc_info_task(idx)
             }
+            Message::OpenHomebrewAppInfo(idx) => {
+                self.current_modal = Some(Modal::HomebrewAppInfo(idx));
+                Task::none()
+            }
             Message::CloseModal => {
                 self.current_modal = None;
                 Task::none()
             }
             Message::GotDiscInfo(Ok(new_meta)) => {
                 if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
-                    *meta = Some(new_meta);
+                    meta.replace(new_meta);
                 }
 
                 Task::none()

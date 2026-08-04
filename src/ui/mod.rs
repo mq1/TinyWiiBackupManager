@@ -5,7 +5,9 @@ use crate::state::AppState;
 use std::fmt::Write;
 
 pub mod components;
+pub mod developers;
 pub mod dialogs;
+pub mod modals;
 pub mod my_palette;
 pub mod pages;
 pub mod root;

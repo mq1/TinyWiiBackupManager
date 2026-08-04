@@ -8,7 +8,7 @@ use crate::{
     homebrew::{self, homebrew_app::HomebrewApp},
     messages::Message,
     notifications::Notification,
-    ui::{components::Modal, dialogs, pages::Page},
+    ui::{dialogs, modals::Modal, pages::Page},
     util::drive_info::DriveInfo,
 };
 use iced::Task;
@@ -99,7 +99,7 @@ impl AppState {
                 let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
                 let mut file = File::open(&disc_path).await?;
                 let meta = wii_disc_info::Meta::read(&mut file).await?;
-                Ok(Box::new(meta))
+                Ok(meta)
             },
             Message::GotDiscInfo,
         )

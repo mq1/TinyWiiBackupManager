@@ -5,7 +5,10 @@ use crate::{errors::Error, homebrew::meta::HomebrewAppMeta, util};
 use iced::widget::image::Handle;
 use size::Size;
 use smol::fs;
-use std::{ffi::OsStr, path::PathBuf};
+use std::{
+    ffi::{OsStr, OsString},
+    path::PathBuf,
+};
 
 #[derive(Debug, Clone)]
 pub struct HomebrewApp {
@@ -48,6 +51,16 @@ impl HomebrewApp {
             size,
             icon,
         })
+    }
+
+    pub fn osc_url(&self) -> OsString {
+        let mut base = OsString::from("https://oscwii.org/library/app/");
+
+        if let Some(slug) = self.path.file_name() {
+            base.push(slug);
+        }
+
+        base
     }
 }
 
