@@ -27,21 +27,23 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub fn new(data_dir: PathBuf) -> (Self, Task<Message>) {
-        let state = Self {
-            data_dir,
-            config: Config::default(),
-            notifications: Vec::new(),
-            drive_info: None,
-            games: Vec::new(),
-            homebrew_apps: Vec::new(),
-            current_page: Page::Games,
-            current_modal: None,
-        };
+    pub fn boot(data_dir: PathBuf) -> impl Fn() -> (Self, Task<Message>) {
+        move || {
+            let state = Self {
+                data_dir: data_dir.clone(),
+                config: Config::default(),
+                notifications: Vec::new(),
+                drive_info: None,
+                games: Vec::new(),
+                homebrew_apps: Vec::new(),
+                current_page: Page::Games,
+                current_modal: None,
+            };
 
-        let task = state.load_config_task();
+            let task = state.load_config_task();
 
-        (state, task)
+            (state, task)
+        }
     }
 
     pub fn write_config_task(&self) -> Task<Message> {

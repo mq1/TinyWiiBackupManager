@@ -21,8 +21,6 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 pub fn main() -> iced::Result {
     let data_dir = util::data_dir::get_data_dir().expect("Unable to get data directory");
 
-    let boot = move || AppState::new(data_dir.clone());
-
     let settings = iced::Settings {
         fonts: vec![LUCIDE_FONT_BYTES.into()],
         default_text_size: 14.into(),
@@ -55,7 +53,7 @@ pub fn main() -> iced::Result {
         ..Default::default()
     };
 
-    iced::application(boot, AppState::update, ui::root::view)
+    iced::application(AppState::boot(data_dir), AppState::update, ui::root::view)
         .settings(settings)
         .window(window)
         .title(ui::title)
