@@ -48,7 +48,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             )
             .into()
         })
-        .collect::<Column<_>>()
+        .collect::<Column<'_, _>>()
         .padding(10)
         .spacing(10)
         .into()

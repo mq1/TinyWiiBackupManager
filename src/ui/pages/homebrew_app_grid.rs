@@ -17,7 +17,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .iter()
         .enumerate()
         .map(homebrew_app_card::view)
-        .collect::<Row<_>>()
+        .collect::<Row<'_, _>>()
         .spacing(10);
 
     column![homebrew_apps_titlebar::view(), content]

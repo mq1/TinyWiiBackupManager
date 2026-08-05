@@ -19,7 +19,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .enumerate()
         .map(game_row::view)
         .intersperse_with(|| rule::horizontal(1).into())
-        .collect::<Column<_>>();
+        .collect::<Column<'_, _>>();
 
     column![games_titlebar::view(state), card::view(content).padding(0)]
         .padding(10)

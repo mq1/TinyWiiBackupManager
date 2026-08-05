@@ -17,7 +17,7 @@ pub fn view(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
     ]
     .into_iter()
     .flatten()
-    .collect::<Row<_>>()
+    .collect::<Row<'_, _>>()
     .spacing(5);
 
     let content_width = content.size_hint().width;
