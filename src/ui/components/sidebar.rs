@@ -33,7 +33,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             components::card::view("Select a drive"),
             tooltip::Position::Right
         ),
-        components::sidebar_button::view(&[Icon::Info], false),
+        components::sidebar_button::view(&[Icon::Info], state.current_page == Page::About)
+            .on_press(Message::NavigateTo(Page::About)),
     ]
     .padding(10)
     .spacing(10)

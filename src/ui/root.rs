@@ -27,6 +27,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 (Page::HomebrewApps, _) => pages::homebrew_app_grid::view(state),
                 (Page::Settings, _) => pages::settings::view(),
                 (Page::Toolbox, _) => pages::toolbox::view(state),
+                (Page::About, _) => pages::about::view(state),
             })
             .width(Length::Fill)
             .height(Length::Fill)

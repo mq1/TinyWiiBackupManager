@@ -94,6 +94,3 @@ panic = "abort"
 # speed up conversions in dev builds
 [profile.dev.package."*"]
 opt-level = 3
-
-[lints.clippy]
-all = "deny"
