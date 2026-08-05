@@ -28,12 +28,16 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                         text(TITLE).size(20),
                         row![
                             "Copyright © 2026 Manuel Quarneti",
-                            components::link::view("github/mq1", None, || "https://github.com/mq1"),
+                            components::link::view(
+                                "github/mq1",
+                                None,
+                                || "https://github.com/mq1"
+                            ),
                         ]
                         .spacing(40),
                         components::link::view(
                             "GPL-3.0-only",
-                            None,
+                            Some(Icon::Scale),
                             || "https://www.gnu.org/licenses/gpl-3.0.html"
                         )
                     ]
