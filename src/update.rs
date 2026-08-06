@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::game_list::GameList, messages::Message, notifications::Notification, state::AppState,
-    ui::modals::Modal,
+    games::game_list::GameList, homebrew::homebrew_app_list::HomebrewAppList, messages::Message,
+    notifications::Notification, state::AppState, ui::modals::Modal,
 };
 use iced::Task;
 
@@ -51,11 +51,11 @@ impl AppState {
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
-                self.homebrew_apps = homebrew_apps;
+                self.homebrew_apps = homebrew_apps.sorted_by(self.config.contents.sort_by);
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
-                self.homebrew_apps.clear();
+                self.homebrew_apps = HomebrewAppList::default();
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }

@@ -6,6 +6,7 @@ use smol::{fs, stream::StreamExt};
 use std::path::Path;
 
 pub mod homebrew_app;
+pub mod homebrew_app_list;
 pub mod meta;
 
 async fn scan_dir(dir_path: &Path) -> Vec<HomebrewApp> {

@@ -5,7 +5,7 @@ use crate::{
     config::Config,
     errors::Error,
     games::game_list::GameList,
-    homebrew::{self, homebrew_app::HomebrewApp},
+    homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
     notifications::Notification,
     ui::{dialogs, modals::Modal, pages::Page},
@@ -21,7 +21,7 @@ pub(crate) struct AppState {
     pub notifications: Vec<Notification>,
     pub drive_info: Option<DriveInfo>,
     pub games: GameList,
-    pub homebrew_apps: Vec<HomebrewApp>,
+    pub homebrew_apps: HomebrewAppList,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
 }
@@ -35,7 +35,7 @@ impl AppState {
                 notifications: Vec::new(),
                 drive_info: None,
                 games: GameList::default(),
-                homebrew_apps: Vec::new(),
+                homebrew_apps: HomebrewAppList::default(),
                 current_page: Page::Games,
                 current_modal: None,
             };
@@ -71,12 +71,8 @@ impl AppState {
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
         let mount_point = self.config.contents.mount_point.clone();
-        let sort_by = self.config.contents.sort_by;
 
-        Task::perform(
-            async move { homebrew::list(&mount_point, sort_by).await },
-            Message::GotHomebrewApps,
-        )
+        Task::perform(HomebrewAppList::new(mount_point), Message::GotHomebrewApps)
     }
 
     pub fn get_drive_info_task(&self) -> Task<Message> {
