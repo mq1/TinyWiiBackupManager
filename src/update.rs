@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, notifications::Notification, state::AppState, ui::modals::Modal};
+use crate::{
+    games::game_list::GameList, messages::Message, notifications::Notification, state::AppState,
+    ui::modals::Modal,
+};
 use iced::Task;
 
 impl AppState {
@@ -39,11 +42,11 @@ impl AppState {
                 }
             }
             Message::GotGames(Ok(games)) => {
-                self.games = games;
+                self.games = games.sorted_by(self.config.contents.sort_by);
                 Task::none()
             }
             Message::GotGames(Err(e)) => {
-                self.games.clear();
+                self.games = GameList::default();
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }

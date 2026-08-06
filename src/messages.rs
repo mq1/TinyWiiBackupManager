@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, ViewAs},
     errors::Error,
-    games::game::Game,
+    games::game_list::GameList,
     homebrew::homebrew_app::HomebrewApp,
     ui::pages::Page,
     util::drive_info::DriveInfo,
@@ -19,7 +19,7 @@ pub enum Message {
     RefreshGamesAndApps,
     CloseNotification(usize),
     GotConfig(Config),
-    GotGames(Result<Vec<Game>, Error>),
+    GotGames(Result<GameList, Error>),
     GotHomebrewApps(Result<Vec<HomebrewApp>, Error>),
     GotDriveInfo(Result<DriveInfo, Error>),
     Open(OsString),

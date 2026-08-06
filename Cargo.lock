@@ -9,6 +9,7 @@ dependencies = [
  "async_zip",
  "directories",
  "fs4",
+ "futures",
  "hex",
  "iced",
  "iced_palace",

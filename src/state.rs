@@ -4,7 +4,7 @@
 use crate::{
     config::Config,
     errors::Error,
-    games::{self, game::Game},
+    games::game_list::GameList,
     homebrew::{self, homebrew_app::HomebrewApp},
     messages::Message,
     notifications::Notification,
@@ -20,7 +20,7 @@ pub(crate) struct AppState {
     pub config: Config,
     pub notifications: Vec<Notification>,
     pub drive_info: Option<DriveInfo>,
-    pub games: Vec<Game>,
+    pub games: GameList,
     pub homebrew_apps: Vec<HomebrewApp>,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
@@ -34,7 +34,7 @@ impl AppState {
                 config: Config::default(),
                 notifications: Vec::new(),
                 drive_info: None,
-                games: Vec::new(),
+                games: GameList::default(),
                 homebrew_apps: Vec::new(),
                 current_page: Page::Games,
                 current_modal: None,
@@ -65,12 +65,8 @@ impl AppState {
     pub fn get_games_task(&self) -> Task<Message> {
         let data_dir = self.data_dir.clone();
         let mount_point = self.config.contents.mount_point.clone();
-        let sort_by = self.config.contents.sort_by;
 
-        Task::perform(
-            async move { games::list(&data_dir, &mount_point, sort_by).await },
-            Message::GotGames,
-        )
+        Task::perform(GameList::new(data_dir, mount_point), Message::GotGames)
     }
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
