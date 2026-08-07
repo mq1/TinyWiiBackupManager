@@ -8,20 +8,20 @@ use iced::{
 };
 use lucide_icons::iced::{icon_box, icon_info, icon_pointer, icon_trash};
 
-pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
+pub fn view(game: &Game) -> Element<'_, Message> {
     row![
         game.is_wii().then(icon_pointer).unwrap_or_else(icon_box),
         text!("{} [{}]", game.title(), game.id()),
         space::horizontal(),
         button(icon_trash().center())
             .padding(0)
-            .on_press(Message::AskDeleteGame(idx))
+            .on_press_with(|| Message::AskDeleteDir(game.path().clone()))
             .style(button::text)
             .width(20)
             .height(20),
         button(icon_info().center())
             .padding(0)
-            .on_press(Message::OpenGameInfo(idx))
+            .on_press_with(|| Message::OpenGameInfo(game.path().clone()))
             .style(button::text)
             .width(20)
             .height(20)

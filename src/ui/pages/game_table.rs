@@ -15,8 +15,7 @@ use itertools::Itertools;
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = state
         .games
-        .iter()
-        .enumerate()
+        .iter_by(state.config.sort_by())
         .map(game_row::view)
         .intersperse_with(|| rule::horizontal(1).into())
         .collect::<Column<'_, _>>();

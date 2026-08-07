@@ -4,7 +4,7 @@
 use crate::{
     config::Config,
     errors::Error,
-    games::game_list::GameList,
+    games::{game::Game, game_list::GameList},
     homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
     notifications::notification_list::NotificationList,
@@ -80,9 +80,7 @@ impl AppState {
         Task::perform(DriveInfo::try_from_path(mount_point), Message::GotDriveInfo)
     }
 
-    pub fn get_disc_info_task(&self, game_i: usize) -> Task<Message> {
-        let game = self.games[game_i].clone();
-
+    pub fn get_disc_info_task(&self, game: Game) -> Task<Message> {
         Task::perform(
             async move {
                 let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;

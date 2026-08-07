@@ -12,6 +12,8 @@ use crate::{config::SortBy, errors::Error};
 #[derive(Debug, Clone, Default)]
 pub struct GameList {
     inner: Vec<Game>,
+    sorted_by_name: Vec<usize>,
+    sorted_by_size: Vec<usize>,
 }
 
 impl GameList {
@@ -28,25 +30,38 @@ impl GameList {
         let wii_games = scan_dir(&covers_dir, &wii_dir, true).await;
         let ngc_games = scan_dir(&covers_dir, &ngc_dir, false).await;
 
-        let all_games = wii_games.chain(ngc_games).collect().await;
+        let all_games = wii_games.chain(ngc_games).collect::<Vec<_>>().await;
 
-        Ok(Self { inner: all_games })
+        let mut sorted_by_name = (0..all_games.len()).collect::<Vec<_>>();
+        sorted_by_name.sort_by(|&a, &b| all_games[a].title().cmp(all_games[b].title()));
+
+        let mut sorted_by_size = (0..all_games.len()).collect::<Vec<_>>();
+        sorted_by_size.sort_by(|&a, &b| all_games[a].size().cmp(&all_games[b].size()));
+
+        Ok(Self {
+            inner: all_games,
+            sorted_by_name,
+            sorted_by_size,
+        })
     }
 
-    pub fn sorted_by(mut self, sort_by: SortBy) -> Self {
-        let compare: fn(&Game, &Game) -> _ = match sort_by {
-            SortBy::NameDescending => |a, b| a.title().cmp(b.title()),
-            SortBy::NameAscending => |a, b| b.title().cmp(a.title()),
-            SortBy::SizeDescending => |a, b| a.size().cmp(&b.size()),
-            SortBy::SizeAscending => |a, b| b.size().cmp(&a.size()),
+    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Game> {
+        let get_i = move |i| match sort_by {
+            SortBy::NameDescending => self.sorted_by_name[i],
+            SortBy::NameAscending => self.sorted_by_name[self.sorted_by_name.len() - 1 - i],
+            SortBy::SizeDescending => self.sorted_by_size[i],
+            SortBy::SizeAscending => self.sorted_by_size[self.sorted_by_size.len() - 1 - i],
         };
 
-        self.inner.sort_unstable_by(compare);
-        self
+        (0..self.inner.len()).map(move |idx| &self.inner[get_i(idx)])
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Game> {
-        self.inner.iter()
+    pub fn entry(&self, path: &Path) -> (usize, &Game) {
+        self.inner
+            .iter()
+            .position(|game| game.path() == path)
+            .map(|idx| (idx, &self.inner[idx]))
+            .unwrap()
     }
 }
 

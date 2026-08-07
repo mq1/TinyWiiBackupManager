@@ -9,7 +9,7 @@ use iced::{
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
-pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
+pub fn view(game: &Game) -> Element<'_, Message> {
     components::card::view(
         column![
             row![
@@ -23,11 +23,11 @@ pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
             ellipsized_text(game.title()).wrapping(text::Wrapping::None),
             row![
                 components::my_button::view(Some("Info"), Some(Icon::Info))
-                    .on_press(Message::OpenGameInfo(idx))
+                    .on_press_with(|| Message::OpenGameInfo(game.path().clone()))
                     .width(Length::Fill),
                 components::my_button::view(None, Some(Icon::HardDriveDownload)),
                 components::my_button::view(None, Some(Icon::Trash))
-                    .on_press(Message::AskDeleteGame(idx))
+                    .on_press_with(|| Message::AskDeleteDir(game.path().clone()))
             ]
             .spacing(5)
         ]

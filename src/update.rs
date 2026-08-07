@@ -41,7 +41,7 @@ impl AppState {
                 }
             }
             Message::GotGames(Ok(games)) => {
-                self.games = games.sorted_by(self.config.sort_by());
+                self.games = games;
                 Task::none()
             }
             Message::GotGames(Err(e)) => {
@@ -74,9 +74,10 @@ impl AppState {
 
                 Task::none()
             }
-            Message::OpenGameInfo(idx) => {
+            Message::OpenGameInfo(path) => {
+                let (idx, game) = self.games.entry(&path);
                 self.current_modal = Some(Modal::GameInfo((idx, None)));
-                self.get_disc_info_task(idx)
+                self.get_disc_info_task(game.clone())
             }
             Message::OpenHomebrewAppInfo(idx) => {
                 self.current_modal = Some(Modal::HomebrewAppInfo(idx));
@@ -110,13 +111,7 @@ impl AppState {
                 self.config.set_view_as(view_as);
                 self.write_config_task()
             }
-            Message::AskDeleteGame(idx) => {
-                let path = self.games[idx].path().clone();
-                self.current_modal = Some(Modal::DeleteDir(path));
-                Task::none()
-            }
-            Message::AskDeleteHomebrewApp(idx) => {
-                let path = self.homebrew_apps[idx].path.clone();
+            Message::AskDeleteDir(path) => {
                 self.current_modal = Some(Modal::DeleteDir(path));
                 Task::none()
             }
