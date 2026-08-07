@@ -8,8 +8,9 @@ pub mod homebrew_app_grid;
 pub mod settings;
 pub mod toolbox;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Page {
+    #[default]
     Games,
     HomebrewApps,
     Settings,

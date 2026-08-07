@@ -7,7 +7,7 @@ use crate::{
     games::game_list::GameList,
     homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
-    notifications::Notification,
+    notifications::notification_list::NotificationList,
     ui::{dialogs, modals::Modal, pages::Page},
     util::drive_info::DriveInfo,
 };
@@ -15,15 +15,16 @@ use iced::{Task, futures::TryFutureExt};
 use smol::fs::{self, File};
 use std::path::PathBuf;
 
+#[derive(Default)]
 pub(crate) struct AppState {
-    pub data_dir: PathBuf,
-    pub config: Config,
-    pub notifications: Vec<Notification>,
-    pub drive_info: Option<DriveInfo>,
-    pub games: GameList,
-    pub homebrew_apps: HomebrewAppList,
-    pub current_page: Page,
-    pub current_modal: Option<Modal>,
+    pub(crate) data_dir: PathBuf,
+    pub(crate) config: Config,
+    pub(crate) notifications: NotificationList,
+    pub(crate) drive_info: Option<DriveInfo>,
+    pub(crate) games: GameList,
+    pub(crate) homebrew_apps: HomebrewAppList,
+    pub(crate) current_page: Page,
+    pub(crate) current_modal: Option<Modal>,
 }
 
 impl AppState {
@@ -31,13 +32,7 @@ impl AppState {
         move || {
             let state = Self {
                 data_dir: data_dir.clone(),
-                config: Config::default(),
-                notifications: Vec::new(),
-                drive_info: None,
-                games: GameList::default(),
-                homebrew_apps: HomebrewAppList::default(),
-                current_page: Page::Games,
-                current_modal: None,
+                ..Default::default()
             };
 
             let task = state.load_config_task();
@@ -64,19 +59,19 @@ impl AppState {
 
     pub fn get_games_task(&self) -> Task<Message> {
         let data_dir = self.data_dir.clone();
-        let mount_point = self.config.contents.mount_point.clone();
+        let mount_point = self.config.mount_point().clone();
 
         Task::perform(GameList::new(data_dir, mount_point), Message::GotGames)
     }
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
-        let mount_point = self.config.contents.mount_point.clone();
+        let mount_point = self.config.mount_point().clone();
 
         Task::perform(HomebrewAppList::new(mount_point), Message::GotHomebrewApps)
     }
 
     pub fn get_drive_info_task(&self) -> Task<Message> {
-        let mount_point = &self.config.contents.mount_point;
+        let mount_point = self.config.mount_point();
         if mount_point.as_os_str().is_empty() {
             return Task::none();
         }

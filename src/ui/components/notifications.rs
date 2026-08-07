@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    notifications::NotificationLevel,
+    notifications::notification::NotificationLevel,
     state::AppState,
     ui::{
         components,
@@ -22,7 +22,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .iter()
         .enumerate()
         .map(|(i, notification)| {
-            let icon = match notification.level {
+            let icon = match notification.level() {
                 NotificationLevel::Info => icon_info().color(BLUE),
                 NotificationLevel::Warning => icon_alert_triangle().color(YELLOW),
                 NotificationLevel::Error => icon_x().color(RED),
@@ -32,7 +32,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             components::card::view(
                 row![
                     icon,
-                    text(&notification.label),
+                    text(notification.label()),
                     button(icon_x().center())
                         .on_press(Message::CloseNotification(i))
                         .padding(0)

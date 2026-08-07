@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
+use getset::{CopyGetters, Getters};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum NotificationLevel {
@@ -12,10 +13,13 @@ pub enum NotificationLevel {
     Success,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Getters, CopyGetters)]
 pub struct Notification {
-    pub label: String,
-    pub level: NotificationLevel,
+    #[getset(get = "pub")]
+    label: String,
+
+    #[getset(get_copy = "pub")]
+    level: NotificationLevel,
 }
 
 impl Notification {

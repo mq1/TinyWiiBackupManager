@@ -3,7 +3,7 @@
 
 use crate::{
     games::game_list::GameList, homebrew::homebrew_app_list::HomebrewAppList, messages::Message,
-    notifications::Notification, state::AppState, ui::modals::Modal,
+    notifications::notification::Notification, state::AppState, ui::modals::Modal,
 };
 use iced::Task;
 
@@ -17,17 +17,16 @@ impl AppState {
             Message::PickMountPoint => self.pick_mount_point_task(),
             Message::MountPointPicked(None) => Task::none(),
             Message::MountPointPicked(Some(path)) => {
-                self.config.contents.mount_point = path;
+                self.config.set_mount_point(path);
                 self.write_config_task()
             }
             Message::CloseNotification(idx) => {
-                self.notifications.remove(idx);
+                self.notifications.close(idx);
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.get_games_task(),
             Message::GotConfig(config) => {
-                let new_mount_point =
-                    config.contents.mount_point != self.config.contents.mount_point;
+                let new_mount_point = config.mount_point() != self.config.mount_point();
 
                 self.config = config;
 
@@ -42,21 +41,21 @@ impl AppState {
                 }
             }
             Message::GotGames(Ok(games)) => {
-                self.games = games.sorted_by(self.config.contents.sort_by);
+                self.games = games.sorted_by(self.config.sort_by());
                 Task::none()
             }
             Message::GotGames(Err(e)) => {
                 self.games = GameList::default();
-                self.notifications.push(Notification::error(e));
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
-                self.homebrew_apps = homebrew_apps.sorted_by(self.config.contents.sort_by);
+                self.homebrew_apps = homebrew_apps.sorted_by(self.config.sort_by());
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
                 self.homebrew_apps = HomebrewAppList::default();
-                self.notifications.push(Notification::error(e));
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
             Message::GotDriveInfo(Ok(drive_info)) => {
@@ -65,12 +64,12 @@ impl AppState {
             }
             Message::GotDriveInfo(Err(e)) => {
                 self.drive_info = None;
-                self.notifications.push(Notification::error(e));
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
             Message::Open(url) => {
                 if let Err(e) = open::that(url) {
-                    self.notifications.push(Notification::error(e));
+                    self.notifications.add(Notification::error(e));
                 }
 
                 Task::none()
@@ -99,16 +98,16 @@ impl AppState {
                     *meta = None;
                 }
 
-                self.notifications.push(Notification::error(e));
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
             Message::WroteConfig(Ok(())) => Task::none(),
             Message::WroteConfig(Err(e)) => {
-                self.notifications.push(Notification::error(e));
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
             Message::SetViewAs(view_as) => {
-                self.config.contents.view_as = view_as;
+                self.config.set_view_as(view_as);
                 self.write_config_task()
             }
             Message::AskDeleteGame(idx) => {
@@ -124,7 +123,7 @@ impl AppState {
             Message::DeleteDir(path) => self.delete_dir_task(path),
             Message::DirDeleted(Ok(())) => Task::none(),
             Message::DirDeleted(Err(e)) => {
-                self.notifications.push(Notification::error(e));
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
         }

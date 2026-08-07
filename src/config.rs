@@ -2,43 +2,108 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
+use getset::{CopyGetters, Getters, Setters};
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Getters, CopyGetters, Setters)]
 pub struct Config {
-    pub path: PathBuf,
-    pub contents: ConfigContents,
+    #[serde(skip)]
+    path: PathBuf,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    always_split: bool,
+
+    #[serde(default)]
+    #[getset(get = "pub", set = "pub")]
+    mount_point: PathBuf,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    remove_sources_apps: bool,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    remove_sources_games: bool,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    scrub_update_partition: bool,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    sort_by: SortBy,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    view_as: ViewAs,
+
+    #[serde(default = "yes")]
+    #[getset(get_copy = "pub", set = "pub")]
+    show_wii: bool,
+
+    #[serde(default = "yes")]
+    #[getset(get_copy = "pub", set = "pub")]
+    show_gc: bool,
+
+    #[serde(default = "default_wii_ip")]
+    #[getset(get = "pub", set = "pub")]
+    wii_ip: String,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    txt_codes_source: TxtCodesSource,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    theme_preference: ThemePreference,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    wii_output_format: WiiOutputFormat,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    gc_output_format: GcOutputFormat,
+
+    #[serde(default)]
+    #[getset(get = "pub", set = "pub")]
+    known_drives: Vec<PathBuf>,
+
+    #[serde(default)]
+    #[getset(get_copy = "pub", set = "pub")]
+    preferred_language: PreferredLanguage,
 }
 
 impl Config {
     pub async fn load(data_dir: impl AsRef<Path>) -> Self {
         let path = data_dir.as_ref().join("config.json");
         let s = fs::read_to_string(&path).await.unwrap_or_default();
-        let contents = serde_json::from_str(&s).unwrap_or_default();
+        let config = serde_json::from_str(&s).unwrap_or_default();
 
-        Self { path, contents }
+        Self { path, ..config }
     }
 
     pub async fn write(&self) -> Result<(), Error> {
-        let s = serde_json::to_string_pretty(&self.contents)?;
+        let s = serde_json::to_string_pretty(&self)?;
         fs::write(&self.path, s).await?;
         Ok(())
     }
 
     /// Returns true if the notification should be shown
     pub async fn check_mount_point(&mut self) -> bool {
-        let drive = &self.contents.mount_point;
+        let drive = &self.mount_point;
 
         if drive.as_os_str().is_empty() {
             return false;
         }
 
-        let new = self.contents.known_drives.iter().all(|p| p != drive);
+        let new = self.known_drives.iter().all(|p| p != drive);
 
         if new {
-            self.contents.known_drives.push(drive.clone());
+            self.known_drives.push(drive.clone());
             let _ = self.write().await;
         }
 
@@ -46,60 +111,10 @@ impl Config {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigContents {
-    #[serde(default)]
-    pub always_split: bool,
-
-    #[serde(default)]
-    pub mount_point: PathBuf,
-
-    #[serde(default)]
-    pub remove_sources_apps: bool,
-
-    #[serde(default)]
-    pub remove_sources_games: bool,
-
-    #[serde(default)]
-    pub scrub_update_partition: bool,
-
-    #[serde(default)]
-    pub sort_by: SortBy,
-
-    #[serde(default)]
-    pub view_as: ViewAs,
-
-    #[serde(default = "yes")]
-    pub show_wii: bool,
-
-    #[serde(default = "yes")]
-    pub show_gc: bool,
-
-    #[serde(default = "default_wii_ip")]
-    pub wii_ip: String,
-
-    #[serde(default)]
-    pub txt_codes_source: TxtCodesSource,
-
-    #[serde(default)]
-    pub theme_preference: ThemePreference,
-
-    #[serde(default)]
-    pub wii_output_format: WiiOutputFormat,
-
-    #[serde(default)]
-    pub gc_output_format: GcOutputFormat,
-
-    #[serde(default)]
-    pub known_drives: Vec<PathBuf>,
-
-    #[serde(default)]
-    pub preferred_language: PreferredLanguage,
-}
-
-impl Default for ConfigContents {
+impl Default for Config {
     fn default() -> Self {
         Self {
+            path: PathBuf::new(),
             always_split: false,
             mount_point: PathBuf::new(),
             remove_sources_apps: false,

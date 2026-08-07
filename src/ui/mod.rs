@@ -15,7 +15,7 @@ pub mod root;
 pub fn title(state: &AppState) -> String {
     let mut s = "TinyWiiBackupManager  ›  ".to_string();
 
-    let mount_point = &state.config.contents.mount_point;
+    let mount_point = state.config.mount_point();
     if mount_point.as_os_str().is_empty() {
         s.push_str("No drive selected");
         return s;

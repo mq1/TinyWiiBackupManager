@@ -21,7 +21,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = Some(
         row![
             components::sidebar::view(state),
-            container(match (state.current_page, state.config.contents.view_as) {
+            container(match (state.current_page, state.config.view_as()) {
                 (Page::Games, ViewAs::Grid) => pages::game_grid::view(state),
                 (Page::Games, ViewAs::Table) => pages::game_table::view(state),
                 (Page::HomebrewApps, _) => pages::homebrew_app_grid::view(state),
@@ -56,7 +56,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         )
     });
 
-    let notifications = (!state.notifications.is_empty()).then(|| {
+    let notifications = state.notifications.has_notifications().then(|| {
         container(components::notifications::view(state))
             .align_right(Length::Fill)
             .align_bottom(Length::Fill)
