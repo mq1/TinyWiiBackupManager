@@ -10,8 +10,8 @@ use lucide_icons::iced::{icon_box, icon_info, icon_pointer, icon_trash};
 
 pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
     row![
-        game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),
-        text!("{} [{}]", &game.title, game.id),
+        game.is_wii().then(icon_pointer).unwrap_or_else(icon_box),
+        text!("{} [{}]", game.title(), game.id()),
         space::horizontal(),
         button(icon_trash().center())
             .padding(0)

@@ -14,13 +14,13 @@ pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
         column![
             row![
                 icon_tag(),
-                game.id.as_str(),
+                text!("{}", game.id()),
                 space::horizontal(),
-                text!("{}", game.size)
+                text!("{}", game.size())
             ]
             .spacing(5),
-            image(&game.cached_cover_path).height(96),
-            ellipsized_text(&game.title).wrapping(text::Wrapping::None),
+            image(game.cached_cover_path()).height(96),
+            ellipsized_text(game.title()).wrapping(text::Wrapping::None),
             row![
                 components::my_button::view(Some("Info"), Some(Icon::Info))
                     .on_press(Message::OpenGameInfo(idx))

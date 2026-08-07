@@ -35,10 +35,10 @@ impl GameList {
 
     pub fn sorted_by(mut self, sort_by: SortBy) -> Self {
         let compare: fn(&Game, &Game) -> _ = match sort_by {
-            SortBy::NameDescending => |a, b| a.title.cmp(&b.title),
-            SortBy::NameAscending => |a, b| b.title.cmp(&a.title),
-            SortBy::SizeDescending => |a, b| a.size.cmp(&b.size),
-            SortBy::SizeAscending => |a, b| b.size.cmp(&a.size),
+            SortBy::NameDescending => |a, b| a.title().cmp(b.title()),
+            SortBy::NameAscending => |a, b| b.title().cmp(a.title()),
+            SortBy::SizeDescending => |a, b| a.size().cmp(&b.size()),
+            SortBy::SizeAscending => |a, b| b.size().cmp(&a.size()),
         };
 
         self.inner.sort_unstable_by(compare);

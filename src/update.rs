@@ -111,7 +111,7 @@ impl AppState {
                 self.write_config_task()
             }
             Message::AskDeleteGame(idx) => {
-                let path = self.games[idx].path.clone();
+                let path = self.games[idx].path().clone();
                 self.current_modal = Some(Modal::DeleteDir(path));
                 Task::none()
             }
