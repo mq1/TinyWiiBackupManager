@@ -74,10 +74,9 @@ impl AppState {
 
                 Task::none()
             }
-            Message::OpenGameInfo(path) => {
-                let (idx, game) = self.games.entry(&path);
-                self.current_modal = Some(Modal::GameInfo((idx, None)));
-                self.get_disc_info_task(game.clone())
+            Message::OpenGameInfo(game) => {
+                self.current_modal = Some(Modal::GameInfo((game.clone(), None)));
+                self.get_disc_info_task(game)
             }
             Message::OpenHomebrewAppInfo(idx) => {
                 self.current_modal = Some(Modal::HomebrewAppInfo(idx));

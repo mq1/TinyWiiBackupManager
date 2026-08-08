@@ -4,12 +4,12 @@
 use crate::{
     config::{Config, ViewAs},
     errors::Error,
-    games::game_list::GameList,
+    games::{game::Game, game_list::GameList},
     homebrew::homebrew_app_list::HomebrewAppList,
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
-use std::{ffi::OsString, path::PathBuf};
+use std::{ffi::OsString, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -23,7 +23,7 @@ pub enum Message {
     GotHomebrewApps(Result<HomebrewAppList, Error>),
     GotDriveInfo(Result<DriveInfo, Error>),
     Open(OsString),
-    OpenGameInfo(PathBuf),
+    OpenGameInfo(Arc<Game>),
     OpenHomebrewAppInfo(usize),
     CloseModal,
     GotDiscInfo(Result<wii_disc_info::Meta, Error>),

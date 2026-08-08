@@ -8,6 +8,7 @@ version = "6.1.0"
 dependencies = [
  "async_zip",
  "directories",
+ "either",
  "fs4",
  "futures",
  "getset",

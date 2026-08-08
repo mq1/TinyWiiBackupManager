@@ -13,7 +13,7 @@ use crate::{
 };
 use iced::{Task, futures::TryFutureExt};
 use smol::fs::{self, File};
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 #[derive(Default)]
 pub(crate) struct AppState {
@@ -80,7 +80,7 @@ impl AppState {
         Task::perform(DriveInfo::try_from_path(mount_point), Message::GotDriveInfo)
     }
 
-    pub fn get_disc_info_task(&self, game: Game) -> Task<Message> {
+    pub fn get_disc_info_task(&self, game: Arc<Game>) -> Task<Message> {
         Task::perform(
             async move {
                 let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;

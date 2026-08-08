@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use crate::{games::game::Game, messages::Message};
 use iced::{
     Element, padding,
@@ -8,7 +10,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_box, icon_info, icon_pointer, icon_trash};
 
-pub fn view(game: &Game) -> Element<'_, Message> {
+pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
     row![
         game.is_wii().then(icon_pointer).unwrap_or_else(icon_box),
         text!("{} [{}]", game.title(), game.id()),
@@ -21,7 +23,7 @@ pub fn view(game: &Game) -> Element<'_, Message> {
             .height(20),
         button(icon_info().center())
             .padding(0)
-            .on_press_with(|| Message::OpenGameInfo(game.path().clone()))
+            .on_press_with(|| Message::OpenGameInfo(game.clone()))
             .style(button::text)
             .width(20)
             .height(20)

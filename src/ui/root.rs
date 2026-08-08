@@ -43,8 +43,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let modal = state.current_modal.as_ref().map(|modal| {
         opaque(
             container(match modal {
-                Modal::GameInfo((idx, disc_info)) => {
-                    modals::game_info::view(&state.games[*idx], disc_info.as_ref())
+                Modal::GameInfo((game, disc_info)) => {
+                    modals::game_info::view(game, disc_info.as_ref())
                 }
                 Modal::HomebrewAppInfo(idx) => {
                     modals::homebrew_app_info::view(&state.homebrew_apps[*idx])

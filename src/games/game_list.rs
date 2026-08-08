@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use either::Either;
 use futures::{Stream, StreamExt, TryFutureExt};
 use smol::fs;
-use std::{ops::Index, path::Path};
+use std::{path::Path, sync::Arc};
 
 use super::game::Game;
 use crate::{config::SortBy, errors::Error};
@@ -11,9 +12,8 @@ use crate::{config::SortBy, errors::Error};
 /// Functional wrapper over a list of games
 #[derive(Debug, Clone, Default)]
 pub struct GameList {
-    inner: Vec<Game>,
-    sorted_by_name: Vec<usize>,
-    sorted_by_size: Vec<usize>,
+    sorted_by_name: Vec<Arc<Game>>,
+    sorted_by_size: Vec<Arc<Game>>,
 }
 
 impl GameList {
@@ -30,38 +30,31 @@ impl GameList {
         let wii_games = scan_dir(&covers_dir, &wii_dir, true).await;
         let ngc_games = scan_dir(&covers_dir, &ngc_dir, false).await;
 
-        let all_games = wii_games.chain(ngc_games).collect::<Vec<_>>().await;
+        let all_games = wii_games
+            .chain(ngc_games)
+            .map(Arc::new)
+            .collect::<Vec<_>>()
+            .await;
 
-        let mut sorted_by_name = (0..all_games.len()).collect::<Vec<_>>();
-        sorted_by_name.sort_by(|&a, &b| all_games[a].title().cmp(all_games[b].title()));
+        let mut sorted_by_name = all_games.clone();
+        let mut sorted_by_size = all_games;
 
-        let mut sorted_by_size = (0..all_games.len()).collect::<Vec<_>>();
-        sorted_by_size.sort_by(|&a, &b| all_games[a].size().cmp(&all_games[b].size()));
+        sorted_by_name.sort_by(|a, b| a.title().cmp(b.title()));
+        sorted_by_size.sort_by_key(|g| g.size());
 
         Ok(Self {
-            inner: all_games,
             sorted_by_name,
             sorted_by_size,
         })
     }
 
-    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Game> {
-        let get_i = move |i| match sort_by {
-            SortBy::NameDescending => self.sorted_by_name[i],
-            SortBy::NameAscending => self.sorted_by_name[self.sorted_by_name.len() - 1 - i],
-            SortBy::SizeDescending => self.sorted_by_size[i],
-            SortBy::SizeAscending => self.sorted_by_size[self.sorted_by_size.len() - 1 - i],
-        };
-
-        (0..self.inner.len()).map(move |idx| &self.inner[get_i(idx)])
-    }
-
-    pub fn entry(&self, path: &Path) -> (usize, &Game) {
-        self.inner
-            .iter()
-            .position(|game| game.path() == path)
-            .map(|idx| (idx, &self.inner[idx]))
-            .unwrap()
+    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Arc<Game>> {
+        match sort_by {
+            SortBy::NameAscending => Either::Left(self.sorted_by_name.iter()),
+            SortBy::NameDescending => Either::Right(self.sorted_by_name.iter().rev()),
+            SortBy::SizeAscending => Either::Left(self.sorted_by_size.iter()),
+            SortBy::SizeDescending => Either::Right(self.sorted_by_size.iter().rev()),
+        }
     }
 }
 
@@ -72,12 +65,4 @@ async fn scan_dir(covers_dir: &Path, dir_path: &Path, is_wii: bool) -> impl Stre
             let path = entry.ok()?.path();
             Game::try_from_path(path, is_wii, covers_dir).await.ok()
         })
-}
-
-impl Index<usize> for GameList {
-    type Output = Game;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.inner[index]
-    }
 }
