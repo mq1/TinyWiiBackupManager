@@ -39,8 +39,8 @@ impl GameList {
         let mut sorted_by_name = all_games.clone();
         let mut sorted_by_size = all_games;
 
-        sorted_by_name.sort_by(|a, b| a.title().cmp(b.title()));
-        sorted_by_size.sort_by_key(|g| g.size());
+        sorted_by_name.sort_by(|a, b| a.title.cmp(&b.title));
+        sorted_by_size.sort_by_key(|g| g.size);
 
         Ok(Self {
             sorted_by_name,

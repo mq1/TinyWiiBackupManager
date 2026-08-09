@@ -2,79 +2,62 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use getset::{CopyGetters, Getters, Setters};
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Getters, CopyGetters, Setters)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     #[serde(skip)]
-    path: PathBuf,
+    pub path: PathBuf,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    always_split: bool,
+    pub always_split: bool,
 
     #[serde(default)]
-    #[getset(get = "pub", set = "pub")]
-    mount_point: PathBuf,
+    pub mount_point: PathBuf,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    remove_sources_apps: bool,
+    pub remove_sources_apps: bool,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    remove_sources_games: bool,
+    pub remove_sources_games: bool,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    scrub_update_partition: bool,
+    pub scrub_update_partition: bool,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    sort_by: SortBy,
+    pub sort_by: SortBy,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    view_as: ViewAs,
+    pub view_as: ViewAs,
 
     #[serde(default = "yes")]
-    #[getset(get_copy = "pub", set = "pub")]
-    show_wii: bool,
+    pub show_wii: bool,
 
     #[serde(default = "yes")]
-    #[getset(get_copy = "pub", set = "pub")]
-    show_gc: bool,
+    pub show_gc: bool,
 
     #[serde(default = "default_wii_ip")]
-    #[getset(get = "pub", set = "pub")]
-    wii_ip: String,
+    pub wii_ip: String,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    txt_codes_source: TxtCodesSource,
+    pub txt_codes_source: TxtCodesSource,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    theme_preference: ThemePreference,
+    pub theme_preference: ThemePreference,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    wii_output_format: WiiOutputFormat,
+    pub wii_output_format: WiiOutputFormat,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    gc_output_format: GcOutputFormat,
+    pub gc_output_format: GcOutputFormat,
 
     #[serde(default)]
-    #[getset(get = "pub", set = "pub")]
-    known_drives: Vec<PathBuf>,
+    pub known_drives: Vec<PathBuf>,
 
     #[serde(default)]
-    #[getset(get_copy = "pub", set = "pub")]
-    preferred_language: PreferredLanguage,
+    pub preferred_language: PreferredLanguage,
 }
 
 impl Config {

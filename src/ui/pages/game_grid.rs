@@ -14,7 +14,7 @@ use iced::{
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = state
         .games
-        .iter_by(state.config.sort_by())
+        .iter_by(state.config.sort_by)
         .map(game_card::view)
         .collect::<Row<'_, _>>()
         .spacing(10);

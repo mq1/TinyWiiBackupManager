@@ -14,7 +14,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .on_press(Message::SetViewAs(ViewAs::Grid))
             .style(|theme, status| {
                 let mut base = button::text(theme, status);
-                let bg = match state.config.view_as() {
+                let bg = match state.config.view_as {
                     ViewAs::Grid => Background::Color(theme.palette().primary.scale_alpha(0.5)),
                     ViewAs::Table => my_palette::card_bg(theme),
                 };
@@ -26,7 +26,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .on_press(Message::SetViewAs(ViewAs::Table))
             .style(|theme, status| {
                 let mut base = button::text(theme, status);
-                let bg = match state.config.view_as() {
+                let bg = match state.config.view_as {
                     ViewAs::Table => Background::Color(theme.palette().primary.scale_alpha(0.5)),
                     ViewAs::Grid => my_palette::card_bg(theme),
                 };

@@ -16,20 +16,20 @@ pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
         column![
             row![
                 icon_tag(),
-                text!("{}", game.id()),
+                text!("{}", game.id),
                 space::horizontal(),
-                text!("{}", game.size())
+                text!("{}", game.size)
             ]
             .spacing(5),
-            image(game.cached_cover_path()).height(96),
-            ellipsized_text(game.title()).wrapping(text::Wrapping::None),
+            image(&game.cached_cover_path).height(96),
+            ellipsized_text(&game.title).wrapping(text::Wrapping::None),
             row![
                 components::my_button::view(Some("Info"), Some(Icon::Info))
                     .on_press_with(|| Message::OpenGameInfo(game.clone()))
                     .width(Length::Fill),
                 components::my_button::view(None, Some(Icon::HardDriveDownload)),
                 components::my_button::view(None, Some(Icon::Trash))
-                    .on_press_with(|| Message::AskDeleteDir(game.path().clone()))
+                    .on_press_with(|| Message::AskDeleteDir(game.path.clone()))
             ]
             .spacing(5)
         ]

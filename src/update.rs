@@ -17,7 +17,7 @@ impl AppState {
             Message::PickMountPoint => self.pick_mount_point_task(),
             Message::MountPointPicked(None) => Task::none(),
             Message::MountPointPicked(Some(path)) => {
-                self.config.set_mount_point(path);
+                self.config.mount_point = path;
                 self.write_config_task()
             }
             Message::CloseNotification(idx) => {
@@ -26,7 +26,7 @@ impl AppState {
             }
             Message::RefreshGamesAndApps => self.get_games_task(),
             Message::GotConfig(config) => {
-                let new_mount_point = config.mount_point() != self.config.mount_point();
+                let new_mount_point = config.mount_point != self.config.mount_point;
 
                 self.config = config;
 
@@ -50,7 +50,7 @@ impl AppState {
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
-                self.homebrew_apps = homebrew_apps.sorted_by(self.config.sort_by());
+                self.homebrew_apps = homebrew_apps.sorted_by(self.config.sort_by);
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
@@ -107,7 +107,7 @@ impl AppState {
                 Task::none()
             }
             Message::SetViewAs(view_as) => {
-                self.config.set_view_as(view_as);
+                self.config.view_as = view_as;
                 self.write_config_task()
             }
             Message::AskDeleteDir(path) => {

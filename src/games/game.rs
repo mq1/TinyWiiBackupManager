@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{errors::Error, games::game_id::GameID, util};
-use getset::{CopyGetters, Getters};
 use size::Size;
 use smol::fs;
 use std::{
@@ -11,25 +10,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Debug, Clone, Getters, CopyGetters)]
+#[derive(Debug, Clone)]
 pub struct Game {
-    #[getset(get = "pub")]
-    path: PathBuf,
-
-    #[getset(get_copy = "pub")]
-    id: GameID,
-
-    #[getset(get = "pub")]
-    title: Cow<'static, str>,
-
-    #[getset(get_copy = "pub")]
-    size: Size,
-
-    #[getset(get_copy = "pub")]
-    is_wii: bool,
-
-    #[getset(get = "pub")]
-    cached_cover_path: PathBuf,
+    pub path: PathBuf,
+    pub id: GameID,
+    pub title: Cow<'static, str>,
+    pub size: Size,
+    pub is_wii: bool,
+    pub cached_cover_path: PathBuf,
 }
 
 impl Game {

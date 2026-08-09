@@ -51,7 +51,7 @@ pub fn view<'a>(
             ]
             .spacing(5),
             space::horizontal(),
-            image(game.cached_cover_path()).height(200),
+            image(&game.cached_cover_path).height(200),
         ]
         .padding(20)
         .align_y(Alignment::Center)
@@ -63,9 +63,9 @@ pub fn view<'a>(
     components::card::view(
         column![
             column![
-                text(game.title()).size(18),
-                components::link::view(game.path().to_string_lossy(), Some(Icon::Folder), || game
-                    .path()),
+                text(&game.title).size(18),
+                components::link::view(game.path.to_string_lossy(), Some(Icon::Folder), || &game
+                    .path),
             ]
             .spacing(10)
             .padding(20),

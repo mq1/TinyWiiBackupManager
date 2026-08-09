@@ -59,19 +59,19 @@ impl AppState {
 
     pub fn get_games_task(&self) -> Task<Message> {
         let data_dir = self.data_dir.clone();
-        let mount_point = self.config.mount_point().clone();
+        let mount_point = self.config.mount_point.clone();
 
         Task::perform(GameList::new(data_dir, mount_point), Message::GotGames)
     }
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
-        let mount_point = self.config.mount_point().clone();
+        let mount_point = self.config.mount_point.clone();
 
         Task::perform(HomebrewAppList::new(mount_point), Message::GotHomebrewApps)
     }
 
     pub fn get_drive_info_task(&self) -> Task<Message> {
-        let mount_point = self.config.mount_point();
+        let mount_point = &self.config.mount_point;
         if mount_point.as_os_str().is_empty() {
             return Task::none();
         }
