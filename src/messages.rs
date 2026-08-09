@@ -5,7 +5,7 @@ use crate::{
     config::{Config, ViewAs},
     errors::Error,
     games::{game::Game, game_list::GameList},
-    homebrew::homebrew_app_list::HomebrewAppList,
+    homebrew::{homebrew_app::HomebrewApp, homebrew_app_list::HomebrewAppList},
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
@@ -24,7 +24,7 @@ pub enum Message {
     GotDriveInfo(Result<DriveInfo, Error>),
     Open(OsString),
     OpenGameInfo(Arc<Game>),
-    OpenHomebrewAppInfo(usize),
+    OpenHomebrewAppInfo(Arc<HomebrewApp>),
     CloseModal,
     GotDiscInfo(Result<wii_disc_info::Meta, Error>),
     WroteConfig(Result<(), Error>),

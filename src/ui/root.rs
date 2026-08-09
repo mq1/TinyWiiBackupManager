@@ -46,9 +46,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 Modal::GameInfo((game, disc_info)) => {
                     modals::game_info::view(game, disc_info.as_ref())
                 }
-                Modal::HomebrewAppInfo(idx) => {
-                    modals::homebrew_app_info::view(&state.homebrew_apps[*idx])
-                }
+                Modal::HomebrewAppInfo(app) => modals::homebrew_app_info::view(app),
                 Modal::DeleteDir(path) => modals::delete_dir::view(path),
             })
             .center(Length::Fill)

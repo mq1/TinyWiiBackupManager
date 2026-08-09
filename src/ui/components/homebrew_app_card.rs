@@ -8,8 +8,9 @@ use iced::{
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
+use std::sync::Arc;
 
-pub fn view((idx, app): (usize, &HomebrewApp)) -> Element<'_, Message> {
+pub fn view(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
     components::card::view(
         column![
             row![
@@ -24,7 +25,7 @@ pub fn view((idx, app): (usize, &HomebrewApp)) -> Element<'_, Message> {
             row![
                 components::my_button::view(Some("Info"), Some(Icon::Info))
                     .width(Length::Fill)
-                    .on_press(Message::OpenHomebrewAppInfo(idx)),
+                    .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone())),
                 components::my_button::view(None, Some(Icon::Trash))
                     .on_press_with(|| Message::AskDeleteDir(app.path.clone()))
             ]

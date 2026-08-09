@@ -14,8 +14,7 @@ use iced::{
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = state
         .homebrew_apps
-        .iter()
-        .enumerate()
+        .iter_by(state.config.sort_by)
         .map(homebrew_app_card::view)
         .collect::<Row<'_, _>>()
         .spacing(10);

@@ -50,7 +50,7 @@ impl AppState {
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
-                self.homebrew_apps = homebrew_apps.sorted_by(self.config.sort_by);
+                self.homebrew_apps = homebrew_apps;
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
@@ -78,8 +78,8 @@ impl AppState {
                 self.current_modal = Some(Modal::GameInfo((game.clone(), None)));
                 self.get_disc_info_task(game)
             }
-            Message::OpenHomebrewAppInfo(idx) => {
-                self.current_modal = Some(Modal::HomebrewAppInfo(idx));
+            Message::OpenHomebrewAppInfo(app) => {
+                self.current_modal = Some(Modal::HomebrewAppInfo(app));
                 Task::none()
             }
             Message::CloseModal => {
