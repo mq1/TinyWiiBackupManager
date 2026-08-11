@@ -9,19 +9,19 @@ use iced::{
 use lucide_icons::Icon;
 use std::{ffi::OsString, path::PathBuf};
 
-trait Url {
+pub trait Url {
     fn get(&self) -> OsString;
 }
 
 impl Url for &PathBuf {
     fn get(&self) -> OsString {
-        self.as_os_str().to_os_string()
+        self.into()
     }
 }
 
 impl Url for &str {
     fn get(&self) -> OsString {
-        OsString::from(self)
+        self.into()
     }
 }
 
