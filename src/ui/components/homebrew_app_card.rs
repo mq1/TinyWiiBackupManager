@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{homebrew::homebrew_app::HomebrewApp, messages::Message, ui::components};
+use crate::{
+    homebrew::homebrew_app::HomebrewApp,
+    messages::Message,
+    ui::components::{self, my_button::MyButton},
+};
 use iced::{
     Alignment, Element, Length,
     widget::{column, image, row, space, text},
@@ -23,10 +27,15 @@ pub fn view(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
             image(&app.icon).height(96),
             ellipsized_text(&app.meta.name).wrapping(text::Wrapping::None),
             row![
-                components::my_button::view(Some("Info"), Some(Icon::Info))
+                MyButton::new()
+                    .label("Info")
+                    .icon(Icon::Info)
+                    .view()
                     .width(Length::Fill)
                     .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone())),
-                components::my_button::view(None, Some(Icon::Trash))
+                MyButton::new()
+                    .icon(Icon::Trash)
+                    .view()
                     .on_press_with(|| Message::AskDeleteDir(app.path.clone()))
             ]
             .spacing(5)

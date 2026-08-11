@@ -4,7 +4,7 @@
 use crate::{
     games::game::Game,
     messages::Message,
-    ui::components::{self, my_button},
+    ui::components::{self, my_button::MyButton, my_link::MyLink},
 };
 use iced::{
     Alignment, Element,
@@ -64,8 +64,9 @@ pub fn view<'a>(
         column![
             column![
                 text(&game.title).size(18),
-                components::link::view(game.path.to_string_lossy(), Some(Icon::Folder), || &game
-                    .path),
+                MyLink::new(game.path.to_string_lossy(), &game.path)
+                    .icon(Icon::Folder)
+                    .view(),
             ]
             .spacing(10)
             .padding(20),
@@ -75,7 +76,10 @@ pub fn view<'a>(
             rule::horizontal(1),
             row![
                 space::horizontal(),
-                my_button::primary(Some("Close"), None).on_press(Message::CloseModal)
+                MyButton::new()
+                    .label("Close")
+                    .view()
+                    .on_press(Message::CloseModal)
             ]
             .spacing(10)
             .padding(10)

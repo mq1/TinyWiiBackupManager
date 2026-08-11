@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, state::AppState, ui::components};
+use crate::{
+    messages::Message,
+    state::AppState,
+    ui::components::{self, my_link::MyLink},
+};
 use iced::{
     Alignment, Element, Length,
     widget::{column, image, row, rule, space, text},
@@ -17,6 +21,17 @@ const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"))
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let icon_handle = image::Handle::from_bytes(ICON_BYTES);
 
+    let mq1_link = MyLink::new("mq1", "https://github.com/mq1");
+    let license_link =
+        MyLink::new("GPL-3.0-only", "https://www.gnu.org/licenses/gpl-3.0.html").icon(Icon::Scale);
+    let encounter_link =
+        MyLink::new("Luke Street", "https://github.com/encounter").icon(Icon::Triangle);
+    let blackb0x_link = MyLink::new("blackb0x", "https://github.com/wiidev").icon(Icon::Wand2);
+    let data_dir_link = MyLink::new("data directory", &state.data_dir).icon(Icon::Folder);
+    let source_code_link =
+        MyLink::new("source code", "https://github.com/mq1/TinyWiiBackupManager");
+    let wiki_link = MyLink::new("wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki");
+
     column![
         space::vertical(),
         components::card::view(
@@ -28,18 +43,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                         text(TITLE).size(20),
                         row![
                             "Copyright © 2026 Manuel Quarneti",
-                            components::link::view(
-                                "github/mq1",
-                                None,
-                                || "https://github.com/mq1"
-                            ),
+                            mq1_link.view(),
                         ]
                         .spacing(40),
-                        components::link::view(
-                            "GPL-3.0-only",
-                            Some(Icon::Scale),
-                            || "https://www.gnu.org/licenses/gpl-3.0.html"
-                        )
+                        license_link.view(),
                     ]
                     .spacing(5)
                 ]
@@ -57,20 +64,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 ]
                 .spacing(5),
                 row![
-                    components::link::view(
-                        "Luke Street",
-                        Some(Icon::Triangle),
-                        || "https://github.com/encounter"
-                    ),
+                    encounter_link.view(),
                     "for developing nod and helping TWBM leverage it effectively."
                 ]
                 .spacing(5),
                 row![
-                    components::link::view(
-                        "blackb0x",
-                        Some(Icon::Wand2),
-                        || "https://github.com/wiidev"
-                    ),
+                    blackb0x_link.view(),
                     "for invaluable feedback and advice during TWBM's development."
                 ]
                 .spacing(5),
@@ -82,9 +81,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         space::vertical(),
         row![
             space::horizontal(),
-            components::link::view("Data directory", Some(Icon::Folder), || &state.data_dir),
-            components::link::view("Source code", None, || "https://github.com/mq1/TinyWiiBackupManager"),
-            components::link::view("Wiki", None, || "https://github.com/mq1/TinyWiiBackupManager/wiki")
+            data_dir_link.view(),
+            source_code_link.view(),
+            wiki_link.view(),
         ]
         .padding(15)
         .spacing(10)

@@ -5,7 +5,7 @@ use crate::{
     homebrew::homebrew_app::HomebrewApp,
     messages::Message,
     ui::{
-        components::{self, my_button},
+        components::{self, my_button::MyButton, my_link::MyLink},
         developers::get_dev_icon,
     },
 };
@@ -53,8 +53,9 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
         column![
             column![
                 text(&app.meta.name).size(18),
-                components::link::view(app.path.to_string_lossy(), Some(Icon::Folder), || &app
-                    .path)
+                MyLink::new(app.path.to_string_lossy(), &app.path)
+                    .icon(Icon::Folder)
+                    .view()
             ]
             .spacing(10)
             .padding(20),
@@ -64,9 +65,13 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space(),
-                components::link::view("Open Shop Channel page", None, || app.osc_url()),
+                MyLink::new("Open Shop Channel page", || app.osc_url()).view(),
                 space::horizontal(),
-                my_button::primary(Some("Close"), None).on_press(Message::CloseModal)
+                MyButton::new()
+                    .label("Close")
+                    .primary()
+                    .view()
+                    .on_press(Message::CloseModal)
             ]
             .align_y(Alignment::Center)
             .spacing(10)

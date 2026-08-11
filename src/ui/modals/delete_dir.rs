@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    ui::components::{self, my_button},
+    ui::components::{self, my_button::MyButton},
 };
 use iced::{
     Element, Length,
@@ -23,8 +23,13 @@ pub fn view(path: &Path) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space::horizontal(),
-                my_button::view(Some("Cancel"), None).on_press(Message::CloseModal),
-                my_button::danger(Some("Ok"), None)
+                MyButton::new()
+                    .label("Cancel")
+                    .view()
+                    .on_press(Message::CloseModal),
+                MyButton::new()
+                    .label("Ok")
+                    .view()
                     .on_press_with(|| Message::DeleteDir(path.to_path_buf()))
             ]
             .spacing(10)
