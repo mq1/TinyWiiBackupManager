@@ -10,17 +10,17 @@ use lucide_icons::Icon;
 use std::{ffi::OsString, path::PathBuf};
 
 pub trait Url {
-    fn get(&self) -> OsString;
+    fn url(&self) -> OsString;
 }
 
 impl Url for &PathBuf {
-    fn get(&self) -> OsString {
+    fn url(&self) -> OsString {
         self.into()
     }
 }
 
 impl Url for &str {
-    fn get(&self) -> OsString {
+    fn url(&self) -> OsString {
         self.into()
     }
 }
@@ -30,7 +30,7 @@ where
     O: Into<OsString>,
     F: Fn() -> O,
 {
-    fn get(&self) -> OsString {
+    fn url(&self) -> OsString {
         self().into()
     }
 }
@@ -77,7 +77,7 @@ where
                 base
             })
             .padding(0)
-            .on_press_with(move || Message::Open(self.url.get()))
+            .on_press_with(move || Message::Open(self.url.url()))
             .into()
     }
 }
