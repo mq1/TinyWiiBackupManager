@@ -3,10 +3,9 @@
 
 use crate::messages::Message;
 use iced::{
-    Alignment, Length,
-    advanced::Widget,
+    Length,
     border::Border,
-    widget::{Button, Row, button, column, text},
+    widget::{Button, Row, button, container, text},
 };
 use lucide_icons::Icon;
 
@@ -24,6 +23,7 @@ pub struct MyButton<'a> {
     icon: Option<Icon>,
     kind: MyButtonKind,
     rounded: bool,
+    toolbar: bool,
 }
 
 impl<'a> MyButton<'a> {
@@ -56,42 +56,61 @@ impl<'a> MyButton<'a> {
         self
     }
 
+    pub fn toolbar(mut self) -> Self {
+        self.toolbar = true;
+        self.rounded = true;
+        self.kind = MyButtonKind::Primary;
+        self
+    }
+
     pub fn view(self) -> Button<'a, Message> {
-        let content = [
-            self.icon.map(|i| i.widget().into()),
-            self.label.map(|l| text(l).into()),
-        ]
-        .into_iter()
-        .flatten()
-        .collect::<Row<'_, _>>()
-        .spacing(5);
+        let icon = self.icon.map(|i| {
+            let mut widget = i.widget();
+            if self.toolbar {
+                widget = widget.size(18);
+            }
+            widget.into()
+        });
 
-        let content_width = content.size_hint().width;
+        let label = self.label.map(|l| {
+            let mut widget = text(l);
+            if self.toolbar {
+                widget = widget.size(18);
+            }
+            widget.into()
+        });
 
-        button(
-            column![content]
-                .align_x(Alignment::Center)
-                .width(Length::Fill),
-        )
-        .style(move |theme, status| {
-            let mut base = match self.kind {
-                MyButtonKind::Secondary => button::subtle(theme, status),
-                MyButtonKind::Primary => button::primary(theme, status),
-                MyButtonKind::Danger => button::danger(theme, status),
-            };
+        let content = [icon, label]
+            .into_iter()
+            .flatten()
+            .collect::<Row<'_, _>>()
+            .spacing(5);
 
-            base.border = Border {
-                width: if self.kind == MyButtonKind::Secondary {
-                    1.0
-                } else {
-                    0.0
-                },
-                radius: if self.rounded { 90. } else { 12. }.into(),
-                color: theme.extended_palette().background.weak.color,
-            };
+        let mut btn =
+            button(container(content).center(Length::Shrink)).style(move |theme, status| {
+                let mut base = match self.kind {
+                    MyButtonKind::Secondary => button::subtle(theme, status),
+                    MyButtonKind::Primary => button::primary(theme, status),
+                    MyButtonKind::Danger => button::danger(theme, status),
+                };
 
-            base
-        })
-        .width(content_width)
+                base.border = Border {
+                    width: if self.kind == MyButtonKind::Secondary {
+                        1.0
+                    } else {
+                        0.0
+                    },
+                    radius: if self.rounded { 17. } else { 10. }.into(),
+                    color: theme.extended_palette().background.weak.color,
+                };
+
+                base
+            });
+
+        if self.toolbar {
+            btn = btn.padding(0).width(34).height(34);
+        }
+
+        btn
     }
 }

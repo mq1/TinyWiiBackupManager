@@ -24,18 +24,18 @@ impl AppState {
                 self.notifications.close(idx);
                 Task::none()
             }
-            Message::RefreshGamesAndApps => self.get_games_task(),
+            Message::RefreshGamesAndApps => Task::batch([
+                self.get_games_task(),
+                self.get_homebrew_apps_task(),
+                self.get_drive_info_task(),
+            ]),
             Message::GotConfig(config) => {
                 let new_mount_point = config.mount_point != self.config.mount_point;
 
                 self.config = config;
 
                 if new_mount_point {
-                    Task::batch([
-                        self.get_games_task(),
-                        self.get_homebrew_apps_task(),
-                        self.get_drive_info_task(),
-                    ])
+                    Task::done(Message::RefreshGamesAndApps)
                 } else {
                     Task::none()
                 }
