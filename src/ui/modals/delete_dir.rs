@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    ui::components::{self, my_button::MyButton},
+    ui::components::{my_button::MyButton, my_card::MyCard},
 };
 use iced::{
     Element, Length,
@@ -12,7 +12,7 @@ use iced::{
 use std::path::Path;
 
 pub fn view(path: &Path) -> Element<'_, Message> {
-    components::card::view(
+    MyCard::new(
         column![
             container(text!(
                 "Are you sure you want to delete {}?\nThis action cannot be undone.",
@@ -38,6 +38,7 @@ pub fn view(path: &Path) -> Element<'_, Message> {
         .width(600)
         .height(Length::Shrink),
     )
+    .view()
     .padding(0)
     .into()
 }

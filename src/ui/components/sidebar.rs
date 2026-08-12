@@ -4,7 +4,10 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::{components, pages::Page},
+    ui::{
+        components::{self, my_card::MyCard},
+        pages::Page,
+    },
 };
 use iced::{
     Element,
@@ -30,7 +33,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         tooltip(
             components::sidebar_button::view(&[Icon::HardDrive], false)
                 .on_press(Message::PickMountPoint),
-            components::card::view("Select a drive"),
+            MyCard::new("Select a drive").view(),
             tooltip::Position::Right
         ),
         components::sidebar_button::view(&[Icon::Info], state.current_page == Page::About)

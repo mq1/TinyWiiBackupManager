@@ -4,7 +4,7 @@
 use crate::{
     games::game::Game,
     messages::Message,
-    ui::components::{self, my_button::MyButton, my_link::MyLink},
+    ui::components::{my_button::MyButton, my_card::MyCard, my_link::MyLink},
 };
 use iced::{
     Alignment, Element,
@@ -60,7 +60,7 @@ pub fn view<'a>(
         text("No disc info available").center().into()
     };
 
-    components::card::view(
+    MyCard::new(
         column![
             column![
                 text(&game.title).size(18),
@@ -87,6 +87,7 @@ pub fn view<'a>(
         .width(600)
         .height(400),
     )
+    .view()
     .padding(0)
     .into()
 }

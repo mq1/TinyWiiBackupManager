@@ -4,7 +4,7 @@
 use crate::{
     games::game::Game,
     messages::Message,
-    ui::components::{self, my_button::MyButton},
+    ui::components::{my_button::MyButton, my_card::MyCard},
 };
 use iced::{
     Alignment, Element, Length,
@@ -15,13 +15,13 @@ use lucide_icons::{Icon, iced::icon_tag};
 use std::sync::Arc;
 
 pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
-    components::card::view(
+    MyCard::new(
         column![
             row![
                 icon_tag(),
-                text!("{}", game.id),
+                text(game.id.as_str()),
                 space::horizontal(),
-                text!("{}", game.size)
+                text(game.size.to_string())
             ]
             .spacing(5),
             image(&game.cached_cover_path).height(96),
@@ -45,6 +45,7 @@ pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
         .padding(5)
         .spacing(10),
     )
+    .view()
     .width(172)
     .into()
 }

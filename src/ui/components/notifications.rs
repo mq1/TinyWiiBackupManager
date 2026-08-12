@@ -6,7 +6,7 @@ use crate::{
     notifications::notification::NotificationLevel,
     state::AppState,
     ui::{
-        components,
+        components::my_card::MyCard,
         my_palette::{BLUE, GREEN, RED, YELLOW},
     },
 };
@@ -29,7 +29,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 NotificationLevel::Success => icon_check().color(GREEN),
             };
 
-            components::card::view(
+            MyCard::new(
                 row![
                     icon,
                     text(&notification.label),
@@ -46,6 +46,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 ]
                 .spacing(10),
             )
+            .view()
             .into()
         })
         .collect::<Column<'_, _>>()

@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    ui::components::{self, my_button::MyButton},
+    ui::components::{my_button::MyButton, my_card::MyCard},
 };
 use iced::{
     Alignment, Element,
@@ -22,7 +22,7 @@ pub fn view<'a>() -> Element<'a, Message> {
                 .toolbar()
                 .view()
                 .on_press(Message::RefreshGamesAndApps),
-            components::card::view("Refresh games and apps"),
+            MyCard::new("Refresh games and apps").view(),
             tooltip::Position::Bottom
         )
     ]

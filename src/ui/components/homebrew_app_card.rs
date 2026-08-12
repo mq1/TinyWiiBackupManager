@@ -4,7 +4,7 @@
 use crate::{
     homebrew::homebrew_app::HomebrewApp,
     messages::Message,
-    ui::components::{self, my_button::MyButton},
+    ui::components::{my_button::MyButton, my_card::MyCard},
 };
 use iced::{
     Alignment, Element, Length,
@@ -15,7 +15,7 @@ use lucide_icons::{Icon, iced::icon_tag};
 use std::sync::Arc;
 
 pub fn view(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
-    components::card::view(
+    MyCard::new(
         column![
             row![
                 icon_tag(),
@@ -44,6 +44,7 @@ pub fn view(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
         .padding(5)
         .spacing(10),
     )
+    .view()
     .width(172)
     .into()
 }

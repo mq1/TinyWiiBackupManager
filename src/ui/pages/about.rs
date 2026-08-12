@@ -4,7 +4,7 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{self, my_link::MyLink},
+    ui::components::{my_card::MyCard, my_link::MyLink},
 };
 use iced::{
     Alignment, Element, Length,
@@ -34,7 +34,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     column![
         space::vertical(),
-        components::card::view(
+        MyCard::new(
             column![
                 row![
                     image(icon_handle).width(128).height(128),
@@ -77,6 +77,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .padding(20)
             .spacing(10)
         )
+        .view()
         .width(600),
         space::vertical(),
         row![

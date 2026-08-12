@@ -5,7 +5,7 @@ use crate::{
     homebrew::homebrew_app::HomebrewApp,
     messages::Message,
     ui::{
-        components::{self, my_button::MyButton, my_link::MyLink},
+        components::{my_button::MyButton, my_card::MyCard, my_link::MyLink},
         developers::get_dev_icon,
     },
 };
@@ -49,7 +49,7 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
     .spacing(50)
     .align_y(Alignment::Center);
 
-    components::card::view(
+    MyCard::new(
         column![
             column![
                 text(&app.meta.name).size(18),
@@ -80,6 +80,7 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
         .width(600)
         .height(400),
     )
+    .view()
     .padding(0)
     .into()
 }
