@@ -8,40 +8,36 @@ use crate::{
     ui::{
         components,
         modals::{self, Modal},
-        my_palette,
         pages::{self, Page},
     },
 };
 use iced::{
-    Color, Element, Length, border,
-    widget::{Stack, container, opaque, row},
+    Color, Element, Length, Theme, border,
+    widget::{column, container, opaque, row, rule, stack},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    let content = Some(
-        row![
-            components::sidebar::view(state),
-            container(match (state.current_page, state.config.view_as) {
-                (Page::Games, ViewAs::Grid) => pages::game_grid::view(state),
-                (Page::Games, ViewAs::Table) => pages::game_table::view(state),
-                (Page::HomebrewApps, _) => pages::homebrew_app_grid::view(state),
-                (Page::Settings, _) => pages::settings::view(),
-                (Page::Toolbox, _) => pages::toolbox::view(state),
-                (Page::About, _) => pages::about::view(state),
-            })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(|theme| {
-                let mut base = container::bordered_box(theme);
-                base.border.radius = border::radius(10);
-                base
-            })
-        ]
-        .into(),
-    );
+    let mut stack = stack![row![
+        components::sidebar::view(state),
+        container(match (state.current_page, state.config.view_as) {
+            (Page::Games, ViewAs::Grid) => pages::game_grid::view(state),
+            (Page::Games, ViewAs::Table) => pages::game_table::view(state),
+            (Page::HomebrewApps, _) => pages::homebrew_app_grid::view(state),
+            (Page::Settings, _) => pages::settings::view(),
+            (Page::Toolbox, _) => pages::toolbox::view(state),
+            (Page::About, _) => pages::about::view(state),
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .style(|theme| {
+            let mut base = container::bordered_box(theme);
+            base.border.radius = border::radius(10);
+            base
+        })
+    ],];
 
-    let modal = state.current_modal.as_ref().map(|modal| {
-        opaque(
+    if let Some(modal) = &state.current_modal {
+        stack = stack.push(opaque(
             container(match modal {
                 Modal::GameInfo((game, disc_info)) => {
                     modals::game_info::view(game, disc_info.as_ref())
@@ -51,19 +47,27 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             })
             .center(Length::Fill)
             .style(|theme| container::transparent(theme).background(Color::BLACK.scale_alpha(0.7))),
+        ));
+    }
+
+    if state.notifications.has_notifications() {
+        stack = stack.push(
+            container(components::notifications::view(state))
+                .align_right(Length::Fill)
+                .align_bottom(Length::Fill),
         )
-    });
+    };
 
-    let notifications = state.notifications.has_notifications().then(|| {
-        container(components::notifications::view(state))
-            .align_right(Length::Fill)
-            .align_bottom(Length::Fill)
-            .into()
-    });
-
-    let stack = Stack::with_children([content, modal, notifications].into_iter().flatten());
-
-    container(stack)
-        .style(|theme| container::background(my_palette::card_bg(theme)))
+    if cfg!(target_os = "macos") {
+        column![
+            rule::horizontal(32).style(|theme: &Theme| rule::Style {
+                color: theme.palette().background,
+                ..rule::default(theme)
+            }),
+            stack
+        ]
         .into()
+    } else {
+        stack.into()
+    }
 }

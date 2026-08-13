@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::ViewAs, messages::Message, state::AppState, ui::my_palette};
+use crate::{config::ViewAs, messages::Message, state::AppState};
 use iced::{
     Background, Element, border,
     widget::{button, row},
@@ -16,7 +16,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 let mut base = button::text(theme, status);
                 let bg = match state.config.view_as {
                     ViewAs::Grid => Background::Color(theme.palette().primary.scale_alpha(0.5)),
-                    ViewAs::Table => my_palette::card_bg(theme),
+                    ViewAs::Table => Background::Color(theme.palette().background),
                 };
                 base.background = Some(bg);
                 base.border.radius = border::radius(0).top_left(10).bottom_left(10);
@@ -28,7 +28,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 let mut base = button::text(theme, status);
                 let bg = match state.config.view_as {
                     ViewAs::Table => Background::Color(theme.palette().primary.scale_alpha(0.5)),
-                    ViewAs::Grid => my_palette::card_bg(theme),
+                    ViewAs::Grid => Background::Color(theme.palette().background),
                 };
                 base.background = Some(bg);
                 base.border.radius = border::radius(0).top_right(10).bottom_right(10);

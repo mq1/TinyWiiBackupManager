@@ -28,9 +28,15 @@ pub fn main() -> iced::Result {
         ..Default::default()
     };
 
+    #[cfg(target_os = "macos")]
+    let height = 600.0 + 32.0; // compensate for titlebar height on macOS
+
+    #[cfg(not(target_os = "macos"))]
+    let height = 600.0;
+
     let window = iced::window::Settings {
-        size: iced::Size::new(800., 600.),
-        min_size: Some(iced::Size::new(800., 600.)),
+        size: iced::Size::new(800., height),
+        min_size: Some(iced::Size::new(800., height)),
 
         #[cfg(target_os = "windows")]
         platform_specific: iced::window::settings::PlatformSpecific {
@@ -41,6 +47,7 @@ pub fn main() -> iced::Result {
         #[cfg(target_os = "macos")]
         platform_specific: iced::window::settings::PlatformSpecific {
             titlebar_transparent: true,
+            fullsize_content_view: true,
             ..Default::default()
         },
 

@@ -2,16 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
-    notifications::notification::NotificationLevel,
-    state::AppState,
-    ui::{
-        components::my_card::my_card,
-        my_palette::{BLUE, GREEN, RED, YELLOW},
-    },
+    messages::Message, notifications::notification::NotificationLevel, state::AppState,
+    ui::components::my_card::my_card,
 };
 use iced::{
-    Element, border,
+    Element, Theme, border,
     widget::{Column, button, row, text},
 };
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
@@ -23,10 +18,20 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .enumerate()
         .map(|(i, notification)| {
             let icon = match notification.level {
-                NotificationLevel::Info => icon_info().color(BLUE),
-                NotificationLevel::Warning => icon_alert_triangle().color(YELLOW),
-                NotificationLevel::Error => icon_x().color(RED),
-                NotificationLevel::Success => icon_check().color(GREEN),
+                NotificationLevel::Info => icon_info().style(|theme: &Theme| text::Style {
+                    color: Some(theme.palette().primary),
+                }),
+                NotificationLevel::Warning => {
+                    icon_alert_triangle().style(|theme: &Theme| text::Style {
+                        color: Some(theme.palette().warning),
+                    })
+                }
+                NotificationLevel::Error => icon_x().style(|theme: &Theme| text::Style {
+                    color: Some(theme.palette().danger),
+                }),
+                NotificationLevel::Success => icon_check().style(|theme: &Theme| text::Style {
+                    color: Some(theme.palette().success),
+                }),
             };
 
             my_card(
