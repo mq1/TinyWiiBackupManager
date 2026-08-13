@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, messages::Message, ui::components::my_card::MyCard};
+use crate::{games::game::Game, messages::Message, ui::components::my_card::my_card};
 use iced::{
     Element, padding,
     widget::{button, row, space, text, tooltip},
@@ -13,7 +13,7 @@ pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
     row![
         tooltip(
             game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),
-            MyCard::new(text(if game.is_wii { "Wii" } else { "GameCube" })).view(),
+            my_card(if game.is_wii { "Wii" } else { "GameCube" }),
             tooltip::Position::Top
         ),
         text!("{} [{}]", &game.title, game.id),
@@ -25,7 +25,7 @@ pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
                 .style(button::text)
                 .width(20)
                 .height(20),
-            MyCard::new(text!("Delete game")).view(),
+            my_card("Delete game"),
             tooltip::Position::Top
         ),
         tooltip(
@@ -35,7 +35,7 @@ pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
                 .style(button::text)
                 .width(20)
                 .height(20),
-            MyCard::new(text!("Game info")).view(),
+            my_card("Game info"),
             tooltip::Position::Top
         ),
     ]

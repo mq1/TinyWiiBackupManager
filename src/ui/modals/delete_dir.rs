@@ -3,7 +3,10 @@
 
 use crate::{
     messages::Message,
-    ui::components::{my_button::MyButton, my_card::MyCard},
+    ui::components::{
+        my_button::{MyButtonKind, my_button},
+        my_card::my_card,
+    },
 };
 use iced::{
     Element, Length,
@@ -12,7 +15,7 @@ use iced::{
 use std::path::Path;
 
 pub fn view(path: &Path) -> Element<'_, Message> {
-    MyCard::new(
+    my_card(
         column![
             container(text!(
                 "Are you sure you want to delete {}?\nThis action cannot be undone.",
@@ -23,13 +26,8 @@ pub fn view(path: &Path) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space::horizontal(),
-                MyButton::new()
-                    .label("Cancel")
-                    .view()
-                    .on_press(Message::CloseModal),
-                MyButton::new()
-                    .label("Ok")
-                    .view()
+                my_button("Cancel", None, MyButtonKind::Secondary).on_press(Message::CloseModal),
+                my_button("Ok", None, MyButtonKind::Danger)
                     .on_press_with(|| Message::DeleteDir(path.to_path_buf()))
             ]
             .spacing(10)
@@ -38,7 +36,6 @@ pub fn view(path: &Path) -> Element<'_, Message> {
         .width(600)
         .height(Length::Shrink),
     )
-    .view()
     .padding(0)
     .into()
 }

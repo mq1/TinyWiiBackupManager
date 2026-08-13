@@ -3,7 +3,10 @@
 
 use crate::{
     messages::Message,
-    ui::components::{my_button::MyButton, my_card::MyCard},
+    ui::components::{
+        my_button::{MyButtonKind, my_button},
+        my_card::my_card,
+    },
 };
 use iced::{
     Alignment, Element,
@@ -17,12 +20,9 @@ pub fn view<'a>() -> Element<'a, Message> {
         text("Homebrew Apps").size(20),
         space::horizontal(),
         tooltip(
-            MyButton::new()
-                .icon(Icon::RotateCw)
-                .toolbar()
-                .view()
+            my_button(None, Icon::RotateCw, MyButtonKind::Toolbar)
                 .on_press(Message::RefreshGamesAndApps),
-            MyCard::new("Refresh games and apps").view(),
+            my_card("Refresh games and apps"),
             tooltip::Position::Bottom
         )
     ]

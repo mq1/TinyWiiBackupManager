@@ -5,7 +5,7 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::{
-        components::{my_card::MyCard, my_sidebar_button::MySidebarButton},
+        components::{my_card::my_card, my_sidebar_button::my_sidebar_button},
         pages::Page,
     },
 };
@@ -18,56 +18,47 @@ use lucide_icons::Icon;
 pub fn view(state: &AppState) -> Element<'_, Message> {
     column![
         tooltip(
-            MySidebarButton::new(&[Icon::Gamepad2])
-                .active_if(state.current_page == Page::Games)
-                .view()
+            my_sidebar_button(&[Icon::Gamepad2], state.current_page == Page::Games)
                 .on_press(Message::NavigateTo(Page::Games)),
-            MyCard::new("Games").view(),
+            my_card("Games"),
             tooltip::Position::Right
         ),
         tooltip(
-            MySidebarButton::new(&[Icon::Waves, Icon::Bubbles])
-                .active_if(state.current_page == Page::HomebrewApps)
-                .view()
-                .on_press(Message::NavigateTo(Page::HomebrewApps)),
-            MyCard::new("Homebrew Apps").view(),
+            my_sidebar_button(
+                &[Icon::Waves, Icon::Bubbles],
+                state.current_page == Page::HomebrewApps
+            )
+            .on_press(Message::NavigateTo(Page::HomebrewApps)),
+            my_card("Homebrew Apps"),
             tooltip::Position::Right
         ),
         tooltip(
-            MySidebarButton::new(&[Icon::Waves, Icon::ArrowBigDown]).view(),
-            MyCard::new("Open Shop Channel").view(),
+            my_sidebar_button(&[Icon::Waves, Icon::ArrowBigDown], false),
+            my_card("Open Shop Channel"),
             tooltip::Position::Right
         ),
         tooltip(
-            MySidebarButton::new(&[Icon::ToolCase])
-                .active_if(state.current_page == Page::Toolbox)
-                .view()
+            my_sidebar_button(&[Icon::ToolCase], state.current_page == Page::Toolbox)
                 .on_press(Message::NavigateTo(Page::Toolbox)),
-            MyCard::new("Toolbox").view(),
+            my_card("Toolbox"),
             tooltip::Position::Right
         ),
         tooltip(
-            MySidebarButton::new(&[Icon::Settings])
-                .active_if(state.current_page == Page::Settings)
-                .view()
+            my_sidebar_button(&[Icon::Settings], state.current_page == Page::Settings)
                 .on_press(Message::NavigateTo(Page::Settings)),
-            MyCard::new("Settings").view(),
+            my_card("Settings"),
             tooltip::Position::Right
         ),
         space::vertical(),
         tooltip(
-            MySidebarButton::new(&[Icon::HardDrive])
-                .view()
-                .on_press(Message::PickMountPoint),
-            MyCard::new("Select a drive").view(),
+            my_sidebar_button(&[Icon::HardDrive], false).on_press(Message::PickMountPoint),
+            my_card("Select a drive"),
             tooltip::Position::Right
         ),
         tooltip(
-            MySidebarButton::new(&[Icon::Info])
-                .active_if(state.current_page == Page::About)
-                .view()
+            my_sidebar_button(&[Icon::Info], state.current_page == Page::About)
                 .on_press(Message::NavigateTo(Page::About)),
-            MyCard::new("About").view(),
+            my_card("About"),
             tooltip::Position::Right
         )
     ]

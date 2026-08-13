@@ -4,7 +4,7 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{my_card::MyCard, my_link::MyLink},
+    ui::components::{my_card::my_card, my_link::my_link},
 };
 use iced::{
     Alignment, Element, Length,
@@ -21,20 +21,33 @@ const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"))
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let icon_handle = image::Handle::from_bytes(ICON_BYTES);
 
-    let mq1_link = MyLink::new("mq1", "https://github.com/mq1");
-    let license_link =
-        MyLink::new("GPL-3.0-only", "https://www.gnu.org/licenses/gpl-3.0.html").icon(Icon::Scale);
-    let encounter_link =
-        MyLink::new("Luke Street", "https://github.com/encounter").icon(Icon::Triangle);
-    let blackb0x_link = MyLink::new("blackb0x", "https://github.com/wiidev").icon(Icon::Wand2);
-    let data_dir_link = MyLink::new("data directory", &state.data_dir).icon(Icon::Folder);
-    let source_code_link =
-        MyLink::new("source code", "https://github.com/mq1/TinyWiiBackupManager");
-    let wiki_link = MyLink::new("wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki");
+    let mq1_link = my_link("mq1", || "https://github.com/mq1", None);
+    let license_link = my_link(
+        "GPL-3.0-only",
+        || "https://www.gnu.org/licenses/gpl-3.0.html",
+        Icon::Scale,
+    );
+    let encounter_link = my_link(
+        "Luke Street",
+        || "https://github.com/encounter",
+        Icon::Triangle,
+    );
+    let blackb0x_link = my_link("blackb0x", || "https://github.com/wiidev", Icon::Wand2);
+    let data_dir_link = my_link("Data directory", || &state.data_dir, Icon::Folder);
+    let source_code_link = my_link(
+        "Source code",
+        || "https://github.com/mq1/TinyWiiBackupManager",
+        None,
+    );
+    let wiki_link = my_link(
+        "Wiki",
+        || "https://github.com/mq1/TinyWiiBackupManager/wiki",
+        None,
+    );
 
     column![
         space::vertical(),
-        MyCard::new(
+        my_card(
             column![
                 row![
                     image(icon_handle).width(128).height(128),
@@ -43,10 +56,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                         text(TITLE).size(20),
                         row![
                             "Copyright © 2026 Manuel Quarneti",
-                            mq1_link.view(),
+                            mq1_link,
                         ]
                         .spacing(40),
-                        license_link.view(),
+                        license_link,
                     ]
                     .spacing(5)
                 ]
@@ -64,12 +77,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 ]
                 .spacing(5),
                 row![
-                    encounter_link.view(),
+                    encounter_link,
                     "for developing nod and helping TWBM leverage it effectively."
                 ]
                 .spacing(5),
                 row![
-                    blackb0x_link.view(),
+                    blackb0x_link,
                     "for invaluable feedback and advice during TWBM's development."
                 ]
                 .spacing(5),
@@ -77,14 +90,14 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .padding(20)
             .spacing(10)
         )
-        .view()
+        
         .width(600),
         space::vertical(),
         row![
             space::horizontal(),
-            data_dir_link.view(),
-            source_code_link.view(),
-            wiki_link.view(),
+            data_dir_link,
+            source_code_link,
+            wiki_link,
         ]
         .padding(15)
         .spacing(10)

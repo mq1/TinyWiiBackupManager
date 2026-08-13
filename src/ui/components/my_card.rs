@@ -3,31 +3,17 @@
 
 use crate::{messages::Message, ui::my_palette};
 use iced::{
-    Element,
-    border::radius,
-    padding,
+    Element, padding,
     widget::{Container, container},
 };
 
-pub struct MyCard<'a> {
-    contents: Element<'a, Message>,
-}
-
-impl<'a> MyCard<'a> {
-    pub fn new(contents: impl Into<Element<'a, Message>>) -> Self {
-        Self {
-            contents: contents.into(),
-        }
-    }
-
-    pub fn view(self) -> Container<'a, Message> {
-        container(self.contents)
-            .style(|theme| {
-                let mut base = container::bordered_box(theme);
-                base.border.radius = radius(10);
-                base.background = Some(my_palette::card_bg(theme));
-                base
-            })
-            .padding(padding::horizontal(10).vertical(5))
-    }
+pub fn my_card<'a>(contents: impl Into<Element<'a, Message>>) -> Container<'a, Message> {
+    container(contents)
+        .style(|theme| {
+            let mut base = container::bordered_box(theme);
+            base.border.radius = 10.into();
+            base.background = Some(my_palette::card_bg(theme));
+            base
+        })
+        .padding(padding::horizontal(10).vertical(5))
 }

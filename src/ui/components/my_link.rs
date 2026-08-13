@@ -7,77 +7,31 @@ use iced::{
     widget::{button, column, container, row, text, text::IntoFragment},
 };
 use lucide_icons::Icon;
-use std::{ffi::OsString, path::PathBuf};
+use std::ffi::OsString;
 
-pub trait Url {
-    fn url(&self) -> OsString;
-}
-
-impl Url for &PathBuf {
-    fn url(&self) -> OsString {
-        self.into()
-    }
-}
-
-impl Url for &str {
-    fn url(&self) -> OsString {
-        self.into()
-    }
-}
-
-impl<F, O> Url for F
-where
-    O: Into<OsString>,
-    F: Fn() -> O,
-{
-    fn url(&self) -> OsString {
-        self().into()
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct MyLink<L, U> {
-    label: L,
-    icon: Option<Icon>,
-    url: U,
-}
-
-impl<'a, L, U> MyLink<L, U>
+pub fn my_link<'a, L, O, U, I>(label: L, url: U, icon: I) -> Element<'a, Message>
 where
     L: IntoFragment<'a>,
-    U: Url + 'a,
+    O: Into<OsString> + 'a,
+    U: Fn() -> O + 'a,
+    I: Into<Option<Icon>>,
 {
-    pub fn new(label: L, url: U) -> Self {
-        Self {
-            label,
-            url,
-            icon: None,
-        }
-    }
+    let icon = icon.into().unwrap_or(Icon::Globe).widget();
+    let label = row![icon, text(label)].spacing(5);
 
-    pub fn icon(mut self, icon: Icon) -> Self {
-        self.icon = Some(icon);
-        self
-    }
+    let underline = container(row![].height(1).width(Length::Fill)).style(|theme| {
+        let mut base = container::bordered_box(theme);
+        base.border.color = theme.palette().primary;
+        base
+    });
 
-    pub fn view(self) -> Element<'a, Message> {
-        let icon = self.icon.unwrap_or(Icon::Globe).widget();
-        let label = row![icon, text(self.label)].spacing(5);
-
-        let underline = container(row![].height(1).width(Length::Fill)).style(|theme| {
-            let mut base = container::bordered_box(theme);
-            base.border.color = theme.palette().primary;
+    button(column![label, underline].width(Length::Shrink))
+        .style(|theme, status| {
+            let mut base = button::text(theme, status);
+            base.text_color = theme.palette().primary;
             base
-        });
-
-        button(column![label, underline].width(Length::Shrink))
-            .style(|theme, status| {
-                let mut base = button::text(theme, status);
-                base.text_color = theme.palette().primary;
-                base
-            })
-            .padding(0)
-            .on_press_with(move || Message::Open(self.url.url()))
-            .into()
-    }
+        })
+        .padding(0)
+        .on_press_with(move || Message::Open(url().into()))
+        .into()
 }

@@ -4,7 +4,11 @@
 use crate::{
     games::game::Game,
     messages::Message,
-    ui::components::{my_button::MyButton, my_card::MyCard, my_link::MyLink},
+    ui::components::{
+        my_button::{MyButtonKind, my_button},
+        my_card::my_card,
+        my_link::my_link,
+    },
 };
 use iced::{
     Alignment, Element,
@@ -60,13 +64,11 @@ pub fn view<'a>(
         text("No disc info available").center().into()
     };
 
-    MyCard::new(
+    my_card(
         column![
             column![
                 text(&game.title).size(18),
-                MyLink::new(game.path.to_string_lossy(), &game.path)
-                    .icon(Icon::Folder)
-                    .view(),
+                my_link(game.path.to_string_lossy(), || &game.path, Icon::Folder)
             ]
             .spacing(10)
             .padding(20),
@@ -76,10 +78,7 @@ pub fn view<'a>(
             rule::horizontal(1),
             row![
                 space::horizontal(),
-                MyButton::new()
-                    .label("Close")
-                    .view()
-                    .on_press(Message::CloseModal)
+                my_button("Close", None, MyButtonKind::Secondary).on_press(Message::CloseModal)
             ]
             .spacing(10)
             .padding(10)
@@ -87,7 +86,6 @@ pub fn view<'a>(
         .width(600)
         .height(400),
     )
-    .view()
     .padding(0)
     .into()
 }

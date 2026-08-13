@@ -5,7 +5,11 @@ use crate::{
     homebrew::homebrew_app::HomebrewApp,
     messages::Message,
     ui::{
-        components::{my_button::MyButton, my_card::MyCard, my_link::MyLink},
+        components::{
+            my_button::{MyButtonKind, my_button},
+            my_card::my_card,
+            my_link::my_link,
+        },
         developers::get_dev_icon,
     },
 };
@@ -49,13 +53,11 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
     .spacing(50)
     .align_y(Alignment::Center);
 
-    MyCard::new(
+    my_card(
         column![
             column![
                 text(&app.meta.name).size(18),
-                MyLink::new(app.path.to_string_lossy(), &app.path)
-                    .icon(Icon::Folder)
-                    .view()
+                my_link(app.path.to_string_lossy(), || &app.path, Icon::Folder)
             ]
             .spacing(10)
             .padding(20),
@@ -65,13 +67,9 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space(),
-                MyLink::new("Open Shop Channel page", || app.osc_url()).view(),
+                my_link("Open Shop Channel page", || app.osc_url(), None),
                 space::horizontal(),
-                MyButton::new()
-                    .label("Close")
-                    .primary()
-                    .view()
-                    .on_press(Message::CloseModal)
+                my_button("Close", None, MyButtonKind::Primary).on_press(Message::CloseModal)
             ]
             .align_y(Alignment::Center)
             .spacing(10)
@@ -80,7 +78,6 @@ pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
         .width(600)
         .height(400),
     )
-    .view()
     .padding(0)
     .into()
 }
