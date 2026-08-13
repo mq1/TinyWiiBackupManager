@@ -3,8 +3,8 @@
 
 use crate::messages::Message;
 use iced::{
-    Element, Length,
-    widget::{button, column, container, row, text, text::IntoFragment},
+    Element, Length, Theme,
+    widget::{button, column, row, rule, text, text::IntoFragment},
 };
 use lucide_icons::Icon;
 use std::ffi::OsString;
@@ -19,17 +19,15 @@ where
     let icon = icon.into().unwrap_or(Icon::Globe).widget();
     let label = row![icon, text(label)].spacing(5);
 
-    let underline = container(row![].height(1).width(Length::Fill)).style(|theme| {
-        let mut base = container::bordered_box(theme);
-        base.border.color = theme.palette().primary;
-        base
+    let underline = rule::horizontal(1).style(|theme: &Theme| rule::Style {
+        color: theme.palette().primary,
+        ..rule::default(theme)
     });
 
     button(column![label, underline].width(Length::Shrink))
-        .style(|theme, status| {
-            let mut base = button::text(theme, status);
-            base.text_color = theme.palette().primary;
-            base
+        .style(|theme: &Theme, status| button::Style {
+            text_color: theme.palette().primary,
+            ..button::text(theme, status)
         })
         .padding(0)
         .on_press_with(move || Message::Open(url().into()))
