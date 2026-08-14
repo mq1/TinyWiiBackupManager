@@ -9,7 +9,7 @@ use crate::{
     messages::Message,
     notifications::notification_list::NotificationList,
     ui::{dialogs, modals::Modal, pages::Page},
-    util::drive_info::DriveInfo,
+    util::{self, drive_info::DriveInfo},
 };
 use iced::{Task, futures::TryFutureExt};
 use smol::fs::{self, File};
@@ -96,6 +96,26 @@ impl AppState {
         Task::perform(
             fs::remove_dir_all(path).map_err(Into::into),
             Message::DirDeleted,
+        )
+    }
+
+    pub fn pick_homebrew_apps_task(&self) -> Task<Message> {
+        iced::window::oldest()
+            .and_then(|id| iced::window::run(id, dialogs::pick_homebrew_apps))
+            .map(Message::ImportHomebrewApps)
+    }
+
+    pub fn import_homebrew_apps_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
+        let mount_point = self.config.mount_point.clone();
+
+        Task::perform(
+            async move {
+                for path in &paths {
+                    util::misc::unzip(path, &mount_point).await?;
+                }
+                Ok(paths.len())
+            },
+            Message::HomebrewAppsImported,
         )
     }
 }

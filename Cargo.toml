@@ -48,6 +48,7 @@ twbm-idmap = "0.5"
 itertools = "0.15"
 futures = "0.3"
 either = "1"
+sanitize-filename = "=0.7.0-beta"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]

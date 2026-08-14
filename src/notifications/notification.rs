@@ -42,7 +42,7 @@ impl Notification {
 
     pub fn error(err: impl Into<Error>) -> Self {
         Self {
-            label: err.into().to_string(),
+            label: format!("{:#}", err.into()),
             level: NotificationLevel::Error,
         }
     }

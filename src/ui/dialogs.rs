@@ -10,3 +10,11 @@ pub fn pick_mount_point(w: &dyn iced::Window) -> Option<PathBuf> {
         .set_title("Select Drive/Mount Point")
         .pick_folder()
 }
+
+pub fn pick_homebrew_apps(w: &dyn iced::Window) -> Vec<PathBuf> {
+    FileDialog::new()
+        .set_parent(w)
+        .set_title("Select Homebrew App(s) to import")
+        .pick_files()
+        .unwrap_or_default()
+}

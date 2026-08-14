@@ -31,6 +31,9 @@ pub enum Error {
 
     #[error("Invalid homebrew app meta")]
     InvalidHomebrewAppMeta,
+
+    #[error("Zip error: {0}")]
+    Zip(String),
 }
 
 impl From<std::io::Error> for Error {
@@ -46,5 +49,11 @@ impl From<serde_json::Error> for Error {
         let column = err.column();
 
         Self::Json(category, line, column)
+    }
+}
+
+impl From<async_zip::error::ZipError> for Error {
+    fn from(err: async_zip::error::ZipError) -> Self {
+        Self::Zip(err.to_string())
     }
 }

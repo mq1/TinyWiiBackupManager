@@ -120,6 +120,19 @@ impl AppState {
                 self.notifications.add(Notification::error(e));
                 Task::none()
             }
+            Message::PickHomebrewApps => self.pick_homebrew_apps_task(),
+            Message::ImportHomebrewApps(paths) => self.import_homebrew_apps_task(paths),
+            Message::HomebrewAppsImported(Ok(n)) if n > 0 => {
+                self.notifications.add(Notification::success(format!(
+                    "{n} Homebrew app(s) successfully imported"
+                )));
+                Task::none()
+            }
+            Message::HomebrewAppsImported(Ok(_)) => Task::none(),
+            Message::HomebrewAppsImported(Err(e)) => {
+                self.notifications.add(Notification::error(e));
+                Task::none()
+            }
         }
     }
 }

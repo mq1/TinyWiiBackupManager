@@ -187,9 +187,9 @@ pub enum PreferredLanguage {
 
 impl Default for PreferredLanguage {
     fn default() -> Self {
-        let locale = sys_locale::get_locale().unwrap_or_default();
+        let locale = sys_locale::get_locale();
 
-        match locale.get(..2) {
+        match locale.as_ref().and_then(|l| l.get(..2)) {
             Some("fr") => PreferredLanguage::French,
             Some("de") => PreferredLanguage::German,
             Some("es") => PreferredLanguage::Spanish,

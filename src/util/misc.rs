@@ -1,14 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::errors::Error;
+use async_zip::base::read::seek::ZipFileReader;
 use size::Size;
-use smol::{fs, stream::StreamExt};
-use std::path::PathBuf;
+use smol::{
+    fs::{self, File},
+    io::{self, BufReader, BufWriter},
+    stream::StreamExt,
+};
+use std::path::{Path, PathBuf};
 
-pub async fn get_dir_size(path: impl Into<PathBuf>) -> Size {
+pub async fn get_dir_size(path: &Path) -> Size {
     let mut size = 0;
 
-    let mut entries = vec![path.into()];
+    let mut entries = vec![path.to_path_buf()];
     while let Some(entry) = entries.pop() {
         let Ok(meta) = fs::symlink_metadata(&entry).await else {
             continue;
@@ -31,4 +37,41 @@ pub async fn get_dir_size(path: impl Into<PathBuf>) -> Size {
     }
 
     Size::from_bytes(size)
+}
+
+pub async fn unzip(path: &Path, target: &Path) -> Result<(), Error> {
+    fn sanitize_file_path(path: &str) -> PathBuf {
+        let mut new = PathBuf::new();
+        for part in path.replace('\\', "/").split('/') {
+            new.push(sanitize_filename::sanitize(part).as_ref());
+        }
+        new
+    }
+
+    let file = File::open(path).await?;
+    let mut reader = BufReader::new(file);
+    let mut zip = ZipFileReader::new(&mut reader).await?;
+
+    for index in 0..zip.file().entries().len() {
+        let entry = &zip.file().entries()[index];
+        let filename = entry.filename().as_str()?;
+        let path = target.join(sanitize_file_path(filename));
+
+        if entry.dir()? {
+            fs::create_dir_all(&path).await?;
+        } else {
+            let mut entry_reader = zip.reader_without_entry(index).await?;
+
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).await?;
+            }
+
+            let file = File::create(&path).await?;
+            let mut writer = BufWriter::with_capacity(0x8000, file);
+
+            io::copy(&mut entry_reader, &mut writer).await?;
+        }
+    }
+
+    Ok(())
 }

@@ -32,4 +32,7 @@ pub enum Message {
     AskDeleteDir(PathBuf),
     DeleteDir(PathBuf),
     DirDeleted(Result<(), Error>),
+    PickHomebrewApps,
+    ImportHomebrewApps(Vec<PathBuf>),
+    HomebrewAppsImported(Result<usize, Error>),
 }
