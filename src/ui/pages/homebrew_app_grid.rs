@@ -19,7 +19,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .collect::<Row<'_, _>>()
         .spacing(10);
 
-    column![homebrew_apps_titlebar::view(), content]
+    column![homebrew_apps_titlebar::view(state), content]
         .padding(10)
         .spacing(10)
         .into()

@@ -5,6 +5,7 @@ pub mod about;
 pub mod game_grid;
 pub mod game_table;
 pub mod homebrew_app_grid;
+pub mod homebrew_app_table;
 pub mod settings;
 pub mod toolbox;
 

@@ -5,6 +5,7 @@ pub mod game_card;
 pub mod game_row;
 pub mod games_titlebar;
 pub mod homebrew_app_card;
+pub mod homebrew_app_row;
 pub mod homebrew_apps_titlebar;
 pub mod my_button;
 pub mod my_card;

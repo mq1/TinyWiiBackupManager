@@ -1,43 +1,40 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, messages::Message, ui::components::my_card::my_card};
+use crate::{
+    homebrew::homebrew_app::HomebrewApp, messages::Message, ui::components::my_card::my_card,
+};
 use iced::{
     Element, Length, padding,
     widget::{button, row, rule, space, text, tooltip},
 };
-use lucide_icons::iced::{icon_box, icon_info, icon_pointer, icon_trash};
+use lucide_icons::iced::{icon_info, icon_trash};
 use std::sync::Arc;
 
-pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
+pub fn view(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
     row![
-        tooltip(
-            game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),
-            my_card(if game.is_wii { "Wii" } else { "GameCube" }),
-            tooltip::Position::Top
-        ),
-        text!("{} [{}]", &game.title, game.id),
+        text!("{} ({})", &app.meta.name, app.meta.version),
         space::horizontal(),
-        text(game.size.to_string()),
+        text(app.size.to_string()),
         rule::vertical(1),
         tooltip(
             button(icon_trash().center())
                 .padding(0)
-                .on_press_with(|| Message::AskDeleteDir(game.path.clone()))
+                .on_press_with(|| Message::AskDeleteDir(app.path.clone()))
                 .style(button::text)
                 .width(20)
                 .height(20),
-            my_card("Delete game"),
+            my_card("Delete app"),
             tooltip::Position::Top
         ),
         tooltip(
             button(icon_info().center())
                 .padding(0)
-                .on_press_with(|| Message::OpenGameInfo(game.clone()))
+                .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone()))
                 .style(button::text)
                 .width(20)
                 .height(20),
-            my_card("Game info"),
+            my_card("App info"),
             tooltip::Position::Top
         ),
     ]

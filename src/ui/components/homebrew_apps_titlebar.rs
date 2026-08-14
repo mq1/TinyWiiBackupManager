@@ -3,9 +3,11 @@
 
 use crate::{
     messages::Message,
+    state::AppState,
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
+        view_as,
     },
 };
 use iced::{
@@ -14,11 +16,12 @@ use iced::{
 };
 use lucide_icons::{Icon, iced::icon_chevron_right};
 
-pub fn view<'a>() -> Element<'a, Message> {
+pub fn view(state: &AppState) -> Element<'_, Message> {
     row![
         icon_chevron_right().size(20),
         text("Homebrew Apps").size(20),
         space::horizontal(),
+        view_as::view(state),
         tooltip(
             my_button(None, Icon::RotateCw, MyButtonKind::Toolbar)
                 .on_press(Message::RefreshGamesAndApps),

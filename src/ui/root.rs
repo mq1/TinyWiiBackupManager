@@ -22,7 +22,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         container(match (state.current_page, state.config.view_as) {
             (Page::Games, ViewAs::Grid) => pages::game_grid::view(state),
             (Page::Games, ViewAs::Table) => pages::game_table::view(state),
-            (Page::HomebrewApps, _) => pages::homebrew_app_grid::view(state),
+            (Page::HomebrewApps, ViewAs::Grid) => pages::homebrew_app_grid::view(state),
+            (Page::HomebrewApps, ViewAs::Table) => pages::homebrew_app_table::view(state),
             (Page::Settings, _) => pages::settings::view(),
             (Page::Toolbox, _) => pages::toolbox::view(state),
             (Page::About, _) => pages::about::view(state),
