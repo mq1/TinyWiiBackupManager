@@ -95,9 +95,56 @@ export component AppWindow inherits Window {
 
                 HorizontalLayout {
                     padding: 10px;
+                    spacing: 10px;
 
                     Text {
                         text: UiState.status;
+                        vertical-alignment: center;
+                    }
+
+                    VerticalLayout {
+                        alignment: center;
+
+                        Rectangle {
+                            width: 150px;
+                            height: 10px;
+                            background: MyPalette.border;
+                            border-radius: 3px;
+                            clip: true;
+
+                            property <length> highlight_x: 0px;
+
+                            Timer {
+                                interval: 16ms;
+                                running: UiState.status == "Processing...";
+
+                                triggered => {
+                                    highlight_x += 2px;
+
+                                    if highlight_x > 150px {
+                                        highlight_x = -40px;
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                x: 0;
+                                y: 0;
+                                width: 150px * UiState.percentage / 100;
+                                height: 10px;
+                                background: MyPalette.accent-background;
+                                border-radius: 3px;
+                                clip: true;
+
+                                if UiState.status == "Processing...": Rectangle {
+                                    x: highlight_x;
+                                    width: 40px;
+                                    height: 10px;
+                                    background: MyPalette.accent-background.darker(0.2);
+                                    opacity: 0.7;
+                                }
+                            }
+                        }
                     }
                 }
             }

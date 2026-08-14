@@ -20,11 +20,15 @@ pub fn perform_conversion(
                 .to_string();
 
             let weak2 = weak.clone();
-            let update_progress = move |percentage| {
+            let update_progress = move |percentage: u8| {
                 let status = slint::format!("↑  Converting  {filename}  {percentage}%");
 
                 let _ = weak2.upgrade_in_event_loop(move |app| {
+                    app.global::<UiState<'_>>().set_percentage(percentage.into());
                     app.global::<UiState<'_>>().set_status(status);
+                    if percentage == 100 {
+                        app.global::<UiState<'_>>().set_status(slint::format!("Processing..."));
+                    }
                 });
             };
 
