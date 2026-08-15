@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use thiserror::Error;
-
-#[derive(Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
     #[error("I/O error: {0}")]
     Io(std::io::ErrorKind),

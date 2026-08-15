@@ -9,7 +9,7 @@ use smol::{
     io::{self, BufReader, BufWriter},
     stream::StreamExt,
 };
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub async fn get_dir_size(path: &Path) -> Size {
     let mut size = 0;
@@ -40,24 +40,22 @@ pub async fn get_dir_size(path: &Path) -> Size {
 }
 
 pub async fn unzip(path: &Path, target: &Path) -> Result<(), Error> {
-    fn sanitize_file_path(path: &str) -> PathBuf {
-        let mut new = PathBuf::new();
-        for part in path.replace('\\', "/").split('/') {
-            new.push(sanitize_filename::sanitize(part).as_ref());
-        }
-        new
-    }
-
     let file = File::open(path).await?;
     let mut reader = BufReader::new(file);
     let mut zip = ZipFileReader::new(&mut reader).await?;
 
     for index in 0..zip.file().entries().len() {
-        let entry = &zip.file().entries()[index];
-        let filename = entry.filename().as_str()?;
-        let path = target.join(sanitize_file_path(filename));
+        let (filename, is_dir) = {
+            let entry = &zip.file().entries()[index];
+            (Path::new(entry.filename().as_str()?), entry.dir()?)
+        };
 
-        if entry.dir()? {
+        let path = target.join(filename).canonicalize()?;
+        if !path.starts_with(target) {
+            return Err(Error::Zip("Path traversal detected".into()));
+        }
+
+        if is_dir {
             fs::create_dir_all(&path).await?;
         } else {
             let mut entry_reader = zip.reader_without_entry(index).await?;
