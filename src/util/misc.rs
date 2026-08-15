@@ -3,6 +3,7 @@
 
 use crate::errors::Error;
 use async_zip::base::read::seek::ZipFileReader;
+use path_clean::PathClean;
 use size::Size;
 use smol::{
     fs::{self, File},
@@ -44,14 +45,16 @@ pub async fn unzip(path: &Path, target: &Path) -> Result<(), Error> {
     let mut reader = BufReader::new(file);
     let mut zip = ZipFileReader::new(&mut reader).await?;
 
+    let target = target.clean();
+
     for index in 0..zip.file().entries().len() {
         let (filename, is_dir) = {
             let entry = &zip.file().entries()[index];
             (Path::new(entry.filename().as_str()?), entry.dir()?)
         };
 
-        let path = target.join(filename).canonicalize()?;
-        if !path.starts_with(target) {
+        let path = target.join(filename).clean();
+        if !path.starts_with(&target) {
             return Err(Error::Zip("Path traversal detected".into()));
         }
 
