@@ -1,7 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, games::game_id::GameID, util};
+use crate::{
+    errors::Error,
+    games::game_id::GameID,
+    util::{self, sha1_list},
+};
+use nod::{
+    read::{DiscOptions, DiscReader},
+    write::{DiscWriter, FormatOptions, ProcessOptions},
+};
+use sipper::{Straw, sipper};
 use size::Size;
 use smol::fs;
 use std::{
@@ -95,6 +104,69 @@ impl Game {
         }
 
         None
+    }
+
+    pub fn calc_sha1(&self) -> impl Straw<String, String, Error> + use<> {
+        let game = self.clone();
+
+        sipper(async move |mut sender| {
+            let (tx, rx) = smol::channel::bounded(1);
+
+            let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
+
+            let game_title = game.title.to_string();
+            let handle = std::thread::spawn(move || {
+                let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
+
+                let process_opts = ProcessOptions {
+                    digest_sha1: true,
+                    ..Default::default()
+                };
+
+                let writer = DiscWriter::new(disc, &FormatOptions::default())?;
+
+                let mut prev_percentage = 100;
+                let finalization = writer.process(
+                    |_, progress, total| {
+                        let progress_percentage = progress * 100 / total;
+
+                        if progress_percentage != prev_percentage {
+                            let status =
+                                format!("✓  Hashing {game_title}  {progress_percentage:02}%");
+                            let _ = tx.try_send(status);
+
+                            prev_percentage = progress_percentage;
+                        }
+
+                        Ok(())
+                    },
+                    &process_opts,
+                )?;
+
+                let sha1 = finalization
+                    .sha1
+                    .ok_or_else(|| Error::NodOther("No SHA1".into()))?;
+
+                let known_sha1 = sha1_list::is_known(&sha1);
+
+                Ok::<_, Error>(known_sha1)
+            });
+
+            while let Ok(msg) = rx.recv().await {
+                sender.send(msg).await;
+            }
+
+            let known_sha1 = handle.join().expect("Failed to join thread")?;
+
+            if known_sha1 {
+                Ok(format!(
+                    "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
+                    game.title.as_ref()
+                ))
+            } else {
+                Err(Error::HashMismatch(game.title.into_owned()))
+            }
+        })
     }
 }
 

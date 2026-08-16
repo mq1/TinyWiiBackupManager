@@ -25,6 +25,7 @@ pub(crate) struct AppState {
     pub(crate) homebrew_apps: HomebrewAppList,
     pub(crate) current_page: Page,
     pub(crate) current_modal: Option<Modal>,
+    pub(crate) status: String,
 }
 
 impl AppState {

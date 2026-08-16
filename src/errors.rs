@@ -32,6 +32,18 @@ pub enum Error {
 
     #[error("Zip error: {0}")]
     Zip(String),
+
+    #[error("Nod disc format error: {0}")]
+    NodDiscFormat(String),
+
+    #[error("Nod io error: {0} - {1}")]
+    NodIo(String, std::io::ErrorKind),
+
+    #[error("Nod error: {0}")]
+    NodOther(String),
+
+    #[error("Hash mismatch for {0}")]
+    HashMismatch(String),
 }
 
 impl From<std::io::Error> for Error {
@@ -53,5 +65,15 @@ impl From<serde_json::Error> for Error {
 impl From<async_zip::error::ZipError> for Error {
     fn from(err: async_zip::error::ZipError) -> Self {
         Self::Zip(err.to_string())
+    }
+}
+
+impl From<nod::Error> for Error {
+    fn from(err: nod::Error) -> Self {
+        match err {
+            nod::Error::DiscFormat(err) => Self::NodDiscFormat(err),
+            nod::Error::Io(err, io_err) => Self::NodIo(err, io_err.kind()),
+            nod::Error::Other(err) => Self::NodOther(err),
+        }
     }
 }

@@ -18,9 +18,10 @@ use lucide_icons::{
     Icon,
     iced::{icon_file_question, icon_gamepad, icon_globe, icon_notebook_pen, icon_pin, icon_tag},
 };
+use std::sync::Arc;
 
 pub fn view<'a>(
-    game: &'a Game,
+    game: &'a Arc<Game>,
     disc_info: Option<&'a wii_disc_info::Meta>,
 ) -> Element<'a, Message> {
     let content: Element<'a, _> = if let Some(disc_info) = disc_info {
@@ -78,6 +79,8 @@ pub fn view<'a>(
             rule::horizontal(1),
             row![
                 space::horizontal(),
+                my_button("SHA1", Icon::SearchCheck, MyButtonKind::Secondary)
+                    .on_press_with(|| Message::CalcGameSha1(game.clone())),
                 my_button("Close", None, MyButtonKind::Secondary).on_press(Message::CloseModal)
             ]
             .spacing(10)

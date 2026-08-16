@@ -12,8 +12,8 @@ use crate::{
     },
 };
 use iced::{
-    Color, Element, Length, Theme, border,
-    widget::{column, container, opaque, row, rule, stack},
+    Color, Element, Length, Theme, border, padding,
+    widget::{Column, container, opaque, row, rule, stack},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
@@ -59,16 +59,21 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         )
     };
 
+    let mut col = Column::new();
+
     if cfg!(target_os = "macos") {
-        column![
-            rule::horizontal(32).style(|theme: &Theme| rule::Style {
-                color: theme.palette().background,
-                ..rule::default(theme)
-            }),
-            stack
-        ]
-        .into()
-    } else {
-        stack.into()
+        col = col.push(rule::horizontal(32).style(|theme: &Theme| rule::Style {
+            color: theme.palette().background,
+            ..rule::default(theme)
+        }));
     }
+
+    col = col.push(stack);
+
+    if !state.status.is_empty() {
+        col =
+            col.push(container(state.status.as_str()).padding(padding::horizontal(10).vertical(5)));
+    }
+
+    col.into()
 }

@@ -133,6 +133,23 @@ impl AppState {
                 self.notifications.add(Notification::error(e));
                 Task::none()
             }
+            Message::SetStatus(status) => {
+                self.status = status;
+                Task::none()
+            }
+            Message::CalcGameSha1(game) => {
+                Task::sip(game.calc_sha1(), Message::SetStatus, Message::GotGameSha1)
+            }
+            Message::GotGameSha1(Ok(msg)) => {
+                self.notifications.add(Notification::success(msg));
+                self.status.clear();
+                Task::none()
+            }
+            Message::GotGameSha1(Err(e)) => {
+                self.notifications.add(Notification::error(e));
+                self.status.clear();
+                Task::none()
+            }
         }
     }
 }
