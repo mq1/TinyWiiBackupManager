@@ -12,7 +12,7 @@ use crate::{
     },
 };
 use iced::{
-    Color, Element, Length, Theme, border, padding,
+    Color, Element, Length, Theme, border,
     widget::{Column, container, opaque, row, rule, stack},
 };
 
@@ -51,7 +51,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         ));
     }
 
-    if state.notifications.has_notifications() {
+    if state.notifications.has_notifications() || !state.status.is_empty() {
         stack = stack.push(
             container(components::notifications::view(state))
                 .align_right(Length::Fill)
@@ -68,12 +68,5 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         }));
     }
 
-    col = col.push(stack);
-
-    if !state.status.is_empty() {
-        col =
-            col.push(container(state.status.as_str()).padding(padding::horizontal(10).vertical(5)));
-    }
-
-    col.into()
+    col.push(stack).into()
 }
