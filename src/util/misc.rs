@@ -40,7 +40,7 @@ pub async fn get_dir_size(path: &Path) -> Size {
     Size::from_bytes(size)
 }
 
-pub async fn unzip(path: &Path, target: &Path) -> Result<(), Error> {
+pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
     let file = File::open(path).await?;
     let mut reader = BufReader::new(file);
     let mut zip = ZipFileReader::new(&mut reader).await?;
@@ -75,4 +75,18 @@ pub async fn unzip(path: &Path, target: &Path) -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+pub fn get_threads_num() -> (usize, usize) {
+    let cpus = num_cpus::get();
+
+    let preloader_threads = match cpus {
+        0..=4 => 1,
+        5..=8 => 2,
+        _ => 4,
+    };
+
+    let processor_threads = cpus - preloader_threads;
+
+    (preloader_threads, processor_threads)
 }

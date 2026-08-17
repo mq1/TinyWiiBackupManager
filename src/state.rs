@@ -4,12 +4,12 @@
 use crate::{
     config::Config,
     errors::Error,
-    games::{game::Game, game_list::GameList},
-    homebrew::homebrew_app_list::HomebrewAppList,
+    games::{game::Game, game_list::GameList, import::import_game},
+    homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
-    notifications::notification_list::NotificationList,
+    notifications::{notification::Notification, notification_list::NotificationList},
     ui::{dialogs, modals::Modal, pages::Page},
-    util::{self, drive_info::DriveInfo},
+    util::drive_info::DriveInfo,
 };
 use iced::{Task, futures::TryFutureExt};
 use smol::fs::{self, File};
@@ -26,6 +26,8 @@ pub(crate) struct AppState {
     pub(crate) current_page: Page,
     pub(crate) current_modal: Option<Modal>,
     pub(crate) status: String,
+    pub(crate) import_queue: Vec<PathBuf>,
+    pub(crate) busy: bool, // if we're converting
 }
 
 impl AppState {
@@ -93,7 +95,9 @@ impl AppState {
         )
     }
 
-    pub fn delete_dir_task(&self, path: PathBuf) -> Task<Message> {
+    pub fn delete_dir_task(&mut self, path: PathBuf) -> Task<Message> {
+        self.current_modal = None;
+
         Task::perform(
             fs::remove_dir_all(path).map_err(Into::into),
             Message::DirDeleted,
@@ -110,13 +114,40 @@ impl AppState {
         let mount_point = self.config.mount_point.clone();
 
         Task::perform(
-            async move {
-                for path in &paths {
-                    util::misc::unzip(path, &mount_point).await?;
-                }
-                Ok(paths.len())
-            },
+            homebrew::import(mount_point, paths),
             Message::HomebrewAppsImported,
         )
+    }
+
+    pub fn pick_games_task(&self) -> Task<Message> {
+        iced::window::oldest()
+            .and_then(|id| iced::window::run(id, dialogs::pick_games))
+            .map(Message::ImportGames)
+    }
+
+    pub fn import_games_task(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
+        self.import_queue.extend(paths);
+
+        if !self.busy {
+            self.status.clear();
+
+            let task = if let Some(path) = self.import_queue.pop() {
+                self.busy = true;
+
+                Task::sip(
+                    import_game(path, self.config.clone(), self.drive_info.clone()),
+                    Message::SetStatus,
+                    Message::GameImported,
+                )
+            } else {
+                self.notifications
+                    .add(Notification::info("Import queue is empty"));
+                Task::none()
+            };
+
+            Task::batch([task, self.get_games_task(), self.get_drive_info_task()])
+        } else {
+            Task::none()
+        }
     }
 }

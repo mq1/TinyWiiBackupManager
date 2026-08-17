@@ -10,10 +10,10 @@ use which_fs::FsKind;
 pub struct DriveInfo {
     pub used_size: Size,
     pub total_size: Size,
-    games_size: Size,
-    apps_size: Size,
-    fs_kind: FsKind,
-    allocation_granularity: u64,
+    pub games_size: Size,
+    pub apps_size: Size,
+    pub fs_kind: FsKind,
+    pub allocation_granularity: u64,
 }
 
 impl DriveInfo {

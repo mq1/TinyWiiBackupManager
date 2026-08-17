@@ -5,3 +5,4 @@ pub mod covers;
 pub mod game;
 pub mod game_id;
 pub mod game_list;
+pub mod import;

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
     #[error("I/O error: {0}")]
@@ -44,6 +45,9 @@ pub enum Error {
 
     #[error("Hash mismatch for {0}")]
     HashMismatch(String),
+
+    #[error("Failed to get inner writer")]
+    IntoInnerWriter,
 }
 
 impl From<std::io::Error> for Error {
@@ -75,5 +79,11 @@ impl From<nod::Error> for Error {
             nod::Error::Io(err, io_err) => Self::NodIo(err, io_err.kind()),
             nod::Error::Other(err) => Self::NodOther(err),
         }
+    }
+}
+
+impl<T> From<std::io::IntoInnerError<T>> for Error {
+    fn from(_err: std::io::IntoInnerError<T>) -> Self {
+        Self::IntoInnerWriter
     }
 }

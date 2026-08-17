@@ -44,12 +44,14 @@ isahc = { version = "2", default-features = false }
 open = "5"
 wii-disc-info = { git = "https://github.com/mq1/wii-disc-info-rs", branch = "async" }
 async_zip = { version = "0.0.18", features = ["deflate"] }
-twbm-idmap = "0.5"
+twbm-idmap = { version = "0.5", features = ["ascii-titles"] }
 itertools = "0.15"
 futures = "0.3"
 either = "1"
 sanitize-filename = "=0.7.0-beta"
 path-clean = "1"
+num_cpus = "1"
+split-write = "0.2"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]

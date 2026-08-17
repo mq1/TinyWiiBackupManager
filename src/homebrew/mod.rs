@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, errors::Error, homebrew::homebrew_app::HomebrewApp};
+use crate::{
+    config::SortBy, errors::Error, homebrew::homebrew_app::HomebrewApp, util::misc::unzip,
+};
 use smol::{fs, stream::StreamExt};
 use std::path::Path;
 
@@ -39,4 +41,18 @@ pub fn sort(apps: &mut [HomebrewApp], sort_by: SortBy) {
         SortBy::SizeDescending => a.size.cmp(&b.size),
         SortBy::SizeAscending => b.size.cmp(&a.size),
     });
+}
+
+pub async fn import(
+    root_path: impl AsRef<Path>,
+    paths: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> Result<usize, Error> {
+    let mut count = 0;
+
+    for path in paths {
+        unzip(path, root_path.as_ref()).await?;
+        count += 1;
+    }
+
+    Ok(count)
 }

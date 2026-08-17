@@ -115,10 +115,10 @@ impl AppState {
                 Task::none()
             }
             Message::DeleteDir(path) => self.delete_dir_task(path),
-            Message::DirDeleted(Ok(())) => Task::none(),
+            Message::DirDeleted(Ok(())) => Task::done(Message::RefreshGamesAndApps),
             Message::DirDeleted(Err(e)) => {
                 self.notifications.add(Notification::error(e));
-                Task::none()
+                Task::done(Message::RefreshGamesAndApps)
             }
             Message::PickHomebrewApps => self.pick_homebrew_apps_task(),
             Message::ImportHomebrewApps(paths) => self.import_homebrew_apps_task(paths),
@@ -126,7 +126,8 @@ impl AppState {
                 self.notifications.add(Notification::success(format!(
                     "{n} Homebrew app(s) successfully imported"
                 )));
-                Task::none()
+
+                Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
             Message::HomebrewAppsImported(Ok(_)) => Task::none(),
             Message::HomebrewAppsImported(Err(e)) => {
@@ -149,6 +150,17 @@ impl AppState {
                 self.notifications.add(Notification::error(e));
                 self.status.clear();
                 Task::none()
+            }
+            Message::PickGames => self.pick_games_task(),
+            Message::ImportGames(paths) => self.import_games_task(paths),
+            Message::GameImported(Ok(())) => {
+                self.busy = false;
+                self.import_games_task(vec![])
+            }
+            Message::GameImported(Err(e)) => {
+                self.busy = false;
+                self.notifications.add(Notification::error(e));
+                self.import_games_task(vec![])
             }
         }
     }

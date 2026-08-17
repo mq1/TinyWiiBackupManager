@@ -18,3 +18,15 @@ pub fn pick_homebrew_apps(w: &dyn iced::Window) -> Vec<PathBuf> {
         .pick_files()
         .unwrap_or_default()
 }
+
+pub fn pick_games(w: &dyn iced::Window) -> Vec<PathBuf> {
+    FileDialog::new()
+        .set_parent(w)
+        .set_title("Select Game(s) to import")
+        .add_filter(
+            "Wii/NGC rom",
+            &["iso", "gcm", "wia", "rvz", "wbfs", "iso", "gcz", "tgc"],
+        )
+        .pick_files()
+        .unwrap_or_default()
+}

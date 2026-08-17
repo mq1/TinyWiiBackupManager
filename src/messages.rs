@@ -38,4 +38,7 @@ pub enum Message {
     SetStatus(String),
     CalcGameSha1(Arc<Game>),
     GotGameSha1(Result<String, Error>),
+    PickGames,
+    ImportGames(Vec<PathBuf>),
+    GameImported(Result<(), Error>),
 }

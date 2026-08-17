@@ -27,6 +27,11 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 .on_press(Message::RefreshGamesAndApps),
             my_card("Refresh games and apps"),
             tooltip::Position::Bottom
+        ),
+        tooltip(
+            my_button(None, Icon::Plus, MyButtonKind::Toolbar).on_press(Message::PickGames),
+            my_card("Import game(s)"),
+            tooltip::Position::Bottom
         )
     ]
     .spacing(5)
