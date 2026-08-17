@@ -59,5 +59,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         notifications = notifications.push(my_card(state.status.as_str()));
     }
 
-    notifications.padding(10).spacing(10).into()
+    notifications
+        .padding(10)
+        .spacing(10)
+        .align_x(Alignment::End)
+        .into()
 }
