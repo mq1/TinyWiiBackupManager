@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use either::Either;
 use multi_readers::MultiReader;
 use ouroboros::self_referencing;
 use std::{
@@ -23,10 +22,15 @@ struct Zipped {
     entry: ZipFileSeek<'this, File>,
 }
 
+enum Inner {
+    Files(MultiReader<File>),
+    Zipped(Zipped),
+}
+
 pub struct DiscFileReader {
     path: PathBuf,
     position: u64,
-    inner: Either<MultiReader<File>, Zipped>,
+    inner: Inner,
 }
 
 impl DiscFileReader {
@@ -54,7 +58,7 @@ impl DiscFileReader {
             Ok(Self {
                 path: path.to_path_buf(),
                 position: 0,
-                inner: Either::Right(zipped),
+                inner: Inner::Zipped(zipped),
             })
         } else {
             let mut files = vec![File::open(path)];
@@ -86,7 +90,7 @@ impl DiscFileReader {
             Ok(Self {
                 path: path.to_path_buf(),
                 position: 0,
-                inner: Either::Left(multi),
+                inner: Inner::Files(multi),
             })
         }
     }
@@ -95,8 +99,8 @@ impl DiscFileReader {
 impl Read for DiscFileReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let n = match &mut self.inner {
-            Either::Left(p) => p.read(buf)?,
-            Either::Right(z) => z.with_entry_mut(|e| e.read(buf))?,
+            Inner::Files(p) => p.read(buf)?,
+            Inner::Zipped(z) => z.with_entry_mut(|e| e.read(buf))?,
         };
 
         self.position += n as u64;
@@ -107,8 +111,8 @@ impl Read for DiscFileReader {
 impl Seek for DiscFileReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match &mut self.inner {
-            Either::Left(p) => p.seek(pos)?,
-            Either::Right(z) => z.with_entry_mut(|e| e.seek(pos))?,
+            Inner::Files(p) => p.seek(pos)?,
+            Inner::Zipped(z) => z.with_entry_mut(|e| e.seek(pos))?,
         };
 
         self.position = new_pos;
