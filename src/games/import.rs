@@ -39,7 +39,7 @@ pub fn import_game(
         let (tx, rx) = smol::channel::bounded(1);
 
         let handle = std::thread::spawn(move || {
-            let disc_reader = DiscReader::new_from_non_cloneable_read(
+            let disc_reader = DiscReader::new_from_cloneable_read(
                 DiscFileReader::new(&path)?,
                 &DiscOptions {
                     preloader_threads: get_optimal_preloader_threads(),

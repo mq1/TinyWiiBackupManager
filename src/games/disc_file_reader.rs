@@ -10,13 +10,9 @@ use std::{
     fmt::Write,
     fs::File,
     io::{self, Read, Seek, SeekFrom},
-    path::Path,
+    path::{Path, PathBuf},
 };
 use zip::{ZipArchive, read::ZipFileSeek};
-
-struct Plain {
-    inner: MultiReader<File>,
-}
 
 #[self_referencing]
 struct Zipped {
@@ -28,7 +24,9 @@ struct Zipped {
 }
 
 pub struct DiscFileReader {
-    inner: Either<Plain, Zipped>,
+    path: PathBuf,
+    position: u64,
+    inner: Either<MultiReader<File>, Zipped>,
 }
 
 impl DiscFileReader {
@@ -54,10 +52,12 @@ impl DiscFileReader {
             .try_build()?;
 
             Ok(Self {
+                path: path.to_path_buf(),
+                position: 0,
                 inner: Either::Right(zipped),
             })
         } else {
-            let mut files = vec![File::open(path)?];
+            let mut files = vec![File::open(path)];
 
             if filename.contains(".part0.iso") {
                 let part1_filename = filename.replace(".part0.iso", ".part1.iso");
@@ -67,7 +67,7 @@ impl DiscFileReader {
                     return Err(Error::DiscNotFound);
                 }
 
-                files.push(File::open(part1_path)?)
+                files.push(File::open(part1_path))
             } else if ext == "wbfs" {
                 for i in 1..=4 {
                     let mut wbfx_filename = filename.to_string();
@@ -76,15 +76,17 @@ impl DiscFileReader {
 
                     let wbfx_path = path.with_file_name(wbfx_filename);
                     if wbfx_path.exists() {
-                        files.push(File::open(wbfx_path)?);
+                        files.push(File::open(wbfx_path));
                     }
                 }
             }
 
-            let multi = MultiReader::new(files);
+            let multi = MultiReader::try_new(files)?;
 
             Ok(Self {
-                inner: Either::Left(Plain { inner: multi }),
+                path: path.to_path_buf(),
+                position: 0,
+                inner: Either::Left(multi),
             })
         }
     }
@@ -92,18 +94,32 @@ impl DiscFileReader {
 
 impl Read for DiscFileReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match &mut self.inner {
-            Either::Left(p) => p.inner.read(buf),
-            Either::Right(z) => z.with_entry_mut(|e| e.read(buf)),
-        }
+        let n = match &mut self.inner {
+            Either::Left(p) => p.read(buf)?,
+            Either::Right(z) => z.with_entry_mut(|e| e.read(buf))?,
+        };
+
+        self.position += n as u64;
+        Ok(n)
     }
 }
 
 impl Seek for DiscFileReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
-        match &mut self.inner {
-            Either::Left(p) => p.inner.seek(pos),
-            Either::Right(z) => z.with_entry_mut(|e| e.seek(pos)),
-        }
+        let new_pos = match &mut self.inner {
+            Either::Left(p) => p.seek(pos)?,
+            Either::Right(z) => z.with_entry_mut(|e| e.seek(pos))?,
+        };
+
+        self.position = new_pos;
+        Ok(new_pos)
+    }
+}
+
+impl Clone for DiscFileReader {
+    fn clone(&self) -> Self {
+        let mut new = Self::new(&self.path).unwrap();
+        new.seek(SeekFrom::Start(self.position)).unwrap();
+        new
     }
 }
