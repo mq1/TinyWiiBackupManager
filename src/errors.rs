@@ -18,8 +18,8 @@ pub enum Error {
     #[error("Disc not found")]
     DiscNotFound,
 
-    #[error("Invalid directory name")]
-    InvalidDirName,
+    #[error("Invalid filename")]
+    InvalidFilename,
 
     #[error("Path is not a directory")]
     NotADir,

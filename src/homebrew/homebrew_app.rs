@@ -31,7 +31,7 @@ impl HomebrewApp {
         let dir_name = path
             .file_name()
             .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidDirName)?;
+            .ok_or(Error::InvalidFilename)?;
 
         if dir_name.starts_with('.') {
             return Err(Error::HiddenDir);

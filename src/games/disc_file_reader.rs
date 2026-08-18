@@ -3,24 +3,28 @@
 
 use crate::errors::Error;
 use either::Either;
+use multi_readers::MultiReader;
 use ouroboros::self_referencing;
 use std::{
+    ffi::OsStr,
+    fmt::Write,
     fs::File,
-    io::{self, BufReader, Read, Seek, SeekFrom},
+    io::{self, Read, Seek, SeekFrom},
     path::Path,
 };
 use zip::{ZipArchive, read::ZipFileSeek};
 
 struct Plain {
-    inner: BufReader<File>,
+    inner: MultiReader<File>,
 }
 
 #[self_referencing]
 struct Zipped {
-    inner: ZipArchive<BufReader<File>>,
+    inner: ZipArchive<File>,
+
     #[borrows(mut inner)]
     #[covariant]
-    entry: ZipFileSeek<'this, BufReader<File>>,
+    entry: ZipFileSeek<'this, File>,
 }
 
 pub struct DiscFileReader {
@@ -29,13 +33,19 @@ pub struct DiscFileReader {
 
 impl DiscFileReader {
     pub fn new(path: &Path) -> Result<Self, Error> {
-        if path
+        let filename = path
+            .file_name()
+            .and_then(OsStr::to_str)
+            .ok_or(Error::InvalidFilename)?;
+
+        let ext = path
             .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
-        {
+            .and_then(OsStr::to_str)
+            .ok_or(Error::InvalidFilename)?;
+
+        if ext == "zip" {
             let file = File::open(path)?;
-            let reader = BufReader::new(file);
-            let zip = ZipArchive::new(reader)?;
+            let zip = ZipArchive::new(file)?;
 
             let zipped = ZippedTryBuilder {
                 inner: zip,
@@ -47,11 +57,34 @@ impl DiscFileReader {
                 inner: Either::Right(zipped),
             })
         } else {
-            let file = File::open(path)?;
-            let reader = BufReader::new(file);
+            let mut files = vec![File::open(path)?];
+
+            if filename.contains(".part0.iso") {
+                let part1_filename = filename.replace(".part0.iso", ".part1.iso");
+                let part1_path = path.with_file_name(part1_filename);
+
+                if !part1_path.exists() {
+                    return Err(Error::DiscNotFound);
+                }
+
+                files.push(File::open(part1_path)?)
+            } else if ext == "wbfs" {
+                for i in 1..=4 {
+                    let mut wbfx_filename = filename.to_string();
+                    let _ = wbfx_filename.pop();
+                    write!(&mut wbfx_filename, "{i}").unwrap();
+
+                    let wbfx_path = path.with_file_name(wbfx_filename);
+                    if wbfx_path.exists() {
+                        files.push(File::open(wbfx_path)?);
+                    }
+                }
+            }
+
+            let multi = MultiReader::new(files);
 
             Ok(Self {
-                inner: Either::Left(Plain { inner: reader }),
+                inner: Either::Left(Plain { inner: multi }),
             })
         }
     }

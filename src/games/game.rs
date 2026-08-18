@@ -46,23 +46,23 @@ impl Game {
         let dir_name = path
             .file_name()
             .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidDirName)?;
+            .ok_or(Error::InvalidFilename)?;
 
         if dir_name.starts_with('.') {
             return Err(Error::HiddenDir);
         }
 
         // Extract title and id from the directory name
-        let (title_raw, id_raw) = dir_name.split_once('[').ok_or(Error::InvalidDirName)?;
+        let (title_raw, id_raw) = dir_name.split_once('[').ok_or(Error::InvalidFilename)?;
 
         let Some(id_raw) = id_raw.strip_suffix(']') else {
-            return Err(Error::InvalidDirName);
+            return Err(Error::InvalidFilename);
         };
 
         // Parse the id
         let id = id_raw
             .parse::<GameID>()
-            .map_err(|()| Error::InvalidDirName)?;
+            .map_err(|()| Error::InvalidFilename)?;
 
         // get the pretty title
         let title = twbm_idmap::get_title(id)
