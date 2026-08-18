@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
     #[error("I/O error: {0}")]
@@ -68,6 +67,12 @@ impl From<serde_json::Error> for Error {
 
 impl From<async_zip::error::ZipError> for Error {
     fn from(err: async_zip::error::ZipError) -> Self {
+        Self::Zip(err.to_string())
+    }
+}
+
+impl From<zip::result::ZipError> for Error {
+    fn from(err: zip::result::ZipError) -> Self {
         Self::Zip(err.to_string())
     }
 }

@@ -25,7 +25,9 @@ pub fn pick_games(w: &dyn iced::Window) -> Vec<PathBuf> {
         .set_title("Select Game(s) to import")
         .add_filter(
             "Wii/NGC rom",
-            &["iso", "gcm", "wia", "rvz", "wbfs", "iso", "gcz", "tgc"],
+            &[
+                "iso", "gcm", "wia", "rvz", "wbfs", "iso", "gcz", "tgc", "zip",
+            ],
         )
         .pick_files()
         .unwrap_or_default()

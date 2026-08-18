@@ -4,7 +4,11 @@
 use crate::{
     config::{Config, GcOutputFormat, WiiOutputFormat},
     errors::Error,
-    util::{drive_info::DriveInfo, misc::get_threads_num},
+    games::disc_file_reader::DiscFileReader,
+    util::{
+        drive_info::DriveInfo,
+        misc::{get_optimal_preloader_threads, get_optimal_processor_threads},
+    },
 };
 use nod::{
     common::Format,
@@ -35,12 +39,10 @@ pub fn import_game(
         let (tx, rx) = smol::channel::bounded(1);
 
         let handle = std::thread::spawn(move || {
-            let (processor_threads, preloader_threads) = get_threads_num();
-
-            let disc_reader = DiscReader::new(
-                &path,
+            let disc_reader = DiscReader::new_from_non_cloneable_read(
+                DiscFileReader::new(&path)?,
                 &DiscOptions {
-                    preloader_threads,
+                    preloader_threads: get_optimal_preloader_threads(),
                     ..Default::default()
                 },
             )?;
@@ -85,7 +87,7 @@ pub fn import_game(
                     Ok(())
                 },
                 &ProcessOptions {
-                    processor_threads,
+                    processor_threads: get_optimal_processor_threads(),
                     scrub: ScrubLevel::None,
                     digest_crc32: true,
                     digest_md5: false,

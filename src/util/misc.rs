@@ -3,14 +3,26 @@
 
 use crate::errors::Error;
 use async_zip::base::read::seek::ZipFileReader;
+use futures::{
+    future,
+    stream::{self, StreamExt},
+};
 use path_clean::PathClean;
 use size::Size;
 use smol::{
     fs::{self, File},
     io::{self, BufReader, BufWriter},
-    stream::StreamExt,
 };
-use std::path::Path;
+use std::{
+    path::{Path, PathBuf},
+    sync::LazyLock,
+};
+
+static CORES: LazyLock<usize> = LazyLock::new(|| {
+    std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or_default()
+});
 
 pub async fn get_dir_size(path: &Path) -> Size {
     let mut size = 0;
@@ -77,16 +89,49 @@ pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn get_threads_num() -> (usize, usize) {
-    let cpus = num_cpus::get();
-
-    let preloader_threads = match cpus {
-        0..=4 => 1,
+pub fn get_optimal_preloader_threads() -> usize {
+    match *CORES {
+        0 | 1 => 0,
+        2..=4 => 1,
         5..=8 => 2,
         _ => 4,
-    };
+    }
+}
 
-    let processor_threads = cpus - preloader_threads;
+pub fn get_optimal_processor_threads() -> usize {
+    let cores = *CORES;
 
-    (preloader_threads, processor_threads)
+    match cores {
+        0 | 1 => 0,
+        2..=4 => cores - 1,
+        5..=8 => cores - 2,
+        n => n - 4,
+    }
+}
+
+pub async fn filter_valid_games(games: Vec<PathBuf>) -> Vec<PathBuf> {
+    async fn is_game(path: &Path) -> Result<bool, Error> {
+        let mut file = File::open(path).await?;
+
+        let is_game = if path
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+        {
+            let mut reader = BufReader::new(file);
+            let mut zip = ZipFileReader::new(&mut reader).await?;
+            let mut entry = zip.reader_without_entry(0).await?;
+            wii_disc_info::Meta::read(&mut entry).await.is_ok()
+        } else {
+            wii_disc_info::Meta::read(&mut file).await.is_ok()
+        };
+
+        Ok(is_game)
+    }
+
+    stream::iter(games)
+        .map(|p| async move { is_game(&p).await.unwrap_or(false).then_some(p) })
+        .buffer_unordered(8)
+        .filter_map(future::ready)
+        .collect()
+        .await
 }
