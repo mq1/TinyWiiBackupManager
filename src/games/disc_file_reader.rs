@@ -3,6 +3,7 @@
 
 use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
 use async_zip::base::read::seek::ZipFileReader;
+use futures::AsyncWriteExt;
 use nod::read::{DiscOptions, DiscReader, DiscStream};
 use positioned_io::{RandomAccessFile, ReadAt};
 use std::{fs::File, io, path::Path, sync::Arc};
@@ -46,8 +47,6 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
 
     let reader = if ext.eq_ignore_ascii_case("zip") {
         let tmp = futures::executor::block_on(async {
-            use futures::{AsyncSeekExt, AsyncWriteExt};
-
             let file = futures::io::AllowStdIo::new(File::open(path)?);
             let mut reader = futures::io::BufReader::new(file);
             let mut zip = ZipFileReader::new(&mut reader).await?;
@@ -56,7 +55,6 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
             let mut writer = futures::io::AllowStdIo::new(tempfile()?);
             futures::io::copy(&mut entry, &mut writer).await?;
             writer.flush().await?;
-            writer.seek(io::SeekFrom::Start(0)).await?;
 
             let tmp = writer.into_inner();
             Ok::<_, Error>(tmp)
