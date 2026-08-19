@@ -18,6 +18,7 @@ dependencies = [
  "isahc",
  "itertools 0.15.0",
  "lucide-icons",
+ "memmap2",
  "nod",
  "open",
  "path-clean",

@@ -3,42 +3,46 @@
 
 use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
 use async_zip::base::read::seek::ZipFileReader;
+use memmap2::Mmap;
 use nod::read::{DiscOptions, DiscReader};
 use std::{fs::File, io, path::Path, sync::Arc};
-use tempfile::NamedTempFile;
+use tempfile::tempfile;
 
-struct ClonableFileReader {
-    inner: File,
-    temp_guard: Arc<NamedTempFile>,
+struct SharedFileReader {
+    file: Arc<File>,
+    cursor: io::Cursor<Mmap>,
 }
 
-impl ClonableFileReader {
-    pub fn new(tmp: NamedTempFile) -> io::Result<Self> {
-        let inner = tmp.reopen()?;
-        let temp_guard = Arc::new(tmp);
+impl SharedFileReader {
+    pub fn new(file: Arc<File>, initial_pos: u64) -> io::Result<Self> {
+        use std::io::Seek;
 
-        Ok(Self { inner, temp_guard })
+        let mmap = unsafe { Mmap::map(file.as_ref())? };
+        let mut cursor = io::Cursor::new(mmap);
+        cursor.seek(io::SeekFrom::Start(initial_pos))?;
+
+        Ok(Self { file, cursor })
     }
 }
 
-impl io::Read for ClonableFileReader {
+impl io::Read for SharedFileReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.inner.read(buf)
+        self.cursor.read(buf)
     }
 }
 
-impl io::Seek for ClonableFileReader {
+impl io::Seek for SharedFileReader {
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
-        self.inner.seek(pos)
+        self.cursor.seek(pos)
     }
 }
 
-impl Clone for ClonableFileReader {
+impl Clone for SharedFileReader {
     fn clone(&self) -> Self {
-        let inner = self.temp_guard.reopen().unwrap();
-        let temp_guard = self.temp_guard.clone();
+        let file = self.file.clone();
+        let initial_pos = self.cursor.position();
 
-        Self { inner, temp_guard }
+        Self::new(file, initial_pos).unwrap()
     }
 }
 
@@ -59,7 +63,7 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
             let mut zip = ZipFileReader::new(&mut reader).await?;
             let mut entry = zip.reader_without_entry(0).await?;
 
-            let mut writer = futures::io::AllowStdIo::new(NamedTempFile::new()?);
+            let mut writer = futures::io::AllowStdIo::new(tempfile()?);
             futures::io::copy(&mut entry, &mut writer).await?;
             writer.flush().await?;
             writer.seek(io::SeekFrom::Start(0)).await?;
@@ -68,7 +72,7 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
             Ok::<_, Error>(tmp)
         })?;
 
-        let tmp = ClonableFileReader::new(tmp)?;
+        let tmp = SharedFileReader::new(Arc::new(tmp), 0)?;
         DiscReader::new_from_cloneable_read(tmp, &disc_opts)?
     } else {
         DiscReader::new(path, &disc_opts)?

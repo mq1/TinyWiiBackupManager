@@ -52,6 +52,7 @@ sanitize-filename = "=0.7.0-beta"
 path-clean = "1"
 split-write = "0.2"
 tempfile = "3"
+memmap2 = "0.9"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
