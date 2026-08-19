@@ -51,8 +51,6 @@ either = "1"
 sanitize-filename = "=0.7.0-beta"
 path-clean = "1"
 split-write = "0.2"
-zip = { version = "8", default-features = false, features = ["deflate-flate2"] }
-ouroboros = "0.18"
 tempfile = "3"
 
 # windows x86 has issues with bzip2 + lld

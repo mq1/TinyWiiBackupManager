@@ -14,6 +14,7 @@ use nod::{
 use sipper::{Straw, sipper};
 use split_write::SplitWriter;
 use std::{
+    ffi::OsStr,
     fs,
     io::{BufWriter, Write},
     num::NonZeroUsize,
@@ -32,6 +33,12 @@ pub fn import_game(
     let should_split = is_fat32 || config.always_split;
 
     sipper(async move |mut sender| {
+        let filename = path
+            .file_name()
+            .and_then(OsStr::to_str)
+            .ok_or(Error::InvalidFilename)?;
+        sender.send(format!("›  Opening {filename}")).await;
+
         let (tx, rx) = smol::channel::bounded(1);
 
         let handle = std::thread::spawn(move || {

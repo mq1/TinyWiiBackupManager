@@ -71,12 +71,6 @@ impl From<async_zip::error::ZipError> for Error {
     }
 }
 
-impl From<zip::result::ZipError> for Error {
-    fn from(err: zip::result::ZipError) -> Self {
-        Self::Zip(err.to_string())
-    }
-}
-
 impl From<nod::Error> for Error {
     fn from(err: nod::Error) -> Self {
         match err {
