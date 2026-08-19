@@ -6,7 +6,7 @@ use nod::read::{DiscOptions, DiscReader};
 use ouroboros::self_referencing;
 use std::{
     fs::File,
-    io::{self, Read, Seek, SeekFrom, Write},
+    io::{self, Read, Seek, SeekFrom},
     path::Path,
 };
 use tempfile::tempfile;
@@ -23,7 +23,6 @@ struct ZipEntryStream {
 
 struct BufferedZipEntry {
     stream: ZipEntryStream,
-    mem_buf: Vec<u8>,
     buffer: File,
     buffer_pos: u64,
     extracted_len: u64,
@@ -42,7 +41,6 @@ impl BufferedZipEntry {
 
         Ok(Self {
             stream,
-            mem_buf: vec![0u8; 0x8000],
             buffer: tempfile()?,
             buffer_pos: 0,
             extracted_len: 0,
@@ -58,15 +56,15 @@ impl BufferedZipEntry {
         self.buffer.seek(SeekFrom::End(0))?;
 
         while self.extracted_len < target_pos {
-            let read = self
-                .stream
-                .with_entry_mut(|entry| entry.read(&mut self.mem_buf))?;
+            let read = self.stream.with_entry_mut(|entry| {
+                let mut chunk = entry.take(0x8000);
+                io::copy(&mut chunk, &mut self.buffer)
+            })?;
 
             if read == 0 {
                 return Err(io::ErrorKind::UnexpectedEof.into());
             }
 
-            self.buffer.write_all(&self.mem_buf[..read])?;
             self.extracted_len += read as u64;
         }
 
