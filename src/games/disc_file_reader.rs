@@ -3,46 +3,30 @@
 
 use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
 use async_zip::base::read::seek::ZipFileReader;
-use memmap2::Mmap;
-use nod::read::{DiscOptions, DiscReader};
+use nod::read::{DiscOptions, DiscReader, DiscStream};
 use std::{fs::File, io, path::Path, sync::Arc};
 use tempfile::tempfile;
 
+#[derive(Debug, Clone)]
 struct SharedFileReader {
     file: Arc<File>,
-    cursor: io::Cursor<Mmap>,
 }
 
 impl SharedFileReader {
-    pub fn new(file: Arc<File>, initial_pos: u64) -> io::Result<Self> {
-        use std::io::Seek;
-
-        let mmap = unsafe { Mmap::map(file.as_ref())? };
-        let mut cursor = io::Cursor::new(mmap);
-        cursor.seek(io::SeekFrom::Start(initial_pos))?;
-
-        Ok(Self { file, cursor })
+    pub fn new(file: Arc<File>) -> io::Result<Self> {
+        Ok(Self { file })
     }
 }
 
-impl io::Read for SharedFileReader {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.cursor.read(buf)
+impl DiscStream for SharedFileReader {
+    fn stream_len(&mut self) -> io::Result<u64> {
+        let metadata = self.file.metadata()?;
+        Ok(metadata.len())
     }
-}
 
-impl io::Seek for SharedFileReader {
-    fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
-        self.cursor.seek(pos)
-    }
-}
-
-impl Clone for SharedFileReader {
-    fn clone(&self) -> Self {
-        let file = self.file.clone();
-        let initial_pos = self.cursor.position();
-
-        Self::new(file, initial_pos).unwrap()
+    fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> io::Result<()> {
+        use positioned_io::ReadAt;
+        self.file.read_exact_at(offset, buf)
     }
 }
 
@@ -72,8 +56,8 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
             Ok::<_, Error>(tmp)
         })?;
 
-        let tmp = SharedFileReader::new(Arc::new(tmp), 0)?;
-        DiscReader::new_from_cloneable_read(tmp, &disc_opts)?
+        let tmp = SharedFileReader::new(Arc::new(tmp))?;
+        DiscReader::new_stream(Box::new(tmp), &disc_opts)?
     } else {
         DiscReader::new(path, &disc_opts)?
     };
