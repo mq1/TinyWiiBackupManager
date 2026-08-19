@@ -4,29 +4,35 @@
 use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
 use async_zip::base::read::seek::ZipFileReader;
 use nod::read::{DiscOptions, DiscReader, DiscStream};
+use positioned_io::{RandomAccessFile, ReadAt};
 use std::{fs::File, io, path::Path, sync::Arc};
 use tempfile::tempfile;
 
 #[derive(Debug, Clone)]
 struct SharedFileReader {
-    file: Arc<File>,
+    inner: Arc<RandomAccessFile>,
+    stream_len: u64,
 }
 
 impl SharedFileReader {
-    pub fn new(file: Arc<File>) -> io::Result<Self> {
-        Ok(Self { file })
+    pub fn new(file: File) -> io::Result<Self> {
+        let stream_len = file.metadata()?.len();
+        let file = RandomAccessFile::try_new(file)?;
+
+        Ok(Self {
+            inner: Arc::new(file),
+            stream_len,
+        })
     }
 }
 
 impl DiscStream for SharedFileReader {
     fn stream_len(&mut self) -> io::Result<u64> {
-        let metadata = self.file.metadata()?;
-        Ok(metadata.len())
+        Ok(self.stream_len)
     }
 
     fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> io::Result<()> {
-        use positioned_io::ReadAt;
-        self.file.read_exact_at(offset, buf)
+        self.inner.read_exact_at(offset, buf)
     }
 }
 
@@ -56,8 +62,8 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
             Ok::<_, Error>(tmp)
         })?;
 
-        let tmp = SharedFileReader::new(Arc::new(tmp))?;
-        DiscReader::new_stream(Box::new(tmp), &disc_opts)?
+        let stream = SharedFileReader::new(tmp)?;
+        DiscReader::new_stream(Box::new(stream), &disc_opts)?
     } else {
         DiscReader::new(path, &disc_opts)?
     };
