@@ -55,20 +55,13 @@ impl BufferedZipEntry {
 
         self.buffer.seek(SeekFrom::End(0))?;
 
-        while self.extracted_len < target_pos {
-            let read = self.stream.with_entry_mut(|entry| {
-                let mut chunk = entry.take(0x8000);
-                io::copy(&mut chunk, &mut self.buffer)
-            })?;
+        let read = self.stream.with_entry_mut(|entry| {
+            let to_extract = target_pos - self.extracted_len;
+            let mut chunk = entry.take(to_extract);
+            io::copy(&mut chunk, &mut self.buffer)
+        })?;
 
-            if read == 0 {
-                return Err(io::ErrorKind::UnexpectedEof.into());
-            }
-
-            self.extracted_len += read as u64;
-        }
-
-        self.buffer.seek(SeekFrom::Start(self.buffer_pos))?;
+        self.extracted_len += read as u64;
         Ok(())
     }
 }
@@ -78,6 +71,7 @@ impl Read for BufferedZipEntry {
         let target_pos = (self.buffer_pos + buf.len() as u64).min(self.uncompressed_len);
 
         self.extract_until(target_pos)?;
+        self.buffer.seek(SeekFrom::Start(self.buffer_pos))?;
         let n = self.buffer.read(buf)?;
 
         self.buffer_pos += n as u64;
@@ -103,11 +97,8 @@ impl Seek for BufferedZipEntry {
             return Err(io::ErrorKind::InvalidInput.into());
         }
 
-        self.extract_until(new_pos)?;
-        let n = self.buffer.seek(SeekFrom::Start(new_pos))?;
-
-        self.buffer_pos = n;
-        Ok(n)
+        self.buffer_pos = new_pos;
+        Ok(self.buffer_pos)
     }
 }
 

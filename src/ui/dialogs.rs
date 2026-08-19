@@ -26,7 +26,7 @@ pub fn pick_games(w: &dyn iced::Window) -> Vec<PathBuf> {
         .add_filter(
             "Wii/NGC rom",
             &[
-                "iso", "gcm", "wia", "rvz", "wbfs", "iso", "gcz", "tgc", "zip",
+                "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc", "zip",
             ],
         )
         .pick_files()
