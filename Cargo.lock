@@ -18,7 +18,6 @@ dependencies = [
  "isahc",
  "itertools 0.15.0",
  "lucide-icons",
- "multi-readers",
  "nod",
  "open",
  "ouroboros",
@@ -32,6 +31,7 @@ dependencies = [
  "smol",
  "split-write",
  "sys-locale",
+ "tempfile",
  "thiserror 2.0.20",
  "twbm-idmap",
  "wgpu",
@@ -2283,12 +2283,6 @@ dependencies = [
  "num-traits",
  "pxfm",
 ]
-
-[[package]]
-name = "multi-readers"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfae744bf1064ab43414ddcd25583e4efd85b8a508e93962c1fa859920be76be"
 
 [[package]]
 name = "mundy"

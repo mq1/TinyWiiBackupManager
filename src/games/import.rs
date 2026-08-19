@@ -4,15 +4,11 @@
 use crate::{
     config::{Config, GcOutputFormat, WiiOutputFormat},
     errors::Error,
-    games::disc_file_reader::DiscFileReader,
-    util::{
-        drive_info::DriveInfo,
-        misc::{get_optimal_preloader_threads, get_optimal_processor_threads},
-    },
+    games::disc_file_reader::disc_file_reader,
+    util::{drive_info::DriveInfo, misc::get_optimal_processor_threads},
 };
 use nod::{
     common::Format,
-    read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use sipper::{Straw, sipper};
@@ -39,13 +35,7 @@ pub fn import_game(
         let (tx, rx) = smol::channel::bounded(1);
 
         let handle = std::thread::spawn(move || {
-            let disc_reader = DiscReader::new_from_cloneable_read(
-                DiscFileReader::new(&path)?,
-                &DiscOptions {
-                    preloader_threads: get_optimal_preloader_threads(),
-                    ..Default::default()
-                },
-            )?;
+            let disc_reader = disc_file_reader(&path)?;
 
             let disc_header = disc_reader.header();
             let is_wii = disc_header.is_wii();

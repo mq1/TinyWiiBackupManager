@@ -1,129 +1,134 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
-use multi_readers::MultiReader;
+use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
+use nod::read::{DiscOptions, DiscReader};
 use ouroboros::self_referencing;
 use std::{
-    ffi::OsStr,
-    fmt::Write,
     fs::File,
-    io::{self, Read, Seek, SeekFrom},
-    path::{Path, PathBuf},
+    io::{self, Read, Seek, SeekFrom, Write},
+    path::Path,
 };
-use zip::{ZipArchive, read::ZipFileSeek};
+use tempfile::tempfile;
+use zip::{ZipArchive, read::ZipFile};
 
 #[self_referencing]
-struct Zipped {
-    inner: ZipArchive<File>,
+struct ZipEntryStream {
+    archive: ZipArchive<File>,
 
-    #[borrows(mut inner)]
-    #[covariant]
-    entry: ZipFileSeek<'this, File>,
+    #[borrows(mut archive)]
+    #[not_covariant]
+    entry: ZipFile<'this, File>,
 }
 
-enum Inner {
-    Files(MultiReader<File>),
-    Zipped(Zipped),
+struct BufferedZipEntry {
+    stream: ZipEntryStream,
+    mem_buf: Vec<u8>,
+    buffer: File,
+    buffer_pos: u64,
+    extracted_len: u64,
+    uncompressed_len: u64,
 }
 
-pub struct DiscFileReader {
-    path: PathBuf,
-    position: u64,
-    inner: Inner,
-}
-
-impl DiscFileReader {
-    pub fn new(path: &Path) -> Result<Self, Error> {
-        let filename = path
-            .file_name()
-            .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
-
-        let ext = path
-            .extension()
-            .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
-
-        if ext == "zip" {
-            let file = File::open(path)?;
-            let zip = ZipArchive::new(file)?;
-
-            let zipped = ZippedTryBuilder {
-                inner: zip,
-                entry_builder: |zip| zip.by_index_seek(0),
-            }
-            .try_build()?;
-
-            Ok(Self {
-                path: path.to_path_buf(),
-                position: 0,
-                inner: Inner::Zipped(zipped),
-            })
-        } else {
-            let mut files = vec![File::open(path)];
-
-            if filename.contains(".part0.iso") {
-                let part1_filename = filename.replace(".part0.iso", ".part1.iso");
-                let part1_path = path.with_file_name(part1_filename);
-
-                if !part1_path.exists() {
-                    return Err(Error::DiscNotFound);
-                }
-
-                files.push(File::open(part1_path))
-            } else if ext == "wbfs" {
-                for i in 1..=4 {
-                    let mut wbfx_filename = filename.to_string();
-                    let _ = wbfx_filename.pop();
-                    write!(&mut wbfx_filename, "{i}").unwrap();
-
-                    let wbfx_path = path.with_file_name(wbfx_filename);
-                    if wbfx_path.exists() {
-                        files.push(File::open(wbfx_path));
-                    }
-                }
-            }
-
-            let multi = MultiReader::try_new(files)?;
-
-            Ok(Self {
-                path: path.to_path_buf(),
-                position: 0,
-                inner: Inner::Files(multi),
-            })
+impl BufferedZipEntry {
+    fn new(archive: ZipArchive<File>, index: usize) -> Result<Self, Error> {
+        let stream = ZipEntryStreamTryBuilder {
+            archive,
+            entry_builder: |a| a.by_index(index),
         }
+        .try_build()?;
+
+        let uncompressed_len = stream.with_entry(|e| e.size());
+
+        Ok(Self {
+            stream,
+            mem_buf: vec![0u8; 0x8000],
+            buffer: tempfile()?,
+            buffer_pos: 0,
+            extracted_len: 0,
+            uncompressed_len,
+        })
+    }
+
+    fn extract_until(&mut self, target_pos: u64) -> io::Result<()> {
+        if self.extracted_len >= target_pos {
+            return Ok(());
+        }
+
+        self.buffer.seek(SeekFrom::End(0))?;
+
+        while self.extracted_len < target_pos {
+            let read = self
+                .stream
+                .with_entry_mut(|entry| entry.read(&mut self.mem_buf))?;
+
+            if read == 0 {
+                return Err(io::ErrorKind::UnexpectedEof.into());
+            }
+
+            self.buffer.write_all(&self.mem_buf[..read])?;
+            self.extracted_len += read as u64;
+        }
+
+        self.buffer.seek(SeekFrom::Start(self.buffer_pos))?;
+        Ok(())
     }
 }
 
-impl Read for DiscFileReader {
+impl Read for BufferedZipEntry {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let n = match &mut self.inner {
-            Inner::Files(p) => p.read(buf)?,
-            Inner::Zipped(z) => z.with_entry_mut(|e| e.read(buf))?,
-        };
+        let target_pos = (self.buffer_pos + buf.len() as u64).min(self.uncompressed_len);
 
-        self.position += n as u64;
+        self.extract_until(target_pos)?;
+        let n = self.buffer.read(buf)?;
+
+        self.buffer_pos += n as u64;
         Ok(n)
     }
 }
 
-impl Seek for DiscFileReader {
+impl Seek for BufferedZipEntry {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
-        let new_pos = match &mut self.inner {
-            Inner::Files(p) => p.seek(pos)?,
-            Inner::Zipped(z) => z.with_entry_mut(|e| e.seek(pos))?,
+        let new_pos = match pos {
+            SeekFrom::Start(pos) => pos,
+            SeekFrom::End(pos) => self
+                .uncompressed_len
+                .checked_add_signed(pos)
+                .ok_or(io::ErrorKind::InvalidInput)?,
+            SeekFrom::Current(pos) => self
+                .buffer_pos
+                .checked_add_signed(pos)
+                .ok_or(io::ErrorKind::InvalidInput)?,
         };
 
-        self.position = new_pos;
-        Ok(new_pos)
+        if new_pos > self.uncompressed_len {
+            return Err(io::ErrorKind::InvalidInput.into());
+        }
+
+        self.extract_until(new_pos)?;
+        let n = self.buffer.seek(SeekFrom::Start(new_pos))?;
+
+        self.buffer_pos = n;
+        Ok(n)
     }
 }
 
-impl Clone for DiscFileReader {
-    fn clone(&self) -> Self {
-        let mut new = Self::new(&self.path).unwrap();
-        new.seek(SeekFrom::Start(self.position)).unwrap();
-        new
-    }
+pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
+    let disc_opts = DiscOptions {
+        preloader_threads: get_optimal_preloader_threads(),
+        ..Default::default()
+    };
+
+    let ext = path.extension().ok_or(Error::InvalidFilename)?;
+
+    let reader = if ext.eq_ignore_ascii_case("zip") {
+        let file = File::open(path)?;
+        let archive = ZipArchive::new(file)?;
+        let entry = BufferedZipEntry::new(archive, 0)?;
+        DiscReader::new_from_non_cloneable_read(entry, &disc_opts)?
+    } else {
+        DiscReader::new(path, &disc_opts)?
+    };
+
+    Ok(reader)
 }
