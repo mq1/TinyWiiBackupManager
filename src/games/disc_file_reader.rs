@@ -4,13 +4,7 @@
 use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
 use async_zip::base::read::seek::ZipFileReader;
 use nod::read::{DiscOptions, DiscReader};
-use smol::io::{AsyncSeekExt, AsyncWriteExt};
-use std::{
-    fs::File,
-    io::{self, Read, Seek, SeekFrom},
-    path::Path,
-    sync::Arc,
-};
+use std::{fs::File, io, path::Path, sync::Arc};
 use tempfile::NamedTempFile;
 
 struct ClonableFileReader {
@@ -27,14 +21,14 @@ impl ClonableFileReader {
     }
 }
 
-impl Read for ClonableFileReader {
+impl io::Read for ClonableFileReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
     }
 }
 
-impl Seek for ClonableFileReader {
-    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+impl io::Seek for ClonableFileReader {
+    fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
         self.inner.seek(pos)
     }
 }
@@ -57,18 +51,20 @@ pub fn disc_file_reader(path: &Path) -> Result<DiscReader, Error> {
     let ext = path.extension().ok_or(Error::InvalidFilename)?;
 
     let reader = if ext.eq_ignore_ascii_case("zip") {
-        let tmp = smol::block_on(async {
-            let file = smol::fs::File::open(path).await?;
-            let mut reader = smol::io::BufReader::new(file);
+        let tmp = futures::executor::block_on(async {
+            use futures::{AsyncSeekExt, AsyncWriteExt};
+
+            let file = futures::io::AllowStdIo::new(File::open(path)?);
+            let mut reader = futures::io::BufReader::new(file);
             let mut zip = ZipFileReader::new(&mut reader).await?;
             let mut entry = zip.reader_without_entry(0).await?;
 
-            let mut writer = smol::Unblock::new(NamedTempFile::new()?);
-            smol::io::copy(&mut entry, &mut writer).await?;
+            let mut writer = futures::io::AllowStdIo::new(NamedTempFile::new()?);
+            futures::io::copy(&mut entry, &mut writer).await?;
             writer.flush().await?;
-            writer.seek(SeekFrom::Start(0)).await?;
+            writer.seek(io::SeekFrom::Start(0)).await?;
 
-            let tmp = writer.into_inner().await;
+            let tmp = writer.into_inner();
             Ok::<_, Error>(tmp)
         })?;
 
