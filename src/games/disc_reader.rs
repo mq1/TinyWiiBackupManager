@@ -45,39 +45,15 @@ struct SharedMultiFileReader {
 }
 
 impl SharedMultiFileReader {
-    pub fn new(disc0_path: &Path) -> Result<Self, Error> {
-        let filename = disc0_path
-            .file_name()
-            .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
-
+    pub fn new(files: ArrayVec<File, 4>) -> io::Result<Self> {
         let mut inner = ArrayVec::new();
         let mut stream_len = 0;
 
-        let mut push_file = |path: &Path| -> Result<(), Error> {
-            let file = File::open(path)?;
+        for file in files {
             let size = file.metadata()?.len();
             let raf = RandomAccessFile::try_new(file)?;
             inner.push((raf, size));
             stream_len += size;
-            Ok(())
-        };
-
-        push_file(disc0_path)?;
-
-        if let Some(filename) = filename.strip_suffix(".part0.iso") {
-            let disc1_path = disc0_path.with_file_name(format!("{filename}.part1.iso"));
-            push_file(&disc1_path)?;
-        }
-
-        if let Some(filename) = filename.strip_suffix(".wbfs") {
-            for i in 1..=3 {
-                let wbfx_path = disc0_path.with_file_name(format!("{filename}.wbf{i}"));
-                if !wbfx_path.exists() {
-                    break;
-                }
-                push_file(&wbfx_path)?;
-            }
         }
 
         Ok(Self {
@@ -146,7 +122,35 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
 
         Box::new(SharedFileReader::new(tmp)?)
     } else {
-        Box::new(SharedMultiFileReader::new(path)?)
+        let filename = path
+            .file_name()
+            .and_then(OsStr::to_str)
+            .ok_or(Error::InvalidFilename)?;
+
+        let mut files = ArrayVec::new();
+        files.push(File::open(path)?);
+
+        if let Some(filename) = filename.strip_suffix(".part0.iso") {
+            let disc1_path = path.with_file_name(format!("{filename}.part1.iso"));
+            files.push(File::open(&disc1_path)?);
+        }
+
+        if let Some(filename) = filename.strip_suffix(".wbfs") {
+            for i in 1..=3 {
+                let wbfx_path = path.with_file_name(format!("{filename}.wbf{i}"));
+                if !wbfx_path.exists() {
+                    break;
+                }
+                files.push(File::open(&wbfx_path)?);
+            }
+        }
+
+        if files.len() == 1 {
+            let file = files.pop().unwrap();
+            Box::new(SharedFileReader::new(file)?)
+        } else {
+            Box::new(SharedMultiFileReader::new(files)?)
+        }
     };
 
     let disc_reader = DiscReader::new_stream(stream, &disc_opts)?;
