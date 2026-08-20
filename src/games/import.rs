@@ -37,12 +37,16 @@ pub fn import_game(
             .file_name()
             .and_then(OsStr::to_str)
             .ok_or(Error::InvalidFilename)?;
+
         sender.send(format!("›  Opening {filename}")).await;
+
+        let remove_sources = config.remove_sources_games;
 
         let (tx, rx) = smol::channel::bounded(1);
 
+        let path_clone = path.clone();
         let handle = std::thread::spawn(move || {
-            let disc_reader = get_disc_reader(&path)?;
+            let disc_reader = get_disc_reader(&path_clone)?;
 
             let disc_header = disc_reader.header();
             let is_wii = disc_header.is_wii();
@@ -100,14 +104,20 @@ pub fn import_game(
             }
 
             out_writer.flush()?;
-            Ok(())
+            Ok::<_, Error>(())
         });
 
         while let Ok(msg) = rx.recv().await {
             sender.send(msg).await;
         }
 
-        handle.join().expect("Failed to join thread")
+        handle.join().expect("Failed to join thread")?;
+
+        if remove_sources {
+            smol::fs::remove_file(&path).await?;
+        }
+
+        Ok(())
     })
 }
 

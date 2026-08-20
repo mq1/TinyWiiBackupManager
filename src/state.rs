@@ -114,7 +114,7 @@ impl AppState {
         let mount_point = self.config.mount_point.clone();
 
         Task::perform(
-            homebrew::import(mount_point, paths),
+            homebrew::import(mount_point, paths, self.config.remove_sources_apps),
             Message::HomebrewAppsImported,
         )
     }

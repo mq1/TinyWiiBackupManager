@@ -11,7 +11,7 @@ use path_clean::PathClean;
 use size::Size;
 use smol::{
     fs::{self, File},
-    io::{self, BufReader, BufWriter},
+    io::{self, AsyncWriteExt, BufReader, BufWriter},
 };
 use std::{
     path::{Path, PathBuf},
@@ -100,6 +100,7 @@ pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
             let mut writer = BufWriter::with_capacity(0x8000, file);
 
             io::copy(&mut entry_reader, &mut writer).await?;
+            writer.flush().await?;
         }
     }
 
