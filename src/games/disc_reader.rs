@@ -17,7 +17,7 @@ use zip::ZipArchive;
 
 #[derive(Debug, Clone)]
 struct SharedMultiFileReader {
-    inner: Arc<ArrayVec<(RandomAccessFile, u64), 4>>,
+    inner: ArrayVec<(Arc<RandomAccessFile>, u64), 4>,
     stream_len: u64,
 }
 
@@ -29,14 +29,11 @@ impl SharedMultiFileReader {
         for file in files {
             let size = file.metadata()?.len();
             let raf = RandomAccessFile::try_new(file)?;
-            inner.push((raf, size));
+            inner.push((Arc::new(raf), size));
             stream_len += size;
         }
 
-        Ok(Self {
-            inner: Arc::new(inner),
-            stream_len,
-        })
+        Ok(Self { inner, stream_len })
     }
 }
 
