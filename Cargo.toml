@@ -54,6 +54,9 @@ split-write = "0.2"
 tempfile = "3"
 positioned-io = "0.3"
 arrayvec = "0.7"
+zip = { version = "8", default-features = false, features = [
+    "deflate-flate2-zlib-rs",
+] }
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
