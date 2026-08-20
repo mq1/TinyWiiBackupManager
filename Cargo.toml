@@ -53,6 +53,7 @@ path-clean = "1"
 split-write = "0.2"
 tempfile = "3"
 positioned-io = "0.3"
+arrayvec = "0.7"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]

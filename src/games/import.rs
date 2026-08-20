@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, GcOutputFormat, WiiOutputFormat},
     errors::Error,
-    games::disc_file_reader::disc_file_reader,
+    games::disc_reader::get_disc_reader,
     util::{drive_info::DriveInfo, misc::get_optimal_processor_threads},
 };
 use nod::{
@@ -42,7 +42,7 @@ pub fn import_game(
         let (tx, rx) = smol::channel::bounded(1);
 
         let handle = std::thread::spawn(move || {
-            let disc_reader = disc_file_reader(&path)?;
+            let disc_reader = get_disc_reader(&path)?;
 
             let disc_header = disc_reader.header();
             let is_wii = disc_header.is_wii();
