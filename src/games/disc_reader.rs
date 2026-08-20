@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, util::misc::get_optimal_preloader_threads};
+use crate::{errors::Error, util::misc::OPTIMAL_THREADS};
 use arrayvec::ArrayVec;
 use nod::read::{DiscOptions, DiscReader, DiscStream};
 use positioned_io::{RandomAccessFile, ReadAt};
@@ -76,7 +76,7 @@ impl DiscStream for SharedMultiFileReader {
 
 pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
     let disc_opts = DiscOptions {
-        preloader_threads: get_optimal_preloader_threads(),
+        preloader_threads: OPTIMAL_THREADS.preloader,
         ..Default::default()
     };
 

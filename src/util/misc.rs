@@ -18,10 +18,27 @@ use std::{
     sync::LazyLock,
 };
 
-static CORES: LazyLock<usize> = LazyLock::new(|| {
-    std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or_default()
+pub struct OptimalThreads {
+    pub preloader: usize,
+    pub processor: usize,
+}
+
+pub static OPTIMAL_THREADS: LazyLock<OptimalThreads> = LazyLock::new(|| {
+    let cores = std::thread::available_parallelism().map_or(0, |n| n.get());
+
+    let preloader = match cores {
+        0 | 1 => 0,
+        2..=4 => 1,
+        5..=8 => 2,
+        _ => 4,
+    };
+
+    let processor = cores - preloader;
+
+    OptimalThreads {
+        preloader,
+        processor,
+    }
 });
 
 pub async fn get_dir_size(path: &Path) -> Size {
@@ -87,26 +104,6 @@ pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-pub fn get_optimal_preloader_threads() -> usize {
-    match *CORES {
-        0 | 1 => 0,
-        2..=4 => 1,
-        5..=8 => 2,
-        _ => 4,
-    }
-}
-
-pub fn get_optimal_processor_threads() -> usize {
-    let cores = *CORES;
-
-    match cores {
-        0 | 1 => 0,
-        2..=4 => cores - 1,
-        5..=8 => cores - 2,
-        n => n - 4,
-    }
 }
 
 pub async fn filter_valid_games(games: Vec<PathBuf>) -> Vec<PathBuf> {

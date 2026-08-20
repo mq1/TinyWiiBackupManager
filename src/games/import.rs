@@ -5,7 +5,7 @@ use crate::{
     config::{Config, GcOutputFormat, WiiOutputFormat},
     errors::Error,
     games::disc_reader::get_disc_reader,
-    util::{drive_info::DriveInfo, misc::get_optimal_processor_threads},
+    util::{drive_info::DriveInfo, misc::OPTIMAL_THREADS},
 };
 use nod::{
     common::Format,
@@ -84,7 +84,7 @@ pub fn import_game(
                     Ok(())
                 },
                 &ProcessOptions {
-                    processor_threads: get_optimal_processor_threads(),
+                    processor_threads: OPTIMAL_THREADS.processor,
                     scrub: ScrubLevel::None,
                     digest_crc32: true,
                     digest_md5: false,
