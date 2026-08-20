@@ -11,41 +11,13 @@ use std::{ffi::OsStr, fs::File, io, path::Path, sync::Arc};
 use tempfile::tempfile;
 
 #[derive(Debug, Clone)]
-struct SharedFileReader {
-    inner: Arc<RandomAccessFile>,
-    stream_len: u64,
-}
-
-impl SharedFileReader {
-    pub fn new(file: File) -> io::Result<Self> {
-        let stream_len = file.metadata()?.len();
-        let file = RandomAccessFile::try_new(file)?;
-
-        Ok(Self {
-            inner: Arc::new(file),
-            stream_len,
-        })
-    }
-}
-
-impl DiscStream for SharedFileReader {
-    fn stream_len(&mut self) -> io::Result<u64> {
-        Ok(self.stream_len)
-    }
-
-    fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> io::Result<()> {
-        self.inner.read_exact_at(offset, buf)
-    }
-}
-
-#[derive(Debug, Clone)]
 struct SharedMultiFileReader {
     inner: Arc<ArrayVec<(RandomAccessFile, u64), 4>>,
     stream_len: u64,
 }
 
 impl SharedMultiFileReader {
-    pub fn new(files: ArrayVec<File, 4>) -> io::Result<Self> {
+    pub fn new(files: impl IntoIterator<Item = File>) -> io::Result<Self> {
         let mut inner = ArrayVec::new();
         let mut stream_len = 0;
 
@@ -105,7 +77,7 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
 
     let ext = path.extension().ok_or(Error::InvalidFilename)?;
 
-    let stream: Box<dyn DiscStream> = if ext.eq_ignore_ascii_case("zip") {
+    let reader = if ext.eq_ignore_ascii_case("zip") {
         let tmp = futures::executor::block_on(async {
             let file = futures::io::AllowStdIo::new(File::open(path)?);
             let mut reader = futures::io::BufReader::new(file);
@@ -120,14 +92,14 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
             Ok::<_, Error>(tmp)
         })?;
 
-        Box::new(SharedFileReader::new(tmp)?)
+        SharedMultiFileReader::new([tmp])?
     } else {
         let filename = path
             .file_name()
             .and_then(OsStr::to_str)
             .ok_or(Error::InvalidFilename)?;
 
-        let mut files = ArrayVec::new();
+        let mut files = ArrayVec::<_, 4>::new();
         files.push(File::open(path)?);
 
         if let Some(filename) = filename.strip_suffix(".part0.iso") {
@@ -145,14 +117,9 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
             }
         }
 
-        if files.len() == 1 {
-            let file = files.pop().unwrap();
-            Box::new(SharedFileReader::new(file)?)
-        } else {
-            Box::new(SharedMultiFileReader::new(files)?)
-        }
+        SharedMultiFileReader::new(files)?
     };
 
-    let disc_reader = DiscReader::new_stream(stream, &disc_opts)?;
+    let disc_reader = DiscReader::new_stream(Box::new(reader), &disc_opts)?;
     Ok(disc_reader)
 }
