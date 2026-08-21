@@ -92,3 +92,9 @@ impl<T> From<std::io::IntoInnerError<T>> for Error {
         Self::IntoInnerWriter
     }
 }
+
+impl From<tempfile::PersistError> for Error {
+    fn from(err: tempfile::PersistError) -> Self {
+        Self::from(err.error)
+    }
+}
