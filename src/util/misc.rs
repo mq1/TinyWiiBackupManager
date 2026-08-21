@@ -3,10 +3,7 @@
 
 use crate::errors::Error;
 use async_zip::base::read::seek::ZipFileReader;
-use futures::{
-    future,
-    stream::{self, StreamExt},
-};
+use futures::{future::join_all, stream::StreamExt};
 use path_clean::PathClean;
 use size::Size;
 use smol::{
@@ -107,29 +104,25 @@ pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub async fn filter_valid_games(games: Vec<PathBuf>) -> Vec<PathBuf> {
-    async fn is_game(path: &Path) -> Result<bool, Error> {
-        let mut file = File::open(path).await?;
+pub async fn keep_valid_games(games: impl IntoIterator<Item = PathBuf>) -> Vec<PathBuf> {
+    let futures = games.into_iter().map(|p| async move {
+        let mut file = File::open(&p).await.ok()?;
 
-        let is_game = if path
+        let meta = if p
             .extension()
             .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
         {
             let mut reader = BufReader::new(file);
-            let mut zip = ZipFileReader::new(&mut reader).await?;
-            let mut entry = zip.reader_without_entry(0).await?;
-            wii_disc_info::Meta::read(&mut entry).await.is_ok()
+            let mut zip = ZipFileReader::new(&mut reader).await.ok()?;
+            let mut entry = zip.reader_without_entry(0).await.ok()?;
+            wii_disc_info::Meta::read(&mut entry).await.ok()?
         } else {
-            wii_disc_info::Meta::read(&mut file).await.is_ok()
+            wii_disc_info::Meta::read(&mut file).await.ok()?
         };
 
-        Ok(is_game)
-    }
+        println!("INFO: found game: {}", meta.game_title());
+        Some(p)
+    });
 
-    stream::iter(games)
-        .map(|p| async move { is_game(&p).await.unwrap_or(false).then_some(p) })
-        .buffer_unordered(8)
-        .filter_map(future::ready)
-        .collect()
-        .await
+    join_all(futures).await.into_iter().flatten().collect()
 }

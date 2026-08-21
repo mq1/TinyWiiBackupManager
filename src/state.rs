@@ -9,7 +9,7 @@ use crate::{
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     ui::{dialogs, modals::Modal, pages::Page},
-    util::drive_info::DriveInfo,
+    util::{drive_info::DriveInfo, misc::keep_valid_games},
 };
 use iced::{Task, futures::TryFutureExt};
 use smol::fs::{self, File};
@@ -122,7 +122,11 @@ impl AppState {
     pub fn pick_games_task(&self) -> Task<Message> {
         iced::window::oldest()
             .and_then(|id| iced::window::run(id, dialogs::pick_games))
-            .map(Message::ImportGames)
+            .map(Message::GamesPicked)
+    }
+
+    pub fn filter_picked_games_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
+        Task::perform(keep_valid_games(paths), Message::ImportGames)
     }
 
     pub fn import_games_task(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
