@@ -22,6 +22,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         text("Games").size(20),
         space::horizontal(),
         view_as::view(state),
+        space().width(5),
         tooltip(
             my_button(None, Icon::RotateCw, MyButtonKind::Toolbar)
                 .on_press(Message::RefreshGamesAndApps),
@@ -31,6 +32,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         tooltip(
             my_button(None, Icon::Plus, MyButtonKind::Toolbar).on_press(Message::PickGames),
             my_card("Import game(s)"),
+            tooltip::Position::Bottom
+        ),
+        tooltip(
+            my_button(None, Icon::FolderPlus, MyButtonKind::Toolbar)
+                .on_press(Message::PickGamesRecursively),
+            my_card("Import game(s) recursively"),
             tooltip::Position::Bottom
         )
     ]

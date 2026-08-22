@@ -152,7 +152,7 @@ impl AppState {
                 Task::none()
             }
             Message::PickGames => self.pick_games_task(),
-            Message::GamesPicked(paths) => self.filter_picked_games_task(paths),
+            Message::PickGamesRecursively => self.pick_games_recursively_task(),
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
                 self.busy = false;

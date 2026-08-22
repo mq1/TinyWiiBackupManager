@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, util};
+use crate::{errors::Error, util::fs::get_dir_size};
 use size::Size;
 use std::path::Path;
 use which_fs::FsKind;
@@ -35,13 +35,13 @@ impl DriveInfo {
         let fs_kind = FsKind::try_from_path(path).unwrap_or(FsKind::Unknown);
 
         let wii_games_dir = path.join("wbfs");
-        let wii_games_size = util::misc::get_dir_size(&wii_games_dir).await;
+        let wii_games_size = get_dir_size(&wii_games_dir).await;
         let gc_games_dir = path.join("games");
-        let gc_games_size = util::misc::get_dir_size(&gc_games_dir).await;
+        let gc_games_size = get_dir_size(&gc_games_dir).await;
         let games_size = wii_games_size + gc_games_size;
 
         let apps_dir = path.join("apps");
-        let apps_size = util::misc::get_dir_size(&apps_dir).await;
+        let apps_size = get_dir_size(&apps_dir).await;
 
         Ok(Self {
             used_size,

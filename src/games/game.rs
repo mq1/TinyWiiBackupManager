@@ -4,7 +4,7 @@
 use crate::{
     errors::Error,
     games::game_id::GameID,
-    util::{self, sha1_list},
+    util::{fs::get_dir_size, sha1_list},
 };
 use nod::{
     read::{DiscOptions, DiscReader},
@@ -68,7 +68,7 @@ impl Game {
         let title = twbm_idmap::get_title(id)
             .map_or_else(|| Cow::Owned(title_raw.trim().to_string()), Cow::Borrowed);
 
-        let size = util::misc::get_dir_size(&path).await;
+        let size = get_dir_size(&path).await;
 
         let cached_cover_path = covers_dir.join(id.as_str()).with_extension("png");
 

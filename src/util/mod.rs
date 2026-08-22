@@ -3,6 +3,7 @@
 
 pub mod data_dir;
 pub mod drive_info;
+pub mod fs;
 pub mod http;
 pub mod misc;
 pub mod sha1_list;

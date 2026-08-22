@@ -22,6 +22,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         text("Homebrew Apps").size(20),
         space::horizontal(),
         view_as::view(state),
+        space().width(5),
         tooltip(
             my_button(None, Icon::RotateCw, MyButtonKind::Toolbar)
                 .on_press(Message::RefreshGamesAndApps),

@@ -9,9 +9,10 @@ use crate::{
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     ui::{dialogs, modals::Modal, pages::Page},
-    util::{drive_info::DriveInfo, misc::keep_valid_games},
+    util::drive_info::DriveInfo,
 };
 use iced::{Task, futures::TryFutureExt};
+use rfd::AsyncFileDialog;
 use smol::fs::{self, File};
 use std::{path::PathBuf, sync::Arc};
 
@@ -54,10 +55,14 @@ impl AppState {
         Task::perform(Config::load(data_dir), Message::GotConfig)
     }
 
-    pub fn pick_mount_point_task(&self) -> Task<Message> {
+    fn init_file_dialog_task(&self) -> Task<AsyncFileDialog> {
         iced::window::oldest()
-            .and_then(|id| iced::window::run(id, dialogs::pick_mount_point))
-            .map(Message::MountPointPicked)
+            .and_then(|id| iced::window::run(id, |w| AsyncFileDialog::new().set_parent(w)))
+    }
+
+    pub fn pick_mount_point_task(&self) -> Task<Message> {
+        self.init_file_dialog_task()
+            .then(dialogs::make_pick_mount_point_dialog_task)
     }
 
     pub fn get_games_task(&self) -> Task<Message> {
@@ -105,9 +110,8 @@ impl AppState {
     }
 
     pub fn pick_homebrew_apps_task(&self) -> Task<Message> {
-        iced::window::oldest()
-            .and_then(|id| iced::window::run(id, dialogs::pick_homebrew_apps))
-            .map(Message::ImportHomebrewApps)
+        self.init_file_dialog_task()
+            .then(dialogs::make_pick_homebrew_apps_dialog_task)
     }
 
     pub fn import_homebrew_apps_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
@@ -120,13 +124,13 @@ impl AppState {
     }
 
     pub fn pick_games_task(&self) -> Task<Message> {
-        iced::window::oldest()
-            .and_then(|id| iced::window::run(id, dialogs::pick_games))
-            .map(Message::GamesPicked)
+        self.init_file_dialog_task()
+            .then(dialogs::make_pick_games_dialog_task)
     }
 
-    pub fn filter_picked_games_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
-        Task::perform(keep_valid_games(paths), Message::ImportGames)
+    pub fn pick_games_recursively_task(&self) -> Task<Message> {
+        self.init_file_dialog_task()
+            .then(dialogs::make_pick_games_recursively_dialog_task)
     }
 
     pub fn import_games_task(&mut self, paths: Vec<PathBuf>) -> Task<Message> {

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, util::misc::unzip};
+use crate::{errors::Error, util::fs::unzip};
 use futures::stream::{self, StreamExt, TryStreamExt};
 use smol::fs;
 use std::path::PathBuf;

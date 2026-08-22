@@ -20,7 +20,7 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 
 pub fn main() -> iced::Result {
     unsafe {
-        std::env::set_var("SMOL_THREADS", "2");
+        std::env::set_var("SMOL_THREADS", "1");
         std::env::set_var("BLOCKING_MAX_THREADS", "10");
     }
 

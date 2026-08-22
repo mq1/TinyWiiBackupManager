@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, homebrew::meta::HomebrewAppMeta, util};
+use crate::{errors::Error, homebrew::meta::HomebrewAppMeta, util::fs::get_dir_size};
 use iced::widget::image::Handle;
 use size::Size;
 use smol::fs;
@@ -39,7 +39,7 @@ impl HomebrewApp {
 
         let meta = HomebrewAppMeta::parse(&path)?;
 
-        let size = util::misc::get_dir_size(&path).await;
+        let size = get_dir_size(&path).await;
 
         let icon_path = path.join("icon.png");
         let icon_bytes = fs::read(&icon_path).await.unwrap_or_default();
