@@ -90,7 +90,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .padding(20)
             .spacing(10)
         )
-        
         .width(600),
         space::vertical(),
         row![

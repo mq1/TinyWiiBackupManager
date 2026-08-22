@@ -1,13 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
-use async_zip::{base::read1::seek::ZipArchiveReader, error::ZipError};
 use futures::stream::StreamExt;
 use size::Size;
 use smol::{
-    fs::{self, File},
-    io::{self, AsyncWriteExt, BufReader, BufWriter},
+    fs,
     stream::{self, Stream},
 };
 use std::{
