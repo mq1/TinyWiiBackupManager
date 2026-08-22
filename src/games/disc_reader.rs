@@ -4,7 +4,6 @@
 use crate::{errors::Error, util::misc::OPTIMAL_THREADS};
 use arrayvec::ArrayVec;
 use nod::read::{DiscOptions, DiscReader, DiscStream};
-use positioned_io::{RandomAccessFile, ReadAt};
 use std::{
     ffi::OsStr,
     fs::File,
@@ -14,6 +13,15 @@ use std::{
 };
 use tempfile::tempfile;
 use zip::ZipArchive;
+
+#[cfg(unix)]
+use std::os::unix::fs::FileExt;
+
+#[cfg(windows)]
+use positioned_io::{RandomAccessFile, ReadAt};
+
+#[cfg(unix)]
+type RandomAccessFile = File;
 
 #[derive(Debug, Clone)]
 struct SharedMultiFileReader {
@@ -28,8 +36,11 @@ impl SharedMultiFileReader {
 
         for file in files {
             let size = file.metadata()?.len();
-            let raf = RandomAccessFile::try_new(file)?;
-            inner.push((Arc::new(raf), size));
+
+            #[cfg(windows)]
+            let file = RandomAccessFile::try_new(file)?;
+
+            inner.push((Arc::new(file), size));
             stream_len += size;
         }
 
@@ -54,7 +65,13 @@ impl DiscStream for SharedMultiFileReader {
             }
 
             let n = ((*len - offset) as usize).min(buf.len());
+
+            #[cfg(unix)]
+            file.read_exact_at(&mut buf[..n], offset)?;
+
+            #[cfg(windows)]
             file.read_exact_at(offset, &mut buf[..n])?;
+
             buf = &mut buf[n..];
             offset = 0;
 

@@ -7,7 +7,7 @@ use smol::{
     io::BufReader,
     stream::{Stream, StreamExt},
 };
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub mod covers;
 pub mod disc_reader;
