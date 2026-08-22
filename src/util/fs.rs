@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use async_zip::base::read::seek::ZipFileReader;
+use async_zip::{base::read1::seek::ZipArchiveReader, error::ZipError};
 use futures::stream::StreamExt;
 use path_clean::PathClean;
 use size::Size;
@@ -45,27 +45,29 @@ pub async fn get_dir_size(path: &Path) -> Size {
 }
 
 pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
-    let file = File::open(path).await?;
-    let mut reader = BufReader::new(file);
-    let mut zip = ZipFileReader::new(&mut reader).await?;
+    let mut zip = {
+        let file = File::open(path).await?;
+        let reader = BufReader::new(file);
+        ZipArchiveReader::open(reader).await?
+    };
 
     let target = target.clean();
 
-    for index in 0..zip.file().entries().len() {
-        let (filename, is_dir) = {
-            let entry = &zip.file().entries()[index];
-            (Path::new(entry.filename().as_str()?), entry.dir()?)
-        };
+    for i in 0..zip.cdrs().len() {
+        let filename = zip.cdrs()[i]
+            .insecure_file_name
+            .as_str()
+            .ok_or(ZipError::StringNotUtf8)?;
 
         let path = target.join(filename).clean();
         if !path.starts_with(&target) {
             return Err(Error::Zip("Path traversal detected".into()));
         }
 
-        if is_dir {
+        if filename.ends_with(|c| c == '/' || c == '\\') {
             fs::create_dir_all(&path).await?;
         } else {
-            let mut entry_reader = zip.reader_without_entry(index).await?;
+            let mut entry_reader = zip.file(i).await?;
 
             if let Some(parent) = path.parent() {
                 fs::create_dir_all(parent).await?;

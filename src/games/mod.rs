@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use async_zip::base::read::seek::ZipFileReader;
+use crate::errors::Error;
+use async_zip::base::read1::seek::ZipArchiveReader;
 use smol::{
     fs::File,
     io::BufReader,
@@ -16,34 +17,29 @@ pub mod game_id;
 pub mod game_list;
 pub mod import;
 
-async fn is_game(path: &PathBuf) -> bool {
-    let Ok(mut file) = File::open(path).await else {
-        return false;
-    };
+async fn is_game(path: &PathBuf) -> Result<(), Error> {
+    let mut file = File::open(path).await?;
 
-    if path
+    let _meta = if path
         .extension()
         .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
     {
-        let mut reader = BufReader::new(file);
+        let mut entry = ZipArchiveReader::open(BufReader::new(file))
+            .await?
+            .file_oneshot(0)
+            .await?;
 
-        let Ok(mut zip) = ZipFileReader::new(&mut reader).await else {
-            return false;
-        };
-
-        let Ok(mut entry) = zip.reader_without_entry(0).await else {
-            return false;
-        };
-
-        wii_disc_info::Meta::read(&mut entry).await.is_ok()
+        wii_disc_info::Meta::read(&mut entry).await?
     } else {
-        wii_disc_info::Meta::read(&mut file).await.is_ok()
-    }
+        wii_disc_info::Meta::read(&mut file).await?
+    };
+
+    Ok(())
 }
 
 pub async fn keep_valid_games(games: impl Stream<Item = PathBuf>) -> Vec<PathBuf> {
     games
-        .then(|p| async { is_game(&p).await.then_some(p) })
+        .then(|p| async { is_game(&p).await.is_ok().then_some(p) })
         .filter_map(std::convert::identity)
         .collect()
         .await
