@@ -4,7 +4,6 @@
 use crate::errors::Error;
 use async_zip::{base::read1::seek::ZipArchiveReader, error::ZipError};
 use futures::stream::StreamExt;
-use path_clean::PathClean;
 use size::Size;
 use smol::{
     fs::{self, File},
@@ -42,46 +41,6 @@ pub async fn get_dir_size(path: &Path) -> Size {
     }
 
     Size::from_bytes(size)
-}
-
-pub async fn unzip(path: impl AsRef<Path>, target: &Path) -> Result<(), Error> {
-    let mut zip = {
-        let file = File::open(path).await?;
-        let reader = BufReader::new(file);
-        ZipArchiveReader::open(reader).await?
-    };
-
-    let target = target.clean();
-
-    for i in 0..zip.cdrs().len() {
-        let filename = zip.cdrs()[i]
-            .insecure_file_name
-            .as_str()
-            .ok_or(ZipError::StringNotUtf8)?;
-
-        let path = target.join(filename).clean();
-        if !path.starts_with(&target) {
-            return Err(Error::Zip("Path traversal detected".into()));
-        }
-
-        if filename.ends_with(|c| c == '/' || c == '\\') {
-            fs::create_dir_all(&path).await?;
-        } else {
-            let mut entry_reader = zip.file(i).await?;
-
-            if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).await?;
-            }
-
-            let file = File::create(&path).await?;
-            let mut writer = BufWriter::with_capacity(0x8000, file);
-
-            io::copy(&mut entry_reader, &mut writer).await?;
-            writer.flush().await?;
-        }
-    }
-
-    Ok(())
 }
 
 pub fn recursive_file_scan<'a>(
