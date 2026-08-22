@@ -109,7 +109,7 @@ jobs:
         run: choco install llvm --version=22.1.7 -y
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.97
+        uses: dtolnay/rust-toolchain@1.98
         with:
           components: rust-src
 
@@ -181,7 +181,7 @@ jobs:
           arch -x86_64 /usr/local/bin/brew install openssl@3
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.97
+        uses: dtolnay/rust-toolchain@1.98
         with:
           components: rust-src
 

@@ -1,14 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use zip::ZipArchive;
-
 use crate::errors::Error;
 use std::{
     fs::{self, File},
     path::PathBuf,
     sync::LazyLock,
 };
+use zip::ZipArchive;
 
 pub struct OptimalThreads {
     pub preloader: usize,

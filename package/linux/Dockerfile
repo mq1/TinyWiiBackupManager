@@ -14,7 +14,7 @@ RUN wget https://apt.llvm.org/llvm.sh && \
 # Install Rust
 RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
     chmod +x rustup-init.sh && \
-    ./rustup-init.sh -y --default-toolchain 1.97 --profile minimal --component rust-src --no-modify-path
+    ./rustup-init.sh -y --default-toolchain 1.98 --profile minimal --component rust-src --no-modify-path
 
 # Install i686 dependencies
 RUN if [ "$(uname -m)" = "x86_64" ]; then apt-get install -y gcc-multilib; fi

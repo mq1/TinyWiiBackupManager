@@ -2,7 +2,7 @@
 name = "TinyWiiBackupManager"
 version = "6.1.0"
 edition = "2024"
-rust-version = "1.97"
+rust-version = "1.98"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
