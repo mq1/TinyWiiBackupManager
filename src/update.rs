@@ -2,8 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::game_list::GameList, homebrew::homebrew_app_list::HomebrewAppList, messages::Message,
-    notifications::notification::Notification, state::AppState, ui::modals::Modal,
+    games::game_list::GameList,
+    homebrew::homebrew_app_list::HomebrewAppList,
+    messages::Message,
+    notifications::notification::Notification,
+    state::AppState,
+    ui::{dialogs, modals::Modal},
 };
 use iced::Task;
 
@@ -14,7 +18,9 @@ impl AppState {
                 self.current_page = page;
                 Task::none()
             }
-            Message::PickMountPoint => self.pick_mount_point_task(),
+            Message::PickMountPoint => self
+                .init_file_dialog_task()
+                .then(dialogs::make_pick_mount_point_dialog_task),
             Message::MountPointPicked(None) => Task::none(),
             Message::MountPointPicked(Some(path)) => {
                 self.config.mount_point = path;
@@ -24,11 +30,17 @@ impl AppState {
                 self.notifications.close(idx);
                 Task::none()
             }
-            Message::RefreshGamesAndApps => Task::batch([
-                self.get_games_task(),
-                self.get_homebrew_apps_task(),
-                self.get_drive_info_task(),
-            ]),
+            Message::RefreshGamesAndApps => {
+                self.is_getting_games = true;
+                self.is_getting_homebrew_apps = true;
+                self.is_getting_drive_info = true;
+
+                Task::batch([
+                    self.get_games_task(),
+                    self.get_homebrew_apps_task(),
+                    self.get_drive_info_task(),
+                ])
+            }
             Message::GotConfig(config) => {
                 let new_mount_point = config.mount_point != self.config.mount_point;
 
@@ -42,29 +54,35 @@ impl AppState {
             }
             Message::GotGames(Ok(games)) => {
                 self.games = games;
+                self.is_getting_games = false;
                 Task::none()
             }
             Message::GotGames(Err(e)) => {
                 self.games = GameList::default();
                 self.notifications.add(Notification::error(e));
+                self.is_getting_games = false;
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
                 self.homebrew_apps = homebrew_apps;
+                self.is_getting_homebrew_apps = false;
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
                 self.homebrew_apps = HomebrewAppList::default();
                 self.notifications.add(Notification::error(e));
+                self.is_getting_homebrew_apps = false;
                 Task::none()
             }
             Message::GotDriveInfo(Ok(drive_info)) => {
                 self.drive_info = Some(drive_info);
+                self.is_getting_drive_info = false;
                 Task::none()
             }
             Message::GotDriveInfo(Err(e)) => {
                 self.drive_info = None;
                 self.notifications.add(Notification::error(e));
+                self.is_getting_drive_info = false;
                 Task::none()
             }
             Message::Open(url) => {
@@ -120,7 +138,9 @@ impl AppState {
                 self.notifications.add(Notification::error(e));
                 Task::done(Message::RefreshGamesAndApps)
             }
-            Message::PickHomebrewApps => self.pick_homebrew_apps_task(),
+            Message::PickHomebrewApps => self
+                .init_file_dialog_task()
+                .then(dialogs::make_pick_homebrew_apps_dialog_task),
             Message::ImportHomebrewApps(paths) => self.import_homebrew_apps_task(paths),
             Message::HomebrewAppsImported(Ok(n)) if n > 0 => {
                 self.notifications.add(Notification::success(format!(
@@ -151,15 +171,19 @@ impl AppState {
                 self.status.clear();
                 Task::none()
             }
-            Message::PickGames => self.pick_games_task(),
-            Message::PickGamesRecursively => self.pick_games_recursively_task(),
+            Message::PickGames => self
+                .init_file_dialog_task()
+                .then(dialogs::make_pick_games_dialog_task),
+            Message::PickGamesRecursively => self
+                .init_file_dialog_task()
+                .then(dialogs::make_pick_games_recursively_dialog_task),
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
-                self.busy = false;
+                self.is_busy = false;
                 self.import_games_task(vec![])
             }
             Message::GameImported(Err(e)) => {
-                self.busy = false;
+                self.is_busy = false;
                 self.notifications.add(Notification::error(e));
                 self.import_games_task(vec![])
             }

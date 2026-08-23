@@ -8,7 +8,7 @@ use crate::{
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
-    ui::{dialogs, modals::Modal, pages::Page},
+    ui::{modals::Modal, pages::Page},
     util::drive_info::DriveInfo,
 };
 use iced::{Task, futures::TryFutureExt};
@@ -28,7 +28,10 @@ pub(crate) struct AppState {
     pub(crate) current_modal: Option<Modal>,
     pub(crate) status: String,
     pub(crate) import_queue: Vec<PathBuf>,
-    pub(crate) busy: bool, // if we're converting
+    pub(crate) is_busy: bool, // if we're converting
+    pub(crate) is_getting_games: bool,
+    pub(crate) is_getting_homebrew_apps: bool,
+    pub(crate) is_getting_drive_info: bool,
 }
 
 impl AppState {
@@ -55,14 +58,9 @@ impl AppState {
         Task::perform(Config::load(data_dir), Message::GotConfig)
     }
 
-    fn init_file_dialog_task(&self) -> Task<AsyncFileDialog> {
+    pub fn init_file_dialog_task(&self) -> Task<AsyncFileDialog> {
         iced::window::oldest()
             .and_then(|id| iced::window::run(id, |w| AsyncFileDialog::new().set_parent(w)))
-    }
-
-    pub fn pick_mount_point_task(&self) -> Task<Message> {
-        self.init_file_dialog_task()
-            .then(dialogs::make_pick_mount_point_dialog_task)
     }
 
     pub fn get_games_task(&self) -> Task<Message> {
@@ -109,11 +107,6 @@ impl AppState {
         )
     }
 
-    pub fn pick_homebrew_apps_task(&self) -> Task<Message> {
-        self.init_file_dialog_task()
-            .then(dialogs::make_pick_homebrew_apps_dialog_task)
-    }
-
     pub fn import_homebrew_apps_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
         let mount_point = self.config.mount_point.clone();
 
@@ -123,24 +116,14 @@ impl AppState {
         )
     }
 
-    pub fn pick_games_task(&self) -> Task<Message> {
-        self.init_file_dialog_task()
-            .then(dialogs::make_pick_games_dialog_task)
-    }
-
-    pub fn pick_games_recursively_task(&self) -> Task<Message> {
-        self.init_file_dialog_task()
-            .then(dialogs::make_pick_games_recursively_dialog_task)
-    }
-
     pub fn import_games_task(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
         self.import_queue.extend(paths);
 
-        if !self.busy {
+        if !self.is_busy {
             self.status.clear();
 
             let task = if let Some(path) = self.import_queue.pop() {
-                self.busy = true;
+                self.is_busy = true;
 
                 Task::sip(
                     import_game(path, self.config.clone(), self.drive_info.clone()),

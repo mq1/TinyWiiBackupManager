@@ -12,5 +12,6 @@ pub mod my_card;
 pub mod my_link;
 pub mod my_sidebar_button;
 pub mod notifications;
+pub mod refresh_button;
 pub mod sidebar;
 pub mod view_as;

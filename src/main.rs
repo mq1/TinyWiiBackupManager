@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![warn(clippy::all, rust_2018_idioms)] // lints
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+// lints
+#![warn(clippy::all, rust_2018_idioms)]
+#![allow(unstable_name_collisions)]
+//
+// hide console window on Windows in release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
 mod errors;

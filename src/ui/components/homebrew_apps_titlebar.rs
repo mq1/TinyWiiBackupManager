@@ -7,6 +7,7 @@ use crate::{
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
+        refresh_button::refresh_button,
         view_as,
     },
 };
@@ -23,12 +24,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         space::horizontal(),
         view_as::view(state),
         space().width(5),
-        tooltip(
-            my_button(None, Icon::RotateCw, MyButtonKind::Toolbar)
-                .on_press(Message::RefreshGamesAndApps),
-            my_card("Refresh games and apps"),
-            tooltip::Position::Bottom
-        ),
+        refresh_button(state),
         tooltip(
             my_button(None, Icon::Plus, MyButtonKind::Toolbar).on_press(Message::PickHomebrewApps),
             my_card("Import app(s)"),
