@@ -56,9 +56,6 @@ zip = { version = "8", default-features = false, features = [
     "deflate-flate2-zlib-rs",
 ] }
 
-[target.'cfg(windows)'.dependencies]
-positioned-io = "0.3"
-
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 nod = { git = "https://github.com/wiidev/nod", branch = "fix-block-handling", default-features = false, features = [

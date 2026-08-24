@@ -18,14 +18,39 @@ use zip::ZipArchive;
 use std::os::unix::fs::FileExt;
 
 #[cfg(windows)]
-use positioned_io::{RandomAccessFile, ReadAt};
+use std::os::windows::fs::FileExt;
 
-#[cfg(unix)]
-type RandomAccessFile = File;
+#[cfg(windows)]
+trait ReadExactAt {
+    fn read_exact_at(&self, buf: &mut [u8], offset: u64) -> io::Result<()>;
+}
+
+#[cfg(windows)]
+impl ReadExactAt for File {
+    fn read_exact_at(&self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
+        while !buf.is_empty() {
+            match self.seek_read(buf, offset) {
+                Ok(0) => break,
+                Ok(n) => {
+                    buf = &mut buf[n..];
+                    offset += n as u64;
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        if !buf.is_empty() {
+            Err(io::ErrorKind::UnexpectedEof.into())
+        } else {
+            Ok(())
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 struct SharedMultiFileReader {
-    inner: ArrayVec<(Arc<RandomAccessFile>, u64), 4>,
+    inner: ArrayVec<(Arc<File>, u64), 4>,
     stream_len: u64,
 }
 
@@ -36,10 +61,6 @@ impl SharedMultiFileReader {
 
         for file in files {
             let size = file.metadata()?.len();
-
-            #[cfg(windows)]
-            let file = RandomAccessFile::try_new(file)?;
-
             inner.push((Arc::new(file), size));
             stream_len += size;
         }
@@ -65,13 +86,7 @@ impl DiscStream for SharedMultiFileReader {
             }
 
             let n = ((*len - offset) as usize).min(buf.len());
-
-            #[cfg(unix)]
             file.read_exact_at(&mut buf[..n], offset)?;
-
-            #[cfg(windows)]
-            file.read_exact_at(offset, &mut buf[..n])?;
-
             buf = &mut buf[n..];
             offset = 0;
 
