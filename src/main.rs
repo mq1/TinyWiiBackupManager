@@ -28,8 +28,6 @@ pub fn main() -> iced::Result {
         std::env::set_var("BLOCKING_MAX_THREADS", "10");
     }
 
-    let data_dir = util::data_dir::get_data_dir().expect("Unable to get data directory");
-
     let settings = iced::Settings {
         fonts: vec![LUCIDE_FONT_BYTES.into()],
         default_text_size: 14.into(),
@@ -69,7 +67,7 @@ pub fn main() -> iced::Result {
         ..Default::default()
     };
 
-    iced::application(AppState::boot(data_dir), AppState::update, ui::root::view)
+    iced::application(AppState::boot, AppState::update, ui::root::view)
         .settings(settings)
         .window(window)
         .title(ui::title)

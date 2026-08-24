@@ -9,7 +9,7 @@ use crate::{
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     ui::{modals::Modal, pages::Page},
-    util::drive_info::DriveInfo,
+    util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
 use iced::{Task, futures::TryFutureExt};
 use rfd::AsyncFileDialog;
@@ -35,17 +35,17 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub fn boot(data_dir: PathBuf) -> impl Fn() -> (Self, Task<Message>) {
-        move || {
-            let state = Self {
-                data_dir: data_dir.clone(),
-                ..Default::default()
-            };
+    pub fn boot() -> (Self, Task<Message>) {
+        let data_dir = get_data_dir().expect("Unable to get data directory");
 
-            let task = state.load_config_task();
+        let state = Self {
+            data_dir,
+            ..Default::default()
+        };
 
-            (state, task)
-        }
+        let task = state.load_config_task();
+
+        (state, task)
     }
 
     pub fn write_config_task(&self) -> Task<Message> {
