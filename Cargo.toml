@@ -46,7 +46,6 @@ wii-disc-info = { version = "0.10", features = ["async"] }
 async_zip = { version = "0.0.19", features = ["deflate"] }
 twbm-idmap = { version = "0.5", features = ["ascii-titles"] }
 itertools = "0.15"
-futures = "0.3"
 either = "1"
 sanitize-filename = "=0.7.0-beta"
 split-write = "0.2"

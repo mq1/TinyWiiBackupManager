@@ -4,8 +4,10 @@
 use super::homebrew_app::HomebrewApp;
 use crate::{config::SortBy, errors::Error};
 use either::Either;
-use futures::{Stream, StreamExt, TryFutureExt};
-use smol::fs;
+use smol::{
+    fs,
+    stream::{self, Stream, StreamExt},
+};
 use std::{path::Path, sync::Arc};
 
 #[derive(Debug, Clone, Default)]
@@ -46,10 +48,11 @@ impl HomebrewAppList {
 }
 
 async fn scan_dir(dir_path: &Path) -> impl Stream<Item = HomebrewApp> {
-    fs::read_dir(dir_path)
-        .try_flatten_stream()
-        .filter_map(move |entry| async move {
+    stream::iter(fs::read_dir(dir_path).await.ok())
+        .flatten()
+        .then(move |entry| async move {
             let path = entry.ok()?.path();
             HomebrewApp::try_from_path(path).await.ok()
         })
+        .filter_map(std::convert::identity)
 }

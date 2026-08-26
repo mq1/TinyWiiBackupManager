@@ -11,7 +11,7 @@ use crate::{
     ui::{modals::Modal, pages::Page},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
-use iced::{Task, futures::TryFutureExt};
+use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::fs::{self, File};
 use std::{path::PathBuf, sync::Arc};
@@ -102,7 +102,7 @@ impl AppState {
         self.current_modal = None;
 
         Task::perform(
-            fs::remove_dir_all(path).map_err(Into::into),
+            async move { fs::remove_dir_all(path).await.map_err(Into::into) },
             Message::DirDeleted,
         )
     }

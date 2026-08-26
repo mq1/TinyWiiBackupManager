@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use either::Either;
-use futures::{Stream, StreamExt, TryFutureExt};
-use smol::fs;
-use std::{path::Path, sync::Arc};
-
 use super::game::Game;
 use crate::{config::SortBy, errors::Error};
+use either::Either;
+use smol::{
+    fs,
+    stream::{self, Stream, StreamExt},
+};
+use std::{path::Path, sync::Arc};
 
 /// Functional wrapper over a list of games
 #[derive(Debug, Clone, Default)]
@@ -59,10 +60,11 @@ impl GameList {
 }
 
 async fn scan_dir(covers_dir: &Path, dir_path: &Path, is_wii: bool) -> impl Stream<Item = Game> {
-    fs::read_dir(dir_path)
-        .try_flatten_stream()
-        .filter_map(move |entry| async move {
+    stream::iter(fs::read_dir(dir_path).await.ok())
+        .flatten()
+        .then(move |entry| async move {
             let path = entry.ok()?.path();
             Game::try_from_path(path, is_wii, covers_dir).await.ok()
         })
+        .filter_map(std::convert::identity)
 }

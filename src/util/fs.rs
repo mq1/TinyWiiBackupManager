@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::stream::StreamExt;
 use size::Size;
 use smol::{
     fs,
-    stream::{self, Stream},
+    stream::{self, Stream, StreamExt},
 };
 use std::{
     ffi::OsStr,
