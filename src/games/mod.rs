@@ -28,9 +28,9 @@ async fn is_game(path: &PathBuf) -> Result<(), Error> {
             .file_oneshot(0)
             .await?;
 
-        wii_disc_info::Meta::read(&mut entry).await?
+        wii_disc_info::Meta::read_async(&mut entry).await?
     } else {
-        wii_disc_info::Meta::read(&mut file).await?
+        wii_disc_info::Meta::read_async(&mut file).await?
     };
 
     Ok(())
