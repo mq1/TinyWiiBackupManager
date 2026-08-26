@@ -38,7 +38,11 @@ pub fn view<'a>(
                     text!("Game Title: {}", disc_info.game_title())
                 ]
                 .spacing(5),
-                row![icon_globe(), text!("Region: {}", disc_info.region())].spacing(5),
+                row![
+                    icon_globe(),
+                    text!("Region: {}", disc_info.game_id().region())
+                ]
+                .spacing(5),
                 row![
                     icon_gamepad(),
                     if disc_info.is_wii() {

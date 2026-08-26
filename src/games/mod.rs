@@ -13,7 +13,6 @@ use std::path::PathBuf;
 pub mod covers;
 pub mod disc_reader;
 pub mod game;
-pub mod game_id;
 pub mod game_list;
 pub mod import;
 

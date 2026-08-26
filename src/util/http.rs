@@ -4,7 +4,7 @@
 use crate::errors::Error;
 use isahc::HttpClient;
 use smol::{
-    Unblock, fs,
+    fs::{self, File},
     io::{self, AsyncWriteExt},
 };
 use std::{path::Path, sync::LazyLock};
@@ -18,27 +18,46 @@ static CLIENT: LazyLock<HttpClient> = LazyLock::new(|| {
         .unwrap()
 });
 
+/// Downloads a file, creating the parent directory if needed
+/// Skips if the file already exists
 pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Error> {
     let dest = dest.as_ref();
 
-    let dest_filename = dest.file_name().ok_or(Error::InvalidFilename)?;
+    if fs::symlink_metadata(&dest).await.is_ok() {
+        println!("INFO: {} already exists, skipping", dest.display());
+        return Ok(());
+    }
+
     let dest_parent = dest.parent().ok_or(Error::InvalidFilename)?;
 
     let mut body = CLIENT.get_async(uri).await?.into_body();
 
     fs::create_dir_all(dest_parent).await?;
 
-    let mut tmp = Unblock::new(
-        tempfile::Builder::new()
-            .prefix(dest_filename)
-            .suffix(".part")
-            .rand_bytes(0)
-            .tempfile_in(dest_parent)?,
-    );
+    let tmp_path = dest.with_added_extension("part");
+    let mut tmp = File::create(&tmp_path).await?;
 
-    io::copy(&mut body, &mut tmp).await?;
-    tmp.flush().await?;
-    tmp.into_inner().await.persist(dest)?;
+    if let Err(e) = io::copy(&mut body, &mut tmp).await {
+        let _ = tmp.flush().await;
+        drop(tmp);
+        let _ = fs::remove_file(&tmp_path).await;
+        Err(e.into())
+    } else {
+        tmp.flush().await?;
+        drop(tmp);
+        fs::rename(&tmp_path, dest).await?;
+        Ok(())
+    }
+}
 
-    Ok(())
+pub async fn download_file_with_fallback(
+    uri: &str,
+    dest: impl AsRef<Path>,
+    fallback: &str,
+) -> Result<(), Error> {
+    if download_file(uri, &dest).await.is_err() {
+        download_file(fallback, dest).await
+    } else {
+        Ok(())
+    }
 }

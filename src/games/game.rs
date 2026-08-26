@@ -3,7 +3,6 @@
 
 use crate::{
     errors::Error,
-    games::game_id::GameID,
     util::{fs::get_dir_size, sha1_list},
 };
 use nod::{
@@ -18,6 +17,7 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
+use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -62,7 +62,7 @@ impl Game {
         // Parse the id
         let id = id_raw
             .parse::<GameID>()
-            .map_err(|()| Error::InvalidFilename)?;
+            .map_err(|_| Error::InvalidFilename)?;
 
         // get the pretty title
         let title = twbm_idmap::get_title(id)
