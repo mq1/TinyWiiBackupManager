@@ -44,4 +44,5 @@ pub enum Message {
     GameImported(Result<(), Error>),
     CancelImport(usize),
     CancelAllImports,
+    ToggleAnimationState,
 }

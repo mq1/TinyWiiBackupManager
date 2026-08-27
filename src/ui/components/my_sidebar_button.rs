@@ -8,8 +8,15 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-pub fn my_sidebar_button<'a>(icons: &'a [Icon], active: bool) -> Button<'a, Message> {
-    let content = stack(icons.iter().map(|i| i.widget().size(24).center().into()));
+pub fn my_sidebar_button<'a>(
+    icons: impl IntoIterator<Item = Icon>,
+    active: bool,
+) -> Button<'a, Message> {
+    let content = stack(
+        icons
+            .into_iter()
+            .map(|i| i.widget().size(24).center().into()),
+    );
 
     button(content)
         .width(42)

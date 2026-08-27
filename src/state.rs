@@ -12,7 +12,10 @@ use crate::{
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
 use enumflags2::{BitFlags, bitflags};
-use iced::Task;
+use iced::{
+    Subscription, Task,
+    time::{self, milliseconds},
+};
 use rfd::AsyncFileDialog;
 use smol::fs::{self, File};
 use std::{path::PathBuf, sync::Arc};
@@ -26,6 +29,7 @@ pub(crate) enum Ongoing {
     GettingHomebrewApps,
     GettingDriveInfo,
     CachingCovers,
+    AnimationState,
 }
 
 #[derive(Default)]
@@ -55,6 +59,10 @@ impl AppState {
         let task = state.load_config_task();
 
         (state, task)
+    }
+
+    pub fn subscription(&self) -> Subscription<Message> {
+        time::every(milliseconds(500)).map(|_| Message::ToggleAnimationState)
     }
 
     pub fn write_config_task(&self) -> Task<Message> {

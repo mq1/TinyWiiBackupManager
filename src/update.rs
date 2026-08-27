@@ -197,6 +197,12 @@ impl AppState {
                 self.import_queue.clear();
                 Task::none()
             }
+            Message::ToggleAnimationState => {
+                if self.ongoing.contains(Ongoing::Converting) {
+                    self.ongoing.toggle(Ongoing::AnimationState);
+                }
+                Task::none()
+            }
         }
     }
 }

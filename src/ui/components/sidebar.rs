@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    state::AppState,
+    state::{AppState, Ongoing},
     ui::{
         components::{my_card::my_card, my_sidebar_button::my_sidebar_button},
         pages::Page,
@@ -16,16 +16,38 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn sidebar(state: &AppState) -> Element<'_, Message> {
+    let import_queue_button = {
+        let icon = if state.ongoing.contains(Ongoing::AnimationState) {
+            Icon::ArrowUp10
+        } else {
+            Icon::ArrowUp01
+        };
+
+        let tooltip_label = if state.import_queue.is_empty() {
+            "Import queue (empty)"
+        } else {
+            "Import queue"
+        };
+
+        let mut button = my_sidebar_button([icon], state.current_page == Page::ImportQueue);
+
+        if !state.import_queue.is_empty() {
+            button = button.on_press(Message::NavigateTo(Page::ImportQueue));
+        }
+
+        tooltip(button, my_card(tooltip_label), tooltip::Position::Right)
+    };
+
     column![
         tooltip(
-            my_sidebar_button(&[Icon::Gamepad2], state.current_page == Page::Games)
+            my_sidebar_button([Icon::Gamepad2], state.current_page == Page::Games)
                 .on_press(Message::NavigateTo(Page::Games)),
             my_card("Games"),
             tooltip::Position::Right
         ),
         tooltip(
             my_sidebar_button(
-                &[Icon::Waves, Icon::Bubbles],
+                [Icon::Waves, Icon::Bubbles],
                 state.current_page == Page::HomebrewApps
             )
             .on_press(Message::NavigateTo(Page::HomebrewApps)),
@@ -33,40 +55,31 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button(&[Icon::Waves, Icon::ArrowBigDown], false),
+            my_sidebar_button([Icon::Waves, Icon::ArrowBigDown], false),
             my_card("Open Shop Channel"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button(&[Icon::ToolCase], state.current_page == Page::Toolbox)
+            my_sidebar_button([Icon::ToolCase], state.current_page == Page::Toolbox)
                 .on_press(Message::NavigateTo(Page::Toolbox)),
             my_card("Toolbox"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button(&[Icon::Settings], state.current_page == Page::Settings)
+            my_sidebar_button([Icon::Settings], state.current_page == Page::Settings)
                 .on_press(Message::NavigateTo(Page::Settings)),
             my_card("Settings"),
             tooltip::Position::Right
         ),
         space::vertical(),
+        import_queue_button,
         tooltip(
-            my_sidebar_button(&[Icon::ArrowUp01], state.current_page == Page::ImportQueue)
-                .on_press(Message::NavigateTo(Page::ImportQueue)),
-            my_card(if state.import_queue.is_empty() {
-                "Import queue (empty)"
-            } else {
-                "Import queue"
-            }),
-            tooltip::Position::Right
-        ),
-        tooltip(
-            my_sidebar_button(&[Icon::HardDrive], false).on_press(Message::PickMountPoint),
+            my_sidebar_button([Icon::HardDrive], false).on_press(Message::PickMountPoint),
             my_card("Select a drive"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button(&[Icon::Info], state.current_page == Page::About)
+            my_sidebar_button([Icon::Info], state.current_page == Page::About)
                 .on_press(Message::NavigateTo(Page::About)),
             my_card("About"),
             tooltip::Position::Right
