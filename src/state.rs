@@ -11,10 +11,22 @@ use crate::{
     ui::{modals::Modal, pages::Page},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
+use enumflags2::{BitFlags, bitflags};
 use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::fs::{self, File};
 use std::{path::PathBuf, sync::Arc};
+
+#[bitflags]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum Ongoing {
+    Converting,
+    GettingGames,
+    GettingHomebrewApps,
+    GettingDriveInfo,
+    CachingCovers,
+}
 
 #[derive(Default)]
 pub(crate) struct AppState {
@@ -28,10 +40,7 @@ pub(crate) struct AppState {
     pub(crate) current_modal: Option<Modal>,
     pub(crate) status: String,
     pub(crate) import_queue: Vec<PathBuf>,
-    pub(crate) is_busy: bool, // if we're converting
-    pub(crate) is_getting_games: bool,
-    pub(crate) is_getting_homebrew_apps: bool,
-    pub(crate) is_getting_drive_info: bool,
+    pub(crate) ongoing: BitFlags<Ongoing>,
 }
 
 impl AppState {
@@ -119,11 +128,11 @@ impl AppState {
     pub fn import_games_task(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
         self.import_queue.extend(paths);
 
-        if !self.is_busy {
+        if !self.ongoing.contains(Ongoing::Converting) {
             self.status.clear();
 
             let task = if let Some(path) = self.import_queue.pop() {
-                self.is_busy = true;
+                self.ongoing.remove(Ongoing::Converting);
 
                 Task::sip(
                     import_game(path, self.config.clone(), self.drive_info.clone()),

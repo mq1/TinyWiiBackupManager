@@ -6,7 +6,7 @@ use crate::{
     homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
     notifications::notification::Notification,
-    state::AppState,
+    state::{AppState, Ongoing},
     ui::{dialogs, modals::Modal},
 };
 use iced::Task;
@@ -31,9 +31,11 @@ impl AppState {
                 Task::none()
             }
             Message::RefreshGamesAndApps => {
-                self.is_getting_games = true;
-                self.is_getting_homebrew_apps = true;
-                self.is_getting_drive_info = true;
+                self.ongoing.insert(
+                    Ongoing::GettingGames
+                        | Ongoing::GettingHomebrewApps
+                        | Ongoing::GettingDriveInfo,
+                );
 
                 Task::batch([
                     self.get_games_task(),
@@ -54,35 +56,35 @@ impl AppState {
             }
             Message::GotGames(Ok(games)) => {
                 self.games = games;
-                self.is_getting_games = false;
+                self.ongoing.remove(Ongoing::GettingGames);
                 Task::none()
             }
             Message::GotGames(Err(e)) => {
                 self.games = GameList::default();
                 self.notifications.add(Notification::error(e));
-                self.is_getting_games = false;
+                self.ongoing.remove(Ongoing::GettingGames);
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
                 self.homebrew_apps = homebrew_apps;
-                self.is_getting_homebrew_apps = false;
+                self.ongoing.remove(Ongoing::GettingHomebrewApps);
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
                 self.homebrew_apps = HomebrewAppList::default();
                 self.notifications.add(Notification::error(e));
-                self.is_getting_homebrew_apps = false;
+                self.ongoing.remove(Ongoing::GettingHomebrewApps);
                 Task::none()
             }
             Message::GotDriveInfo(Ok(drive_info)) => {
                 self.drive_info = Some(drive_info);
-                self.is_getting_drive_info = false;
+                self.ongoing.remove(Ongoing::GettingDriveInfo);
                 Task::none()
             }
             Message::GotDriveInfo(Err(e)) => {
                 self.drive_info = None;
                 self.notifications.add(Notification::error(e));
-                self.is_getting_drive_info = false;
+                self.ongoing.remove(Ongoing::GettingDriveInfo);
                 Task::none()
             }
             Message::Open(url) => {
@@ -179,11 +181,11 @@ impl AppState {
                 .then(dialogs::make_pick_games_recursively_dialog_task),
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
-                self.is_busy = false;
+                self.ongoing.remove(Ongoing::Converting);
                 self.import_games_task(vec![])
             }
             Message::GameImported(Err(e)) => {
-                self.is_busy = false;
+                self.ongoing.remove(Ongoing::Converting);
                 self.notifications.add(Notification::error(e));
                 self.import_games_task(vec![])
             }

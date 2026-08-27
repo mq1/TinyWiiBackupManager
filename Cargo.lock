@@ -10,6 +10,7 @@ dependencies = [
  "async_zip",
  "directories",
  "either",
+ "enumflags2",
  "fs4",
  "hex",
  "iced",

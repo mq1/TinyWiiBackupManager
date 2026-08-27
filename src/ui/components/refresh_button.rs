@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    state::AppState,
+    state::{AppState, Ongoing},
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
@@ -15,7 +15,9 @@ use lucide_icons::Icon;
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button(None, Icon::RotateCw, MyButtonKind::Toolbar);
 
-    if !state.is_getting_games && !state.is_getting_homebrew_apps && !state.is_getting_drive_info {
+    if !state.ongoing.intersects(
+        Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo,
+    ) {
         refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);
     }
 
