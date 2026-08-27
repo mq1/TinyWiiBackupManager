@@ -15,7 +15,7 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-pub fn view(state: &AppState) -> Element<'_, Message> {
+pub fn sidebar(state: &AppState) -> Element<'_, Message> {
     column![
         tooltip(
             my_sidebar_button(&[Icon::Gamepad2], state.current_page == Page::Games)
@@ -50,6 +50,16 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             tooltip::Position::Right
         ),
         space::vertical(),
+        tooltip(
+            my_sidebar_button(&[Icon::ArrowUp01], state.current_page == Page::ImportQueue)
+                .on_press(Message::NavigateTo(Page::ImportQueue)),
+            my_card(if state.import_queue.is_empty() {
+                "Import queue (empty)"
+            } else {
+                "Import queue"
+            }),
+            tooltip::Position::Right
+        ),
         tooltip(
             my_sidebar_button(&[Icon::HardDrive], false).on_press(Message::PickMountPoint),
             my_card("Select a drive"),

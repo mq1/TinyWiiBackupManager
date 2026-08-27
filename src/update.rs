@@ -189,6 +189,14 @@ impl AppState {
                 self.notifications.add(Notification::error(e));
                 self.import_games_task(vec![])
             }
+            Message::CancelImport(i) => {
+                self.import_queue.remove(i);
+                Task::none()
+            }
+            Message::CancelAllImports => {
+                self.import_queue.clear();
+                Task::none()
+            }
         }
     }
 }

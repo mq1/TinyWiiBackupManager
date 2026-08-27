@@ -20,7 +20,7 @@ use lucide_icons::{
 };
 use std::sync::Arc;
 
-pub fn view<'a>(
+pub fn game_info<'a>(
     game: &'a Arc<Game>,
     disc_info: Option<&'a wii_disc_info::Meta>,
 ) -> Element<'a, Message> {

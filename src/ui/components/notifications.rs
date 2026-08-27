@@ -11,7 +11,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
 
-pub fn view(state: &AppState) -> Element<'_, Message> {
+pub fn notifications(state: &AppState) -> Element<'_, Message> {
     let mut notifications = state
         .notifications
         .iter()

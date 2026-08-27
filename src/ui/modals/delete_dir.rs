@@ -14,7 +14,7 @@ use iced::{
 };
 use std::path::Path;
 
-pub fn view(path: &Path) -> Element<'_, Message> {
+pub fn delete_dir(path: &Path) -> Element<'_, Message> {
     my_card(
         column![
             container(text!(

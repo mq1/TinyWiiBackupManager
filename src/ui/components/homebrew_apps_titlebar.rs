@@ -8,7 +8,7 @@ use crate::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
-        view_as,
+        view_as::view_as,
     },
 };
 use iced::{
@@ -17,12 +17,12 @@ use iced::{
 };
 use lucide_icons::{Icon, iced::icon_chevron_right};
 
-pub fn view(state: &AppState) -> Element<'_, Message> {
+pub fn homebrew_apps_titlebar(state: &AppState) -> Element<'_, Message> {
     row![
         icon_chevron_right().size(20),
         text("Homebrew Apps").size(20),
         space::horizontal(),
-        view_as::view(state),
+        view_as(state),
         space().width(5),
         refresh_button(state),
         tooltip(

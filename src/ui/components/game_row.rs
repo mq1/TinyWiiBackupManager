@@ -9,7 +9,7 @@ use iced::{
 use lucide_icons::iced::{icon_box, icon_info, icon_pointer, icon_trash};
 use std::sync::Arc;
 
-pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
+pub fn game_row(game: &Arc<Game>) -> Element<'_, Message> {
     row![
         tooltip(
             game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),

@@ -4,7 +4,7 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{game_row, games_titlebar, my_card::my_card},
+    ui::components::{game_row::game_row, games_titlebar::games_titlebar, my_card::my_card},
 };
 use iced::{
     Element,
@@ -12,15 +12,15 @@ use iced::{
 };
 use itertools::Itertools;
 
-pub fn view(state: &AppState) -> Element<'_, Message> {
+pub fn game_table(state: &AppState) -> Element<'_, Message> {
     let content = state
         .games
         .iter_by(state.config.sort_by)
-        .map(game_row::view)
+        .map(game_row)
         .intersperse_with(|| rule::horizontal(1).into())
         .collect::<Column<'_, _>>();
 
-    column![games_titlebar::view(state), my_card(content).padding(0)]
+    column![games_titlebar(state), my_card(content).padding(0)]
         .padding(10)
         .spacing(10)
         .into()

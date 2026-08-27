@@ -8,7 +8,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_layout_grid, icon_table};
 
-pub fn view(state: &AppState) -> Element<'_, Message> {
+pub fn view_as(state: &AppState) -> Element<'_, Message> {
     row![
         button(icon_layout_grid())
             .on_press(Message::SetViewAs(ViewAs::Grid))

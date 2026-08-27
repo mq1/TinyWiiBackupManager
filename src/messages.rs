@@ -42,4 +42,6 @@ pub enum Message {
     PickGamesRecursively,
     ImportGames(Vec<PathBuf>),
     GameImported(Result<(), Error>),
+    CancelImport(usize),
+    CancelAllImports,
 }

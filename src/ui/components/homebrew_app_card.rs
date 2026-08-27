@@ -17,7 +17,7 @@ use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 use std::sync::Arc;
 
-pub fn view(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
+pub fn homebrew_app_card(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
     my_card(
         column![
             row![

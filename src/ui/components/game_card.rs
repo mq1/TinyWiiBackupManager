@@ -17,7 +17,7 @@ use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 use std::sync::Arc;
 
-pub fn view(game: &Arc<Game>) -> Element<'_, Message> {
+pub fn game_card(game: &Arc<Game>) -> Element<'_, Message> {
     my_card(
         column![
             row![

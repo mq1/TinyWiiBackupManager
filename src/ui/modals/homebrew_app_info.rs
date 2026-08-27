@@ -22,7 +22,7 @@ use lucide_icons::{
     iced::{icon_calendar, icon_notepad_text, icon_tag},
 };
 
-pub fn view(app: &HomebrewApp) -> Element<'_, Message> {
+pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
     let content = row![
         column![
             row![icon_tag(), text!("Version: {}", &app.meta.version)].spacing(5),

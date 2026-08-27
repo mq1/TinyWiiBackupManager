@@ -18,7 +18,7 @@ use lucide_icons::{
 const ICON_BYTES: &[u8] = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
 const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"));
 
-pub fn view(state: &AppState) -> Element<'_, Message> {
+pub fn about(state: &AppState) -> Element<'_, Message> {
     let icon_handle = image::Handle::from_bytes(ICON_BYTES);
 
     let mq1_link = my_link("mq1", || "https://github.com/mq1", None);
