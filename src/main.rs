@@ -24,7 +24,7 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
-fn get_window_icon() -> Option<window::Icon> {
+fn get_window_icon() -> Option<iced::window::Icon> {
     let rgba8_bytes = image::load_from_memory_with_format(
         include_bytes!("../package/windows/TinyWiiBackupManager-64x64.png"),
         image::ImageFormat::Png,
@@ -33,7 +33,8 @@ fn get_window_icon() -> Option<window::Icon> {
     .into_rgba8()
     .into_vec();
 
-    let icon = window::icon::from_rgba(rgba8_bytes, 64, 64).expect("Failed to create window icon");
+    let icon =
+        iced::window::icon::from_rgba(rgba8_bytes, 64, 64).expect("Failed to create window icon");
 
     Some(icon)
 }
