@@ -43,7 +43,6 @@ which-fs = "0.2"
 isahc = { version = "2", default-features = false }
 open = "5"
 wii-disc-info = { version = "0.10", features = ["async"] }
-async_zip = { version = "0.0.19", features = ["deflate"] }
 twbm-idmap = { version = "0.5", features = ["ascii-titles"] }
 itertools = "0.15"
 either = "1"
