@@ -14,13 +14,16 @@ use lucide_icons::{
     Icon,
     iced::{icon_alert_triangle, icon_heart},
 };
+use std::sync::LazyLock;
 
-const ICON_BYTES: &[u8] = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
 const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"));
 
-pub fn about(state: &AppState) -> Element<'_, Message> {
-    let icon_handle = image::Handle::from_bytes(ICON_BYTES);
+static ICON: LazyLock<image::Handle> = LazyLock::new(|| {
+    let bytes = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
+    image::Handle::from_bytes(&bytes[..])
+});
 
+pub fn about(state: &AppState) -> Element<'_, Message> {
     let mq1_link = my_link("mq1", || "https://github.com/mq1", None);
     let license_link = my_link(
         "GPL-3.0-only",
@@ -50,7 +53,7 @@ pub fn about(state: &AppState) -> Element<'_, Message> {
         my_card(
             column![
                 row![
-                    image(icon_handle).width(128).height(128),
+                    image(&*ICON).width(128).height(128),
                     column![
                         space().height(20),
                         text(TITLE).size(20),
