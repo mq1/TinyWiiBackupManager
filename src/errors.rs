@@ -65,8 +65,8 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-impl From<ureq::Error> for Error {
-    fn from(err: ureq::Error) -> Self {
+impl From<minreq::Error> for Error {
+    fn from(err: minreq::Error) -> Self {
         Self::Http(err.to_string())
     }
 }
