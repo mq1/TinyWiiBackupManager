@@ -50,8 +50,16 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Build docker image
-        run: docker build -t cargo package/linux
+      - name: Install LLVM
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.98
+        with:
+          components: rust-src
 
       - name: Download appimagetool
         run: |
@@ -60,8 +68,17 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run -v $(pwd):/io -w /io cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features static-https
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features static-https
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+        env:
+          RUSTC_BOOTSTRAP: 1
+          CC: clang-22
+          AR: llvm-ar-22
+          CFLAGS: -O3 -flto
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
 
       - name: Package AppImage
         run: |
@@ -173,13 +190,6 @@ jobs:
       - name: Install LLVM and LLD
         run: brew install llvm@22 lld@22
 
-      - if: matrix.arch == 'x86_64'
-        name: Install x86_64 Homebrew + OpenSSL (for cross-compiling to x86_64-apple-darwin)
-        run: |
-          # Bootstrap a separate x86_64 Homebrew under Rosetta (installs to /usr/local)
-          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          arch -x86_64 /usr/local/bin/brew install openssl@3
-
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.98
         with:
@@ -197,9 +207,6 @@ jobs:
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
           CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
-          X86_64_APPLE_DARWIN_OPENSSL_DIR: /usr/local/opt/openssl@3
-          PKG_CONFIG_ALLOW_CROSS: "1"
-          PKG_CONFIG_PATH_x86_64-apple-darwin: /usr/local/opt/openssl@3/lib/pkgconfig
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7

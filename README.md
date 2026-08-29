@@ -15,11 +15,11 @@
 
 ## :sparkles: Features
 
-- **Lightweight & Fast**: Native app written in Rust and Slint, no Electron!
+- **Lightweight & Fast**: Native app written in Rust and Iced, no Electron!
 - **Cross-Platform**:
   - :window: Windows 7+ | x86 (32-bit), x64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
   - :apple: macOS 10.14+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
-  - :penguin: Linux (glibc 2.31+) | x86 (32-bit), x86_64 (64-bit), arm64 (Raspberry PIs etc.)
+  - :penguin: Linux (glibc 2.35+) | x86 (32-bit), x86_64 (64-bit), arm64 (Raspberry PIs etc.)
 
 #### :video_game: Game Management
 
