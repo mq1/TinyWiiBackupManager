@@ -3,13 +3,38 @@
 
 use crate::errors::Error;
 use smol::fs;
-use std::{ffi::OsStr, path::Path};
+use std::{ffi::OsStr, path::Path, sync::LazyLock};
+use ureq::{
+    Agent,
+    tls::{RootCerts, TlsConfig, TlsProvider},
+};
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
+#[cfg(feature = "native-https")]
+const PROVIDER: TlsProvider = TlsProvider::NativeTls;
+
+#[cfg(feature = "static-https")]
+const PROVIDER: TlsProvider = TlsProvider::Rustls;
+
+static AGENT: LazyLock<Agent> = LazyLock::new(|| {
+    Agent::config_builder()
+        .user_agent(USER_AGENT)
+        .tls_config(
+            TlsConfig::builder()
+                .provider(PROVIDER)
+                .root_certs(RootCerts::PlatformVerifier)
+                .build(),
+        )
+        .build()
+        .new_agent()
+});
+
 /// Downloads a file, creating the parent directory if needed
 /// Skips if the file already exists
-pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
+pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Error> {
+    let dest = dest.as_ref();
+
     let dest_filename = dest
         .file_name()
         .and_then(OsStr::to_str)
@@ -30,16 +55,10 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
         let dest_parent = dest_parent.to_path_buf();
 
         move || {
-            let mut resp = minreq::get(uri)
-                .with_header("User-Agent", USER_AGENT)
-                .send_lazy()?;
+            use std::io::Write;
 
-            if resp.status_code != 200 {
-                return Err(Error::Http(format!(
-                    "{}: {}",
-                    resp.status_code, resp.reason_phrase
-                )));
-            }
+            let mut resp = AGENT.get(uri).call()?;
+            let mut body = resp.body_mut().as_reader();
 
             let mut out = tempfile::Builder::new()
                 .prefix(&dest_filename)
@@ -47,7 +66,8 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
                 .rand_bytes(0)
                 .tempfile_in(dest_parent)?;
 
-            std::io::copy(&mut resp, &mut out)?;
+            std::io::copy(&mut body, &mut out)?;
+            out.flush()?;
             out.persist(&dest)?;
 
             Ok(())
@@ -58,10 +78,10 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
 
 pub async fn download_file_with_fallback(
     uri: &str,
-    dest: &Path,
+    dest: impl AsRef<Path>,
     fallback: &str,
 ) -> Result<(), Error> {
-    if download_file(uri, dest).await.is_err() {
+    if download_file(uri, &dest).await.is_err() {
         download_file(fallback, dest).await
     } else {
         Ok(())

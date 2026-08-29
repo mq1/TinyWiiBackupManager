@@ -6,7 +6,7 @@ use smol::{
     fs::File,
     stream::{Stream, StreamExt},
 };
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
 
@@ -16,13 +16,13 @@ pub mod game;
 pub mod game_list;
 pub mod import;
 
-async fn get_id(path: &Path) -> Result<GameID, Error> {
+async fn get_id(path: &PathBuf) -> Result<GameID, Error> {
     let meta = if path
         .extension()
         .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
     {
         smol::unblock({
-            let path = path.to_path_buf();
+            let path = path.clone();
 
             move || {
                 let file = std::fs::File::open(path)?;
