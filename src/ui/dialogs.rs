@@ -6,6 +6,7 @@ use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::stream;
 use std::path::PathBuf;
+use wii_disc_info::game_id::GameID;
 
 #[rustfmt::skip]
 const GAME_EXTS: &[&str] = &[
@@ -40,7 +41,10 @@ pub fn make_pick_homebrew_apps_dialog_task(base: AsyncFileDialog) -> Task<Messag
     )
 }
 
-pub fn make_pick_games_dialog_task(base: AsyncFileDialog) -> Task<Message> {
+pub fn make_pick_games_dialog_task(
+    base: AsyncFileDialog,
+    existing_ids: Vec<GameID>,
+) -> Task<Message> {
     Task::perform(
         async move {
             let res = base
@@ -53,7 +57,7 @@ pub fn make_pick_games_dialog_task(base: AsyncFileDialog) -> Task<Message> {
                 && !paths.is_empty()
             {
                 let it = paths.into_iter().map(PathBuf::from);
-                keep_valid_games(stream::iter(it)).await
+                keep_valid_games(stream::iter(it), existing_ids).await
             } else {
                 vec![]
             }
@@ -62,7 +66,10 @@ pub fn make_pick_games_dialog_task(base: AsyncFileDialog) -> Task<Message> {
     )
 }
 
-pub fn make_pick_games_recursively_dialog_task(base: AsyncFileDialog) -> Task<Message> {
+pub fn make_pick_games_recursively_dialog_task(
+    base: AsyncFileDialog,
+    existing_ids: Vec<GameID>,
+) -> Task<Message> {
     Task::perform(
         async move {
             let res = base
@@ -71,7 +78,7 @@ pub fn make_pick_games_recursively_dialog_task(base: AsyncFileDialog) -> Task<Me
                 .await;
 
             if let Some(path) = res {
-                keep_valid_games(recursive_file_scan(path, GAME_EXTS)).await
+                keep_valid_games(recursive_file_scan(path, GAME_EXTS), existing_ids).await
             } else {
                 vec![]
             }

@@ -174,12 +174,18 @@ impl AppState {
                 self.status.clear();
                 Task::none()
             }
-            Message::PickGames => self
-                .init_file_dialog_task()
-                .then(dialogs::make_pick_games_dialog_task),
-            Message::PickGamesRecursively => self
-                .init_file_dialog_task()
-                .then(dialogs::make_pick_games_recursively_dialog_task),
+            Message::PickGames => {
+                let existing_ids = self.games.get_all_game_ids();
+                self.init_file_dialog_task().then(move |base| {
+                    dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
+                })
+            }
+            Message::PickGamesRecursively => {
+                let existing_ids = self.games.get_all_game_ids();
+                self.init_file_dialog_task().then(move |base| {
+                    dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
+                })
+            }
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
                 self.ongoing.remove(Ongoing::Converting);

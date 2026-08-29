@@ -16,26 +16,24 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn sidebar(state: &AppState) -> Element<'_, Message> {
-    let import_queue_button = {
-        let icon = if state.ongoing.contains(Ongoing::AnimationState) {
-            Icon::ArrowUp10
-        } else {
-            Icon::ArrowUp01
-        };
-
-        let tooltip_label = if state.import_queue.is_empty() {
-            "Import queue (empty)"
-        } else {
-            "Import queue"
-        };
-
-        let mut button = my_sidebar_button([icon], state.current_page == Page::ImportQueue);
-
+    let import_queue_button: Element<'_, Message> = {
         if !state.import_queue.is_empty() {
-            button = button.on_press(Message::NavigateTo(Page::ImportQueue));
-        }
+            let icon = if state.ongoing.contains(Ongoing::AnimationState) {
+                Icon::ArrowUp10
+            } else {
+                Icon::ArrowUp01
+            };
 
-        tooltip(button, my_card(tooltip_label), tooltip::Position::Right)
+            tooltip(
+                my_sidebar_button([icon], state.current_page == Page::ImportQueue)
+                    .on_press(Message::NavigateTo(Page::ImportQueue)),
+                my_card("Import queue"),
+                tooltip::Position::Right,
+            )
+            .into()
+        } else {
+            space().into()
+        }
     };
 
     column![
