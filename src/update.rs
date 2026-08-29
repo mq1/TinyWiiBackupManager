@@ -57,7 +57,8 @@ impl AppState {
             Message::GotGames(Ok(games)) => {
                 self.games = games;
                 self.ongoing.remove(Ongoing::GettingGames);
-                Task::none()
+                self.load_covers();
+                self.download_ui_covers_task()
             }
             Message::GotGames(Err(e)) => {
                 self.games = GameList::default();
@@ -201,6 +202,10 @@ impl AppState {
                 if self.ongoing.contains(Ongoing::Converting) {
                     self.ongoing.toggle(Ongoing::AnimationState);
                 }
+                Task::none()
+            }
+            Message::LoadCovers => {
+                self.load_covers();
                 Task::none()
             }
         }

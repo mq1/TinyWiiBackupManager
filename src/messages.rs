@@ -9,7 +9,7 @@ use crate::{
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
-use std::{ffi::OsString, path::PathBuf, sync::Arc};
+use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -23,8 +23,8 @@ pub enum Message {
     GotHomebrewApps(Result<HomebrewAppList, Error>),
     GotDriveInfo(Result<DriveInfo, Error>),
     Open(OsString),
-    OpenGameInfo(Arc<Game>),
-    OpenHomebrewAppInfo(Arc<HomebrewApp>),
+    OpenGameInfo(Game),
+    OpenHomebrewAppInfo(HomebrewApp),
     CloseModal,
     GotDiscInfo(Result<wii_disc_info::Meta, Error>),
     WroteConfig(Result<(), Error>),
@@ -36,7 +36,7 @@ pub enum Message {
     ImportHomebrewApps(Vec<PathBuf>),
     HomebrewAppsImported(Result<usize, Error>),
     SetStatus(String),
-    CalcGameSha1(Arc<Game>),
+    CalcGameSha1(Game),
     GotGameSha1(Result<String, Error>),
     PickGames,
     PickGamesRecursively,
@@ -45,4 +45,5 @@ pub enum Message {
     CancelImport(usize),
     CancelAllImports,
     ToggleAnimationState,
+    LoadCovers,
 }

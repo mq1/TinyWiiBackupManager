@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{games::game::Game, homebrew::homebrew_app::HomebrewApp};
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
 
 pub mod delete_dir;
 pub mod game_info;
@@ -10,7 +10,7 @@ pub mod homebrew_app_info;
 
 #[derive(Debug, Clone)]
 pub enum Modal {
-    GameInfo((Arc<Game>, Option<wii_disc_info::Meta>)),
-    HomebrewAppInfo(Arc<HomebrewApp>),
+    GameInfo((Game, Option<wii_disc_info::Meta>)),
+    HomebrewAppInfo(HomebrewApp),
     DeleteDir(PathBuf),
 }

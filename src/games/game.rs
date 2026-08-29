@@ -5,6 +5,7 @@ use crate::{
     errors::Error,
     util::{fs::get_dir_size, sha1_list},
 };
+use image::RgbaImage;
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
@@ -26,15 +27,11 @@ pub struct Game {
     pub title: Cow<'static, str>,
     pub size: Size,
     pub is_wii: bool,
-    pub cached_cover_path: PathBuf,
+    pub cover: Option<RgbaImage>,
 }
 
 impl Game {
-    pub async fn try_from_path(
-        path: impl Into<PathBuf>,
-        is_wii: bool,
-        covers_dir: &Path,
-    ) -> Result<Self, Error> {
+    pub async fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self, Error> {
         let path = path.into();
 
         // Check if the path is a directory
@@ -70,15 +67,13 @@ impl Game {
 
         let size = get_dir_size(&path).await;
 
-        let cached_cover_path = covers_dir.join(id.as_str()).with_extension("png");
-
         Ok(Self {
             path,
             id,
             title,
             size,
             is_wii,
-            cached_cover_path,
+            cover: None,
         })
     }
 
@@ -167,6 +162,20 @@ impl Game {
                 Err(Error::HashMismatch(game.title.into_owned()))
             }
         })
+    }
+
+    pub fn load_cover_blocking(&mut self, data_dir: &Path) {
+        let cover_path = data_dir
+            .join("covers")
+            .join(self.id.as_str())
+            .with_extension("png");
+
+        self.cover = std::fs::read(cover_path)
+            .ok()
+            .and_then(|bytes| {
+                image::load_from_memory_with_format(&bytes[..], image::ImageFormat::Png).ok()
+            })
+            .map(|img| img.to_rgba8());
     }
 }
 

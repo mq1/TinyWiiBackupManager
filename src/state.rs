@@ -4,7 +4,7 @@
 use crate::{
     config::Config,
     errors::Error,
-    games::{game::Game, game_list::GameList, import::import_game},
+    games::{covers::download_ui_covers, game::Game, game_list::GameList, import::import_game},
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
@@ -18,7 +18,7 @@ use iced::{
 };
 use rfd::AsyncFileDialog;
 use smol::fs::{self, File};
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
 
 #[bitflags]
 #[repr(u8)]
@@ -28,7 +28,7 @@ pub(crate) enum Ongoing {
     GettingGames,
     GettingHomebrewApps,
     GettingDriveInfo,
-    CachingCovers,
+    DownloadingUiCovers,
     AnimationState,
 }
 
@@ -81,15 +81,21 @@ impl AppState {
     }
 
     pub fn get_games_task(&self) -> Task<Message> {
-        let data_dir = self.data_dir.clone();
         let mount_point = self.config.mount_point.clone();
+        Task::perform(GameList::new(mount_point), Message::GotGames)
+    }
 
-        Task::perform(GameList::new(data_dir, mount_point), Message::GotGames)
+    pub fn download_ui_covers_task(&self) -> Task<Message> {
+        let ids = self.games.get_all_game_ids();
+        let data_dir = self.data_dir.clone();
+        let preferred_language = self.config.preferred_language;
+
+        Task::stream(download_ui_covers(ids, data_dir, preferred_language))
+            .map(|_| Message::LoadCovers)
     }
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
         let mount_point = self.config.mount_point.clone();
-
         Task::perform(HomebrewAppList::new(mount_point), Message::GotHomebrewApps)
     }
 
@@ -103,7 +109,7 @@ impl AppState {
         Task::perform(DriveInfo::try_from_path(mount_point), Message::GotDriveInfo)
     }
 
-    pub fn get_disc_info_task(&self, game: Arc<Game>) -> Task<Message> {
+    pub fn get_disc_info_task(&self, game: Game) -> Task<Message> {
         Task::perform(
             async move {
                 let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
@@ -156,6 +162,14 @@ impl AppState {
             Task::batch([task, self.get_games_task(), self.get_drive_info_task()])
         } else {
             Task::none()
+        }
+    }
+
+    pub fn load_covers(&mut self) {
+        for game in self.games.iter_mut() {
+            if game.cover.is_none() {
+                game.load_cover_blocking(&self.data_dir);
+            }
         }
     }
 }

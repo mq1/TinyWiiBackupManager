@@ -15,9 +15,18 @@ use iced::{
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
-use std::sync::Arc;
 
-pub fn game_card(game: &Arc<Game>) -> Element<'_, Message> {
+pub fn game_card(game: &Game) -> Element<'_, Message> {
+    let cover: Element<'_, Message> = match &game.cover {
+        Some(cover) => {
+            let (w, h) = cover.dimensions();
+            let bytes = cover.as_raw().clone();
+            let handle = iced::widget::image::Handle::from_rgba(w, h, bytes);
+            image(handle).height(96).into()
+        }
+        None => space().height(96).into(),
+    };
+
     my_card(
         column![
             row![
@@ -27,7 +36,7 @@ pub fn game_card(game: &Arc<Game>) -> Element<'_, Message> {
                 text(game.size.to_string())
             ]
             .spacing(5),
-            image(&game.cached_cover_path).height(96),
+            cover,
             ellipsized_text(&game.title).wrapping(text::Wrapping::None),
             row![
                 my_button("Info", Icon::Info, MyButtonKind::Secondary)

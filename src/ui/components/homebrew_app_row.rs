@@ -9,9 +9,8 @@ use iced::{
     widget::{button, row, rule, space, text, tooltip},
 };
 use lucide_icons::iced::{icon_info, icon_trash};
-use std::sync::Arc;
 
-pub fn homebrew_app_row(app: &Arc<HomebrewApp>) -> Element<'_, Message> {
+pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
     row![
         text!("{} ({})", &app.meta.name, app.meta.version),
         space::horizontal(),

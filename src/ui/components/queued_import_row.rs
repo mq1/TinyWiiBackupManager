@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    messages::Message, ui::components::my_card::my_card,
-};
+use crate::{messages::Message, ui::components::my_card::my_card};
 use iced::{
     Element, Length, padding,
     widget::{button, row, space, text, tooltip},

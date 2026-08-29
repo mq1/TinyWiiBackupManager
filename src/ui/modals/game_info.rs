@@ -18,13 +18,22 @@ use lucide_icons::{
     Icon,
     iced::{icon_file_question, icon_gamepad, icon_globe, icon_notebook_pen, icon_pin, icon_tag},
 };
-use std::sync::Arc;
 
 pub fn game_info<'a>(
-    game: &'a Arc<Game>,
+    game: &'a Game,
     disc_info: Option<&'a wii_disc_info::Meta>,
 ) -> Element<'a, Message> {
     let content: Element<'a, _> = if let Some(disc_info) = disc_info {
+        let cover: Element<'_, Message> = match &game.cover {
+            Some(cover) => {
+                let (w, h) = cover.dimensions();
+                let bytes = cover.as_raw().clone();
+                let handle = iced::widget::image::Handle::from_rgba(w, h, bytes);
+                image(handle).height(96).into()
+            }
+            None => space().height(96).into(),
+        };
+
         row![
             column![
                 row![
@@ -60,7 +69,7 @@ pub fn game_info<'a>(
             ]
             .spacing(5),
             space::horizontal(),
-            image(&game.cached_cover_path).height(200),
+            cover,
         ]
         .padding(20)
         .align_y(Alignment::Center)

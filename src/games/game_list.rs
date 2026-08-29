@@ -8,63 +8,71 @@ use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use std::{path::Path, sync::Arc};
+use std::path::{Path, PathBuf};
+use wii_disc_info::game_id::GameID;
 
-/// Functional wrapper over a list of games
 #[derive(Debug, Clone, Default)]
 pub struct GameList {
-    sorted_by_name: Vec<Arc<Game>>,
-    sorted_by_size: Vec<Arc<Game>>,
+    games: Vec<Game>,
+    order_by_name: Vec<usize>,
+    order_by_size: Vec<usize>,
 }
 
 impl GameList {
-    pub async fn new(
-        data_dir: impl AsRef<Path>,
-        root_path: impl AsRef<Path>,
-    ) -> Result<Self, Error> {
-        let covers_dir = data_dir.as_ref().join("covers");
-        fs::create_dir_all(&covers_dir).await?;
+    pub async fn new(root_path: PathBuf) -> Result<Self, Error> {
+        let wii_dir = root_path.join("wbfs");
+        let ngc_dir = root_path.join("games");
 
-        let wii_dir = root_path.as_ref().join("wbfs");
-        let ngc_dir = root_path.as_ref().join("games");
+        let wii_games = scan_dir(&wii_dir, true).await;
+        let ngc_games = scan_dir(&ngc_dir, false).await;
 
-        let wii_games = scan_dir(&covers_dir, &wii_dir, true).await;
-        let ngc_games = scan_dir(&covers_dir, &ngc_dir, false).await;
+        let games = wii_games.chain(ngc_games).collect::<Vec<_>>().await;
 
-        let all_games = wii_games
-            .chain(ngc_games)
-            .map(Arc::new)
-            .collect::<Vec<_>>()
-            .await;
+        let mut order_by_name = (0..games.len()).collect::<Vec<_>>();
+        let mut order_by_size = order_by_name.clone();
 
-        let mut sorted_by_name = all_games.clone();
-        let mut sorted_by_size = all_games;
-
-        sorted_by_name.sort_by(|a, b| a.title.cmp(&b.title));
-        sorted_by_size.sort_by_key(|g| g.size);
+        order_by_name.sort_by_key(|&i| &games[i].title);
+        order_by_size.sort_by_key(|&i| games[i].size);
 
         Ok(Self {
-            sorted_by_name,
-            sorted_by_size,
+            games,
+            order_by_name,
+            order_by_size,
         })
     }
 
-    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Arc<Game>> {
-        match sort_by {
-            SortBy::NameAscending => Either::Left(self.sorted_by_name.iter()),
-            SortBy::NameDescending => Either::Right(self.sorted_by_name.iter().rev()),
-            SortBy::SizeAscending => Either::Left(self.sorted_by_size.iter()),
-            SortBy::SizeDescending => Either::Right(self.sorted_by_size.iter().rev()),
+    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Game> {
+        let (order, reversed) = match sort_by {
+            SortBy::NameAscending => (&self.order_by_name, false),
+            SortBy::NameDescending => (&self.order_by_name, true),
+            SortBy::SizeAscending => (&self.order_by_size, false),
+            SortBy::SizeDescending => (&self.order_by_size, true),
+        };
+
+        let iter = order.iter().map(|&i| &self.games[i]);
+
+        if reversed {
+            Either::Right(iter.rev())
+        } else {
+            Either::Left(iter)
         }
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Game> {
+        self.games.iter_mut()
+    }
+
+    pub fn get_all_game_ids(&self) -> Vec<GameID> {
+        self.games.iter().map(|game| game.id).collect()
     }
 }
 
-async fn scan_dir(covers_dir: &Path, dir_path: &Path, is_wii: bool) -> impl Stream<Item = Game> {
+async fn scan_dir(dir_path: &Path, is_wii: bool) -> impl Stream<Item = Game> {
     stream::iter(fs::read_dir(dir_path).await.ok())
         .flatten()
         .then(move |entry| async move {
             let path = entry.ok()?.path();
-            Game::try_from_path(path, is_wii, covers_dir).await.ok()
+            Game::try_from_path(path, is_wii).await.ok()
         })
         .filter_map(std::convert::identity)
 }

@@ -10,7 +10,7 @@ pub enum Error {
     Json(serde_json::error::Category, usize, usize),
 
     #[error("HTTP error: {0}")]
-    Http(#[from] isahc::Error),
+    Http(String),
 
     #[error(transparent)]
     WiiDiscInfo(#[from] wii_disc_info::errors::Error),
@@ -62,6 +62,12 @@ impl From<serde_json::Error> for Error {
         let column = err.column();
 
         Self::Json(category, line, column)
+    }
+}
+
+impl From<ureq::Error> for Error {
+    fn from(err: ureq::Error) -> Self {
+        Self::Http(err.to_string())
     }
 }
 

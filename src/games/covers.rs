@@ -6,7 +6,11 @@ use crate::{
     errors::Error,
     util::http::{download_file, download_file_with_fallback},
 };
-use std::{fmt::Display, path::Path};
+use smol::stream::{self, Stream, StreamExt};
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+};
 use wii_disc_info::{RegionCode, game_id::GameID};
 
 #[derive(Debug, Clone, Copy)]
@@ -69,6 +73,9 @@ pub async fn download_cover(
     preferred_language: PreferredLanguage,
 ) -> Result<bool, Error> {
     let cover_path = dir.join(game_id.as_str()).with_added_extension("png");
+    if cover_path.exists() {
+        return Ok(false);
+    }
 
     let lang_str = lang_str(game_id, preferred_language);
     let cover_url = format!("https://art.gametdb.com/wii/{cover_type}/{lang_str}/{game_id}.png");
@@ -83,22 +90,25 @@ pub async fn download_cover(
     Ok(true)
 }
 
-pub async fn download_ui_covers(
-    ids: impl IntoIterator<Item = GameID>,
-    data_dir: &Path,
-    config: &Config,
-) {
+pub fn download_ui_covers(
+    ids: Vec<GameID>,
+    data_dir: PathBuf,
+    preferred_language: PreferredLanguage,
+) -> impl Stream<Item = ()> {
     let covers_dir = data_dir.join("covers");
 
-    for game_id in ids {
-        let _ = download_cover(
-            game_id,
-            CoverType::Cover3D,
-            &covers_dir,
-            config.preferred_language,
-        )
-        .await;
-    }
+    stream::iter(ids)
+        .then(move |id| {
+            let covers_dir = covers_dir.clone();
+
+            async move {
+                download_cover(id, CoverType::Cover3D, &covers_dir, preferred_language)
+                    .await
+                    .unwrap_or(false)
+            }
+        })
+        .filter(|&new| new)
+        .map(|_| ())
 }
 
 pub async fn download_all_covers_for_usbloadergx(

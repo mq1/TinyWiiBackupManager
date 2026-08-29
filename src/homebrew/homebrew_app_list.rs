@@ -8,41 +8,47 @@ use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use std::{path::Path, sync::Arc};
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Default)]
 pub struct HomebrewAppList {
-    sorted_by_name: Vec<Arc<HomebrewApp>>,
-    sorted_by_size: Vec<Arc<HomebrewApp>>,
+    apps: Vec<HomebrewApp>,
+    order_by_name: Vec<usize>,
+    order_by_size: Vec<usize>,
 }
 
 impl HomebrewAppList {
-    pub async fn new(root_path: impl AsRef<Path>) -> Result<Self, Error> {
-        let apps_dir_path = root_path.as_ref().join("apps");
-        let apps = scan_dir(&apps_dir_path)
-            .await
-            .map(Arc::new)
-            .collect::<Vec<_>>()
-            .await;
+    pub async fn new(root_path: PathBuf) -> Result<Self, Error> {
+        let apps_dir_path = root_path.join("apps");
+        let apps = scan_dir(&apps_dir_path).await.collect::<Vec<_>>().await;
 
-        let mut sorted_by_name = apps.clone();
-        let mut sorted_by_size = apps;
+        let mut order_by_name = (0..apps.len()).collect::<Vec<_>>();
+        let mut order_by_size = order_by_name.clone();
 
-        sorted_by_name.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
-        sorted_by_size.sort_by_key(|g| g.size);
+        order_by_name.sort_by_key(|&i| &apps[i].meta.name);
+        order_by_size.sort_by_key(|&i| apps[i].size);
 
         Ok(Self {
-            sorted_by_name,
-            sorted_by_size,
+            apps,
+            order_by_name,
+            order_by_size,
         })
     }
 
-    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Arc<HomebrewApp>> {
-        match sort_by {
-            SortBy::NameAscending => Either::Left(self.sorted_by_name.iter()),
-            SortBy::NameDescending => Either::Right(self.sorted_by_name.iter().rev()),
-            SortBy::SizeAscending => Either::Left(self.sorted_by_size.iter()),
-            SortBy::SizeDescending => Either::Right(self.sorted_by_size.iter().rev()),
+    pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &HomebrewApp> {
+        let (order, reversed) = match sort_by {
+            SortBy::NameAscending => (&self.order_by_name, false),
+            SortBy::NameDescending => (&self.order_by_name, true),
+            SortBy::SizeAscending => (&self.order_by_size, false),
+            SortBy::SizeDescending => (&self.order_by_size, true),
+        };
+
+        let iter = order.iter().map(|&i| &self.apps[i]);
+
+        if reversed {
+            Either::Right(iter.rev())
+        } else {
+            Either::Left(iter)
         }
     }
 }
