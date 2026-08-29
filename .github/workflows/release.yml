@@ -56,6 +56,10 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh 22
 
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
+        run: sudo apt-get install -y gcc-multilib
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.98
         with:
