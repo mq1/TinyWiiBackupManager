@@ -12,7 +12,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, row, rule, space, text},
+    widget::{column, image, row, rule, space, text, tooltip},
 };
 use lucide_icons::{
     Icon,
@@ -29,9 +29,9 @@ pub fn game_info<'a>(
                 let (w, h) = cover.dimensions();
                 let bytes = cover.as_raw().clone();
                 let handle = iced::widget::image::Handle::from_rgba(w, h, bytes);
-                image(handle).height(96).into()
+                image(handle).height(200).into()
             }
-            None => space().height(96).into(),
+            None => space().height(200).into(),
         };
 
         row![
@@ -92,8 +92,12 @@ pub fn game_info<'a>(
             rule::horizontal(1),
             row![
                 space::horizontal(),
-                my_button("SHA1", Icon::SearchCheck, MyButtonKind::Secondary)
-                    .on_press_with(|| Message::CalcGameSha1(game.clone())),
+                tooltip(
+                    my_button("SHA1", Icon::SearchCheck, MyButtonKind::Secondary)
+                        .on_press_with(|| Message::CalcGameSha1(game.clone())),
+                    my_card("Check if your dump is 100% byte identical to the Redump one"),
+                    tooltip::Position::Bottom
+                ),
                 my_button("Close", None, MyButtonKind::Secondary).on_press(Message::CloseModal)
             ]
             .spacing(10)

@@ -103,3 +103,7 @@ panic = "abort"
 [profile.dev]
 debug = "line-tables-only"
 split-debuginfo = "unpacked"
+
+# faster dev builds
+[profile.dev.package."*"]
+opt-level = 3
