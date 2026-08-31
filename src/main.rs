@@ -121,5 +121,6 @@ pub fn main() -> iced::Result {
         .window(window)
         .title(ui::title)
         .subscription(AppState::subscription)
+        .theme(AppState::theme)
         .run()
 }

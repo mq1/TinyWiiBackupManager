@@ -55,8 +55,6 @@ pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Erro
         let dest_parent = dest_parent.to_path_buf();
 
         move || {
-            use std::io::Write;
-
             let mut resp = AGENT.get(uri).call()?;
             let mut body = resp.body_mut().as_reader();
 
@@ -67,7 +65,6 @@ pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Erro
                 .tempfile_in(dest_parent)?;
 
             std::io::copy(&mut body, &mut out)?;
-            out.flush()?;
             out.persist(&dest)?;
 
             Ok(())

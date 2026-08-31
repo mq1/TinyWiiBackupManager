@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
+    config::{Config, ThemePreference},
     errors::Error,
     games::{covers::download_ui_covers, game::Game, game_list::GameList, import::import_game},
     homebrew::{self, homebrew_app_list::HomebrewAppList},
@@ -13,7 +13,7 @@ use crate::{
 };
 use enumflags2::{BitFlags, bitflags};
 use iced::{
-    Subscription, Task,
+    Subscription, Task, Theme,
     time::{self, milliseconds},
 };
 use rfd::AsyncFileDialog;
@@ -63,6 +63,14 @@ impl AppState {
 
     pub fn subscription(&self) -> Subscription<Message> {
         time::every(milliseconds(500)).map(|_| Message::ToggleAnimationState)
+    }
+
+    pub fn theme(&self) -> Option<Theme> {
+        match self.config.theme_preference {
+            ThemePreference::System => None,
+            ThemePreference::Light => Some(Theme::Light),
+            ThemePreference::Dark => Some(Theme::Dark),
+        }
     }
 
     pub fn write_config_task(&self) -> Task<Message> {

@@ -5,6 +5,7 @@ use crate::errors::Error;
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::path::{Path, PathBuf};
+use strum_macros::{EnumIter, IntoStaticStr};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -136,7 +137,9 @@ pub enum ViewAs {
     Table,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, EnumIter, IntoStaticStr,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ThemePreference {
     #[default]
@@ -170,7 +173,7 @@ pub enum GcOutputFormat {
     Ciso,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, EnumIter, IntoStaticStr)]
 #[serde(rename_all = "lowercase")]
 pub enum PreferredLanguage {
     English,

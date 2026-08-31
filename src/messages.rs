@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{Config, ViewAs},
+    config::{
+        Config, GcOutputFormat, PreferredLanguage, ThemePreference, TxtCodesSource, ViewAs,
+        WiiOutputFormat,
+    },
     errors::Error,
     games::{game::Game, game_list::GameList},
     homebrew::{homebrew_app::HomebrewApp, homebrew_app_list::HomebrewAppList},
@@ -46,4 +49,15 @@ pub enum Message {
     CancelAllImports,
     ToggleAnimationState,
     LoadCovers,
+
+    // Settings
+    SetWiiOutputFormat(WiiOutputFormat),
+    SetGcOutputFormat(GcOutputFormat),
+    SetAlwaysSplit(bool),
+    SetScrubUpdatePartition(bool),
+    SetRemoveSourcesGames(bool),
+    SetRemoveSourcesApps(bool),
+    SetTxtCodesSource(TxtCodesSource),
+    SetThemePreference(ThemePreference),
+    SetPreferredLanguage(PreferredLanguage),
 }

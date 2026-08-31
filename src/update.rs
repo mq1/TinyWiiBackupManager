@@ -214,6 +214,42 @@ impl AppState {
                 self.load_covers();
                 Task::none()
             }
+            Message::SetWiiOutputFormat(format) => {
+                self.config.wii_output_format = format;
+                self.write_config_task()
+            }
+            Message::SetGcOutputFormat(format) => {
+                self.config.gc_output_format = format;
+                self.write_config_task()
+            }
+            Message::SetAlwaysSplit(always_split) => {
+                self.config.always_split = always_split;
+                self.write_config_task()
+            }
+            Message::SetScrubUpdatePartition(scrub) => {
+                self.config.scrub_update_partition = scrub;
+                self.write_config_task()
+            }
+            Message::SetRemoveSourcesGames(remove) => {
+                self.config.remove_sources_games = remove;
+                self.write_config_task()
+            }
+            Message::SetRemoveSourcesApps(remove) => {
+                self.config.remove_sources_apps = remove;
+                self.write_config_task()
+            }
+            Message::SetTxtCodesSource(source) => {
+                self.config.txt_codes_source = source;
+                self.write_config_task()
+            }
+            Message::SetThemePreference(pref) => {
+                self.config.theme_preference = pref;
+                self.write_config_task()
+            }
+            Message::SetPreferredLanguage(lang) => {
+                self.config.preferred_language = lang;
+                self.write_config_task()
+            }
         }
     }
 }

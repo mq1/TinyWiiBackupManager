@@ -7,14 +7,16 @@ use crate::{
     ui::components::{my_card::my_card, queued_import_row::queued_import_row},
 };
 use iced::{
-    Element,
+    Element, padding,
     widget::{Column, column, row, rule, text},
 };
 use itertools::Itertools;
 use lucide_icons::iced::icon_chevron_right;
 
 pub fn import_queue(state: &AppState) -> Element<'_, Message> {
-    let titlebar = row![icon_chevron_right().size(20), text("Import Queue").size(20)].spacing(5);
+    let titlebar = row![icon_chevron_right().size(20), text("Import Queue").size(20)]
+        .spacing(5)
+        .padding(padding::all(14).left(10));
 
     let content = state
         .import_queue
