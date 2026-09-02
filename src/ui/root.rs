@@ -20,11 +20,11 @@ use crate::{
 };
 use iced::{
     Background, Element, Length, Theme, color,
-    widget::{column, container, opaque, row, stack},
+    widget::{container, opaque, row, stack},
 };
 
 #[cfg(target_os = "macos")]
-use iced::widget::rule;
+use iced::widget::{column, rule};
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = stack![
