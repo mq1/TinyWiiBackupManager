@@ -17,6 +17,7 @@ dependencies = [
  "image",
  "itertools 0.15.0",
  "lucide-icons",
+ "mundy",
  "nod",
  "open",
  "rfd",

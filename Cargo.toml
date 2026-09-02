@@ -29,6 +29,10 @@ iced = { version = "0.14", default-features = false, features = [
 iced_palace = "0.14"
 image = { version = "0.25", default-features = false, features = ["png"] }
 lucide-icons = { version = "1", features = ["iced"] }
+mundy = { version = "0.2", default-features = false, features = [
+  "accent-color",
+  "color-scheme",
+] }
 sipper = "0.1"
 rfd = "0.17"
 smol = "2"

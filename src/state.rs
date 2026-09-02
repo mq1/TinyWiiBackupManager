@@ -8,7 +8,7 @@ use crate::{
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
-    ui::{modals::Modal, pages::Page},
+    ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
 use enumflags2::{BitFlags, bitflags};
@@ -67,9 +67,9 @@ impl AppState {
 
     pub fn theme(&self) -> Option<Theme> {
         match self.config.theme_preference {
-            ThemePreference::System => None,
-            ThemePreference::Light => Some(Theme::Light),
-            ThemePreference::Dark => Some(Theme::Dark),
+            ThemePreference::System => theme::system(),
+            ThemePreference::Light => Some(theme::light()),
+            ThemePreference::Dark => Some(theme::dark()),
         }
     }
 

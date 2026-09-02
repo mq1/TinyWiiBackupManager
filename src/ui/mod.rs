@@ -10,6 +10,7 @@ pub mod dialogs;
 pub mod modals;
 pub mod pages;
 pub mod root;
+pub mod theme;
 
 pub fn title(state: &AppState) -> String {
     let mut s = "TinyWiiBackupManager  ›  ".to_string();
