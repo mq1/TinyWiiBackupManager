@@ -2,8 +2,25 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use iced::{Color, Theme, theme::Palette};
-use mundy::{ColorScheme, Interest, Preferences};
+use mundy::{ColorScheme, Interest, Preferences, Srgba};
 use std::time::Duration;
+
+fn srgba_to_color(color: Srgba) -> Color {
+    Color {
+        r: color.red as f32,
+        g: color.green as f32,
+        b: color.blue as f32,
+        a: color.alpha as f32,
+    }
+}
+
+fn accent() -> Option<Color> {
+    let prefs = Preferences::once_blocking(Interest::AccentColor, Duration::from_millis(100))?;
+    let accent = prefs.accent_color.0?;
+    let color = srgba_to_color(accent);
+
+    Some(color)
+}
 
 fn prefs() -> Option<(Color, bool)> {
     let prefs = Preferences::once_blocking(
@@ -12,21 +29,14 @@ fn prefs() -> Option<(Color, bool)> {
     )?;
 
     let accent = prefs.accent_color.0?;
-
-    let color = Color {
-        r: accent.red as f32,
-        g: accent.green as f32,
-        b: accent.blue as f32,
-        a: accent.alpha as f32,
-    };
-
+    let color = srgba_to_color(accent);
     let is_dark = prefs.color_scheme == ColorScheme::Dark;
 
     Some((color, is_dark))
 }
 
 pub fn light() -> Theme {
-    let Some((primary, _)) = prefs() else {
+    let Some(primary) = accent() else {
         return Theme::Light;
     };
 
@@ -40,7 +50,7 @@ pub fn light() -> Theme {
 }
 
 pub fn dark() -> Theme {
-    let Some((primary, _)) = prefs() else {
+    let Some(primary) = accent() else {
         return Theme::Dark;
     };
 
