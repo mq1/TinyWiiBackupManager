@@ -1,38 +1,63 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use iced::{Color, Theme, theme::Palette};
+use iced::{
+    Color, Theme,
+    theme::{
+        Palette,
+        palette::{EXTENDED_DARK, Extended},
+    },
+};
 use mundy::{ColorScheme, Interest, Preferences, Srgba};
 use std::time::Duration;
 
-fn srgba_to_color(color: Srgba) -> Color {
-    Color {
-        r: color.red as f32,
-        g: color.green as f32,
-        b: color.blue as f32,
-        a: color.alpha as f32,
-    }
-}
-
-fn accent() -> Option<Color> {
+fn accent() -> Option<Srgba> {
     let prefs = Preferences::once_blocking(Interest::AccentColor, Duration::from_millis(100))?;
     let accent = prefs.accent_color.0?;
-    let color = srgba_to_color(accent);
 
-    Some(color)
+    Some(accent)
 }
 
-fn prefs() -> Option<(Color, bool)> {
+fn accent_and_dark() -> Option<(Srgba, bool)> {
     let prefs = Preferences::once_blocking(
         Interest::AccentColor | Interest::ColorScheme,
         Duration::from_millis(100),
     )?;
 
     let accent = prefs.accent_color.0?;
-    let color = srgba_to_color(accent);
     let is_dark = prefs.color_scheme == ColorScheme::Dark;
 
-    Some((color, is_dark))
+    Some((accent, is_dark))
+}
+
+fn generate(palette: Palette) -> Extended {
+    let mut extended = Extended::generate(palette);
+    extended.primary.base.text = EXTENDED_DARK.primary.base.text;
+    extended
+}
+
+fn make_theme((accent, is_dark): (Srgba, bool)) -> Theme {
+    let accent = Color {
+        r: accent.red as f32,
+        g: accent.green as f32,
+        b: accent.blue as f32,
+        a: 1.0,
+    };
+
+    let (name, base) = if is_dark {
+        ("twbm-dark", Palette::DARK)
+    } else {
+        ("twbm-light", Palette::LIGHT)
+    };
+
+    Theme::custom_with_fn(
+        name,
+        Palette {
+            primary: accent,
+            ..base
+        },
+        generate,
+    )
 }
 
 pub fn light() -> Theme {
@@ -40,13 +65,7 @@ pub fn light() -> Theme {
         return Theme::Light;
     };
 
-    Theme::custom(
-        "twbm-light",
-        Palette {
-            primary,
-            ..Palette::LIGHT
-        },
-    )
+    make_theme((primary, false))
 }
 
 pub fn dark() -> Theme {
@@ -54,33 +73,9 @@ pub fn dark() -> Theme {
         return Theme::Dark;
     };
 
-    Theme::custom(
-        "twbm-dark",
-        Palette {
-            primary,
-            ..Palette::DARK
-        },
-    )
+    make_theme((primary, true))
 }
 
 pub fn system() -> Option<Theme> {
-    let (primary, is_dark) = prefs()?;
-
-    if is_dark {
-        Some(Theme::custom(
-            "twbm-dark",
-            Palette {
-                primary,
-                ..Palette::DARK
-            },
-        ))
-    } else {
-        Some(Theme::custom(
-            "twbm-light",
-            Palette {
-                primary,
-                ..Palette::LIGHT
-            },
-        ))
-    }
+    accent_and_dark().map(make_theme)
 }
