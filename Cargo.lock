@@ -18,8 +18,8 @@ dependencies = [
  "image",
  "itertools 0.15.0",
  "lucide-icons",
+ "mundy",
  "nod",
- "objc2-app-kit 0.3.2",
  "open",
  "rfd",
  "sanitize-filename",
@@ -850,8 +850,6 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f66b71ac6b73812b0bf51cda8dd646a268fbb38623f45b2b7907593c323f745"
 dependencies = [
- "futures-channel",
- "futures-core",
  "objc2 0.6.4",
  "objc2-foundation 0.3.2",
  "wasm-bindgen",

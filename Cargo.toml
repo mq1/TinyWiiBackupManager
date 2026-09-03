@@ -56,10 +56,15 @@ zip = { version = "8", default-features = false, features = [
 enumflags2 = "0.7"
 strum = "0.28"
 strum_macros = "0.28"
-dark-light = "3"
 
-[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-objc2-app-kit = { version = "0.3", features = ["NSColor", "NSColorSpace"] }
+[target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
+mundy = { version = "0.2", default-features = false, features = [
+  "accent-color",
+  "color-scheme",
+] }
+
+[target.'cfg(any(target_os = "windows", all(target_os = "macos", target_arch = "x86_64")))'.dependencies]
+dark-light = { version = "3", default-features = false }
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
