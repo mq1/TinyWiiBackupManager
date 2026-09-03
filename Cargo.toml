@@ -79,6 +79,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "dx12",
 ] }
+winsafe = { version = "0.0.29", features = ["dwm"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [

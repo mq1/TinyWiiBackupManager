@@ -12,6 +12,9 @@ pub mod pages;
 pub mod root;
 pub mod theme;
 
+#[cfg(target_os = "windows")]
+pub mod window_color;
+
 pub fn title(state: &AppState) -> String {
     let mut s = "TinyWiiBackupManager  ›  ".to_string();
 

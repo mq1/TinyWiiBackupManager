@@ -36,7 +36,7 @@ fn generate(palette: Palette) -> Extended {
     extended
 }
 
-fn make_theme((accent, is_dark): (Srgba, bool)) -> Theme {
+fn make_theme(accent: Srgba, is_dark: bool) -> Theme {
     let accent = Color {
         r: accent.red as f32,
         g: accent.green as f32,
@@ -65,7 +65,10 @@ pub fn light() -> Theme {
         return Theme::Light;
     };
 
-    make_theme((primary, false))
+    #[cfg(target_os = "windows")]
+    crate::ui::window_color::set(false);
+
+    make_theme(primary, false)
 }
 
 pub fn dark() -> Theme {
@@ -73,9 +76,17 @@ pub fn dark() -> Theme {
         return Theme::Dark;
     };
 
-    make_theme((primary, true))
+    #[cfg(target_os = "windows")]
+    crate::ui::window_color::set(true);
+
+    make_theme(primary, true)
 }
 
 pub fn system() -> Option<Theme> {
-    accent_and_dark().map(make_theme)
+    let (accent, is_dark) = accent_and_dark()?;
+
+    #[cfg(target_os = "windows")]
+    crate::ui::window_color::set(is_dark);
+
+    Some(make_theme(accent, is_dark))
 }
