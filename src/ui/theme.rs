@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use dark_light::Mode;
 use iced::{
     Color, Theme,
     theme::{
@@ -8,26 +9,24 @@ use iced::{
         palette::{EXTENDED_DARK, Extended},
     },
 };
-use mundy::{ColorScheme, Interest, Preferences, Srgba};
-use std::time::Duration;
 
-fn accent() -> Option<Srgba> {
-    let prefs = Preferences::once_blocking(Interest::AccentColor, Duration::from_millis(100))?;
-    let accent = prefs.accent_color.0?;
-
-    Some(accent)
+#[cfg(target_os = "linux")]
+fn accent() -> Option<Color> {
+    // TODO
+    None
 }
 
-fn accent_and_dark() -> Option<(Srgba, bool)> {
-    let prefs = Preferences::once_blocking(
-        Interest::AccentColor | Interest::ColorScheme,
-        Duration::from_millis(100),
-    )?;
+#[cfg(target_os = "macos")]
+fn accent() -> Option<Color> {
+    // TODO
+    None
+}
 
-    let accent = prefs.accent_color.0?;
-    let is_dark = prefs.color_scheme == ColorScheme::Dark;
-
-    Some((accent, is_dark))
+#[cfg(target_os = "windows")]
+fn accent() -> Option<Color> {
+    let argb = winsafe::DwmGetColorizationColor().ok()?;
+    let [_, r, g, b] = argb.to_be_bytes();
+    Some(Color::from_rgb8(r, g, b))
 }
 
 fn generate(palette: Palette) -> Extended {
@@ -36,14 +35,7 @@ fn generate(palette: Palette) -> Extended {
     extended
 }
 
-fn make_theme(accent: Srgba, is_dark: bool) -> Theme {
-    let accent = Color {
-        r: accent.red as f32,
-        g: accent.green as f32,
-        b: accent.blue as f32,
-        a: 1.0,
-    };
-
+fn make_theme(accent: Color, is_dark: bool) -> Theme {
     let (name, base) = if is_dark {
         ("twbm-dark", Palette::DARK)
     } else {
@@ -83,10 +75,11 @@ pub fn dark() -> Theme {
 }
 
 pub fn system() -> Option<Theme> {
-    let (accent, is_dark) = accent_and_dark()?;
+    let is_dark = dark_light::detect().is_ok_and(|mode| mode == Mode::Dark);
 
     #[cfg(target_os = "windows")]
     crate::ui::window_color::set(is_dark);
 
+    let accent = accent()?;
     Some(make_theme(accent, is_dark))
 }
