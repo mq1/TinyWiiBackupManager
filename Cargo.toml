@@ -58,6 +58,9 @@ strum = "0.28"
 strum_macros = "0.28"
 dark-light = "3"
 
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+objc2-app-kit = { version = "0.3", features = ["NSColor", "NSColorSpace"] }
+
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 nod = { git = "https://github.com/wiidev/nod", branch = "fix-block-handling", default-features = false, features = [
@@ -91,6 +94,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "metal",
 ] }
+
 
 [build-dependencies]
 hex = { version = "0.4", default-features = false }

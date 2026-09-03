@@ -16,10 +16,20 @@ fn accent() -> Option<Color> {
     None
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+/// works on macos 10.14+, macos arm64 starts at 11
+/// enable this on x86_64 if we're dropping support for < 10.14
 fn accent() -> Option<Color> {
-    // TODO
-    None
+    let accent_color = objc2_app_kit::NSColor::controlAccentColor();
+    let srgb_space = objc2_app_kit::NSColorSpace::sRGBColorSpace();
+
+    let srgb_color = accent_color.colorUsingColorSpace(&srgb_space)?;
+
+    Some(Color::from_rgb(
+        srgb_color.redComponent() as f32,
+        srgb_color.greenComponent() as f32,
+        srgb_color.blueComponent() as f32,
+    ))
 }
 
 #[cfg(target_os = "windows")]
