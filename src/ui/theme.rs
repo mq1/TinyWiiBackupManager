@@ -35,7 +35,7 @@ fn accent() -> Option<Color> {
 #[cfg(target_os = "windows")]
 fn accent() -> Option<Color> {
     let argb = winsafe::DwmGetColorizationColor().ok()?;
-    let [_, r, g, b] = argb.to_be_bytes();
+    let [_, r, g, b] = argb.0.to_be_bytes();
     Some(Color::from_rgb8(r, g, b))
 }
 
