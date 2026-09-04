@@ -26,7 +26,7 @@ pub async fn get_dir_size(path: &Path) -> Size {
                     .map(|entry| entry.path())
                     .collect::<Vec<_>>()
                     .await
-                    .appended_to(stack)
+                    .extends(stack)
                     .pipe(|stack| Some((0, stack))),
 
                 Err(_) => Some((0, stack)),
@@ -63,7 +63,7 @@ pub fn recursive_file_scan<'a>(
                     .map(|e| e.path())
                     .collect::<Vec<_>>()
                     .await
-                    .appended_to(stack)
+                    .extends(stack)
                     .pipe(|stack| Some((None, stack))),
 
                 Err(_) => Some((None, stack)),
