@@ -32,9 +32,7 @@ static AGENT: LazyLock<Agent> = LazyLock::new(|| {
 
 /// Downloads a file, creating the parent directory if needed
 /// Skips if the file already exists
-pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Error> {
-    let dest = dest.as_ref();
-
+pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
     let dest_filename = dest
         .file_name()
         .and_then(OsStr::to_str)
@@ -75,10 +73,10 @@ pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Erro
 
 pub async fn download_file_with_fallback(
     uri: &str,
-    dest: impl AsRef<Path>,
+    dest: &Path,
     fallback: &str,
 ) -> Result<(), Error> {
-    if download_file(uri, &dest).await.is_err() {
+    if download_file(uri, dest).await.is_err() {
         download_file(fallback, dest).await
     } else {
         Ok(())
