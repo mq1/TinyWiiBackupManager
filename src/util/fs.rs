@@ -8,6 +8,7 @@ use smol::{
     stream::{self, Stream, StreamExt},
 };
 use std::{
+    convert::identity,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
@@ -42,49 +43,43 @@ pub fn recursive_file_scan<'a>(
     path: impl Into<PathBuf>,
     exts: &'a [&'a str],
 ) -> impl Stream<Item = PathBuf> + 'a {
-    stream::unfold(vec![path.into()], move |mut entries| async move {
-        while let Some(entry) = entries.pop() {
-            let Ok(meta) = fs::symlink_metadata(&entry).await else {
-                continue;
-            };
+    stream::unfold(vec![path.into()], move |mut stack| async move {
+        let current = stack.pop()?;
 
-            let Some(filename) = entry.file_name().and_then(OsStr::to_str) else {
-                continue;
-            };
+        // Skip ignored names (hidden files, split ISOs, non-utf8)
+        let is_ignored = current
+            .file_name()
+            .and_then(OsStr::to_str)
+            .is_none_or(|name| name.starts_with('.') || name.ends_with(".part1.iso"));
 
-            // Skip hidden files
-            if filename.starts_with('.') {
-                continue;
-            }
-
-            // Skip iso second split file
-            if filename.ends_with(".part1.iso") {
-                continue;
-            }
-
-            if meta.is_dir() {
-                if let Ok(new_entries) = fs::read_dir(&entry).await {
-                    let new_entries = new_entries
-                        .collect::<Vec<_>>()
-                        .await
-                        .into_iter()
-                        .filter_map(Result::ok)
-                        .map(|e| e.path());
-                    entries.extend(new_entries);
-                }
-
-                continue;
-            }
-
-            let Some(ext) = entry.extension().and_then(OsStr::to_str) else {
-                continue;
-            };
-
-            if meta.is_file() && exts.contains(&ext) {
-                return Some((entry, entries));
-            }
+        if is_ignored {
+            return Some((None, stack));
         }
 
-        None
+        match fs::symlink_metadata(&current).await {
+            Ok(meta) if meta.is_dir() => match fs::read_dir(&current).await {
+                Ok(entries) => entries
+                    .filter_map(Result::ok)
+                    .map(|e| e.path())
+                    .collect::<Vec<_>>()
+                    .await
+                    .appended_to(stack)
+                    .pipe(|stack| Some((None, stack))),
+
+                Err(_) => Some((None, stack)),
+            },
+
+            Ok(meta) if meta.is_file() => {
+                let matches_ext = current
+                    .extension()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|ext| exts.contains(&ext));
+
+                Some((matches_ext.then_some(current), stack))
+            }
+
+            _ => Some((None, stack)),
+        }
     })
+    .filter_map(identity)
 }
