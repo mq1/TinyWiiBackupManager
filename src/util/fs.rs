@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::util::fp::VecExt;
 use size::Size;
 use smol::{
     fs,
@@ -10,33 +11,31 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
+use tap::Pipe;
 
 pub async fn get_dir_size(path: &Path) -> Size {
-    let mut size = 0;
+    stream::unfold(vec![path.to_path_buf()], |mut stack| async move {
+        let current = stack.pop()?;
 
-    let mut entries = vec![path.to_path_buf()];
-    while let Some(entry) = entries.pop() {
-        let Ok(meta) = fs::symlink_metadata(&entry).await else {
-            continue;
-        };
+        match fs::symlink_metadata(&current).await {
+            Ok(meta) if meta.is_file() => Some((meta.len(), stack)),
+            Ok(meta) if meta.is_dir() => match fs::read_dir(&current).await {
+                Ok(entries) => entries
+                    .filter_map(Result::ok)
+                    .map(|entry| entry.path())
+                    .collect::<Vec<_>>()
+                    .await
+                    .appended_to(stack)
+                    .pipe(|stack| Some((0, stack))),
 
-        if meta.is_file() {
-            size += meta.len();
-        } else if meta.is_dir()
-            && let Ok(new_entries) = fs::read_dir(&entry).await
-        {
-            let new_entries = new_entries
-                .collect::<Vec<_>>()
-                .await
-                .into_iter()
-                .filter_map(Result::ok)
-                .map(|entry| entry.path());
-
-            entries.extend(new_entries);
+                Err(_) => Some((0, stack)),
+            },
+            _ => Some((0, stack)),
         }
-    }
-
-    Size::from_bytes(size)
+    })
+    .fold(0, u64::saturating_add)
+    .await
+    .pipe(Size::from_bytes)
 }
 
 pub fn recursive_file_scan<'a>(

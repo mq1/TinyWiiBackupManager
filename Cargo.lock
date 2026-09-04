@@ -32,6 +32,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "sys-locale",
+ "tap",
  "tempfile",
  "thiserror 2.0.20",
  "twbm-idmap",
@@ -3900,6 +3901,12 @@ checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "tap"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"
