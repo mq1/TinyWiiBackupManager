@@ -6,7 +6,11 @@ use smol::{
     fs::File,
     stream::{Stream, StreamExt},
 };
-use std::path::{Path, PathBuf};
+use std::{
+    convert::identity,
+    path::{Path, PathBuf},
+};
+use tap::Pipe;
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
 
@@ -17,28 +21,31 @@ pub mod game_list;
 pub mod import;
 
 async fn get_id(path: &Path) -> Result<GameID, Error> {
-    let meta = if path
+    let is_zip = path
         .extension()
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
-    {
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
+
+    if is_zip {
         smol::unblock({
             let path = path.to_path_buf();
 
             move || {
-                let file = std::fs::File::open(path)?;
-                let mut zip = ZipArchive::new(file)?;
-                let mut entry = zip.by_index(0)?;
-                let meta = wii_disc_info::Meta::read(&mut entry)?;
-                Ok::<_, Error>(meta)
+                std::fs::File::open(path)?
+                    .pipe(ZipArchive::new)?
+                    .by_index(0)?
+                    .pipe_ref_mut(wii_disc_info::Meta::read)?
+                    .pipe(Ok)
             }
         })
-        .await?
+        .await
     } else {
-        let mut file = File::open(path).await?;
-        wii_disc_info::Meta::read_async(&mut file).await?
-    };
-
-    Ok(meta.game_id())
+        File::open(path)
+            .await?
+            .pipe_ref_mut(wii_disc_info::Meta::read_async)
+            .await
+            .map_err(Into::into)
+    }
+    .map(|meta| meta.game_id())
 }
 
 pub async fn keep_valid_games(
@@ -58,7 +65,7 @@ pub async fn keep_valid_games(
                 _ => None,
             }
         })
-        .filter_map(std::convert::identity)
+        .filter_map(identity)
         .collect()
         .await
 }
