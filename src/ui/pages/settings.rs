@@ -5,11 +5,11 @@ use crate::{
     config::{GcOutputFormat, PreferredLanguage, ThemePreference, TxtCodesSource, WiiOutputFormat},
     messages::Message,
     state::AppState,
-    ui::components::my_card::my_card,
+    ui::components::my_group::my_group,
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, column, radio, row, rule, scrollable, text},
+    widget::{Column, column, radio, row, scrollable, space, text},
 };
 use lucide_icons::{Icon, iced::icon_chevron_right};
 use strum::IntoEnumIterator;
@@ -21,21 +21,13 @@ fn setting<T: Eq + Copy>(
     active: T,
     on_change: fn(T) -> Message,
 ) -> Element<'static, Message> {
-    let heading = row![icon.widget(), label].spacing(5);
-
-    let contents = items
+    let content = items
         .into_iter()
         .map(|(value, label)| radio(label, value, Some(active), on_change).into())
         .collect::<Column<'_, _>>()
         .spacing(5);
 
-    my_card(
-        column![heading, rule::horizontal(1), contents]
-            .spacing(10)
-            .padding(5),
-    )
-    .padding(5)
-    .into()
+    my_group(label, icon, space(), content).into()
 }
 
 pub fn settings(state: &AppState) -> Element<'_, Message> {

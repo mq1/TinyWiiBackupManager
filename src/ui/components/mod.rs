@@ -10,6 +10,7 @@ pub mod homebrew_app_row;
 pub mod homebrew_apps_titlebar;
 pub mod my_button;
 pub mod my_card;
+pub mod my_group;
 pub mod my_link;
 pub mod my_sidebar_button;
 pub mod notifications;
