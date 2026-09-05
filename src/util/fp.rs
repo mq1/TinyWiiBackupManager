@@ -4,16 +4,16 @@
 use tap::Tap;
 
 pub trait VecExt<T> {
-    fn extended(self, other: Self) -> Self;
+    fn extended_by(self, other: Self) -> Self;
     fn extends(self, other: Self) -> Self;
 }
 
 impl<T> VecExt<T> for Vec<T> {
-    fn extended(self, other: Self) -> Self {
+    fn extended_by(self, other: Self) -> Self {
         self.tap_mut(|v| v.extend(other))
     }
 
     fn extends(self, other: Self) -> Self {
-        other.extended(self)
+        other.extended_by(self)
     }
 }
