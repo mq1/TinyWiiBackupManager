@@ -14,12 +14,14 @@ use nod::{
 use sipper::{Straw, sipper};
 use split_write::SplitWriter;
 use std::{
+    borrow::Cow,
     ffi::OsStr,
     fs,
     io::{BufWriter, Write},
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
+use tap::Pipe;
 use which_fs::FsKind;
 
 const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
@@ -170,32 +172,18 @@ fn is_valid_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || " !#$%&'()+,-.;=@^_`{}~".contains(c)
 }
 
-fn sanitize_title(ascii_title: &str) -> String {
-    let mut sanitized = String::with_capacity(64);
-
-    let mut actual_title = false;
-    for c in ascii_title.chars() {
-        if sanitized.len() >= 64 {
-            break;
-        }
-
-        if c.is_ascii_alphanumeric() {
-            actual_title = true;
-        }
-
-        if actual_title && is_valid_char(c) {
-            sanitized.push(c);
-        }
-    }
-
-    if sanitized.is_empty() {
-        sanitized.push_str("game");
-    }
-
-    let trimmed_len = sanitized.trim_end().len();
-    sanitized.truncate(trimmed_len);
-
-    sanitized
+fn sanitize_title(ascii_title: &str) -> Cow<'static, str> {
+    ascii_title
+        .chars()
+        .skip_while(|c| !c.is_ascii_alphanumeric())
+        .filter(|&c| is_valid_char(c))
+        .take(64)
+        .collect::<String>()
+        .trim_end()
+        .pipe(|s| match s.is_empty() {
+            true => Cow::Borrowed("game"),
+            false => Cow::Owned(s.into()),
+        })
 }
 
 fn make_game_dir(base_dir: &Path, game_id: &str, fallback_title: &str) -> Result<PathBuf, Error> {
