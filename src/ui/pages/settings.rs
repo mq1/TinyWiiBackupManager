@@ -9,7 +9,7 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, column, radio, row, scrollable, space, text},
+    widget::{Column, column, radio, row, scrollable, text},
 };
 use lucide_icons::{Icon, iced::icon_chevron_right};
 use strum::IntoEnumIterator;
@@ -27,7 +27,7 @@ fn setting<T: Eq + Copy>(
         .collect::<Column<'_, _>>()
         .spacing(5);
 
-    my_group(label, icon, space(), content).into()
+    my_group(label).icon(icon).content(content).into()
 }
 
 pub fn settings(state: &AppState) -> Element<'_, Message> {
