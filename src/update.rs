@@ -31,11 +31,9 @@ impl AppState {
                 Task::none()
             }
             Message::RefreshGamesAndApps => {
-                self.ongoing.insert(
-                    Ongoing::GettingGames
-                        | Ongoing::GettingHomebrewApps
-                        | Ongoing::GettingDriveInfo,
-                );
+                self.ongoing.insert(Ongoing::GettingGames);
+                self.ongoing.insert(Ongoing::GettingHomebrewApps);
+                self.ongoing.insert(Ongoing::GettingDriveInfo);
 
                 Task::batch([
                     self.get_games_task(),
@@ -56,36 +54,36 @@ impl AppState {
             }
             Message::GotGames(Ok(games)) => {
                 self.games = games;
-                self.ongoing.remove(Ongoing::GettingGames);
+                self.ongoing.remove(&Ongoing::GettingGames);
                 self.load_covers();
                 self.download_ui_covers_task()
             }
             Message::GotGames(Err(e)) => {
                 self.games = GameList::default();
                 self.notifications.add(Notification::error(e));
-                self.ongoing.remove(Ongoing::GettingGames);
+                self.ongoing.remove(&Ongoing::GettingGames);
                 Task::none()
             }
             Message::GotHomebrewApps(Ok(homebrew_apps)) => {
                 self.homebrew_apps = homebrew_apps;
-                self.ongoing.remove(Ongoing::GettingHomebrewApps);
+                self.ongoing.remove(&Ongoing::GettingHomebrewApps);
                 Task::none()
             }
             Message::GotHomebrewApps(Err(e)) => {
                 self.homebrew_apps = HomebrewAppList::default();
                 self.notifications.add(Notification::error(e));
-                self.ongoing.remove(Ongoing::GettingHomebrewApps);
+                self.ongoing.remove(&Ongoing::GettingHomebrewApps);
                 Task::none()
             }
             Message::GotDriveInfo(Ok(drive_info)) => {
                 self.drive_info = Some(drive_info);
-                self.ongoing.remove(Ongoing::GettingDriveInfo);
+                self.ongoing.remove(&Ongoing::GettingDriveInfo);
                 Task::none()
             }
             Message::GotDriveInfo(Err(e)) => {
                 self.drive_info = None;
                 self.notifications.add(Notification::error(e));
-                self.ongoing.remove(Ongoing::GettingDriveInfo);
+                self.ongoing.remove(&Ongoing::GettingDriveInfo);
                 Task::none()
             }
             Message::Open(url) => {
@@ -188,11 +186,11 @@ impl AppState {
             }
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
-                self.ongoing.remove(Ongoing::Converting);
+                self.ongoing.remove(&Ongoing::Converting);
                 self.import_games_task(vec![])
             }
             Message::GameImported(Err(e)) => {
-                self.ongoing.remove(Ongoing::Converting);
+                self.ongoing.remove(&Ongoing::Converting);
                 self.notifications.add(Notification::error(e));
                 self.import_games_task(vec![])
             }
@@ -205,9 +203,12 @@ impl AppState {
                 Task::none()
             }
             Message::ToggleAnimationState => {
-                if self.ongoing.contains(Ongoing::Converting) {
-                    self.ongoing.toggle(Ongoing::AnimationState);
+                if self.ongoing.contains(&Ongoing::Converting)
+                    && !self.ongoing.remove(&Ongoing::AnimationState)
+                {
+                    self.ongoing.insert(Ongoing::AnimationState);
                 }
+
                 Task::none()
             }
             Message::LoadCovers => {

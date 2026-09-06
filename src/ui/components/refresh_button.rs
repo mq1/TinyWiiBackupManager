@@ -12,12 +12,22 @@ use crate::{
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
 
+fn operation_in_progress(state: &AppState) -> bool {
+    let is_ongoing = |op| state.ongoing.contains(&op);
+
+    [
+        Ongoing::GettingGames,
+        Ongoing::GettingHomebrewApps,
+        Ongoing::GettingDriveInfo,
+    ]
+    .into_iter()
+    .any(is_ongoing)
+}
+
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button(None, Icon::RotateCw, MyButtonKind::Toolbar);
 
-    if !state.ongoing.intersects(
-        Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo,
-    ) {
+    if !operation_in_progress(state) {
         refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);
     }
 

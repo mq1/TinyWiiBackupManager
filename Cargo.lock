@@ -10,7 +10,6 @@ dependencies = [
  "dark-light",
  "directories",
  "either",
- "enumflags2",
  "fs4",
  "hex",
  "iced",
