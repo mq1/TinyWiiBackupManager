@@ -4,7 +4,10 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{game_row::game_row, games_titlebar::games_titlebar, my_card::my_card},
+    ui::components::{
+        game_row::game_row, games_other_toolbar::games_other_toolbar,
+        games_titlebar::games_titlebar, my_card::my_card,
+    },
 };
 use iced::{
     Element,
@@ -20,8 +23,12 @@ pub fn game_table(state: &AppState) -> Element<'_, Message> {
         .intersperse_with(|| rule::horizontal(1).into())
         .collect::<Column<'_, _>>();
 
-    column![games_titlebar(state), my_card(content).padding(0)]
-        .padding(10)
-        .spacing(10)
-        .into()
+    column![
+        games_titlebar(state),
+        games_other_toolbar(state),
+        my_card(content).padding(0)
+    ]
+    .padding(10)
+    .spacing(10)
+    .into()
 }

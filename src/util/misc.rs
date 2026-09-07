@@ -45,3 +45,11 @@ pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<(
     })
     .await
 }
+
+pub fn contains_ascii_ignore_case(haystack: &str, needle: &str) -> bool {
+    needle.is_empty()
+        || haystack
+            .as_bytes()
+            .windows(needle.len())
+            .any(|window| window.eq_ignore_ascii_case(needle.as_bytes()))
+}

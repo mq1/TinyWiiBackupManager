@@ -251,6 +251,10 @@ impl AppState {
                 self.config.preferred_language = lang;
                 self.write_config_task()
             }
+            Message::SearchGames(search_term) => {
+                self.games.filter.search_term = search_term;
+                Task::none()
+            }
         }
     }
 }

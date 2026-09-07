@@ -4,6 +4,8 @@
 pub mod drive_info;
 pub mod game_card;
 pub mod game_row;
+pub mod game_search;
+pub mod games_other_toolbar;
 pub mod games_titlebar;
 pub mod homebrew_app_card;
 pub mod homebrew_app_row;

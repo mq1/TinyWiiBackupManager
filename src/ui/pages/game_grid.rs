@@ -4,7 +4,10 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{game_card::game_card, games_titlebar::games_titlebar},
+    ui::components::{
+        game_card::game_card, games_other_toolbar::games_other_toolbar,
+        games_titlebar::games_titlebar,
+    },
 };
 use iced::{
     Element,
@@ -19,7 +22,7 @@ pub fn game_grid(state: &AppState) -> Element<'_, Message> {
         .collect::<Row<'_, _>>()
         .spacing(10);
 
-    column![games_titlebar(state), content]
+    column![games_titlebar(state), games_other_toolbar(state), content]
         .padding(10)
         .spacing(10)
         .into()

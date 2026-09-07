@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::game::Game;
-use crate::{config::SortBy, errors::Error};
+use crate::{config::SortBy, errors::Error, util::misc::contains_ascii_ignore_case};
 use either::Either;
 use smol::{
     fs,
@@ -11,11 +11,29 @@ use smol::{
 use std::path::{Path, PathBuf};
 use wii_disc_info::game_id::GameID;
 
+#[derive(Debug, Clone)]
+pub struct GameFilter {
+    pub show_wii: bool,
+    pub show_ngc: bool,
+    pub search_term: String,
+}
+
+impl Default for GameFilter {
+    fn default() -> Self {
+        Self {
+            show_wii: true,
+            show_ngc: true,
+            search_term: String::new(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct GameList {
     games: Vec<Game>,
     order_by_name: Vec<usize>,
     order_by_size: Vec<usize>,
+    pub filter: GameFilter,
 }
 
 impl GameList {
@@ -38,6 +56,7 @@ impl GameList {
             games,
             order_by_name,
             order_by_size,
+            filter: GameFilter::default(),
         })
     }
 
@@ -49,7 +68,17 @@ impl GameList {
             SortBy::SizeDescending => (&self.order_by_size, true),
         };
 
-        let iter = order.iter().map(|&i| &self.games[i]);
+        let matches_console = |game: &Game| {
+            (self.filter.show_wii && game.is_wii) || (self.filter.show_ngc && !game.is_wii)
+        };
+
+        let matches_search =
+            |game: &Game| contains_ascii_ignore_case(&game.title, &self.filter.search_term);
+
+        let iter = order
+            .iter()
+            .map(|&i| &self.games[i])
+            .filter(move |game| matches_console(game) && matches_search(game));
 
         if reversed {
             Either::Right(iter.rev())

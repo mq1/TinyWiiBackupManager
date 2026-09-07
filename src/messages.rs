@@ -49,6 +49,7 @@ pub enum Message {
     CancelAllImports,
     ToggleAnimationState,
     LoadCovers,
+    SearchGames(String),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),
