@@ -21,15 +21,12 @@ fn accent() -> Option<Color> {
     .map(|accent| Color::from_rgb(accent.red as f32, accent.green as f32, accent.blue as f32))
 }
 
-#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+#[cfg(all(target_os = "macos", not(target_arch = "aarch64")))]
 fn accent() -> Option<Color> {
     None
 }
 
-#[cfg(any(
-    all(target_os = "windows", target_arch = "x86"),
-    all(target_os = "windows", target_arch = "x86_64")
-))]
+#[cfg(all(target_os = "windows", not(target_arch = "aarch64")))]
 fn accent() -> Option<Color> {
     let argb = winsafe::DwmGetColorizationColor().ok()?;
     let [_, r, g, b] = argb.0.to_be_bytes();
