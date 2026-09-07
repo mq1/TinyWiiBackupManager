@@ -5,10 +5,9 @@ use directories::ProjectDirs;
 use std::{fs, path::PathBuf};
 
 pub fn get_data_dir() -> Option<PathBuf> {
-    if is_portable() {
-        get_portable_dir()
-    } else {
-        get_user_dir().or(get_portable_dir())
+    match is_portable() {
+        true => get_portable_dir(),
+        false => get_user_dir().or_else(get_portable_dir),
     }
 }
 
@@ -23,18 +22,20 @@ fn is_portable() -> bool {
 }
 
 fn get_user_dir() -> Option<PathBuf> {
-    let proj = ProjectDirs::from("it", "mq1", "TinyWiiBackupManager")?;
-    let data_dir = proj.data_dir();
-
-    fs::create_dir_all(data_dir).ok()?;
-    Some(data_dir.to_path_buf())
+    ProjectDirs::from("it", "mq1", "TinyWiiBackupManager")
+        .map(|proj| proj.data_dir().to_path_buf())
+        .and_then(|data_dir| match data_dir.exists() {
+            false => fs::create_dir_all(&data_dir).is_ok().then_some(data_dir),
+            true => Some(data_dir),
+        })
 }
 
 fn get_portable_dir() -> Option<PathBuf> {
-    let exe_path = std::env::current_exe().ok()?;
-    let parent = exe_path.parent()?;
-    let data_dir = parent.join("TinyWiiBackupManager-data");
-
-    fs::create_dir_all(&data_dir).ok()?;
-    Some(data_dir)
+    std::env::current_exe()
+        .ok()
+        .map(|path| path.with_file_name("TinyWiiBackupManager-data"))
+        .and_then(|data_dir| match data_dir.exists() {
+            false => fs::create_dir_all(&data_dir).is_ok().then_some(data_dir),
+            true => Some(data_dir),
+        })
 }
