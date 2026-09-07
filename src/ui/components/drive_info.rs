@@ -4,7 +4,10 @@
 use crate::{
     messages::Message,
     state::AppState,
-    ui::components::{my_group::my_group, my_link::my_link},
+    ui::components::{
+        my_group::my_group,
+        my_link::{MyLink, my_link},
+    },
     util::drive_info::DriveInfo,
 };
 use iced::{
@@ -54,11 +57,10 @@ fn allocation_granularity(state: &AppState) -> (bool, Icon, &'static str) {
     }
 }
 
-fn drive_formatting_guide_link() -> Element<'static, Message> {
+fn drive_formatting_guide_link<'a>() -> MyLink<'a, &'a str> {
     my_link(
         "Drive formatting guide",
-        || "https://gbatemp.net/threads/usb-loader-gx-troubleshooting-guide.617564/#fs",
-        None,
+        "https://gbatemp.net/threads/usb-loader-gx-troubleshooting-guide.617564/#fs",
     )
 }
 

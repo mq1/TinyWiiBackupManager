@@ -26,12 +26,17 @@ pub fn games_titlebar(state: &AppState) -> Element<'_, Message> {
         space().width(5),
         refresh_button(state),
         tooltip(
-            my_button(None, Icon::Plus, MyButtonKind::Toolbar).on_press(Message::PickGames),
+            my_button()
+                .icon(Icon::Plus)
+                .kind(MyButtonKind::Toolbar)
+                .on_press(Message::PickGames),
             my_card("Import game(s)"),
             tooltip::Position::Bottom
         ),
         tooltip(
-            my_button(None, Icon::FolderPlus, MyButtonKind::Toolbar)
+            my_button()
+                .icon(Icon::FolderPlus)
+                .kind(MyButtonKind::Toolbar)
                 .on_press(Message::PickGamesRecursively),
             my_card("Import game(s) recursively"),
             tooltip::Position::Bottom

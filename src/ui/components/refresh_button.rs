@@ -25,7 +25,7 @@ fn operation_in_progress(state: &AppState) -> bool {
 }
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
-    let mut refresh_btn = my_button(None, Icon::RotateCw, MyButtonKind::Toolbar);
+    let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
 
     if !operation_in_progress(state) {
         refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);

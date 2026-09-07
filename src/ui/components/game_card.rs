@@ -4,13 +4,10 @@
 use crate::{
     games::game::Game,
     messages::Message,
-    ui::components::{
-        my_button::{MyButtonKind, my_button},
-        my_card::my_card,
-    },
+    ui::components::{my_button::my_button, my_card::my_card},
 };
 use iced::{
-    Alignment, Element, Length,
+    Alignment, Element,
     widget::{column, image, row, space, text},
 };
 use iced_palace::widget::ellipsized_text;
@@ -39,11 +36,14 @@ pub fn game_card(game: &Game) -> Element<'_, Message> {
             cover,
             ellipsized_text(&game.title).wrapping(text::Wrapping::None),
             row![
-                my_button("Info", Icon::Info, MyButtonKind::Secondary)
+                my_button()
+                    .label("Info")
+                    .icon(Icon::Info)
                     .on_press_with(|| Message::OpenGameInfo(game.clone()))
-                    .width(Length::Fill),
-                my_button(None, Icon::HardDriveDownload, MyButtonKind::Secondary),
-                my_button(None, Icon::Trash, MyButtonKind::Secondary)
+                    .expand_width(),
+                my_button::<Message>().icon(Icon::HardDriveDownload),
+                my_button()
+                    .icon(Icon::Trash)
                     .on_press_with(|| Message::AskDeleteDir(game.path.clone()))
             ]
             .spacing(5)

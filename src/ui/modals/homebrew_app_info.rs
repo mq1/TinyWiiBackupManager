@@ -57,7 +57,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
         column![
             column![
                 text(&app.meta.name).size(18),
-                my_link(app.path.to_string_lossy(), || &app.path, Icon::Folder)
+                my_link(app.path.to_string_lossy(), &app.path).icon(Icon::Folder)
             ]
             .spacing(10)
             .padding(20),
@@ -67,9 +67,12 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space(),
-                my_link("Open Shop Channel page", || app.osc_url(), None),
+                my_link("Open Shop Channel page", || app.osc_url()),
                 space::horizontal(),
-                my_button("Close", None, MyButtonKind::Primary).on_press(Message::CloseModal)
+                my_button()
+                    .label("Close")
+                    .kind(MyButtonKind::Primary)
+                    .on_press(Message::CloseModal)
             ]
             .align_y(Alignment::Center)
             .spacing(10)

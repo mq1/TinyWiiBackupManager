@@ -82,7 +82,7 @@ pub fn game_info<'a>(
         column![
             column![
                 text(&game.title).size(18),
-                my_link(game.path.to_string_lossy(), || &game.path, Icon::Folder)
+                my_link(game.path.to_string_lossy(), &game.path).icon(Icon::Folder)
             ]
             .spacing(10)
             .padding(20),
@@ -93,12 +93,18 @@ pub fn game_info<'a>(
             row![
                 space::horizontal(),
                 tooltip(
-                    my_button("SHA1", Icon::SearchCheck, MyButtonKind::Secondary)
+                    my_button()
+                        .label("SHA1")
+                        .icon(Icon::SearchCheck)
+                        .kind(MyButtonKind::Secondary)
                         .on_press_with(|| Message::CalcGameSha1(game.clone())),
                     my_card("Check if your dump is 100% byte identical to the Redump one"),
                     tooltip::Position::Bottom
                 ),
-                my_button("Close", None, MyButtonKind::Primary).on_press(Message::CloseModal)
+                my_button()
+                    .label("Close")
+                    .kind(MyButtonKind::Primary)
+                    .on_press(Message::CloseModal)
             ]
             .spacing(10)
             .padding(10)

@@ -55,6 +55,7 @@ zip = { version = "8", default-features = false, features = [
 strum = "0.28"
 strum_macros = "0.28"
 tap = "1"
+derive_setters = "0.1"
 
 [target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

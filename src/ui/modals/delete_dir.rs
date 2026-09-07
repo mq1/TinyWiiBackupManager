@@ -26,8 +26,10 @@ pub fn delete_dir(path: &Path) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space::horizontal(),
-                my_button("Cancel", None, MyButtonKind::Secondary).on_press(Message::CloseModal),
-                my_button("Ok", None, MyButtonKind::Danger)
+                my_button().label("Cancel").on_press(Message::CloseModal),
+                my_button()
+                    .label("Ok")
+                    .kind(MyButtonKind::Danger)
                     .on_press_with(|| Message::DeleteDir(path.to_path_buf()))
             ]
             .spacing(10)

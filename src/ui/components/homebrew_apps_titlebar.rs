@@ -26,7 +26,10 @@ pub fn homebrew_apps_titlebar(state: &AppState) -> Element<'_, Message> {
         space().width(5),
         refresh_button(state),
         tooltip(
-            my_button(None, Icon::Plus, MyButtonKind::Toolbar).on_press(Message::PickHomebrewApps),
+            my_button()
+                .icon(Icon::Plus)
+                .kind(MyButtonKind::Toolbar)
+                .on_press(Message::PickHomebrewApps),
             my_card("Import app(s)"),
             tooltip::Position::Bottom
         )

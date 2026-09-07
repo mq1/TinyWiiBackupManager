@@ -2,72 +2,136 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::messages::Message;
+use derive_setters::Setters;
 use iced::{
-    Length,
-    border::Border,
-    widget::{Button, Row, button, container, text},
+    Element, Length, Theme, border,
+    widget::{button, container, row, text},
 };
 use lucide_icons::Icon;
+use tap::Pipe;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum MyButtonKind {
+    #[default]
     Secondary,
     Primary,
     Danger,
     Toolbar,
 }
 
-pub fn my_button<'a, L, I>(label: L, icon: I, kind: MyButtonKind) -> Button<'a, Message>
-where
-    L: Into<Option<&'a str>>,
-    I: Into<Option<Icon>>,
-{
-    let mut content = Row::new().spacing(5);
-
-    if let Some(icon) = icon.into() {
-        let mut widget = icon.widget();
-        if kind == MyButtonKind::Toolbar {
-            widget = widget.size(18);
-        }
-        content = content.push(widget);
-    }
-
-    if let Some(label) = label.into() {
-        let mut widget = text(label);
-        if kind == MyButtonKind::Toolbar {
-            widget = widget.size(18);
-        }
-        content = content.push(widget);
-    };
-
-    let mut btn = button(container(content).center(Length::Shrink)).style(move |theme, status| {
-        let mut base = match kind {
-            MyButtonKind::Secondary => button::subtle(theme, status),
-            MyButtonKind::Primary | MyButtonKind::Toolbar => button::primary(theme, status),
-            MyButtonKind::Danger => button::danger(theme, status),
-        };
-
-        base.border = Border {
-            width: if kind == MyButtonKind::Secondary {
-                1.0
-            } else {
-                0.0
+impl MyButtonKind {
+    pub fn style(self) -> impl Fn(&Theme, button::Status) -> button::Style {
+        move |theme, status| match self {
+            MyButtonKind::Secondary => button::Style {
+                border: border::rounded(10)
+                    .width(1)
+                    .color(theme.extended_palette().background.weak.color),
+                ..button::subtle(theme, status)
             },
-            radius: if kind == MyButtonKind::Toolbar {
-                17.
-            } else {
-                10.
-            }
-            .into(),
-            color: theme.extended_palette().background.weak.color,
-        };
-
-        base
-    });
-
-    if kind == MyButtonKind::Toolbar {
-        btn = btn.padding(0).width(34).height(34);
+            MyButtonKind::Primary => button::Style {
+                border: border::rounded(10),
+                ..button::primary(theme, status)
+            },
+            MyButtonKind::Toolbar => button::Style {
+                border: border::rounded(17),
+                ..button::primary(theme, status)
+            },
+            MyButtonKind::Danger => button::Style {
+                border: border::rounded(10),
+                ..button::danger(theme, status)
+            },
+        }
     }
+}
 
-    btn
+trait Press {
+    fn msg(&self) -> Message;
+}
+
+impl Press for Message {
+    fn msg(&self) -> Message {
+        self.clone()
+    }
+}
+
+impl<T: Fn() -> Message> Press for T {
+    fn msg(&self) -> Message {
+        self()
+    }
+}
+
+#[derive(Setters)]
+pub struct MyButton<'a, T: Press> {
+    #[setters(strip_option)]
+    label: Option<&'a str>,
+
+    #[setters(strip_option)]
+    icon: Option<Icon>,
+
+    kind: MyButtonKind,
+
+    #[setters(skip)]
+    press: Option<T>,
+
+    #[setters(bool)]
+    expand_width: bool,
+}
+
+impl<'a> MyButton<'a, Message> {
+    pub fn on_press(mut self, press: Message) -> Self {
+        self.press = Some(press);
+        self
+    }
+}
+
+impl<'a, T: Fn() -> Message> MyButton<'a, T> {
+    pub fn on_press_with(mut self, press: T) -> Self {
+        self.press = Some(press);
+        self
+    }
+}
+
+impl<'a, T: Press + 'a> From<MyButton<'a, T>> for Element<'a, Message> {
+    fn from(value: MyButton<'a, T>) -> Self {
+        button(
+            container(
+                row![
+                    value.icon.map(Icon::widget).map(|icon| match value.kind {
+                        MyButtonKind::Toolbar => icon.size(18),
+                        _ => icon,
+                    }),
+                    value.label.map(text).map(|label| match value.kind {
+                        MyButtonKind::Toolbar => label.size(18),
+                        _ => label,
+                    })
+                ]
+                .spacing(5),
+            )
+            .center(Length::Shrink),
+        )
+        .style(value.kind.style())
+        .pipe(|btn| match value.kind {
+            MyButtonKind::Toolbar => btn.padding(0).width(34).height(34),
+            _ => btn,
+        })
+        .pipe(|btn| match value.press {
+            Some(press) => btn.on_press_with(move || press.msg()),
+            None => btn,
+        })
+        .pipe(|btn| match value.expand_width {
+            true => btn.width(Length::Fill),
+            false => btn,
+        })
+        .into()
+    }
+}
+
+pub fn my_button<'a, T: Press>() -> MyButton<'a, T> {
+    MyButton {
+        label: None,
+        icon: None,
+        kind: MyButtonKind::Secondary,
+        press: None,
+        expand_width: false,
+    }
 }

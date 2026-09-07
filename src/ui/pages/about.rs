@@ -24,29 +24,15 @@ static ICON: LazyLock<image::Handle> = LazyLock::new(|| {
 });
 
 pub fn about(state: &AppState) -> Element<'_, Message> {
-    let mq1_link = my_link("mq1", || "https://github.com/mq1", None);
-    let license_link = my_link(
-        "GPL-3.0-only",
-        || "https://www.gnu.org/licenses/gpl-3.0.html",
-        Icon::Scale,
-    );
-    let encounter_link = my_link(
-        "Luke Street",
-        || "https://github.com/encounter",
-        Icon::Triangle,
-    );
-    let blackb0x_link = my_link("blackb0x", || "https://github.com/wiidev", Icon::Wand2);
-    let data_dir_link = my_link("Data directory", || &state.data_dir, Icon::Folder);
-    let source_code_link = my_link(
-        "Source code",
-        || "https://github.com/mq1/TinyWiiBackupManager",
-        None,
-    );
-    let wiki_link = my_link(
-        "Wiki",
-        || "https://github.com/mq1/TinyWiiBackupManager/wiki",
-        None,
-    );
+    let mq1_link = my_link("mq1", "https://github.com/mq1");
+    let license_link =
+        my_link("GPL-3.0-only", "https://www.gnu.org/licenses/gpl-3.0.html").icon(Icon::Scale);
+    let encounter_link =
+        my_link("Luke Street", "https://github.com/encounter").icon(Icon::Triangle);
+    let blackb0x_link = my_link("blackb0x", "https://github.com/wiidev").icon(Icon::Wand2);
+    let data_dir_link = my_link("Data directory", &state.data_dir).icon(Icon::Folder);
+    let source_code_link = my_link("Source code", "https://github.com/mq1/TinyWiiBackupManager");
+    let wiki_link = my_link("Wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki");
 
     column![
         space::vertical(),
