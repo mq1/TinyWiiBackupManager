@@ -9,22 +9,16 @@ use iced::{
     },
 };
 
-#[cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))]
+#[cfg(any(target_os = "linux", target_arch = "aarch64"))]
 /// works on macos 10.14+, macos arm64 starts at 11
 /// enable this on x86_64 if we're dropping support for < 10.14
 fn accent() -> Option<Color> {
-    let prefs = mundy::Preferences::once_blocking(
+    mundy::Preferences::once_blocking(
         mundy::Interest::AccentColor,
         std::time::Duration::from_millis(100),
-    )?;
-
-    let accent = prefs.accent_color.0?;
-
-    Some(Color::from_rgb(
-        accent.red as f32,
-        accent.green as f32,
-        accent.blue as f32,
-    ))
+    )
+    .and_then(|prefs| prefs.accent_color.0)
+    .map(|accent| Color::from_rgb(accent.red as f32, accent.green as f32, accent.blue as f32))
 }
 
 #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
@@ -32,14 +26,17 @@ fn accent() -> Option<Color> {
     None
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(any(
+    all(target_os = "windows", target_arch = "x86"),
+    all(target_os = "windows", target_arch = "x86_64")
+))]
 fn accent() -> Option<Color> {
     let argb = winsafe::DwmGetColorizationColor().ok()?;
     let [_, r, g, b] = argb.0.to_be_bytes();
     Some(Color::from_rgb8(r, g, b))
 }
 
-#[cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))]
+#[cfg(any(target_os = "linux", target_arch = "aarch64"))]
 /// works on macos 10.14+, macos arm64 starts at 11
 /// enable this on x86_64 if we're dropping support for < 10.14
 fn is_dark() -> bool {
@@ -50,10 +47,7 @@ fn is_dark() -> bool {
     .is_some_and(|prefs| prefs.color_scheme == mundy::ColorScheme::Dark)
 }
 
-#[cfg(any(
-    target_os = "windows",
-    all(target_os = "macos", target_arch = "x86_64")
-))]
+#[cfg(not(any(target_os = "linux", target_arch = "aarch64")))]
 fn is_dark() -> bool {
     dark_light::detect().is_ok_and(|mode| mode == dark_light::Mode::Dark)
 }

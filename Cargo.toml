@@ -57,13 +57,13 @@ strum_macros = "0.28"
 tap = "1"
 derive_setters = "0.1"
 
-[target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
+[target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
   "accent-color",
   "color-scheme",
 ] }
 
-[target.'cfg(any(target_os = "windows", all(target_os = "macos", target_arch = "x86_64")))'.dependencies]
+[target.'cfg(not(any(target_os = "linux", target_arch = "aarch64")))'.dependencies]
 dark-light = { version = "3", default-features = false }
 
 # windows x86 has issues with bzip2 + lld
