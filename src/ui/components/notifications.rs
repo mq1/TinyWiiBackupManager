@@ -7,12 +7,13 @@ use crate::{
     state::AppState,
     ui::components::my_card::my_card,
 };
+use either::Either;
 use iced::{
     Alignment, Element, Theme, border,
     widget::{Column, button, row, text},
 };
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
-use std::iter::once;
+use std::iter::{empty, once};
 
 fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     let icon = match notification.level {
@@ -51,21 +52,23 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
 }
 
 pub fn notifications(state: &AppState) -> Element<'_, Message> {
-    let status: Element<'_, Message> = (!state.status.is_empty())
-        .then(|| my_card(text(&state.status)))
-        .into();
+    let status = match state.status.is_empty() {
+        false => Either::Left(once(Element::from(my_card(text(&state.status))))),
+        true => Either::Right(empty::<Element<'_, Message>>()),
+    };
 
-    let exporting_status: Element<'_, Message> = (!state.exporting_status.is_empty())
-        .then(|| my_card(text(&state.exporting_status)))
-        .into();
+    let exporting_status = match state.exporting_status.is_empty() {
+        false => Either::Left(once(Element::from(my_card(text(&state.exporting_status))))),
+        true => Either::Right(empty::<Element<'_, Message>>()),
+    };
 
     state
         .notifications
         .iter()
         .enumerate()
         .map(item)
-        .chain(once(status))
-        .chain(once(exporting_status))
+        .chain(status)
+        .chain(exporting_status)
         .collect::<Column<'_, Message>>()
         .padding(10)
         .spacing(10)

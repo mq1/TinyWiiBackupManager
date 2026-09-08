@@ -61,9 +61,8 @@ impl HomebrewAppList {
             SortBy::SizeDescending => (&self.order_by_size, true),
         };
 
-        let matches_search = |app: &&HomebrewApp| {
-            contains_ignore_case(&app.meta.name, &self.filter.search_term)
-        };
+        let matches_search =
+            |app: &&HomebrewApp| contains_ignore_case(&app.meta.name, &self.filter.search_term);
 
         let iter = order.iter().map(|&i| &self.apps[i]).filter(matches_search);
 
