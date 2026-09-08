@@ -51,24 +51,21 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     .into()
 }
 
+fn status(status: &str) -> impl Iterator<Item = Element<'_, Message>> {
+    match status.is_empty() {
+        false => Either::Left(once(Element::from(my_card(text(status))))),
+        true => Either::Right(empty()),
+    }
+}
+
 pub fn notifications(state: &AppState) -> Element<'_, Message> {
-    let status = match state.status.is_empty() {
-        false => Either::Left(once(Element::from(my_card(text(&state.status))))),
-        true => Either::Right(empty::<Element<'_, Message>>()),
-    };
-
-    let exporting_status = match state.exporting_status.is_empty() {
-        false => Either::Left(once(Element::from(my_card(text(&state.exporting_status))))),
-        true => Either::Right(empty::<Element<'_, Message>>()),
-    };
-
     state
         .notifications
         .iter()
         .enumerate()
         .map(item)
-        .chain(status)
-        .chain(exporting_status)
+        .chain(status(&state.status))
+        .chain(status(&state.exporting_status))
         .collect::<Column<'_, Message>>()
         .padding(10)
         .spacing(10)
