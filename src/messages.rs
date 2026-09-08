@@ -3,7 +3,7 @@
 
 use crate::{
     config::{
-        Config, GcOutputFormat, PreferredLanguage, ThemePreference, TxtCodesSource, ViewAs,
+        Config, GcOutputFormat, PreferredLanguage, SortBy, ThemePreference, TxtCodesSource, ViewAs,
         WiiOutputFormat,
     },
     errors::Error,
@@ -63,4 +63,5 @@ pub enum Message {
     SetTxtCodesSource(TxtCodesSource),
     SetThemePreference(ThemePreference),
     SetPreferredLanguage(PreferredLanguage),
+    SetSortBy(SortBy),
 }

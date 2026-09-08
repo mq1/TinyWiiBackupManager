@@ -9,6 +9,7 @@ use crate::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
+        sort_by::sort_by,
         view_as::view_as,
     },
 };
@@ -24,6 +25,7 @@ pub fn games_titlebar(state: &AppState) -> Element<'_, Message> {
         text("Games").size(20),
         space::horizontal(),
         filter_console(state),
+        sort_by(state),
         view_as(state),
         space().width(5),
         refresh_button(state),

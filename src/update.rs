@@ -129,6 +129,10 @@ impl AppState {
                 self.config.view_as = view_as;
                 self.write_config_task()
             }
+            Message::SetSortBy(sort_by) => {
+                self.config.sort_by = sort_by;
+                self.write_config_task()
+            }
             Message::AskDeleteDir(path) => {
                 self.current_modal = Some(Modal::DeleteDir(path));
                 Task::none()
