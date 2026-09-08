@@ -46,20 +46,15 @@ pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<(
     .await
 }
 
-// unicode case insensitive search
 pub fn contains_ignore_case(haystack: &str, needle: &str) -> bool {
-    needle.is_empty()
-        || haystack.char_indices().any(|(i, _)| {
-            let h = haystack[i..]
-                .chars()
-                .flat_map(char::to_lowercase)
-                .map(Some)
-                .chain(std::iter::repeat(None));
+    let needle_len = needle.chars().flat_map(char::to_lowercase).count();
 
-            needle
+    needle_len == 0
+        || haystack.char_indices().any(|(i, _)| {
+            haystack[i..]
                 .chars()
                 .flat_map(char::to_lowercase)
-                .zip(h)
-                .all(|(n, h)| Some(n) == h)
+                .take(needle_len)
+                .eq(needle.chars().flat_map(char::to_lowercase))
         })
 }
