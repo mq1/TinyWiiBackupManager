@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    state::AppState,
+    state::{AppState, Ongoing},
     ui::components::{
         game_card::game_card, games_other_toolbar::games_other_toolbar,
         games_titlebar::games_titlebar,
@@ -15,10 +15,12 @@ use iced::{
 };
 
 pub fn game_grid(state: &AppState) -> Element<'_, Message> {
+    let is_exporting = state.ongoing.contains(&Ongoing::ExportingGame);
+
     let content = state
         .games
         .iter_by(state.config.sort_by)
-        .map(game_card)
+        .map(|game| game_card(game, is_exporting))
         .collect::<Row<'_, _>>()
         .spacing(10);
 

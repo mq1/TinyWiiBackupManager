@@ -7,8 +7,9 @@ use iced::{
     widget::{button, row, rule, space, text, tooltip},
 };
 use lucide_icons::iced::{icon_box, icon_hard_drive_download, icon_info, icon_pointer, icon_trash};
+use tap::Pipe;
 
-pub fn game_row(game: &Game) -> Element<'_, Message> {
+pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![
         tooltip(
             game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),
@@ -32,7 +33,12 @@ pub fn game_row(game: &Game) -> Element<'_, Message> {
         tooltip(
             button(icon_hard_drive_download().center())
                 .padding(0)
-                .on_press_with(|| Message::PickExportDest(game.clone()))
+                .pipe(|btn| {
+                    match is_exporting {
+                        false => btn.on_press_with(|| Message::PickExportDest(game.clone())),
+                        true => btn,
+                    }
+                })
                 .style(button::text)
                 .width(20)
                 .height(20),

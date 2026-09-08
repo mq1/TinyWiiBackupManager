@@ -162,6 +162,10 @@ impl AppState {
                 self.status = status;
                 Task::none()
             }
+            Message::SetExportingStatus(status) => {
+                self.exporting_status = status;
+                Task::none()
+            }
             Message::CalcGameSha1(game) => {
                 Task::sip(game.calc_sha1(), Message::SetStatus, Message::GotGameSha1)
             }
@@ -190,10 +194,12 @@ impl AppState {
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
                 self.ongoing.remove(&Ongoing::Converting);
+                self.status.clear();
                 self.import_games_task(vec![])
             }
             Message::GameImported(Err(e)) => {
                 self.ongoing.remove(&Ongoing::Converting);
+                self.status.clear();
                 self.notifications.add(Notification::error(e));
                 self.import_games_task(vec![])
             }
@@ -273,12 +279,19 @@ impl AppState {
             Message::PickExportDest(game) => self.init_file_dialog_task().then(move |base| {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
-            Message::ExportGame(game, out_path) => Task::sip(
-                export_game(game, out_path),
-                Message::SetStatus,
-                Message::GameExported,
-            ),
+            Message::ExportGame(game, out_path) => {
+                self.ongoing.insert(Ongoing::ExportingGame);
+
+                Task::sip(
+                    export_game(game, out_path),
+                    Message::SetExportingStatus,
+                    Message::GameExported,
+                )
+            }
             Message::GameExported(Ok(game)) => {
+                self.ongoing.remove(&Ongoing::ExportingGame);
+                self.exporting_status.clear();
+
                 self.notifications.add(Notification::success(format!(
                     "Successfully exported {}",
                     game.title
@@ -286,6 +299,8 @@ impl AppState {
                 Task::none()
             }
             Message::GameExported(Err(e)) => {
+                self.ongoing.remove(&Ongoing::ExportingGame);
+                self.exporting_status.clear();
                 self.notifications.add(Notification::error(e));
                 Task::none()
             }

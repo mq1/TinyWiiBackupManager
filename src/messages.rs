@@ -39,6 +39,7 @@ pub enum Message {
     ImportHomebrewApps(Vec<PathBuf>),
     HomebrewAppsImported(Result<usize, Error>),
     SetStatus(String),
+    SetExportingStatus(String),
     CalcGameSha1(Game),
     GotGameSha1(Result<String, Error>),
     PickGames,

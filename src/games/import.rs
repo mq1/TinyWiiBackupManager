@@ -172,7 +172,7 @@ fn is_valid_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || " !#$%&'()+,-.;=@^_`{}~".contains(c)
 }
 
-fn sanitize_title(ascii_title: &str) -> Cow<'static, str> {
+pub fn sanitize_title(ascii_title: &str) -> Cow<'static, str> {
     ascii_title
         .chars()
         .skip_while(|c| !c.is_ascii_alphanumeric())

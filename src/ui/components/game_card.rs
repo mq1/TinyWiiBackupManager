@@ -12,8 +12,9 @@ use iced::{
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
+use tap::Pipe;
 
-pub fn game_card(game: &Game) -> Element<'_, Message> {
+pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     let cover: Element<'_, Message> = match &game.cover {
         Some(cover) => {
             let (w, h) = cover.dimensions();
@@ -44,7 +45,10 @@ pub fn game_card(game: &Game) -> Element<'_, Message> {
                 tooltip(
                     my_button()
                         .icon(Icon::HardDriveDownload)
-                        .on_press_with(|| Message::PickExportDest(game.clone())),
+                        .pipe(|btn| match is_exporting {
+                            false => btn.on_press_with(|| Message::PickExportDest(game.clone())),
+                            true => btn,
+                        }),
                     my_card("Export game"),
                     tooltip::Position::Bottom
                 ),

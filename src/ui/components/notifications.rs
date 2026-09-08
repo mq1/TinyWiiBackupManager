@@ -59,6 +59,10 @@ pub fn notifications(state: &AppState) -> Element<'_, Message> {
         notifications = notifications.push(my_card(state.status.as_str()));
     }
 
+    if !state.exporting_status.is_empty() {
+        notifications = notifications.push(my_card(state.exporting_status.as_str()));
+    }
+
     notifications
         .padding(10)
         .spacing(10)

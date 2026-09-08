@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{game::Game, keep_valid_games},
+    games::{game::Game, import::sanitize_title, keep_valid_games},
     messages::Message,
     util::fs::recursive_file_scan,
 };
@@ -90,7 +90,9 @@ pub fn make_pick_games_recursively_dialog_task(
 }
 
 pub fn make_pick_export_game_dest_dialog_task(base: AsyncFileDialog, game: Game) -> Task<Message> {
-    let filename = format!("{}.rvz", game.title);
+    let ascii_title = twbm_idmap::get_ascii_title(game.id).unwrap_or(&game.title);
+    let sanitized_title = sanitize_title(ascii_title);
+    let filename = format!("{sanitized_title}.rvz");
 
     Task::future(async move {
         base.set_title("Select where you want to export the game")

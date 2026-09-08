@@ -27,6 +27,7 @@ pub(crate) enum Ongoing {
     GettingDriveInfo,
     DownloadingUiCovers,
     AnimationState,
+    ExportingGame,
 }
 
 #[derive(Default)]
@@ -40,6 +41,7 @@ pub(crate) struct AppState {
     pub(crate) current_page: Page,
     pub(crate) current_modal: Option<Modal>,
     pub(crate) status: String,
+    pub(crate) exporting_status: String,
     pub(crate) import_queue: Vec<PathBuf>,
     pub(crate) ongoing: HashSet<Ongoing>,
 }

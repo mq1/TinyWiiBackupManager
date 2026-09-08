@@ -61,7 +61,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 }),
             )
         }),
-        (state.notifications.has_notifications() || !state.status.is_empty()).then(|| {
+        (state.notifications.has_notifications()
+            || !state.status.is_empty()
+            || !state.exporting_status.is_empty())
+        .then(|| {
             container(notifications(state))
                 .align_right(Length::Fill)
                 .align_bottom(Length::Fill)
