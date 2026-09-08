@@ -18,7 +18,7 @@ use std::{ffi::OsString, path::PathBuf};
 pub enum Message {
     NavigateTo(Page),
     PickMountPoint,
-    MountPointPicked(Option<PathBuf>),
+    MountPointPicked(PathBuf),
     RefreshGamesAndApps,
     CloseNotification(usize),
     GotConfig(Config),
@@ -53,6 +53,9 @@ pub enum Message {
     ToggleShowWii(bool),
     ToggleShowNgc(bool),
     SearchHomebrewApps(String),
+    PickExportDest(Game),
+    ExportGame(Game, PathBuf),
+    GameExported(Result<Game, Error>),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

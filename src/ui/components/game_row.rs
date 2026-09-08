@@ -6,7 +6,7 @@ use iced::{
     Element, Length, padding,
     widget::{button, row, rule, space, text, tooltip},
 };
-use lucide_icons::iced::{icon_box, icon_info, icon_pointer, icon_trash};
+use lucide_icons::iced::{icon_box, icon_hard_drive_download, icon_info, icon_pointer, icon_trash};
 
 pub fn game_row(game: &Game) -> Element<'_, Message> {
     row![
@@ -27,6 +27,16 @@ pub fn game_row(game: &Game) -> Element<'_, Message> {
                 .width(20)
                 .height(20),
             my_card("Delete game"),
+            tooltip::Position::Top
+        ),
+        tooltip(
+            button(icon_hard_drive_download().center())
+                .padding(0)
+                .on_press_with(|| Message::PickExportDest(game.clone()))
+                .style(button::text)
+                .width(20)
+                .height(20),
+            my_card("Export game"),
             tooltip::Position::Top
         ),
         tooltip(

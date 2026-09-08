@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::keep_valid_games, messages::Message, util::fs::recursive_file_scan};
+use crate::{
+    games::{game::Game, keep_valid_games},
+    messages::Message,
+    util::fs::recursive_file_scan,
+};
 use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::stream;
@@ -15,15 +19,13 @@ const GAME_EXTS: &[&str] = &[
 ];
 
 pub fn make_pick_mount_point_dialog_task(base: AsyncFileDialog) -> Task<Message> {
-    Task::perform(
-        async move {
-            base.set_title("Select Drive/Mount Point")
-                .pick_folder()
-                .await
-                .map(Into::into)
-        },
-        Message::MountPointPicked,
-    )
+    Task::future(async move {
+        base.set_title("Select Drive/Mount Point")
+            .pick_folder()
+            .await
+            .map(Into::into)
+    })
+    .and_then(|path| Task::done(Message::MountPointPicked(path)))
 }
 
 pub fn make_pick_homebrew_apps_dialog_task(base: AsyncFileDialog) -> Task<Message> {
@@ -85,4 +87,17 @@ pub fn make_pick_games_recursively_dialog_task(
         },
         Message::ImportGames,
     )
+}
+
+pub fn make_pick_export_game_dest_dialog_task(base: AsyncFileDialog, game: Game) -> Task<Message> {
+    let filename = format!("{}.rvz", game.title);
+
+    Task::future(async move {
+        base.set_title("Select where you want to export the game")
+            .set_file_name(filename)
+            .save_file()
+            .await
+            .map(PathBuf::from)
+    })
+    .and_then(move |path| Task::done(Message::ExportGame(game.clone(), path)))
 }

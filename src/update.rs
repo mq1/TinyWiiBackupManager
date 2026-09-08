@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::game_list::GameList,
+    games::{export::export_game, game_list::GameList},
     homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
     notifications::notification::Notification,
@@ -21,8 +21,7 @@ impl AppState {
             Message::PickMountPoint => self
                 .init_file_dialog_task()
                 .then(dialogs::make_pick_mount_point_dialog_task),
-            Message::MountPointPicked(None) => Task::none(),
-            Message::MountPointPicked(Some(path)) => {
+            Message::MountPointPicked(path) => {
                 self.config.mount_point = path;
                 self.write_config_task()
             }
@@ -269,6 +268,25 @@ impl AppState {
             }
             Message::ToggleShowNgc(checked) => {
                 self.games.filter.show_ngc = checked;
+                Task::none()
+            }
+            Message::PickExportDest(game) => self.init_file_dialog_task().then(move |base| {
+                dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
+            }),
+            Message::ExportGame(game, out_path) => Task::sip(
+                export_game(game, out_path),
+                Message::SetStatus,
+                Message::GameExported,
+            ),
+            Message::GameExported(Ok(game)) => {
+                self.notifications.add(Notification::success(format!(
+                    "Successfully exported {}",
+                    game.title
+                )));
+                Task::none()
+            }
+            Message::GameExported(Err(e)) => {
+                self.notifications.add(Notification::error(e));
                 Task::none()
             }
         }

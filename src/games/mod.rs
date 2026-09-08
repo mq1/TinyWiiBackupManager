@@ -16,6 +16,7 @@ use zip::ZipArchive;
 
 pub mod covers;
 pub mod disc_reader;
+pub mod export;
 pub mod game;
 pub mod game_list;
 pub mod import;

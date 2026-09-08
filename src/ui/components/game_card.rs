@@ -8,7 +8,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, row, space, text},
+    widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
@@ -41,10 +41,20 @@ pub fn game_card(game: &Game) -> Element<'_, Message> {
                     .icon(Icon::Info)
                     .on_press_with(|| Message::OpenGameInfo(game.clone()))
                     .expand_width(),
-                my_button::<Message>().icon(Icon::HardDriveDownload),
-                my_button()
-                    .icon(Icon::Trash)
-                    .on_press_with(|| Message::AskDeleteDir(game.path.clone()))
+                tooltip(
+                    my_button()
+                        .icon(Icon::HardDriveDownload)
+                        .on_press_with(|| Message::PickExportDest(game.clone())),
+                    my_card("Export game"),
+                    tooltip::Position::Bottom
+                ),
+                tooltip(
+                    my_button()
+                        .icon(Icon::Trash)
+                        .on_press_with(|| Message::AskDeleteDir(game.path.clone())),
+                    my_card("Delete game"),
+                    tooltip::Position::Bottom
+                )
             ]
             .spacing(5)
         ]
