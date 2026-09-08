@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::homebrew_app::HomebrewApp;
-use crate::{config::SortBy, errors::Error, util::misc::contains_ascii_ignore_case};
+use crate::{config::SortBy, errors::Error, util::misc::contains_ignore_case};
 use either::Either;
 use size::Size;
 use smol::{
@@ -62,7 +62,7 @@ impl HomebrewAppList {
         };
 
         let matches_search = |app: &&HomebrewApp| {
-            contains_ascii_ignore_case(&app.meta.name, &self.filter.search_term)
+            contains_ignore_case(&app.meta.name, &self.filter.search_term)
         };
 
         let iter = order.iter().map(|&i| &self.apps[i]).filter(matches_search);

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::game::Game;
-use crate::{config::SortBy, errors::Error, util::misc::contains_ascii_ignore_case};
+use crate::{config::SortBy, errors::Error, util::misc::contains_ignore_case};
 use either::Either;
 use size::Size;
 use smol::{
@@ -83,7 +83,7 @@ impl GameList {
         };
 
         let matches_search =
-            |game: &&Game| contains_ascii_ignore_case(&game.title, &self.filter.search_term);
+            |game: &&Game| contains_ignore_case(&game.title, &self.filter.search_term);
 
         let iter = order
             .iter()

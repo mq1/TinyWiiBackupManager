@@ -46,10 +46,20 @@ pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<(
     .await
 }
 
-pub fn contains_ascii_ignore_case(haystack: &str, needle: &str) -> bool {
+// unicode case insensitive search
+pub fn contains_ignore_case(haystack: &str, needle: &str) -> bool {
     needle.is_empty()
-        || haystack
-            .as_bytes()
-            .windows(needle.len())
-            .any(|window| window.eq_ignore_ascii_case(needle.as_bytes()))
+        || haystack.char_indices().any(|(i, _)| {
+            let h = haystack[i..]
+                .chars()
+                .flat_map(char::to_lowercase)
+                .map(Some)
+                .chain(std::iter::repeat(None));
+
+            needle
+                .chars()
+                .flat_map(char::to_lowercase)
+                .zip(h)
+                .all(|(n, h)| Some(n) == h)
+        })
 }
