@@ -4,11 +4,15 @@
 use super::game::Game;
 use crate::{config::SortBy, errors::Error, util::misc::contains_ascii_ignore_case};
 use either::Either;
+use size::Size;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use std::path::{Path, PathBuf};
+use std::{
+    ops::Add,
+    path::{Path, PathBuf},
+};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -31,6 +35,7 @@ impl Default for GameFilter {
 #[derive(Debug, Clone, Default)]
 pub struct GameList {
     games: Vec<Game>,
+    total_size: Size,
     order_by_name: Vec<usize>,
     order_by_size: Vec<usize>,
     pub filter: GameFilter,
@@ -45,6 +50,10 @@ impl GameList {
         let ngc_games = scan_dir(&ngc_dir, false).await;
 
         let games = wii_games.chain(ngc_games).collect::<Vec<_>>().await;
+        let total_size = games
+            .iter()
+            .map(|game| game.size)
+            .fold(Size::from_bytes(0), Add::add);
 
         let mut order_by_name = (0..games.len()).collect::<Vec<_>>();
         let mut order_by_size = order_by_name.clone();
@@ -54,6 +63,7 @@ impl GameList {
 
         Ok(Self {
             games,
+            total_size,
             order_by_name,
             order_by_size,
             filter: GameFilter::default(),
@@ -93,6 +103,14 @@ impl GameList {
 
     pub fn get_all_game_ids(&self) -> Vec<GameID> {
         self.games.iter().map(|game| game.id).collect()
+    }
+
+    pub fn count(&self) -> usize {
+        self.games.len()
+    }
+
+    pub fn total_size(&self) -> Size {
+        self.total_size
     }
 }
 
