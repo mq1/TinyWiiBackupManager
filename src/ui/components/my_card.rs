@@ -3,17 +3,20 @@
 
 use crate::messages::Message;
 use iced::{
-    Background, Element, padding,
+    Background, Element, Theme, padding,
     widget::{Container, container},
 };
 
+fn style(theme: &Theme) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(theme.palette().background)),
+        border: container::bordered_box(theme).border.rounded(10),
+        ..container::bordered_box(theme)
+    }
+}
+
 pub fn my_card<'a>(contents: impl Into<Element<'a, Message>>) -> Container<'a, Message> {
     container(contents)
-        .style(|theme| {
-            let mut base = container::bordered_box(theme);
-            base.border.radius = 10.into();
-            base.background = Some(Background::Color(theme.palette().background));
-            base
-        })
+        .style(style)
         .padding(padding::horizontal(10).vertical(5))
 }
