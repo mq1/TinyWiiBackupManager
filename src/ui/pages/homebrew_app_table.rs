@@ -5,8 +5,9 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::components::{
-        homebrew_app_row::homebrew_app_row, homebrew_apps_titlebar::homebrew_apps_titlebar,
-        my_card::my_card,
+        homebrew_app_row::homebrew_app_row,
+        homebrew_apps_other_toolbar::homebrew_apps_other_toolbar,
+        homebrew_apps_titlebar::homebrew_apps_titlebar, my_card::my_card,
     },
 };
 use iced::{
@@ -23,8 +24,12 @@ pub fn homebrew_app_table(state: &AppState) -> Element<'_, Message> {
         .intersperse_with(|| rule::horizontal(1).into())
         .collect::<Column<'_, _>>();
 
-    column![homebrew_apps_titlebar(state), my_card(content).padding(0)]
-        .padding(10)
-        .spacing(10)
-        .into()
+    column![
+        homebrew_apps_titlebar(state),
+        homebrew_apps_other_toolbar(state),
+        my_card(content).padding(0)
+    ]
+    .padding(10)
+    .spacing(10)
+    .into()
 }

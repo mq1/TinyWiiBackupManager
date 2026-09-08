@@ -259,6 +259,10 @@ impl AppState {
                 self.games.filter.search_term = search_term;
                 Task::none()
             }
+            Message::SearchHomebrewApps(search_term) => {
+                self.homebrew_apps.filter.search_term = search_term;
+                Task::none()
+            }
             Message::ToggleShowWii(checked) => {
                 self.games.filter.show_wii = checked;
                 Task::none()

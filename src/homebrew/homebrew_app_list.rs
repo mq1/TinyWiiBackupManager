@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::homebrew_app::HomebrewApp;
-use crate::{config::SortBy, errors::Error};
+use crate::{config::SortBy, errors::Error, util::misc::contains_ascii_ignore_case};
 use either::Either;
 use smol::{
     fs,
@@ -11,10 +11,16 @@ use smol::{
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Default)]
+pub struct HomebrewAppFilter {
+    pub search_term: String,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct HomebrewAppList {
     apps: Vec<HomebrewApp>,
     order_by_name: Vec<usize>,
     order_by_size: Vec<usize>,
+    pub filter: HomebrewAppFilter,
 }
 
 impl HomebrewAppList {
@@ -32,6 +38,7 @@ impl HomebrewAppList {
             apps,
             order_by_name,
             order_by_size,
+            filter: HomebrewAppFilter::default(),
         })
     }
 
@@ -43,7 +50,11 @@ impl HomebrewAppList {
             SortBy::SizeDescending => (&self.order_by_size, true),
         };
 
-        let iter = order.iter().map(|&i| &self.apps[i]);
+        let matches_search = |app: &&HomebrewApp| {
+            contains_ascii_ignore_case(&app.meta.name, &self.filter.search_term)
+        };
+
+        let iter = order.iter().map(|&i| &self.apps[i]).filter(matches_search);
 
         if reversed {
             Either::Right(iter.rev())

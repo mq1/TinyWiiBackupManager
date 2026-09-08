@@ -52,6 +52,7 @@ pub enum Message {
     SearchGames(String),
     ToggleShowWii(bool),
     ToggleShowNgc(bool),
+    SearchHomebrewApps(String),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

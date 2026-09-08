@@ -5,7 +5,9 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::components::{
-        homebrew_app_card::homebrew_app_card, homebrew_apps_titlebar::homebrew_apps_titlebar,
+        homebrew_app_card::homebrew_app_card,
+        homebrew_apps_other_toolbar::homebrew_apps_other_toolbar,
+        homebrew_apps_titlebar::homebrew_apps_titlebar,
     },
 };
 use iced::{
@@ -21,8 +23,12 @@ pub fn homebrew_app_grid(state: &AppState) -> Element<'_, Message> {
         .collect::<Row<'_, _>>()
         .spacing(10);
 
-    column![homebrew_apps_titlebar(state), content]
-        .padding(10)
-        .spacing(10)
-        .into()
+    column![
+        homebrew_apps_titlebar(state),
+        homebrew_apps_other_toolbar(state),
+        content
+    ]
+    .padding(10)
+    .spacing(10)
+    .into()
 }

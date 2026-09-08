@@ -68,12 +68,12 @@ impl GameList {
             SortBy::SizeDescending => (&self.order_by_size, true),
         };
 
-        let matches_console = |game: &Game| {
+        let matches_console = |game: &&Game| {
             (self.filter.show_wii && game.is_wii) || (self.filter.show_ngc && !game.is_wii)
         };
 
         let matches_search =
-            |game: &Game| contains_ascii_ignore_case(&game.title, &self.filter.search_term);
+            |game: &&Game| contains_ascii_ignore_case(&game.title, &self.filter.search_term);
 
         let iter = order
             .iter()

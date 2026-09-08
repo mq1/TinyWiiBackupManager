@@ -4,10 +4,10 @@
 use crate::{messages::Message, state::AppState, ui::components::search_bar::search_bar};
 use iced::Element;
 
-pub fn game_search(state: &AppState) -> Element<'_, Message> {
+pub fn homebrew_app_search(state: &AppState) -> Element<'_, Message> {
     search_bar(
-        &state.games.filter.search_term,
-        Message::SearchGames,
-        "Search by Title/ID",
+        &state.homebrew_apps.filter.search_term,
+        Message::SearchHomebrewApps,
+        "Search by Name",
     )
 }
