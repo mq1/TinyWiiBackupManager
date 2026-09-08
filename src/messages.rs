@@ -50,6 +50,8 @@ pub enum Message {
     ToggleAnimationState,
     LoadCovers,
     SearchGames(String),
+    ToggleShowWii(bool),
+    ToggleShowNgc(bool),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

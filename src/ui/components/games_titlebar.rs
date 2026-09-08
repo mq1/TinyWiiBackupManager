@@ -5,6 +5,7 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::components::{
+        filter_console::filter_console,
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
@@ -22,6 +23,7 @@ pub fn games_titlebar(state: &AppState) -> Element<'_, Message> {
         icon_chevron_right().size(20),
         text("Games").size(20),
         space::horizontal(),
+        filter_console(state),
         view_as(state),
         space().width(5),
         refresh_button(state),

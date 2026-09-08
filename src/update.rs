@@ -255,6 +255,14 @@ impl AppState {
                 self.games.filter.search_term = search_term;
                 Task::none()
             }
+            Message::ToggleShowWii(checked) => {
+                self.games.filter.show_wii = checked;
+                Task::none()
+            }
+            Message::ToggleShowNgc(checked) => {
+                self.games.filter.show_ngc = checked;
+                Task::none()
+            }
         }
     }
 }

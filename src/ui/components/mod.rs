@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod drive_info;
+pub mod filter_console;
 pub mod game_card;
 pub mod game_row;
 pub mod game_search;
