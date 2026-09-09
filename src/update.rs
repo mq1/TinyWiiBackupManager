@@ -7,6 +7,7 @@ use crate::{
     messages::Message,
     notifications::notification::Notification,
     state::{AppState, Ongoing},
+    toolbox::ToolContext,
     ui::{dialogs, modals::Modal},
 };
 use iced::Task;
@@ -301,6 +302,18 @@ impl AppState {
             Message::GameExported(Err(e)) => {
                 self.ongoing.remove(&Ongoing::ExportingGame);
                 self.exporting_status.clear();
+                self.notifications.add(Notification::error(e));
+                Task::none()
+            }
+            Message::RunTool(tool) => (tool.run)(ToolContext {
+                mount_point: self.config.mount_point.clone(),
+            })
+            .map(Message::ToolResult),
+            Message::ToolResult(Ok(msg)) => {
+                self.notifications.add(Notification::success(msg));
+                Task::none()
+            }
+            Message::ToolResult(Err(e)) => {
                 self.notifications.add(Notification::error(e));
                 Task::none()
             }

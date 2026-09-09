@@ -47,6 +47,10 @@ pub enum Error {
 
     #[error("Failed to get inner writer")]
     IntoInnerWriter,
+
+    #[cfg(target_os = "macos")]
+    #[error("Failed to run dot_clean")]
+    DotClean,
 }
 
 impl From<std::io::Error> for Error {

@@ -15,6 +15,7 @@ mod homebrew;
 mod messages;
 mod notifications;
 mod state;
+mod toolbox;
 mod ui;
 mod update;
 mod util;

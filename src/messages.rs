@@ -9,6 +9,7 @@ use crate::{
     errors::Error,
     games::{game::Game, game_list::GameList},
     homebrew::{homebrew_app::HomebrewApp, homebrew_app_list::HomebrewAppList},
+    toolbox::ToolboxItem,
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
@@ -57,6 +58,8 @@ pub enum Message {
     PickExportDest(Game),
     ExportGame(Game, PathBuf),
     GameExported(Result<Game, Error>),
+    RunTool(&'static ToolboxItem),
+    ToolResult(Result<String, Error>),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),
