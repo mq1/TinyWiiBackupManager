@@ -8,6 +8,7 @@ use crate::{
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
+    toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
@@ -178,5 +179,13 @@ impl AppState {
                 game.load_cover_blocking(&self.data_dir);
             }
         }
+    }
+
+    pub fn run_tool(&self, tool: &ToolboxItem) -> Task<Message> {
+        let ctx = ToolContext {
+            mount_point: self.config.mount_point.clone(),
+        };
+
+        (tool.run)(ctx).map(Message::ToolResult)
     }
 }

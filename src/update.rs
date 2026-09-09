@@ -7,7 +7,6 @@ use crate::{
     messages::Message,
     notifications::notification::Notification,
     state::{AppState, Ongoing},
-    toolbox::ToolContext,
     ui::{dialogs, modals::Modal},
 };
 use iced::Task;
@@ -305,10 +304,7 @@ impl AppState {
                 self.notifications.add(Notification::error(e));
                 Task::none()
             }
-            Message::RunTool(tool) => (tool.run)(ToolContext {
-                mount_point: self.config.mount_point.clone(),
-            })
-            .map(Message::ToolResult),
+            Message::RunTool(tool) => self.run_tool(tool),
             Message::ToolResult(Ok(msg)) => {
                 self.notifications.add(Notification::success(msg));
                 Task::none()
