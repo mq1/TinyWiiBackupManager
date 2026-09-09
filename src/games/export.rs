@@ -6,11 +6,11 @@ use crate::{
     games::{disc_reader::get_disc_reader, game::Game},
     util::misc::OPTIMAL_THREADS,
 };
+use iced::task::{Straw, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use sipper::{Straw, sipper};
 use std::{
     ffi::OsStr,
     fs::File,

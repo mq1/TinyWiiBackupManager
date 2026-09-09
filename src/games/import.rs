@@ -7,11 +7,11 @@ use crate::{
     games::disc_reader::get_disc_reader,
     util::{drive_info::DriveInfo, misc::OPTIMAL_THREADS},
 };
+use iced::task::{Straw, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use sipper::{Straw, sipper};
 use split_write::SplitWriter;
 use std::{
     borrow::Cow,

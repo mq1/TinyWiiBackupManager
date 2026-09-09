@@ -5,12 +5,12 @@ use crate::{
     errors::Error,
     util::{fs::get_dir_size, sha1_list},
 };
+use iced::task::{Straw, sipper};
 use image::RgbaImage;
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
-use sipper::{Straw, sipper};
 use size::Size;
 use smol::fs;
 use std::{
