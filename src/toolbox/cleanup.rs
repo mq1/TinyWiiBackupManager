@@ -10,7 +10,7 @@ use iced::Task;
 use lucide_icons::Icon;
 use smol::{
     fs::{self, DirEntry, File},
-    stream::{Stream, StreamExt},
+    stream::{self, Stream, StreamExt},
 };
 use std::{
     ffi::OsStr,
@@ -156,16 +156,20 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Normalize paths (makes the game directories' layouts consistent)",
             run: |ctx| {
                 Task::future(async move {
-                    let dirs = [ctx.mount_point.join("wbfs"), ctx.mount_point.join("games")];
+                    stream::iter([ctx.mount_point.join("wbfs"), ctx.mount_point.join("games")])
+                        .then(|path| async move {
+                            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
+                                adopt_orphaned_discs(&path).await?;
+                                readopt_parented_discs(&path).await?;
+                            }
 
-                    for dir in dirs {
-                        if fs::metadata(&dir).await.is_ok_and(|meta| meta.is_dir()) {
-                            adopt_orphaned_discs(&dir).await?;
-                            readopt_parented_discs(&dir).await?;
-                        }
-                    }
-
-                    Ok("Paths successfully normalized".to_string())
+                            Ok(())
+                        })
+                        .collect::<Vec<_>>()
+                        .await
+                        .into_iter()
+                        .collect::<Result<Vec<_>, _>>()
+                        .map(|_| "Paths successfully normalized".to_string())
                 })
             },
         }],
