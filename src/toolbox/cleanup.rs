@@ -38,7 +38,7 @@ async fn scan_dir_for_discs(
 async fn adopt_orphaned_discs(games_dir: &Path) -> Result<(), Error> {
     let entries = scan_dir_for_discs(games_dir).await?;
 
-    let _ = entries
+    let results = entries
         .then(|(path, meta)| async move {
             let filename = path
                 .file_name()
@@ -106,14 +106,22 @@ async fn adopt_orphaned_discs(games_dir: &Path) -> Result<(), Error> {
         .collect::<Vec<_>>()
         .await;
 
-    Ok(())
+    let errors = results
+        .into_iter()
+        .filter_map(Result::err)
+        .collect::<Vec<_>>();
+
+    match errors.is_empty() {
+        true => Ok(()),
+        false => Err(Error::Multiple(errors)),
+    }
 }
 
 async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
     // is_wii is irrelevant here
     let all_games = game_list::scan_dir(games_dir, true).await;
 
-    let _ = all_games
+    let results = all_games
         .then(|game| async move {
             let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
 
@@ -145,7 +153,15 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
         .collect::<Vec<_>>()
         .await;
 
-    Ok(())
+    let errors = results
+        .into_iter()
+        .filter_map(Result::err)
+        .collect::<Vec<_>>();
+
+    match errors.is_empty() {
+        true => Ok(()),
+        false => Err(Error::Multiple(errors)),
+    }
 }
 
 pub const ALL: &[ToolboxGroup] = {

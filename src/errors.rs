@@ -3,6 +3,9 @@
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
+    #[error("{}", .0.iter().map(|e| format!("{e}")).collect::<Vec<String>>().join("\n"))]
+    Multiple(Vec<Error>),
+
     #[error("I/O error: {0}")]
     Io(std::io::ErrorKind),
 
