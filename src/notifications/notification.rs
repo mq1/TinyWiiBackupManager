@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
+use derive_getters::Getters;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum NotificationLevel {
@@ -12,42 +13,37 @@ pub enum NotificationLevel {
     Success,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Getters)]
 pub struct Notification {
-    pub label: String,
-    pub level: NotificationLevel,
+    label: String,
+
+    #[getter(copy)]
+    level: NotificationLevel,
 }
 
 impl Notification {
-    pub fn new(label: impl ToString, level: NotificationLevel) -> Self {
-        Self {
-            label: label.to_string(),
-            level,
-        }
-    }
-
-    pub fn info(label: impl ToString) -> Self {
+    pub(super) fn info(label: impl ToString) -> Self {
         Self {
             label: label.to_string(),
             level: NotificationLevel::Info,
         }
     }
 
-    pub fn warning(label: impl ToString) -> Self {
+    pub(super) fn warning(label: impl ToString) -> Self {
         Self {
             label: label.to_string(),
             level: NotificationLevel::Warning,
         }
     }
 
-    pub fn error(err: impl Into<Error>) -> Self {
+    pub(super) fn error(err: impl Into<Error>) -> Self {
         Self {
             label: format!("{:#}", err.into()),
             level: NotificationLevel::Error,
         }
     }
 
-    pub fn success(label: impl ToString) -> Self {
+    pub(super) fn success(label: impl ToString) -> Self {
         Self {
             label: label.to_string(),
             level: NotificationLevel::Success,

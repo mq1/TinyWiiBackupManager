@@ -51,6 +51,9 @@ pub enum Error {
     #[cfg(target_os = "macos")]
     #[error("Failed to run dot_clean")]
     DotClean,
+
+    #[error("Invalid disc format")]
+    InvalidDiscFormat,
 }
 
 impl From<std::io::Error> for Error {

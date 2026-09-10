@@ -114,7 +114,7 @@ impl GameList {
     }
 }
 
-async fn scan_dir(dir_path: &Path, is_wii: bool) -> impl Stream<Item = Game> {
+pub async fn scan_dir(dir_path: &Path, is_wii: bool) -> impl Stream<Item = Game> {
     stream::iter(fs::read_dir(dir_path).await.ok())
         .flatten()
         .then(move |entry| async move {

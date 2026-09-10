@@ -192,13 +192,21 @@ pub fn sanitize_title(ascii_title: &str) -> Cow<'static, str> {
         })
 }
 
-fn make_game_dir(base_dir: &Path, game_id: &str, fallback_title: &str) -> Result<PathBuf, Error> {
-    let ascii_title = twbm_idmap::get_ascii_title(game_id).unwrap_or(fallback_title);
-    let sanitized_title = sanitize_title(ascii_title);
+pub fn make_game_dir_name(game_id: impl AsRef<str>, fallback_title: &str) -> String {
+    let game_id = game_id.as_ref();
 
-    let dir_name = format!("{sanitized_title} [{game_id}]");
-    let game_dir = base_dir.join(dir_name);
-    fs::create_dir_all(&game_dir)?;
+    twbm_idmap::get_title(game_id)
+        .unwrap_or(fallback_title)
+        .pipe(sanitize_title)
+        .pipe(|title| format!("{title} [{game_id}]"))
+}
 
-    Ok(game_dir)
+fn make_game_dir(
+    base_dir: &Path,
+    game_id: &str,
+    fallback_title: &str,
+) -> Result<PathBuf, std::io::Error> {
+    make_game_dir_name(game_id, fallback_title)
+        .pipe(|name| base_dir.join(name))
+        .pipe(|path| fs::create_dir_all(&path).map(|_| path))
 }

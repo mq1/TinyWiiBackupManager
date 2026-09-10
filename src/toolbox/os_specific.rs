@@ -4,42 +4,35 @@
 use crate::toolbox::ToolboxGroup;
 
 #[cfg(target_os = "macos")]
-pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
+pub const ALL: &[ToolboxGroup] = {
     use crate::{errors::Error, toolbox::ToolboxItem};
     use iced::Task;
     use lucide_icons::Icon;
     use smol::process::Command;
 
-    std::iter::once(&ToolboxGroup {
+    &[ToolboxGroup {
         label: "macOS",
         icon: Icon::Apple,
         items: &[ToolboxItem {
             label: "Run dot_clean (removes ._ files)",
             run: |ctx| {
                 Task::future(async move {
-                    let status = Command::new("dot_clean")
+                    Command::new("dot_clean")
                         .arg("-m")
                         .arg(ctx.mount_point)
                         .status()
-                        .await?;
-
-                    if !status.success() {
-                        return Err(Error::DotClean);
-                    }
-
-                    Ok("dot_clean ran successfully".to_string())
+                        .await
+                        .map_err(Error::from)
+                        .and_then(|status| status.success().ok_or(Error::DotClean))
+                        .map(|_| "dot_clean ran successfully".to_string())
                 })
             },
         }],
-    })
-}
+    }]
+};
 
 #[cfg(target_os = "windows")]
-pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
-    std::iter::empty()
-}
+pub const ALL: &[ToolboxGroup] = &[];
 
 #[cfg(target_os = "linux")]
-pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
-    std::iter::empty()
-}
+pub const ALL: &[ToolboxGroup] = &[];

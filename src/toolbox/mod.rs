@@ -6,6 +6,7 @@ use iced::Task;
 use lucide_icons::Icon;
 use std::path::PathBuf;
 
+mod cleanup;
 mod os_specific;
 
 #[derive(Debug, Clone)]
@@ -26,5 +27,5 @@ pub struct ToolboxGroup {
 }
 
 pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
-    os_specific::all()
+    [cleanup::ALL, os_specific::ALL].into_iter().flatten()
 }

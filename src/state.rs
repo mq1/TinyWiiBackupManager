@@ -7,7 +7,7 @@ use crate::{
     games::{covers::download_ui_covers, game::Game, game_list::GameList, import::import_game},
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
-    notifications::{notification::Notification, notification_list::NotificationList},
+    notifications::notification_list::NotificationList,
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
@@ -162,8 +162,7 @@ impl AppState {
                     Message::GameImported,
                 )
             } else {
-                self.notifications
-                    .add(Notification::info("Import queue is empty"));
+                self.notifications.info("Import queue is empty");
                 Task::none()
             };
 
@@ -181,10 +180,13 @@ impl AppState {
         }
     }
 
-    pub fn run_tool(&self, tool: &ToolboxItem) -> Task<Message> {
+    pub fn run_tool(&mut self, tool: &ToolboxItem) -> Task<Message> {
         let ctx = ToolContext {
             mount_point: self.config.mount_point.clone(),
         };
+
+        self.notifications
+            .info(format!("Running tool \"{}\"", tool.label));
 
         (tool.run)(ctx).map(Message::ToolResult)
     }

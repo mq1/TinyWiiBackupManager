@@ -16,7 +16,7 @@ use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
 use std::iter::{empty, once};
 
 fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
-    let icon = match notification.level {
+    let icon = match notification.level() {
         NotificationLevel::Info => icon_info().style(|theme: &Theme| text::Style {
             color: Some(theme.palette().primary),
         }),
@@ -34,7 +34,7 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     my_card(
         row![
             icon,
-            text(&notification.label),
+            text(notification.label()),
             button(icon_x().center())
                 .on_press(Message::CloseNotification(i))
                 .padding(0)

@@ -5,7 +5,6 @@ use crate::{
     games::{export::export_game, game_list::GameList},
     homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
-    notifications::notification::Notification,
     state::{AppState, Ongoing},
     ui::{dialogs, modals::Modal},
 };
@@ -59,7 +58,7 @@ impl AppState {
             }
             Message::GotGames(Err(e)) => {
                 self.games = GameList::default();
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 self.ongoing.remove(&Ongoing::GettingGames);
                 Task::none()
             }
@@ -70,7 +69,7 @@ impl AppState {
             }
             Message::GotHomebrewApps(Err(e)) => {
                 self.homebrew_apps = HomebrewAppList::default();
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 self.ongoing.remove(&Ongoing::GettingHomebrewApps);
                 Task::none()
             }
@@ -81,13 +80,13 @@ impl AppState {
             }
             Message::GotDriveInfo(Err(e)) => {
                 self.drive_info = None;
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 self.ongoing.remove(&Ongoing::GettingDriveInfo);
                 Task::none()
             }
             Message::Open(url) => {
                 if let Err(e) = open::that(url) {
-                    self.notifications.add(Notification::error(e));
+                    self.notifications.error(e);
                 }
 
                 Task::none()
@@ -116,12 +115,12 @@ impl AppState {
                     *meta = None;
                 }
 
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 Task::none()
             }
             Message::WroteConfig(Ok(())) => Task::none(),
             Message::WroteConfig(Err(e)) => {
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 Task::none()
             }
             Message::SetViewAs(view_as) => {
@@ -139,7 +138,7 @@ impl AppState {
             Message::DeleteDir(path) => self.delete_dir_task(path),
             Message::DirDeleted(Ok(())) => Task::done(Message::RefreshGamesAndApps),
             Message::DirDeleted(Err(e)) => {
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 Task::done(Message::RefreshGamesAndApps)
             }
             Message::PickHomebrewApps => self
@@ -147,15 +146,14 @@ impl AppState {
                 .then(dialogs::make_pick_homebrew_apps_dialog_task),
             Message::ImportHomebrewApps(paths) => self.import_homebrew_apps_task(paths),
             Message::HomebrewAppsImported(Ok(n)) if n > 0 => {
-                self.notifications.add(Notification::success(format!(
-                    "{n} Homebrew app(s) successfully imported"
-                )));
+                self.notifications
+                    .success(format!("{n} Homebrew app(s) successfully imported"));
 
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
             Message::HomebrewAppsImported(Ok(_)) => Task::none(),
             Message::HomebrewAppsImported(Err(e)) => {
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 Task::none()
             }
             Message::SetStatus(status) => {
@@ -170,12 +168,12 @@ impl AppState {
                 Task::sip(game.calc_sha1(), Message::SetStatus, Message::GotGameSha1)
             }
             Message::GotGameSha1(Ok(msg)) => {
-                self.notifications.add(Notification::success(msg));
+                self.notifications.success(msg);
                 self.status.clear();
                 Task::none()
             }
             Message::GotGameSha1(Err(e)) => {
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 self.status.clear();
                 Task::none()
             }
@@ -200,7 +198,7 @@ impl AppState {
             Message::GameImported(Err(e)) => {
                 self.ongoing.remove(&Ongoing::Converting);
                 self.status.clear();
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 self.import_games_task(vec![])
             }
             Message::CancelImport(i) => {
@@ -292,25 +290,23 @@ impl AppState {
                 self.ongoing.remove(&Ongoing::ExportingGame);
                 self.exporting_status.clear();
 
-                self.notifications.add(Notification::success(format!(
-                    "Successfully exported {}",
-                    game.title
-                )));
+                self.notifications
+                    .success(format!("Successfully exported {}", game.title));
                 Task::none()
             }
             Message::GameExported(Err(e)) => {
                 self.ongoing.remove(&Ongoing::ExportingGame);
                 self.exporting_status.clear();
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 Task::none()
             }
             Message::RunTool(tool) => self.run_tool(tool),
             Message::ToolResult(Ok(msg)) => {
-                self.notifications.add(Notification::success(msg));
+                self.notifications.success(msg);
                 Task::none()
             }
             Message::ToolResult(Err(e)) => {
-                self.notifications.add(Notification::error(e));
+                self.notifications.error(e);
                 Task::none()
             }
         }
