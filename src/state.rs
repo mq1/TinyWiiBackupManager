@@ -7,7 +7,7 @@ use crate::{
     games::{covers::download_ui_covers, game::Game, game_list::GameList, import::import_game},
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
-    notifications::notification_list::NotificationList,
+    notifications::{notification::Notification, notification_list::NotificationList},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
@@ -52,6 +52,7 @@ impl AppState {
         let data_dir = get_data_dir().expect("Unable to get data directory");
 
         let state = Self {
+            notifications: NotificationList::new(&data_dir),
             data_dir,
             ..Default::default()
         };
@@ -162,7 +163,8 @@ impl AppState {
                     Message::GameImported,
                 )
             } else {
-                self.notifications.info("Import queue is empty");
+                self.notifications
+                    .push(Notification::info("Import queue is empty"));
                 Task::none()
             };
 
@@ -185,8 +187,10 @@ impl AppState {
             mount_point: self.config.mount_point.clone(),
         };
 
-        self.notifications
-            .info(format!("Running tool \"{}\"", tool.label));
+        self.notifications.push(Notification::info(format!(
+            "Running tool \"{}\"",
+            tool.label
+        )));
 
         (tool.run)(ctx).map(Message::ToolResult)
     }

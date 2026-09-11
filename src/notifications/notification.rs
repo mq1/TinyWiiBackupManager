@@ -3,8 +3,10 @@
 
 use crate::errors::Error;
 use derive_getters::Getters;
+use strum_macros::Display;
+use time::OffsetDateTime;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display)]
 pub enum NotificationLevel {
     #[default]
     Info,
@@ -19,34 +21,50 @@ pub struct Notification {
 
     #[getter(copy)]
     level: NotificationLevel,
+
+    created: Option<OffsetDateTime>,
 }
 
 impl Notification {
-    pub(super) fn info(label: impl ToString) -> Self {
+    pub fn info(label: impl ToString) -> Self {
         Self {
             label: label.to_string(),
             level: NotificationLevel::Info,
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
-    pub(super) fn warning(label: impl ToString) -> Self {
+    pub fn warning(label: impl ToString) -> Self {
         Self {
             label: label.to_string(),
             level: NotificationLevel::Warning,
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
-    pub(super) fn error(err: impl Into<Error>) -> Self {
+    pub fn error(err: impl Into<Error>) -> Self {
         Self {
             label: format!("{:#}", err.into()),
             level: NotificationLevel::Error,
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
-    pub(super) fn success(label: impl ToString) -> Self {
+    pub fn success(label: impl ToString) -> Self {
         Self {
             label: label.to_string(),
             level: NotificationLevel::Success,
+            created: OffsetDateTime::now_local().ok(),
         }
+    }
+}
+
+impl std::fmt::Display for Notification {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(created) = &self.created {
+            write!(f, "{created} > ")?;
+        }
+
+        write!(f, "[{}] {}", self.level, self.label)
     }
 }
