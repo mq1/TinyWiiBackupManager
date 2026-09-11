@@ -29,6 +29,8 @@ impl NotificationList {
     }
 
     pub fn push(&mut self, notification: Notification) {
+        println!("{notification}");
+
         if let Some(log) = &self.log {
             let log = log.clone();
             let s = format!("{notification}\n");
