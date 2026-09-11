@@ -1,47 +1,47 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    collections::BTreeSet,
-    fs::{self, File},
-    io::{BufWriter, Write},
-    path::PathBuf,
-};
+use std::{fs, path::PathBuf};
 
-fn extract_sha1_list(dat_path: &str, set: &mut BTreeSet<[u8; 20]>) {
+fn extract_sha1_list(dat_path: &str) -> Vec<[u8; 20]> {
     let dat = fs::read_to_string(dat_path).unwrap();
+    let mut list = Vec::with_capacity(4096);
 
     let mut remaining = &dat[..];
     while let Some(found) = remaining.find("sha1=\"") {
         remaining = &remaining[found + 6..];
+
         let next_quote = remaining.find('"').unwrap();
         let sha1 = &remaining[..next_quote];
-
         assert_eq!(sha1.len(), 40);
 
         let mut sha1_bytes = [0u8; 20];
         hex::decode_to_slice(sha1, &mut sha1_bytes).unwrap();
-        set.insert(sha1_bytes);
+        list.push(sha1_bytes);
 
         remaining = &remaining[next_quote + 1..];
     }
+
+    list
 }
 
 fn main() {
-    let mut sha1_list = BTreeSet::new();
-
     let wii_dat_path = "assets/Nintendo - Wii - Datfile (3780) (2026-06-15 03-13-28).dat";
-    extract_sha1_list(wii_dat_path, &mut sha1_list);
-
     let ngc_dat_path = "assets/Nintendo - GameCube - Datfile (2019) (2026-06-13 18-14-01).dat";
-    extract_sha1_list(ngc_dat_path, &mut sha1_list);
 
-    let mut out_path = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    out_path.push("sha1_list.bin");
+    println!("cargo:rerun-if-changed={wii_dat_path}");
+    println!("cargo:rerun-if-changed={ngc_dat_path}");
+    println!("cargo:rerun-if-changed=build.rs");
 
-    let out = File::create(out_path).unwrap();
-    let mut out = BufWriter::new(out);
-    for sha1 in &sha1_list {
-        out.write_all(sha1).unwrap();
-    }
+    let wii_hashes_handle = std::thread::spawn(|| extract_sha1_list(wii_dat_path));
+    let ngc_hashes = extract_sha1_list(ngc_dat_path);
+    let wii_hashes = wii_hashes_handle.join().unwrap();
+
+    let mut sha1_list = wii_hashes;
+    sha1_list.extend(ngc_hashes);
+    sha1_list.sort_unstable();
+    sha1_list.dedup();
+
+    let out_path = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("sha1_list.bin");
+    fs::write(out_path, sha1_list.as_flattened()).unwrap();
 }
