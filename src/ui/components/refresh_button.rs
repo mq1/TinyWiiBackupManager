@@ -12,15 +12,16 @@ use crate::{
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
 
-fn operation_in_progress(state: &AppState) -> bool {
-    let any = Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo;
-    state.ongoing.is_superset(any)
+fn can_refresh(state: &AppState) -> bool {
+    state.ongoing.is_disjoint(
+        Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo,
+    )
 }
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
 
-    if !operation_in_progress(state) {
+    if can_refresh(state) {
         refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);
     }
 
