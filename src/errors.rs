@@ -57,6 +57,9 @@ pub enum Error {
 
     #[error("Invalid disc format")]
     InvalidDiscFormat,
+
+    #[error("Wiiload error: {0}")]
+    Wiiload(#[from] wiiload::WiiloadError),
 }
 
 impl From<std::io::Error> for Error {

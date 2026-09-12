@@ -45,6 +45,6 @@ impl<'a> From<MyGroup<'a>> for Element<'a, Message> {
     }
 }
 
-pub fn my_group<'a>(title: &'a str) -> MyGroup<'a> {
-    MyGroup::default().title(title)
+pub fn my_group<'a>(title: &'a str, content: impl Into<Element<'a, Message>>) -> MyGroup<'a> {
+    MyGroup::default().title(title).content(content)
 }

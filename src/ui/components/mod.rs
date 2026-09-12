@@ -26,3 +26,4 @@ pub mod search_bar;
 pub mod sidebar;
 pub mod sort_by;
 pub mod view_as;
+pub mod wiiload;

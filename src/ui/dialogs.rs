@@ -18,6 +18,12 @@ const GAME_EXTS: &[&str] = &[
     "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC", "ZIP",
 ];
 
+#[rustfmt::skip]
+const WIILOAD_EXTS: &[&str] = &[
+    "zip", "dol", "elf",
+    "ZIP", "DOL", "ELF",
+];
+
 pub fn make_pick_mount_point_dialog_task(base: AsyncFileDialog) -> Task<Message> {
     Task::future(async move {
         base.set_title("Select Drive/Mount Point")
@@ -102,4 +108,15 @@ pub fn make_pick_export_game_dest_dialog_task(base: AsyncFileDialog, game: Game)
             .map(PathBuf::from)
     })
     .and_then(move |path| Task::done(Message::ExportGame(game.clone(), path)))
+}
+
+pub fn make_pick_file_to_wiiload_dialog_task(base: AsyncFileDialog) -> Task<Message> {
+    Task::future(async move {
+        base.set_title("Select a file to send via wiiload")
+            .add_filter("Homebrew app", WIILOAD_EXTS)
+            .pick_file()
+            .await
+            .map(PathBuf::from)
+    })
+    .and_then(|path| Task::done(Message::SendViaWiiload(path)))
 }

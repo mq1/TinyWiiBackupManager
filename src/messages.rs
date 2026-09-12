@@ -60,6 +60,9 @@ pub enum Message {
     GameExported(Result<Game, Error>),
     RunTool(&'static ToolboxItem),
     ToolResult(Result<String, Error>),
+    PickFileToSendViaWiiload,
+    SendViaWiiload(PathBuf),
+    SentFileViaWiiload(Result<String, Error>),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),
@@ -72,4 +75,5 @@ pub enum Message {
     SetThemePreference(ThemePreference),
     SetPreferredLanguage(PreferredLanguage),
     SetSortBy(SortBy),
+    SetWiiIp(String),
 }

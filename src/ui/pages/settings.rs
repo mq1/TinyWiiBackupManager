@@ -27,7 +27,7 @@ fn setting<T: Eq + Copy>(
         .collect::<Column<'_, _>>()
         .spacing(5);
 
-    my_group(label).icon(icon).content(content).into()
+    my_group(label, content).icon(icon).into()
 }
 
 pub fn settings(state: &AppState) -> Element<'_, Message> {

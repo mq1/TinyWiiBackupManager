@@ -132,6 +132,10 @@ impl AppState {
                 self.config.sort_by = sort_by;
                 self.write_config_task()
             }
+            Message::SetWiiIp(ip) => {
+                self.config.wii_ip = ip;
+                Task::none() // we'll write the config when wiiloading
+            }
             Message::AskDeleteDir(path) => {
                 self.current_modal = Some(Modal::DeleteDir(path));
                 Task::none()
@@ -308,6 +312,22 @@ impl AppState {
                 Task::none()
             }
             Message::ToolResult(Err(e)) => {
+                self.notifications.push(Notification::error(e));
+                Task::none()
+            }
+            Message::PickFileToSendViaWiiload => self
+                .init_file_dialog_task()
+                .then(dialogs::make_pick_file_to_wiiload_dialog_task),
+            Message::SendViaWiiload(path) => {
+                Task::batch([self.write_config_task(), self.send_via_wiiload(path)])
+            }
+            Message::SentFileViaWiiload(Ok(filename)) => {
+                self.notifications.push(Notification::success(format!(
+                    "Successfully sent {filename} via wiiload"
+                )));
+                Task::none()
+            }
+            Message::SentFileViaWiiload(Err(e)) => {
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }

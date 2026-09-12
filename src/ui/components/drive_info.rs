@@ -105,9 +105,8 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
     ]
     .spacing(5);
 
-    my_group("Drive info")
+    my_group("Drive info", content)
         .icon(Icon::HardDrive)
         .top_right_content(top_right_content)
-        .content(content)
         .into()
 }

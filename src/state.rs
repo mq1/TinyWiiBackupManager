@@ -18,8 +18,12 @@ use iced::{
     time::{self, milliseconds},
 };
 use rfd::AsyncFileDialog;
-use smol::fs::{self, File};
-use std::path::PathBuf;
+use smol::{
+    fs::{self, File},
+    net::TcpStream,
+};
+use std::{ffi::OsStr, path::PathBuf};
+use wiiload::WIILOAD_PORT;
 
 #[derive(Debug, EnumSetType)]
 pub(crate) enum Ongoing {
@@ -194,5 +198,25 @@ impl AppState {
         )));
 
         (tool.run)(ctx).map(Message::ToolResult)
+    }
+
+    pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
+        let wii_ip = self.config.wii_ip.clone();
+
+        Task::perform(
+            async move {
+                let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).await?;
+                let filename = path
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .ok_or(Error::InvalidFilename)?;
+                let body = fs::read(&path).await?;
+
+                wiiload::compress_then_send_async(&mut conn, filename, &body).await?;
+
+                Ok(filename.to_string())
+            },
+            Message::SentFileViaWiiload,
+        )
     }
 }
