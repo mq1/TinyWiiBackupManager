@@ -6,7 +6,7 @@ use crate::{
     util::{fs::get_dir_size, sha1_list},
 };
 use iced::task::{Straw, sipper};
-use image::RgbaImage;
+use image::{DynamicImage, ImageFormat, RgbaImage};
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
@@ -173,9 +173,9 @@ impl Game {
         self.cover = std::fs::read(cover_path)
             .ok()
             .and_then(|bytes| {
-                image::load_from_memory_with_format(&bytes[..], image::ImageFormat::Png).ok()
+                image::load_from_memory_with_format(&bytes[..], ImageFormat::Png).ok()
             })
-            .map(|img| img.to_rgba8());
+            .map(DynamicImage::into_rgba8);
     }
 }
 

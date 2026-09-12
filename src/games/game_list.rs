@@ -97,8 +97,16 @@ impl GameList {
         }
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Game> {
-        self.games.iter_mut()
+    pub fn reload_cover(&mut self, game_id: GameID, data_dir: &Path) {
+        if let Some(game) = self.games.iter_mut().find(|game| game.id == game_id) {
+            game.load_cover_blocking(data_dir);
+        }
+    }
+
+    pub fn reload_all_covers(&mut self, data_dir: &Path) {
+        for game in &mut self.games {
+            game.load_cover_blocking(data_dir);
+        }
     }
 
     pub fn get_all_game_ids(&self) -> Vec<GameID> {

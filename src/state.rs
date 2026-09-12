@@ -23,6 +23,7 @@ use smol::{
     net::TcpStream,
 };
 use std::{ffi::OsStr, path::PathBuf};
+use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
 
 #[derive(Debug, EnumSetType)]
@@ -105,7 +106,7 @@ impl AppState {
         let preferred_language = self.config.preferred_language;
 
         Task::stream(download_ui_covers(ids, data_dir, preferred_language))
-            .map(|_| Message::LoadCovers)
+            .map(Message::ReloadCover)
     }
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
@@ -179,12 +180,12 @@ impl AppState {
         }
     }
 
-    pub fn load_covers(&mut self) {
-        for game in self.games.iter_mut() {
-            if game.cover.is_none() {
-                game.load_cover_blocking(&self.data_dir);
-            }
-        }
+    pub fn reload_cover(&mut self, game_id: GameID) {
+        self.games.reload_cover(game_id, &self.data_dir);
+    }
+
+    pub fn reload_all_covers(&mut self) {
+        self.games.reload_all_covers(&self.data_dir);
     }
 
     pub fn run_tool(&mut self, tool: &ToolboxItem) -> Task<Message> {

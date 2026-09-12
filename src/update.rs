@@ -54,7 +54,7 @@ impl AppState {
             Message::GotGames(Ok(games)) => {
                 self.games = games;
                 self.ongoing.remove(Ongoing::GettingGames);
-                self.load_covers();
+                self.reload_all_covers();
                 self.download_ui_covers_task()
             }
             Message::GotGames(Err(e)) => {
@@ -222,8 +222,8 @@ impl AppState {
 
                 Task::none()
             }
-            Message::LoadCovers => {
-                self.load_covers();
+            Message::ReloadCover(game_id) => {
+                self.reload_cover(game_id);
                 Task::none()
             }
             Message::SetWiiOutputFormat(format) => {

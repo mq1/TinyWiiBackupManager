@@ -84,24 +84,20 @@ pub async fn download_cover(
 }
 
 pub fn download_ui_covers(
-    ids: Vec<GameID>,
+    ids: impl IntoIterator<Item = GameID>,
     data_dir: PathBuf,
     preferred_language: PreferredLanguage,
-) -> impl Stream<Item = ()> {
-    let covers_dir = data_dir.join("covers");
-
-    stream::iter(ids)
-        .then(move |id| {
-            let covers_dir = covers_dir.clone();
-
-            async move {
-                download_cover(id, CoverType::Cover3D, &covers_dir, preferred_language)
-                    .await
-                    .unwrap_or(false)
-            }
+) -> impl Stream<Item = GameID> {
+    ids.into_iter()
+        .cartesian_product(std::iter::once(data_dir.join("covers")))
+        .pipe(stream::iter)
+        .then(move |(id, covers_dir)| async move {
+            download_cover(id, CoverType::Cover3D, &covers_dir, preferred_language)
+                .await
+                .unwrap_or(false)
+                .then_some(id)
         })
-        .filter(|&new| new)
-        .map(|_| ())
+        .filter_map(identity)
 }
 
 async fn download_all_covers(

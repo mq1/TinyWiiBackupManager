@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use wii_disc_info::game_id::GameID;
+
 use crate::{
     config::{
         Config, GcOutputFormat, PreferredLanguage, SortBy, ThemePreference, TxtCodesSource, ViewAs,
@@ -50,7 +52,7 @@ pub enum Message {
     CancelImport(usize),
     CancelAllImports,
     ToggleAnimationState,
-    LoadCovers,
+    ReloadCover(GameID),
     SearchGames(String),
     ToggleShowWii(bool),
     ToggleShowNgc(bool),
