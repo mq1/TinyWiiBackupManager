@@ -82,6 +82,11 @@ impl<'a> MyButton<'a, Message> {
         self.press = Some(press);
         self
     }
+
+    pub fn on_press_maybe(mut self, press: Option<Message>) -> Self {
+        self.press = press;
+        self
+    }
 }
 
 impl<'a, T: Fn() -> Message> MyButton<'a, T> {

@@ -11,21 +11,21 @@ use crate::{
 };
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
-use tap::Pipe;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let refresh_btn = my_button()
         .icon(Icon::RotateCw)
         .kind(MyButtonKind::Toolbar)
-        .pipe(|btn| {
-            if state.ongoing.is_disjoint(
-                Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo,
-            ) {
-                btn.on_press(Message::RefreshGamesAndApps)
-            } else {
-                btn
-            }
-        });
+        .on_press_maybe(
+            state
+                .ongoing
+                .is_disjoint(
+                    Ongoing::GettingGames
+                        | Ongoing::GettingHomebrewApps
+                        | Ongoing::GettingDriveInfo,
+                )
+                .then_some(Message::RefreshGamesAndApps),
+        );
 
     tooltip(
         refresh_btn,
