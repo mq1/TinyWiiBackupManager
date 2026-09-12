@@ -19,7 +19,7 @@ pub const ALL: &[ToolboxGroup] = {
                 Task::future(async move {
                     Command::new("dot_clean")
                         .arg("-m")
-                        .arg(ctx.mount_point)
+                        .arg(ctx.config.mount_point)
                         .status()
                         .await
                         .map_err(Error::from)

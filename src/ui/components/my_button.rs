@@ -44,7 +44,7 @@ impl MyButtonKind {
     }
 }
 
-trait Press {
+pub trait Press {
     fn msg(&self) -> Message;
 }
 

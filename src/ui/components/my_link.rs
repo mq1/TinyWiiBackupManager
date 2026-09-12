@@ -10,7 +10,7 @@ use iced::{
 use lucide_icons::Icon;
 use std::{borrow::Cow, ffi::OsString, path::PathBuf};
 
-trait ToUrl {
+pub trait ToUrl {
     fn to_url(&self) -> OsString;
 }
 

@@ -172,20 +172,23 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Normalize paths (makes the game directories' layouts consistent)",
             run: |ctx| {
                 Task::future(async move {
-                    stream::iter([ctx.mount_point.join("wbfs"), ctx.mount_point.join("games")])
-                        .then(|path| async move {
-                            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
-                                adopt_orphaned_discs(&path).await?;
-                                readopt_parented_discs(&path).await?;
-                            }
+                    stream::iter([
+                        ctx.config.mount_point.join("wbfs"),
+                        ctx.config.mount_point.join("games"),
+                    ])
+                    .then(|path| async move {
+                        if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
+                            adopt_orphaned_discs(&path).await?;
+                            readopt_parented_discs(&path).await?;
+                        }
 
-                            Ok(())
-                        })
-                        .collect::<Vec<_>>()
-                        .await
-                        .into_iter()
-                        .collect::<Result<Vec<_>, _>>()
-                        .map(|_| "Paths successfully normalized".to_string())
+                        Ok(())
+                    })
+                    .collect::<Vec<_>>()
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<_>, _>>()
+                    .map(|_| "Paths successfully normalized".to_string())
                 })
             },
         }],

@@ -1,17 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
+use crate::{config::Config, errors::Error};
 use iced::Task;
 use lucide_icons::Icon;
-use std::path::PathBuf;
+use wii_disc_info::game_id::GameID;
 
 mod cleanup;
+mod game_backup_loaders;
 mod os_specific;
 
 #[derive(Debug, Clone)]
 pub struct ToolContext {
-    pub mount_point: PathBuf,
+    pub config: Config,
+    pub game_ids: Vec<GameID>,
 }
 
 #[derive(Debug)]
@@ -27,5 +29,7 @@ pub struct ToolboxGroup {
 }
 
 pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
-    [cleanup::ALL, os_specific::ALL].into_iter().flatten()
+    [game_backup_loaders::ALL, cleanup::ALL, os_specific::ALL]
+        .into_iter()
+        .flatten()
 }

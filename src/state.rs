@@ -189,7 +189,8 @@ impl AppState {
 
     pub fn run_tool(&mut self, tool: &ToolboxItem) -> Task<Message> {
         let ctx = ToolContext {
-            mount_point: self.config.mount_point.clone(),
+            config: self.config.clone(),
+            game_ids: self.games.get_all_game_ids(),
         };
 
         self.notifications.push(Notification::info(format!(

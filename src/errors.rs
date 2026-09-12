@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use itertools::Itertools;
+use wii_disc_info::game_id::GameID;
+
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
     #[error("{}", .0.iter().map(|e| format!("{e}")).collect::<Vec<String>>().join("\n"))]
@@ -60,6 +63,9 @@ pub enum Error {
 
     #[error("Wiiload error: {0}")]
     Wiiload(#[from] wiiload::WiiloadError),
+
+    #[error("Failed to download covers ({})", .0.iter().join(", "))]
+    DownloadCovers(Vec<GameID>),
 }
 
 impl From<std::io::Error> for Error {

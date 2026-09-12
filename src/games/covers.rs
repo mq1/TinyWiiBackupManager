@@ -6,36 +6,29 @@ use crate::{
     errors::Error,
     util::http::{download_file, download_file_with_fallback},
 };
+use itertools::Itertools;
 use smol::stream::{self, Stream, StreamExt};
 use std::{
-    fmt::Display,
+    convert::identity,
     path::{Path, PathBuf},
 };
+use strum_macros::Display;
+use tap::Pipe;
 use wii_disc_info::{RegionCode, game_id::GameID};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Display)]
 pub enum CoverType {
+    #[strum(serialize = "cover3D")]
     Cover3D,
+
+    #[strum(serialize = "cover")]
     Cover2D,
+
+    #[strum(serialize = "coverfull")]
     CoverFull,
+
+    #[strum(serialize = "disc")]
     Disc,
-}
-
-impl CoverType {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            CoverType::Cover3D => "cover3D",
-            CoverType::Cover2D => "cover",
-            CoverType::CoverFull => "coverfull",
-            CoverType::Disc => "disc",
-        }
-    }
-}
-
-impl Display for CoverType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.as_str().fmt(f)
-    }
 }
 
 #[must_use]
@@ -111,62 +104,59 @@ pub fn download_ui_covers(
         .map(|_| ())
 }
 
-pub async fn download_all_covers_for_usbloadergx(
-    ids: impl IntoIterator<Item = GameID> + Copy,
+async fn download_all_covers(
+    ids: impl IntoIterator<Item = GameID>,
+    pairs: &[(PathBuf, CoverType)],
     config: &Config,
-) -> Result<Vec<GameID>, Error> {
-    let covers_dir = config
+) -> Vec<GameID> {
+    ids.into_iter()
+        .cartesian_product(pairs)
+        .pipe(stream::iter)
+        .then(|(game_id, (dir, cover_type))| async move {
+            download_cover(game_id, *cover_type, dir, config.preferred_language)
+                .await
+                .is_err()
+                .then_some(game_id)
+        })
+        .filter_map(identity)
+        .collect::<Vec<_>>()
+        .await
+}
+
+pub async fn download_all_covers_for_usbloadergx(
+    ids: impl IntoIterator<Item = GameID>,
+    config: &Config,
+) -> Vec<GameID> {
+    config
         .mount_point
         .join("apps")
         .join("usbloader_gx")
-        .join("images");
-
-    let pairs = [
-        (covers_dir.clone(), CoverType::Cover3D),
-        (covers_dir.join("2D"), CoverType::Cover2D),
-        (covers_dir.join("full"), CoverType::CoverFull),
-        (covers_dir.join("disc"), CoverType::Disc),
-    ];
-
-    let mut failed_ids = Vec::new();
-    for (dir, cover_type) in pairs {
-        for game_id in ids {
-            if download_cover(game_id, cover_type, &dir, config.preferred_language)
-                .await
-                .is_err()
-            {
-                failed_ids.push(game_id);
-            }
-        }
-    }
-
-    Ok(failed_ids)
+        .join("images")
+        .pipe(|covers_dir| {
+            [
+                (covers_dir.clone(), CoverType::Cover3D),
+                (covers_dir.join("2D"), CoverType::Cover2D),
+                (covers_dir.join("full"), CoverType::CoverFull),
+                (covers_dir.join("disc"), CoverType::Disc),
+            ]
+        })
+        .pipe_ref(move |pairs| download_all_covers(ids, pairs, config))
+        .await
 }
 
 pub async fn download_all_covers_for_wiiflow(
-    ids: impl IntoIterator<Item = GameID> + Copy,
+    ids: impl IntoIterator<Item = GameID>,
     config: &Config,
-) -> Result<Vec<GameID>, Error> {
-    let covers_dir = config.mount_point.join("wiiflow");
-
-    let pairs = [
-        ("boxcovers", CoverType::CoverFull),
-        ("covers", CoverType::Cover2D),
-    ];
-
-    let mut failed_ids = Vec::new();
-    for (subdir, cover_type) in pairs {
-        let dir = covers_dir.join(subdir);
-
-        for game_id in ids {
-            if download_cover(game_id, cover_type, &dir, config.preferred_language)
-                .await
-                .is_err()
-            {
-                failed_ids.push(game_id);
-            }
-        }
-    }
-
-    Ok(failed_ids)
+) -> Vec<GameID> {
+    config
+        .mount_point
+        .join("wiiflow")
+        .pipe(|covers_dir| {
+            [
+                (covers_dir.join("boxcovers"), CoverType::CoverFull),
+                (covers_dir.join("covers"), CoverType::Cover2D),
+            ]
+        })
+        .pipe_ref(move |pairs| download_all_covers(ids, pairs, config))
+        .await
 }
