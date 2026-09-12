@@ -12,15 +12,16 @@ use crate::{
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
+use enumset::{EnumSet, EnumSetType};
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
 };
 use rfd::AsyncFileDialog;
 use smol::fs::{self, File};
-use std::{collections::HashSet, path::PathBuf};
+use std::path::PathBuf;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, EnumSetType)]
 pub(crate) enum Ongoing {
     Converting,
     GettingGames,
@@ -44,7 +45,7 @@ pub(crate) struct AppState {
     pub(crate) status: String,
     pub(crate) exporting_status: String,
     pub(crate) import_queue: Vec<PathBuf>,
-    pub(crate) ongoing: HashSet<Ongoing>,
+    pub(crate) ongoing: EnumSet<Ongoing>,
 }
 
 impl AppState {
@@ -151,11 +152,11 @@ impl AppState {
     pub fn import_games_task(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
         self.import_queue.extend(paths);
 
-        if !self.ongoing.contains(&Ongoing::Converting) {
+        if !self.ongoing.contains(Ongoing::Converting) {
             self.status.clear();
 
             let task = if let Some(path) = self.import_queue.pop() {
-                self.ongoing.remove(&Ongoing::Converting);
+                self.ongoing.remove(Ongoing::Converting);
 
                 Task::sip(
                     import_game(path, self.config.clone(), self.drive_info.clone()),

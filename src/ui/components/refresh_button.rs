@@ -13,15 +13,8 @@ use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
 
 fn operation_in_progress(state: &AppState) -> bool {
-    let is_ongoing = |op| state.ongoing.contains(&op);
-
-    [
-        Ongoing::GettingGames,
-        Ongoing::GettingHomebrewApps,
-        Ongoing::GettingDriveInfo,
-    ]
-    .into_iter()
-    .any(is_ongoing)
+    let any = Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo;
+    state.ongoing.is_superset(any)
 }
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {

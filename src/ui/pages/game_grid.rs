@@ -15,7 +15,7 @@ use iced::{
 };
 
 pub fn game_grid(state: &AppState) -> Element<'_, Message> {
-    let is_exporting = state.ongoing.contains(&Ongoing::ExportingGame);
+    let is_exporting = state.ongoing.contains(Ongoing::ExportingGame);
 
     let content = state
         .games

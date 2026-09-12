@@ -57,6 +57,7 @@ strum_macros = "0.28"
 tap = "1"
 derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
 derive_setters = "0.1"
+enumset = "1"
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

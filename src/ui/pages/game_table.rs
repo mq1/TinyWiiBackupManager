@@ -16,7 +16,7 @@ use iced::{
 use itertools::Itertools;
 
 pub fn game_table(state: &AppState) -> Element<'_, Message> {
-    let is_exporting = state.ongoing.contains(&Ongoing::ExportingGame);
+    let is_exporting = state.ongoing.contains(Ongoing::ExportingGame);
 
     let content = state
         .games

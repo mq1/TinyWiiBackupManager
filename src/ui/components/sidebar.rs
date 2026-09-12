@@ -18,7 +18,7 @@ use lucide_icons::Icon;
 pub fn sidebar(state: &AppState) -> Element<'_, Message> {
     let import_queue_button: Element<'_, Message> = {
         if !state.import_queue.is_empty() {
-            let icon = if state.ongoing.contains(&Ongoing::AnimationState) {
+            let icon = if state.ongoing.contains(Ongoing::AnimationState) {
                 Icon::ArrowUp10
             } else {
                 Icon::ArrowUp01
