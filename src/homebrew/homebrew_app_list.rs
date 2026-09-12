@@ -3,7 +3,7 @@
 
 use super::homebrew_app::HomebrewApp;
 use crate::{config::SortBy, errors::Error, util::misc::contains_ignore_case};
-use either::Either;
+use itertools::Either;
 use size::Size;
 use smol::{
     fs,

@@ -88,8 +88,10 @@ pub fn download_ui_covers(
     data_dir: PathBuf,
     preferred_language: PreferredLanguage,
 ) -> impl Stream<Item = GameID> {
+    let covers_dir = data_dir.join("covers");
+
     ids.into_iter()
-        .cartesian_product(std::iter::once(data_dir.join("covers")))
+        .zip(std::iter::repeat(covers_dir))
         .pipe(stream::iter)
         .then(move |(id, covers_dir)| async move {
             download_cover(id, CoverType::Cover3D, &covers_dir, preferred_language)

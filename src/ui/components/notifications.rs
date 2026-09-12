@@ -7,11 +7,11 @@ use crate::{
     state::AppState,
     ui::components::my_card::my_card,
 };
-use either::Either;
 use iced::{
     Alignment, Element, Theme, border,
     widget::{Column, button, row, text},
 };
+use itertools::Either;
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
 use std::iter::{empty, once};
 
@@ -52,9 +52,10 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
 }
 
 fn status(status: &str) -> impl Iterator<Item = Element<'_, Message>> {
-    match status.is_empty() {
-        false => Either::Left(once(Element::from(my_card(text(status))))),
-        true => Either::Right(empty()),
+    if status.is_empty() {
+        Either::Right(empty())
+    } else {
+        Either::Left(once(Element::from(my_card(text(status)))))
     }
 }
 
