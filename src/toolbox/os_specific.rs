@@ -5,29 +5,39 @@ use crate::toolbox::ToolboxGroup;
 
 #[cfg(target_os = "macos")]
 pub const ALL: &[ToolboxGroup] = {
-    use crate::{errors::Error, toolbox::ToolboxItem};
-    use iced::Task;
+    use crate::{
+        errors::Error,
+        toolbox::{ToolContext, ToolboxItem},
+    };
+    use async_trait::async_trait;
     use lucide_icons::Icon;
     use smol::process::Command;
+
+    #[derive(Debug)]
+    pub struct RunDotClean;
+
+    #[async_trait]
+    impl ToolboxItem for RunDotClean {
+        fn label(&self) -> &'static str {
+            "Run dot_clean (removes ._ files)"
+        }
+
+        async fn run(&self, ctx: ToolContext) -> Result<String, Error> {
+            Command::new("dot_clean")
+                .arg("-m")
+                .arg(ctx.config.mount_point)
+                .status()
+                .await
+                .map_err(Error::from)
+                .and_then(|status| status.success().ok_or(Error::DotClean))
+                .map(|_| "dot_clean ran successfully".to_string())
+        }
+    }
 
     &[ToolboxGroup {
         label: "macOS",
         icon: Icon::Apple,
-        items: &[ToolboxItem {
-            label: "Run dot_clean (removes ._ files)",
-            run: |ctx| {
-                Task::future(async move {
-                    Command::new("dot_clean")
-                        .arg("-m")
-                        .arg(ctx.config.mount_point)
-                        .status()
-                        .await
-                        .map_err(Error::from)
-                        .and_then(|status| status.success().ok_or(Error::DotClean))
-                        .map(|_| "dot_clean ran successfully".to_string())
-                })
-            },
-        }],
+        items: &[&RunDotClean],
     }]
 };
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{config::Config, errors::Error};
-use iced::Task;
+use async_trait::async_trait;
 use lucide_icons::Icon;
 use wii_disc_info::game_id::GameID;
 
@@ -16,16 +16,16 @@ pub struct ToolContext {
     pub game_ids: Vec<GameID>,
 }
 
-#[derive(Debug)]
-pub struct ToolboxItem {
-    pub label: &'static str,
-    pub run: fn(ToolContext) -> Task<Result<String, Error>>,
+#[async_trait]
+pub trait ToolboxItem: std::fmt::Debug + Send + Sync {
+    fn label(&self) -> &'static str;
+    async fn run(&self, ctx: ToolContext) -> Result<String, Error>;
 }
 
 pub struct ToolboxGroup {
     pub label: &'static str,
     pub icon: Icon,
-    pub items: &'static [ToolboxItem],
+    pub items: &'static [&'static dyn ToolboxItem],
 }
 
 pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {

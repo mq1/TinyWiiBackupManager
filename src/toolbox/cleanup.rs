@@ -4,9 +4,9 @@
 use crate::{
     errors::Error,
     games::{game_list, import::make_game_dir_name},
-    toolbox::{ToolboxGroup, ToolboxItem},
+    toolbox::{ToolContext, ToolboxGroup, ToolboxItem},
 };
-use iced::Task;
+use async_trait::async_trait;
 use lucide_icons::Icon;
 use smol::{
     fs::{self, DirEntry, File},
@@ -164,33 +164,40 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
     }
 }
 
+#[derive(Debug)]
+pub struct NormalizePaths;
+
+#[async_trait]
+impl ToolboxItem for NormalizePaths {
+    fn label(&self) -> &'static str {
+        "Normalize paths (makes the game directories' layouts consistent)"
+    }
+
+    async fn run(&self, ctx: ToolContext) -> Result<String, Error> {
+        stream::iter([
+            ctx.config.mount_point.join("wbfs"),
+            ctx.config.mount_point.join("games"),
+        ])
+        .then(|path| async move {
+            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
+                adopt_orphaned_discs(&path).await?;
+                readopt_parented_discs(&path).await?;
+            }
+
+            Ok(())
+        })
+        .collect::<Vec<_>>()
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()
+        .map(|_| "Paths successfully normalized".to_string())
+    }
+}
+
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
         label: "Cleanup",
         icon: Icon::BrushCleaning,
-        items: &[ToolboxItem {
-            label: "Normalize paths (makes the game directories' layouts consistent)",
-            run: |ctx| {
-                Task::future(async move {
-                    stream::iter([
-                        ctx.config.mount_point.join("wbfs"),
-                        ctx.config.mount_point.join("games"),
-                    ])
-                    .then(|path| async move {
-                        if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
-                            adopt_orphaned_discs(&path).await?;
-                            readopt_parented_discs(&path).await?;
-                        }
-
-                        Ok(())
-                    })
-                    .collect::<Vec<_>>()
-                    .await
-                    .into_iter()
-                    .collect::<Result<Vec<_>, _>>()
-                    .map(|_| "Paths successfully normalized".to_string())
-                })
-            },
-        }],
+        items: &[&NormalizePaths],
     }]
 };

@@ -24,12 +24,12 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
             let tools = tool_group
                 .items
                 .iter()
-                .map(|tool| {
+                .map(|&tool| {
                     row![
                         my_button()
                             .icon(Icon::Play)
                             .on_press(Message::RunTool(tool)),
-                        text(tool.label)
+                        text(tool.label())
                     ]
                     .spacing(10)
                     .align_y(Alignment::Center)

@@ -60,7 +60,7 @@ pub enum Message {
     PickExportDest(Game),
     ExportGame(Game, PathBuf),
     GameExported(Result<Game, Error>),
-    RunTool(&'static ToolboxItem),
+    RunTool(&'static dyn ToolboxItem),
     ToolResult(Result<String, Error>),
     PickFileToSendViaWiiload,
     SendViaWiiload(PathBuf),

@@ -188,7 +188,7 @@ impl AppState {
         self.games.reload_all_covers(&self.data_dir);
     }
 
-    pub fn run_tool(&mut self, tool: &ToolboxItem) -> Task<Message> {
+    pub fn run_tool(&mut self, tool: &'static dyn ToolboxItem) -> Task<Message> {
         let ctx = ToolContext {
             config: self.config.clone(),
             game_ids: self.games.get_all_game_ids(),
@@ -196,10 +196,10 @@ impl AppState {
 
         self.notifications.push(Notification::info(format!(
             "Running tool \"{}\"",
-            tool.label
+            tool.label()
         )));
 
-        (tool.run)(ctx).map(Message::ToolResult)
+        Task::perform(tool.run(ctx), Message::ToolResult)
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
