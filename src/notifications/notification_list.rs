@@ -4,7 +4,6 @@
 use crate::notifications::notification::Notification;
 use smol::{fs::File, io::AsyncWriteExt, lock::Mutex};
 use std::{path::Path, sync::Arc};
-use tap::Pipe;
 
 #[derive(Debug, Default)]
 pub struct NotificationList {
@@ -14,13 +13,13 @@ pub struct NotificationList {
 
 impl NotificationList {
     pub fn new(data_dir: &Path) -> Self {
-        let log = data_dir
-            .join("log.txt")
-            .pipe(std::fs::File::create)
-            .ok()
-            .map(File::from)
-            .map(Mutex::new)
-            .map(Arc::new);
+        let log = {
+            let path = data_dir.join("log.txt");
+
+            std::fs::File::create(path)
+                .map(|f| Arc::new(Mutex::new(File::from(f))))
+                .ok()
+        };
 
         NotificationList {
             inner: Vec::new(),

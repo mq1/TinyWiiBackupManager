@@ -7,7 +7,6 @@ use iced::{
     widget::{button, row, rule, space, text, tooltip},
 };
 use lucide_icons::iced::{icon_box, icon_hard_drive_download, icon_info, icon_pointer, icon_trash};
-use tap::Pipe;
 
 pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![
@@ -31,17 +30,19 @@ pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
             tooltip::Position::Top
         ),
         tooltip(
-            button(icon_hard_drive_download().center())
-                .padding(0)
-                .pipe(|btn| {
-                    match is_exporting {
-                        false => btn.on_press_with(|| Message::PickExportDest(game.clone())),
-                        true => btn,
-                    }
-                })
-                .style(button::text)
-                .width(20)
-                .height(20),
+            {
+                let btn = button(icon_hard_drive_download().center())
+                    .padding(0)
+                    .style(button::text)
+                    .width(20)
+                    .height(20);
+
+                if is_exporting {
+                    btn
+                } else {
+                    btn.on_press_with(|| Message::PickExportDest(game.clone()))
+                }
+            },
             my_card("Export game"),
             tooltip::Position::Top
         ),

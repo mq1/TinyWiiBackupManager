@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::fp::VecExt;
 use size::Size;
 use smol::{
     fs,
@@ -12,22 +11,25 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
-use tap::Pipe;
 
 pub async fn get_dir_size(path: &Path) -> Size {
-    stream::unfold(vec![path.to_path_buf()], |mut stack| async move {
+    let bytes = stream::unfold(vec![path.to_path_buf()], |mut stack| async move {
         let current = stack.pop()?;
 
         match fs::symlink_metadata(&current).await {
             Ok(meta) if meta.is_file() => Some((meta.len(), stack)),
             Ok(meta) if meta.is_dir() => match fs::read_dir(&current).await {
-                Ok(entries) => entries
-                    .filter_map(Result::ok)
-                    .map(|entry| entry.path())
-                    .collect::<Vec<_>>()
-                    .await
-                    .extends(stack)
-                    .pipe(|stack| Some((0, stack))),
+                Ok(entries) => {
+                    let mut new = entries
+                        .filter_map(Result::ok)
+                        .map(|entry| entry.path())
+                        .collect::<Vec<_>>()
+                        .await;
+
+                    stack.append(&mut new);
+
+                    Some((0, stack))
+                }
 
                 Err(_) => Some((0, stack)),
             },
@@ -35,8 +37,9 @@ pub async fn get_dir_size(path: &Path) -> Size {
         }
     })
     .fold(0, u64::saturating_add)
-    .await
-    .pipe(Size::from_bytes)
+    .await;
+
+    Size::from_bytes(bytes)
 }
 
 pub fn recursive_file_scan<'a>(
@@ -58,14 +61,17 @@ pub fn recursive_file_scan<'a>(
 
         match fs::symlink_metadata(&current).await {
             Ok(meta) if meta.is_dir() => match fs::read_dir(&current).await {
-                Ok(entries) => entries
-                    .filter_map(Result::ok)
-                    .map(|e| e.path())
-                    .collect::<Vec<_>>()
-                    .await
-                    .extends(stack)
-                    .pipe(|stack| Some((None, stack))),
+                Ok(entries) => {
+                    let mut new = entries
+                        .filter_map(Result::ok)
+                        .map(|e| e.path())
+                        .collect::<Vec<_>>()
+                        .await;
 
+                    stack.append(&mut new);
+
+                    Some((None, stack))
+                }
                 Err(_) => Some((None, stack)),
             },
 

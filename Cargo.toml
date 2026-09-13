@@ -53,7 +53,6 @@ zip = { version = "8", default-features = false, features = [
 ] }
 strum = "0.28"
 strum_macros = "0.28"
-tap = "1"
 derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
 derive_setters = "0.1"
 enumset = "1"

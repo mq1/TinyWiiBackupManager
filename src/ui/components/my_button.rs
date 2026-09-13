@@ -8,7 +8,6 @@ use iced::{
     widget::{button, container, row, text},
 };
 use lucide_icons::Icon;
-use tap::Pipe;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum MyButtonKind {
@@ -98,7 +97,7 @@ impl<'a, T: Fn() -> Message> MyButton<'a, T> {
 
 impl<'a, T: Press + 'a> From<MyButton<'a, T>> for Element<'a, Message> {
     fn from(value: MyButton<'a, T>) -> Self {
-        button(
+        let mut btn = button(
             container(
                 row![
                     value.icon.map(Icon::widget).map(|icon| match value.kind {
@@ -114,20 +113,21 @@ impl<'a, T: Press + 'a> From<MyButton<'a, T>> for Element<'a, Message> {
             )
             .center(Length::Shrink),
         )
-        .style(value.kind.style())
-        .pipe(|btn| match value.kind {
-            MyButtonKind::Toolbar => btn.padding(0).width(34).height(34),
-            _ => btn,
-        })
-        .pipe(|btn| match value.press {
-            Some(press) => btn.on_press_with(move || press.msg()),
-            None => btn,
-        })
-        .pipe(|btn| match value.expand_width {
-            true => btn.width(Length::Fill),
-            false => btn,
-        })
-        .into()
+        .style(value.kind.style());
+
+        if value.kind == MyButtonKind::Toolbar {
+            btn = btn.padding(0).width(34).height(34);
+        }
+
+        if let Some(press) = value.press {
+            btn = btn.on_press_with(move || press.msg());
+        }
+
+        if value.expand_width {
+            btn = btn.width(Length::Fill);
+        }
+
+        btn.into()
     }
 }
 

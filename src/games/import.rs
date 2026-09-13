@@ -14,14 +14,12 @@ use nod::{
 };
 use split_write::SplitWriter;
 use std::{
-    borrow::Cow,
     ffi::OsStr,
     fs,
     io::{BufWriter, Write},
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
-use tap::Pipe;
 use which_fs::FsKind;
 
 const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
@@ -31,67 +29,65 @@ fn perform_blocking(
     config: Config,
     is_fat32: bool,
     tx: smol::channel::Sender<String>,
-) -> impl FnOnce() -> Result<(), Error> {
-    move || {
-        let disc_reader = get_disc_reader(&disc_path)?;
+) -> Result<(), Error> {
+    let disc_reader = get_disc_reader(&disc_path)?;
 
-        let disc_header = disc_reader.header();
-        let is_wii = disc_header.is_wii();
-        let game_id = disc_header.game_id_str().to_string();
-        let game_title = disc_header.game_title_str().to_string();
-        let disc_num = usize::from(disc_header.disc_num);
+    let disc_header = disc_reader.header();
+    let is_wii = disc_header.is_wii();
+    let game_id = disc_header.game_id_str().to_string();
+    let game_title = disc_header.game_title_str().to_string();
+    let disc_num = usize::from(disc_header.disc_num);
 
-        let must_split = is_wii && (is_fat32 || config.always_split);
-        let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
+    let must_split = is_wii && (is_fat32 || config.always_split);
+    let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
 
-        let parent_dir_name = if is_wii { "wbfs" } else { "games" };
-        let parent_dir = config.mount_point.join(parent_dir_name);
-        let game_dir = make_game_dir(&parent_dir, &game_id, &game_title)?;
+    let parent_dir_name = if is_wii { "wbfs" } else { "games" };
+    let parent_dir = config.mount_point.join(parent_dir_name);
+    let game_dir = make_game_dir(&parent_dir, &game_id, &game_title)?;
 
-        let out_writer = SplitWriter::create(
-            &game_dir,
-            |part| get_filename(&game_id, is_wii, part, disc_num, &config, must_split),
-            split_size,
-        )?;
-        let mut out_writer = BufWriter::with_capacity(0x8000, out_writer);
+    let out_writer = SplitWriter::create(
+        &game_dir,
+        |part| get_filename(&game_id, is_wii, part, disc_num, &config, must_split),
+        split_size,
+    )?;
+    let mut out_writer = BufWriter::with_capacity(0x8000, out_writer);
 
-        let out_format = get_out_format(is_wii, &config);
-        let disc_writer = DiscWriter::new(disc_reader, &FormatOptions::new(out_format))?;
+    let out_format = get_out_format(is_wii, &config);
+    let disc_writer = DiscWriter::new(disc_reader, &FormatOptions::new(out_format))?;
 
-        let mut prev_percentage = 100;
-        let finalization = disc_writer.process(
-            |data, progress, total| {
-                out_writer.write_all(&data)?;
+    let mut prev_percentage = 100;
+    let finalization = disc_writer.process(
+        |data, progress, total| {
+            out_writer.write_all(&data)?;
 
-                let progress_percentage = progress * 100 / total;
-                if progress_percentage != prev_percentage {
-                    let status = format!("⤓  Importing {game_title}  {progress_percentage:02}%");
-                    let _ = tx.try_send(status);
+            let progress_percentage = progress * 100 / total;
+            if progress_percentage != prev_percentage {
+                let status = format!("⤓  Importing {game_title}  {progress_percentage:02}%");
+                let _ = tx.try_send(status);
 
-                    prev_percentage = progress_percentage;
-                }
+                prev_percentage = progress_percentage;
+            }
 
-                Ok(())
-            },
-            &ProcessOptions {
-                processor_threads: OPTIMAL_THREADS.processor,
-                scrub: ScrubLevel::None,
-                digest_crc32: true,
-                digest_md5: false,
-                digest_sha1: true,
-                digest_xxh64: true,
-            },
-        )?;
+            Ok(())
+        },
+        &ProcessOptions {
+            processor_threads: OPTIMAL_THREADS.processor,
+            scrub: ScrubLevel::None,
+            digest_crc32: true,
+            digest_md5: false,
+            digest_sha1: true,
+            digest_xxh64: true,
+        },
+    )?;
 
-        let mut out_writer = out_writer.into_inner()?;
+    let mut out_writer = out_writer.into_inner()?;
 
-        if !finalization.header.is_empty() {
-            out_writer.write_header(&finalization.header)?;
-        }
-
-        out_writer.flush()?;
-        Ok(())
+    if !finalization.header.is_empty() {
+        out_writer.write_header(&finalization.header)?;
     }
+
+    out_writer.flush()?;
+    Ok(())
 }
 
 pub fn import_game(
@@ -113,7 +109,10 @@ pub fn import_game(
 
         let (tx, rx) = smol::channel::bounded(1);
 
-        let handle = perform_blocking(path.clone(), config, is_fat32, tx).pipe(std::thread::spawn);
+        let handle = std::thread::spawn({
+            let path = path.clone();
+            move || perform_blocking(path, config, is_fat32, tx)
+        });
 
         while let Ok(msg) = rx.recv().await {
             sender.send(msg).await;
@@ -178,35 +177,35 @@ fn is_valid_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || " !#$%&'()+,-.;=@^_`{}~".contains(c)
 }
 
-pub fn sanitize_title(ascii_title: &str) -> Cow<'static, str> {
-    ascii_title
+pub fn sanitize_title(ascii_title: &str) -> String {
+    let mut title = ascii_title
         .chars()
         .skip_while(|c| !c.is_ascii_alphanumeric())
         .filter(|&c| is_valid_char(c))
         .take(64)
-        .collect::<String>()
-        .trim_end()
-        .pipe(|s| match s.is_empty() {
-            true => Cow::Borrowed("game"),
-            false => Cow::Owned(s.into()),
-        })
+        .collect::<String>();
+
+    // Remove trailing whitespace in-place
+    title.truncate(title.trim_end().len());
+
+    title
 }
 
 pub fn make_game_dir_name(game_id: impl AsRef<str>, fallback_title: &str) -> String {
     let game_id = game_id.as_ref();
 
-    twbm_idmap::get_title(game_id)
-        .unwrap_or(fallback_title)
-        .pipe(sanitize_title)
-        .pipe(|title| format!("{title} [{game_id}]"))
+    let game_title = {
+        let ascii_title = twbm_idmap::get_ascii_title(game_id).unwrap_or(fallback_title);
+        sanitize_title(ascii_title)
+    };
+
+    format!("{game_title} [{game_id}]")
 }
 
-fn make_game_dir(
-    base_dir: &Path,
-    game_id: &str,
-    fallback_title: &str,
-) -> Result<PathBuf, std::io::Error> {
-    make_game_dir_name(game_id, fallback_title)
-        .pipe(|name| base_dir.join(name))
-        .pipe(|path| fs::create_dir_all(&path).map(|_| path))
+fn make_game_dir(base_dir: &Path, game_id: &str, fallback_title: &str) -> Result<PathBuf, Error> {
+    let dir_name = make_game_dir_name(game_id, fallback_title);
+    let path = base_dir.join(dir_name);
+
+    fs::create_dir_all(&path)?;
+    Ok(path)
 }

@@ -10,7 +10,6 @@ use std::{
     convert::identity,
     path::{Path, PathBuf},
 };
-use tap::Pipe;
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
 
@@ -31,20 +30,18 @@ async fn get_id(path: &Path) -> Result<GameID, Error> {
             let path = path.to_path_buf();
 
             move || {
-                std::fs::File::open(path)?
-                    .pipe(ZipArchive::new)?
-                    .by_index(0)?
-                    .pipe_ref_mut(wii_disc_info::Meta::read)?
-                    .pipe(Ok)
+                let f = std::fs::File::open(path)?;
+                let mut archive = ZipArchive::new(f)?;
+                let mut first_entry = archive.by_index(0)?;
+                let meta = wii_disc_info::Meta::read(&mut first_entry)?;
+                Ok(meta)
             }
         })
         .await
     } else {
-        File::open(path)
-            .await?
-            .pipe_ref_mut(wii_disc_info::Meta::read_async)
-            .await
-            .map_err(Into::into)
+        let mut f = File::open(path).await?;
+        let meta = wii_disc_info::Meta::read_async(&mut f).await?;
+        Ok(meta)
     }
     .map(|meta| meta.game_id())
 }
