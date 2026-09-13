@@ -22,9 +22,8 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
     let tool_groups = crate::toolbox::all()
         .map(|tool_group| {
             let tools = tool_group
-                .items
-                .iter()
-                .map(|&tool| {
+                .items()
+                .map(|tool| {
                     row![
                         my_button()
                             .icon(Icon::Play)
@@ -38,8 +37,8 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
                 .collect::<Column<'_, _>>()
                 .spacing(5);
 
-            my_group(tool_group.label, tools)
-                .icon(tool_group.icon)
+            my_group(tool_group.label(), tools)
+                .icon(tool_group.icon())
                 .into()
         })
         .collect::<Column<'_, _>>()

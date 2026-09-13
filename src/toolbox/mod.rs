@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{config::Config, errors::Error};
-use async_trait::async_trait;
 use lucide_icons::Icon;
+use std::pin::Pin;
 use wii_disc_info::game_id::GameID;
 
 mod cleanup;
@@ -16,16 +16,40 @@ pub struct ToolContext {
     pub game_ids: Vec<GameID>,
 }
 
-#[async_trait]
-pub trait ToolboxItem: std::fmt::Debug + Send + Sync {
-    fn label(&self) -> &'static str;
-    async fn run(&self, ctx: ToolContext) -> Result<String, Error>;
+#[derive(Debug)]
+pub struct ToolboxItem {
+    label: &'static str,
+    run_fn: fn(ToolContext) -> Pin<Box<dyn Future<Output = Result<String, Error>> + Send>>,
+}
+
+impl ToolboxItem {
+    pub fn label(&self) -> &'static str {
+        self.label
+    }
+
+    pub async fn run(&self, context: ToolContext) -> Result<String, Error> {
+        (self.run_fn)(context).await
+    }
 }
 
 pub struct ToolboxGroup {
-    pub label: &'static str,
-    pub icon: Icon,
-    pub items: &'static [&'static dyn ToolboxItem],
+    label: &'static str,
+    icon: Icon,
+    items: &'static [ToolboxItem],
+}
+
+impl ToolboxGroup {
+    pub fn label(&self) -> &'static str {
+        self.label
+    }
+
+    pub fn icon(&self) -> Icon {
+        self.icon
+    }
+
+    pub fn items(&self) -> impl Iterator<Item = &'static ToolboxItem> {
+        self.items.iter()
+    }
 }
 
 pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {

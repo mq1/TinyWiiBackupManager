@@ -188,7 +188,7 @@ impl AppState {
         self.games.reload_all_covers(&self.data_dir);
     }
 
-    pub fn run_tool(&mut self, tool: &'static dyn ToolboxItem) -> Task<Message> {
+    pub fn run_tool(&mut self, tool: &'static ToolboxItem) -> Task<Message> {
         let ctx = ToolContext {
             config: self.config.clone(),
             game_ids: self.games.get_all_game_ids(),
