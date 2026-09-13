@@ -188,6 +188,10 @@ pub fn sanitize_title(ascii_title: &str) -> String {
     // Remove trailing whitespace in-place
     title.truncate(title.trim_end().len());
 
+    if title.is_empty() {
+        title.push_str("game");
+    }
+
     title
 }
 
