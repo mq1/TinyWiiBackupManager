@@ -7,8 +7,18 @@ use size::Size;
 use smol::fs;
 use std::{
     ffi::{OsStr, OsString},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
+
+pub fn make_osc_url(path: &Path) -> OsString {
+    let mut base = OsString::from("https://oscwii.org/library/app/");
+
+    if let Some(slug) = path.file_name() {
+        base.push(slug);
+    }
+
+    base
+}
 
 #[derive(Debug, Clone)]
 pub struct HomebrewApp {
@@ -16,6 +26,7 @@ pub struct HomebrewApp {
     pub meta: HomebrewAppMeta,
     pub size: Size,
     pub icon: Handle,
+    pub osc_url: OsString,
 }
 
 impl HomebrewApp {
@@ -45,22 +56,15 @@ impl HomebrewApp {
         let icon_bytes = fs::read(&icon_path).await.unwrap_or_default();
         let icon = Handle::from_bytes(icon_bytes);
 
+        let osc_url = make_osc_url(&path);
+
         Ok(Self {
             path,
             meta,
             size,
             icon,
+            osc_url,
         })
-    }
-
-    pub fn osc_url(&self) -> OsString {
-        let mut base = OsString::from("https://oscwii.org/library/app/");
-
-        if let Some(slug) = self.path.file_name() {
-            base.push(slug);
-        }
-
-        base
     }
 }
 

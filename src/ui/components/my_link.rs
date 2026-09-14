@@ -1,60 +1,53 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::messages::Message;
-use derive_setters::Setters;
+use crate::{messages::Message, ui::components::my_card::my_card};
 use iced::{
     Element, Length, Theme,
-    widget::{button, column, row, rule, text},
+    widget::{button, column, row, rule, text, tooltip},
 };
 use lucide_icons::Icon;
-use std::{borrow::Cow, ffi::OsString, path::PathBuf};
+use std::ffi::{OsStr, OsString};
 
-pub trait ToUrl {
-    fn to_url(&self) -> OsString;
-}
+pub fn make_preview<'a>(url: &str) -> String {
+    if url.len() > 63 {
+        let mut preview = String::with_capacity(33);
 
-impl ToUrl for &str {
-    fn to_url(&self) -> OsString {
-        OsString::from(self)
+        preview.push_str(&url[..30]);
+        preview.push_str("..."); // 3 chars
+        preview.push_str(&url[url.len() - 30..]);
+
+        preview
+    } else {
+        url.to_string()
     }
 }
 
-impl ToUrl for &PathBuf {
-    fn to_url(&self) -> OsString {
-        self.as_os_str().to_os_string()
-    }
-}
-
-impl<F: Fn() -> OsString> ToUrl for F {
-    fn to_url(&self) -> OsString {
-        self()
-    }
-}
-
-struct Url<T>(pub T);
-
-impl<T: ToUrl> From<T> for Url<T> {
-    fn from(value: T) -> Self {
-        Self(value)
-    }
-}
-
-impl<T: ToUrl> Url<T> {
-    pub fn url(&self) -> OsString {
-        self.0.to_url()
-    }
-}
-
-#[derive(Setters)]
-pub struct MyLink<'a, T> {
-    #[setters(into)]
-    label: Cow<'a, str>,
-
-    #[setters(into)]
-    url: Url<T>,
-
+pub struct MyLink<L, U> {
+    label: L,
+    url: U,
+    url_preview: String,
     icon: Icon,
+}
+
+impl<'a, L, U> MyLink<L, U>
+where
+    L: Into<String> + 'a,
+    U: AsRef<OsStr> + Into<OsString> + 'a,
+{
+    pub fn new(label: L, url: U) -> Self {
+        Self {
+            label,
+            url_preview: make_preview(&url.as_ref().to_string_lossy()),
+            url,
+            icon: Icon::Globe,
+        }
+    }
+
+    pub fn icon(mut self, icon: Icon) -> Self {
+        self.icon = icon;
+        self
+    }
 }
 
 fn underline() -> Element<'static, Message> {
@@ -68,8 +61,12 @@ fn underline() -> Element<'static, Message> {
     rule::horizontal(1).style(style).into()
 }
 
-impl<'a, T: ToUrl + 'a> From<MyLink<'a, T>> for Element<'a, Message> {
-    fn from(link: MyLink<'a, T>) -> Self {
+impl<'a, L, U> From<MyLink<L, U>> for Element<'a, Message>
+where
+    L: Into<String> + 'a,
+    U: Into<OsString> + 'a,
+{
+    fn from(link: MyLink<L, U>) -> Self {
         fn style(theme: &Theme, status: button::Status) -> button::Style {
             button::Style {
                 text_color: theme.palette().primary,
@@ -77,24 +74,28 @@ impl<'a, T: ToUrl + 'a> From<MyLink<'a, T>> for Element<'a, Message> {
             }
         }
 
-        button(
-            column![
-                row![link.icon.widget(), text(link.label)].spacing(5),
-                underline()
-            ]
-            .width(Length::Shrink),
+        tooltip(
+            button(
+                column![
+                    row![link.icon.widget(), text(link.label.into())].spacing(5),
+                    underline()
+                ]
+                .width(Length::Shrink),
+            )
+            .style(style)
+            .padding(0)
+            .on_press(Message::Open(link.url.into())),
+            my_card(text(link.url_preview)),
+            tooltip::Position::FollowCursor,
         )
-        .style(style)
-        .padding(0)
-        .on_press_with(move || Message::Open(link.url.url()))
         .into()
     }
 }
 
-pub fn my_link<'a, T: ToUrl>(label: impl Into<Cow<'a, str>>, url: T) -> MyLink<'a, T> {
-    MyLink {
-        label: label.into(),
-        url: url.into(),
-        icon: Icon::Globe,
-    }
+pub fn my_link<'a, L, U>(label: L, url: U) -> MyLink<L, U>
+where
+    L: Into<String> + 'a,
+    U: AsRef<OsStr> + Into<OsString> + 'a,
+{
+    MyLink::new(label, url)
 }

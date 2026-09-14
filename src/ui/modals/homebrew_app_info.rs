@@ -67,7 +67,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
             rule::horizontal(1),
             row![
                 space(),
-                my_link("Open Shop Channel page", || app.osc_url()),
+                my_link("Open Shop Channel page", &app.osc_url),
                 space::horizontal(),
                 my_button()
                     .label("Close")

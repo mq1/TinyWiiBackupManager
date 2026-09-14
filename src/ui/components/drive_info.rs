@@ -57,7 +57,7 @@ fn allocation_granularity(state: &AppState) -> (bool, Icon, &'static str) {
     }
 }
 
-fn drive_formatting_guide_link<'a>() -> MyLink<'a, &'a str> {
+fn drive_formatting_guide_link<'a>() -> MyLink<&'a str, &'a str> {
     my_link(
         "Drive formatting guide",
         "https://gbatemp.net/threads/usb-loader-gx-troubleshooting-guide.617564/#fs",
