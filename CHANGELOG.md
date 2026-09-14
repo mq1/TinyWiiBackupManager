@@ -7,13 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Added
 
 - ✅ re-added Redump hash verification (hashes are now embedded into the executable)
 - 📝 Log the conversation to see where a problem occurred (<https://github.com/mq1/tinywiibackupmanager/issues/671>)
 - 🔗 Hovering links now how the url
 
-### Changed
+### Changed
 
 - ⚡️ All IO operations are now executed on a thread pool, UI should be more responsive \
   may improve on <https://github.com/mq1/TinyWiiBackupManager/issues/468>
