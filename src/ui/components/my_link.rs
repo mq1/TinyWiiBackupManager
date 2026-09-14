@@ -4,7 +4,7 @@
 use crate::{messages::Message, ui::components::my_card::my_card};
 use iced::{
     Element, Length, Theme,
-    widget::{button, column, row, rule, text, tooltip},
+    widget::{button, column, row, rule, text, text::IntoFragment, tooltip},
 };
 use lucide_icons::Icon;
 use std::ffi::{OsStr, OsString};
@@ -23,7 +23,12 @@ pub fn make_preview<'a>(url: &str) -> String {
     }
 }
 
-pub struct MyLink<L, U> {
+#[derive(Clone)]
+pub struct MyLink<L, U>
+where
+    L: Clone,
+    U: Clone,
+{
     label: L,
     url: U,
     url_preview: String,
@@ -32,8 +37,8 @@ pub struct MyLink<L, U> {
 
 impl<'a, L, U> MyLink<L, U>
 where
-    L: Into<String> + 'a,
-    U: AsRef<OsStr> + Into<OsString> + 'a,
+    L: IntoFragment<'a> + Clone,
+    U: AsRef<OsStr> + Into<OsString> + 'a + Clone,
 {
     pub fn new(label: L, url: U) -> Self {
         Self {
@@ -63,8 +68,8 @@ fn underline() -> Element<'static, Message> {
 
 impl<'a, L, U> From<MyLink<L, U>> for Element<'a, Message>
 where
-    L: Into<String> + 'a,
-    U: Into<OsString> + 'a,
+    L: IntoFragment<'a> + Clone,
+    U: Into<OsString> + 'a + Clone,
 {
     fn from(link: MyLink<L, U>) -> Self {
         fn style(theme: &Theme, status: button::Status) -> button::Style {
@@ -77,14 +82,14 @@ where
         tooltip(
             button(
                 column![
-                    row![link.icon.widget(), text(link.label.into())].spacing(5),
+                    row![link.icon.widget(), text(link.label)].spacing(5),
                     underline()
                 ]
                 .width(Length::Shrink),
             )
             .style(style)
             .padding(0)
-            .on_press(Message::Open(link.url.into())),
+            .on_press_with(move || Message::Open(link.url.clone().into())),
             my_card(text(link.url_preview)),
             tooltip::Position::FollowCursor,
         )
@@ -94,8 +99,8 @@ where
 
 pub fn my_link<'a, L, U>(label: L, url: U) -> MyLink<L, U>
 where
-    L: Into<String> + 'a,
-    U: AsRef<OsStr> + Into<OsString> + 'a,
+    L: IntoFragment<'a> + Clone,
+    U: Into<OsString> + AsRef<OsStr> + 'a + Clone,
 {
     MyLink::new(label, url)
 }
