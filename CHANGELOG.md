@@ -21,9 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - ⚠️ Update partition scrubbing (fixed by <https://github.com/wiidev/nod/commit/9a7a6b2ef0a1036ff687f8e8ce0d0238064d4aaf>
-  however this nod branch seems is be related to <https://github.com/mq1/TinyWiiBackupManager/issues/664> and <https://github.com/mq1/TinyWiiBackupManager/issues/667>)
-
+  however this nod branch seems is be related to <https://github.com/mq1/TinyWiiBackupManager/issues/664> and <https://github.com/mq1/TinyWiiBackupManager/issues/667>) \
   This will probably be fixed in the next nod release
+- 🖌️ System theme detection on macOS x86_64 for compatibility with macOS < 10.14
 
 ### Fixed
 
