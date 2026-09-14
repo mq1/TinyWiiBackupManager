@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ re-added Redump hash verification (hashes are now embedded into the executable)
 - 📝 Log the conversation to see where a problem occurred (<https://github.com/mq1/tinywiibackupmanager/issues/671>)
 - 🔗 Hovering links now show the url
-- 🍎 TWBM should now work on macOS 10.12 and 10.13 (needs testing)
+- 🍎 TWBM should now work again on macOS 10.12 and 10.13 (needs testing)
 
 ### Changed
 
