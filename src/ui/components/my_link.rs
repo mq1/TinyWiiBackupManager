@@ -11,7 +11,7 @@ use std::ffi::{OsStr, OsString};
 
 pub fn make_preview<'a>(url: &str) -> String {
     if url.len() > 63 {
-        let mut preview = String::with_capacity(33);
+        let mut preview = String::with_capacity(63);
 
         preview.push_str(&url[..30]);
         preview.push_str("..."); // 3 chars
