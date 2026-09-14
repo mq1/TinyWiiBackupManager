@@ -14,6 +14,7 @@ mod games;
 mod homebrew;
 mod messages;
 mod notifications;
+mod osc;
 mod state;
 mod toolbox;
 mod ui;

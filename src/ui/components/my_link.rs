@@ -9,7 +9,7 @@ use iced::{
 use lucide_icons::Icon;
 use std::ffi::{OsStr, OsString};
 
-pub fn make_preview<'a>(url: &str) -> String {
+pub fn make_preview(url: &str) -> String {
     if url.len() > 63 {
         let mut preview = String::with_capacity(63);
 

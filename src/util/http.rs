@@ -2,12 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use smol::fs;
-use std::{ffi::OsStr, path::Path, sync::LazyLock};
+use smol::{
+    fs::{self, File},
+    io::AsyncSeekExt,
+    net::TcpStream,
+};
+use std::{
+    ffi::OsStr,
+    io::{Seek, SeekFrom},
+    path::Path,
+    sync::LazyLock,
+};
+use tempfile::tempfile;
 use ureq::{
     Agent,
     tls::{RootCerts, TlsConfig, TlsProvider},
 };
+use wiiload::WIILOAD_PORT;
+use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
@@ -81,4 +93,83 @@ pub async fn download_file_with_fallback(
     } else {
         Ok(())
     }
+}
+
+pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<(), Error> {
+    if !fs::metadata(dest).await.is_ok_and(|m| m.is_dir()) {
+        return Err(Error::NotADir);
+    }
+
+    smol::unblock({
+        let uri = uri.to_string();
+        let dest = dest.to_path_buf();
+
+        move || {
+            let mut resp = AGENT.get(uri).call()?;
+            let mut body = resp.body_mut().as_reader();
+
+            let mut tmp = tempfile()?;
+            std::io::copy(&mut body, &mut tmp)?;
+
+            let mut archive = ZipArchive::new(&mut tmp)?;
+            archive.extract(dest)?;
+
+            Ok(())
+        }
+    })
+    .await
+}
+
+// recompresses the archive with -9 before sending
+pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<(), Error> {
+    let filename = uri
+        .split('/')
+        .next_back()
+        .and_then(|s| s.strip_suffix(".zip"))
+        .ok_or(Error::InvalidFilename)?;
+
+    let file = smol::unblock({
+        let uri = uri.to_string();
+
+        move || {
+            let mut resp = AGENT.get(&uri).call()?;
+            let mut body = resp.body_mut().as_reader();
+
+            let mut og_app = tempfile()?;
+            std::io::copy(&mut body, &mut og_app)?;
+            og_app.rewind()?;
+            let mut og_app = ZipArchive::new(&mut og_app)?;
+
+            let mut recompressed_app = tempfile()?;
+            let mut writer = ZipWriter::new(&mut recompressed_app);
+
+            let opts = SimpleFileOptions::default()
+                .compression_method(CompressionMethod::Deflated)
+                .compression_level(Some(9));
+
+            for i in 0..og_app.len() {
+                let mut file = og_app.by_index(i)?;
+                if file.is_dir() {
+                    writer.add_directory(file.name(), opts)?;
+                } else {
+                    writer.start_file(file.name(), opts)?;
+                    std::io::copy(&mut file, &mut writer)?;
+                }
+            }
+            writer.finish()?;
+
+            Ok::<_, Error>(recompressed_app)
+        }
+    })
+    .await?;
+
+    // make it async
+    let mut file = File::from(file);
+    file.seek(SeekFrom::Start(0)).await?;
+
+    let size = file.metadata().await?.len() as usize;
+    let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).await?;
+    wiiload::send_async(&mut conn, filename, &mut file, size).await?;
+
+    Ok(())
 }

@@ -212,9 +212,9 @@ impl AppState {
                     .file_name()
                     .and_then(OsStr::to_str)
                     .ok_or(Error::InvalidFilename)?;
-                let body = fs::read(&path).await?;
+                let mut file = File::open(&path).await?;
 
-                wiiload::compress_then_send_async(&mut conn, filename, &body).await?;
+                wiiload::compress_then_send_async(&mut conn, filename, &mut file).await?;
 
                 Ok(filename.to_string())
             },

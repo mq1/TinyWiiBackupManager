@@ -3475,9 +3475,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.44"
+version = "0.23.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6725596c3f2c3a0aef021139e145d4eafe314a6623e4680ca83852b2c67ab2ba"
+checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
 dependencies = [
  "log",
  "once_cell",
@@ -4825,12 +4825,14 @@ dependencies = [
 
 [[package]]
 name = "wiiload"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c20d83f7e00efe38cb4680180ec6b54c4117be6a29bb90940f943ddd032dabf"
+checksum = "ac216dba8b3ba2c4eac1e70db2698a476e3c4e48433e2f64a92b3d6a66ad8215"
 dependencies = [
+ "async-fs",
+ "flate2",
  "futures-lite",
- "miniz_oxide 0.9.1",
+ "tempfile",
  "thiserror 2.0.20",
 ]
 
