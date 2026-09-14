@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- ✅ re-added Redump hash verification (hashes are now embedded into the executable)
+- 📝 Log the conversation to see where a problem occurred (<https://github.com/mq1/tinywiibackupmanager/issues/671>)
+
+### Changed
+
+- ⚡️ All IO operations are now executed on a thread pool, UI should be more responsive \
+  may improve on <https://github.com/mq1/TinyWiiBackupManager/issues/468>
+
+### Removed
+
+- ⚠️ Update partition scrubbing (fixed by <https://github.com/wiidev/nod/commit/9a7a6b2ef0a1036ff687f8e8ce0d0238064d4aaf>
+  however this nod branch seems is be related to <https://github.com/mq1/TinyWiiBackupManager/issues/664> and <https://github.com/mq1/TinyWiiBackupManager/issues/667>)
+
+  This will probably be fixed in the next nod release
+
+### Fixed
+
+- 🐛 Icons are not retina on macOS in 6.x versions (<https://github.com/mq1/tinywiibackupmanager/issues/641>)
+- 🐛 'NSInvalidArgumentException' Abort Start up Error (<https://github.com/mq1/TinyWiiBackupManager/issues/639>)
+- 🐛 WBFS output balloons to ~4.13GB regardless of source file size (regression from v5.2.1) (<https://github.com/mq1/TinyWiiBackupManager/issues/667>)
+- 🐛 Converting very small games to usb flash drive makes them very large on usb (<https://github.com/mq1/TinyWiiBackupManager/issues/664>)
+- 🐛 macOS version crashes when i try to open it (<https://github.com/mq1/TinyWiiBackupManager/issues/646>)
+
 ## [v6.0.7] - 2026-06-05
 
 ## Fixed
