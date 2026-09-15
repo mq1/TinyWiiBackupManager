@@ -21,11 +21,8 @@ use crate::{
 };
 use iced::{
     Alignment, Background, Element, Length, Theme, color,
-    widget::{container, opaque, row, stack, text},
+    widget::{column, container, opaque, row, stack, text},
 };
-
-#[cfg(target_os = "macos")]
-use iced::widget::{column, rule};
 use iced_aw::Spinner;
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
@@ -89,9 +86,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     // fill title bar
     #[cfg(target_os = "macos")]
     let content = column![
-        rule::horizontal(32).style(|theme: &Theme| rule::Style {
+        iced::widget::rule::horizontal(32).style(|theme: &Theme| rule::Style {
             color: theme.palette().background,
-            ..rule::default(theme)
+            ..iced::widget::rule::default(theme)
         }),
         content
     ];
