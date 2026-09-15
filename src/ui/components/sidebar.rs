@@ -16,25 +16,6 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn sidebar(state: &AppState) -> Element<'_, Message> {
-    let import_queue_button: Element<'_, Message> = if state.import_queue.is_empty() {
-        space().into()
-    } else {
-        let import_queue_icon = if state.ongoing.contains(Ongoing::AnimationState) {
-            Icon::ArrowUp10
-        } else {
-            Icon::ArrowUp01
-        };
-
-        tooltip(
-            my_sidebar_button(&[import_queue_icon])
-                .active(state.current_page == Page::ImportQueue)
-                .on_press(Message::NavigateTo(Page::ImportQueue)),
-            my_card("Import queue"),
-            tooltip::Position::Right,
-        )
-        .into()
-    };
-
     column![
         tooltip(
             my_sidebar_button(&[Icon::Gamepad2])
@@ -72,7 +53,21 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
             tooltip::Position::Right
         ),
         space::vertical(),
-        import_queue_button,
+        (!state.import_queue.is_empty()).then(|| {
+            let import_queue_icon = if state.ongoing.contains(Ongoing::AnimationState) {
+                Icon::ArrowUp10
+            } else {
+                Icon::ArrowUp01
+            };
+
+            tooltip(
+                my_sidebar_button(&[import_queue_icon])
+                    .active(state.current_page == Page::ImportQueue)
+                    .on_press(Message::NavigateTo(Page::ImportQueue)),
+                my_card("Import queue"),
+                tooltip::Position::Right,
+            )
+        }),
         tooltip(
             my_sidebar_button(&[Icon::HardDrive]).on_press(Message::PickMountPoint),
             my_card("Select a drive"),
