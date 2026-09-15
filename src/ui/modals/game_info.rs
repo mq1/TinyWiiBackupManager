@@ -81,7 +81,7 @@ pub fn game_info<'a>(
     my_card(
         column![
             column![
-                text(&game.title).size(18),
+                text(&*game.title).size(18),
                 my_link(game.path.to_string_lossy(), &game.path).icon(Icon::Folder)
             ]
             .spacing(10)

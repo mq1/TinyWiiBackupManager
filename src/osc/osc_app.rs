@@ -6,58 +6,53 @@ use crate::{
     util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file},
 };
 use serde::Deserialize;
+use smol_str::SmolStr;
 use std::path::Path;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct OscAppMetaAsset {
-    pub url: String,
+pub struct OscAppAsset {
+    pub url: SmolStr,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct OscAppMetaAssets {
-    icon: OscAppMetaAsset,
-    archive: OscAppMetaAsset,
+pub struct OscAppAssets {
+    icon: OscAppAsset,
+    archive: OscAppAsset,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct OscAppMetaDescription {
-    pub short: String,
-    pub long: String,
+pub struct OscAppDescription {
+    short: SmolStr,
+    long: SmolStr,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct OscAppMeta {
-    pub slug: String,
-    pub name: String,
-    pub author: String,
-    pub version: String,
-    pub assets: OscAppMetaAssets,
-    pub uncompressed_size: u64,
-    pub release_date: i64,
-    pub description: OscAppMetaDescription,
-}
-
-#[derive(Debug, Clone)]
 pub struct OscApp {
-    pub meta: OscAppMeta,
-    pub search_term: String,
+    slug: SmolStr,
+    name: SmolStr,
+    author: SmolStr,
+    version: SmolStr,
+    assets: OscAppAssets,
+    uncompressed_size: u64,
+    release_date: i64,
+    description: OscAppDescription,
 }
 
 impl OscApp {
     pub async fn download_icon(&self, data_dir: &Path) -> Result<(), Error> {
         let icon_path = data_dir
             .join("osc-icons")
-            .join(&self.meta.slug)
+            .join(&self.slug)
             .with_added_extension("png");
 
-        download_file(&self.meta.assets.icon.url, &icon_path).await
+        download_file(&self.assets.icon.url, &icon_path).await
     }
 
     pub async fn install(&self, root_dir: &Path) -> Result<(), Error> {
-        download_and_extract_zip(&self.meta.assets.archive.url, root_dir).await
+        download_and_extract_zip(&self.assets.archive.url, root_dir).await
     }
 
     pub async fn wiiload(&self, wii_ip: &str) -> Result<(), Error> {
-        download_and_send_via_wiiload(&self.meta.assets.archive.url, wii_ip).await
+        download_and_send_via_wiiload(&self.assets.archive.url, wii_ip).await
     }
 }

@@ -8,7 +8,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, row, space, text, tooltip},
+    widget::{column, image, image::Handle, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
@@ -18,7 +18,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         Some(cover) => {
             let (w, h) = cover.dimensions();
             let bytes = cover.as_raw().clone();
-            let handle = iced::widget::image::Handle::from_rgba(w, h, bytes);
+            let handle = Handle::from_rgba(w, h, bytes);
             image(handle).height(96).into()
         }
         None => space().height(96).into(),
@@ -34,7 +34,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
             ]
             .spacing(5),
             cover,
-            ellipsized_text(&game.title).wrapping(text::Wrapping::None),
+            ellipsized_text(&*game.title).wrapping(text::Wrapping::None),
             row![
                 my_button()
                     .label("Info")

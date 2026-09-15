@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use wii_disc_info::game_id::GameID;
-
 use crate::{
     config::{
         Config, GcOutputFormat, PreferredLanguage, SortBy, ThemePreference, TxtCodesSource, ViewAs,
@@ -11,11 +9,13 @@ use crate::{
     errors::Error,
     games::{game::Game, game_list::GameList},
     homebrew::{homebrew_app::HomebrewApp, homebrew_app_list::HomebrewAppList},
+    osc::osc_contents::OscContents,
     toolbox::ToolboxItem,
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
 use std::{ffi::OsString, path::PathBuf};
+use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -65,6 +65,7 @@ pub enum Message {
     PickFileToSendViaWiiload,
     SendViaWiiload(PathBuf),
     SentFileViaWiiload(Result<String, Error>),
+    GotOscContents(OscContents),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

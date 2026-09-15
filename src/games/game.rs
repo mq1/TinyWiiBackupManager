@@ -13,8 +13,8 @@ use nod::{
 };
 use size::Size;
 use smol::fs;
+use smol_str::SmolStr;
 use std::{
-    borrow::Cow,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
@@ -24,7 +24,7 @@ use wii_disc_info::game_id::GameID;
 pub struct Game {
     pub path: PathBuf,
     pub id: GameID,
-    pub title: Cow<'static, str>,
+    pub title: SmolStr,
     pub size: Size,
     pub is_wii: bool,
     pub cover: Option<RgbaImage>,
@@ -63,7 +63,7 @@ impl Game {
 
         // get the pretty title
         let title = twbm_idmap::get_title(id)
-            .map_or_else(|| Cow::Owned(title_raw.trim().to_string()), Cow::Borrowed);
+            .map_or_else(|| SmolStr::new(title_raw.trim()), SmolStr::new_static);
 
         let size = get_dir_size(&path).await;
 
@@ -156,10 +156,10 @@ impl Game {
             if known_sha1 {
                 Ok(format!(
                     "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
-                    game.title.as_ref()
+                    game.title
                 ))
             } else {
-                Err(Error::HashMismatch(game.title.into_owned()))
+                Err(Error::HashMismatch(game.title.clone()))
             }
         })
     }

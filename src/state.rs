@@ -8,6 +8,7 @@ use crate::{
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
+    osc::osc_contents::OscContents,
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
@@ -27,7 +28,7 @@ use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
 
 #[derive(Debug, EnumSetType)]
-pub(crate) enum Ongoing {
+pub enum Ongoing {
     Converting,
     GettingGames,
     GettingHomebrewApps,
@@ -39,18 +40,19 @@ pub(crate) enum Ongoing {
 
 #[derive(Default)]
 pub(crate) struct AppState {
-    pub(crate) data_dir: PathBuf,
-    pub(crate) config: Config,
-    pub(crate) notifications: NotificationList,
-    pub(crate) drive_info: Option<DriveInfo>,
-    pub(crate) games: GameList,
-    pub(crate) homebrew_apps: HomebrewAppList,
-    pub(crate) current_page: Page,
-    pub(crate) current_modal: Option<Modal>,
-    pub(crate) status: String,
-    pub(crate) exporting_status: String,
-    pub(crate) import_queue: Vec<PathBuf>,
-    pub(crate) ongoing: EnumSet<Ongoing>,
+    pub data_dir: PathBuf,
+    pub config: Config,
+    pub notifications: NotificationList,
+    pub drive_info: Option<DriveInfo>,
+    pub games: GameList,
+    pub homebrew_apps: HomebrewAppList,
+    pub current_page: Page,
+    pub current_modal: Option<Modal>,
+    pub status: String,
+    pub exporting_status: String,
+    pub import_queue: Vec<PathBuf>,
+    pub ongoing: EnumSet<Ongoing>,
+    pub osc_contents: OscContents,
 }
 
 impl AppState {
@@ -219,6 +221,15 @@ impl AppState {
                 Ok(filename.to_string())
             },
             Message::SentFileViaWiiload,
+        )
+    }
+
+    pub fn load_osc_contents_task(&self) -> Task<Message> {
+        let data_dir = self.data_dir.clone();
+
+        Task::perform(
+            async move { OscContents::load(&data_dir).await },
+            Message::GotOscContents,
         )
     }
 }

@@ -15,6 +15,7 @@ pub enum Page {
     #[default]
     Games,
     HomebrewApps,
+    Osc,
     Settings,
     Toolbox,
     ImportQueue,

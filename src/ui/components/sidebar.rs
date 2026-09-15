@@ -53,7 +53,11 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button([Icon::Waves, Icon::ArrowBigDown], false),
+            my_sidebar_button(
+                [Icon::Waves, Icon::ArrowBigDown],
+                state.current_page == Page::Osc
+            )
+            .on_press(Message::NavigateTo(Page::Osc)),
             my_card("Open Shop Channel"),
             tooltip::Position::Right
         ),

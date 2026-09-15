@@ -27,6 +27,7 @@ iced = { version = "0.14", default-features = false, features = [
   "advanced",
 ] }
 iced_palace = "0.14"
+iced_aw = { version = "0.14", default-features = false, features = ["spinner"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 lucide-icons = { version = "1", features = ["iced"] }
 rfd = "0.17"
@@ -57,6 +58,7 @@ derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
 derive_setters = "0.1"
 enumset = "1"
 wiiload = { version = "0.5", features = ["async"] }
+smol_str = { version = "0.3", features = ["serde"] }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

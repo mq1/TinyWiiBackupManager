@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use std::{fs, path::PathBuf};
+use smol_str::{SmolStr, format_smolstr};
+use std::{fs, path::Path};
 
-fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<String> {
+fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<SmolStr> {
     let start = contents.find(start_pattern)?;
     let slice = &contents[start..];
     let start = slice.find('>')? + 1;
@@ -12,7 +13,7 @@ fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<S
     let end = slice.find(end_pattern)?;
     let value = &slice[..end];
 
-    Some(value.trim().to_string())
+    Some(SmolStr::new(value.trim()))
 }
 
 macro_rules! get_property {
@@ -23,13 +24,13 @@ macro_rules! get_property {
     }};
 }
 
-fn parse_release_date(raw: String) -> String {
+fn parse_release_date(raw: SmolStr) -> SmolStr {
     if raw.len() >= 8 {
         let year = &raw[0..4];
         let month = &raw[4..6];
         let day = &raw[6..8];
 
-        format!("{year}-{month}-{day}")
+        format_smolstr!("{year}-{month}-{day}")
     } else {
         raw
     }
@@ -37,18 +38,17 @@ fn parse_release_date(raw: String) -> String {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewAppMeta {
-    pub name: String,
-    pub version: String,
-    pub release_date: String,
-    pub coder: String,
-    pub short_description: String,
-    pub long_description: String,
+    pub name: SmolStr,
+    pub version: SmolStr,
+    pub release_date: SmolStr,
+    pub coder: SmolStr,
+    pub short_description: SmolStr,
+    pub long_description: SmolStr,
 }
 
 impl HomebrewAppMeta {
-    pub fn parse(app_path: impl Into<PathBuf>) -> Result<Self, Error> {
-        let mut path = app_path.into();
-        path.push("meta.xml");
+    pub fn parse(app_path: &Path) -> Result<Self, Error> {
+        let path = app_path.join("meta.xml");
         let contents = fs::read_to_string(&path)?;
 
         let root = get_property!(&contents, "app").ok_or(Error::InvalidHomebrewAppMeta)?;

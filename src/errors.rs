@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use itertools::Itertools;
+use smol_str::SmolStr;
 use wii_disc_info::game_id::GameID;
 
 #[derive(thiserror::Error, Debug, Clone)]
@@ -49,7 +50,7 @@ pub enum Error {
     NodOther(String),
 
     #[error("Hash mismatch for {0}")]
-    HashMismatch(String),
+    HashMismatch(SmolStr),
 
     #[error("Failed to get inner writer")]
     IntoInnerWriter,

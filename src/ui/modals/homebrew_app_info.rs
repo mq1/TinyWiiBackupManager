@@ -42,7 +42,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
             ]
             .spacing(5),
             rule::horizontal(1),
-            text(&app.meta.long_description)
+            text(&*app.meta.long_description)
                 .height(100)
                 .width(Length::Fill)
         ]
@@ -56,7 +56,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
     my_card(
         column![
             column![
-                text(&app.meta.name).size(18),
+                text(&*app.meta.name).size(18),
                 my_link(app.path.to_string_lossy(), &app.path).icon(Icon::Folder)
             ]
             .spacing(10)

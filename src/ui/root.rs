@@ -4,6 +4,7 @@
 use crate::{
     config::ViewAs,
     messages::Message,
+    osc::osc_contents::OscContents,
     state::AppState,
     ui::{
         components::{notifications::notifications, sidebar::sidebar},
@@ -19,12 +20,13 @@ use crate::{
     },
 };
 use iced::{
-    Background, Element, Length, Theme, color,
-    widget::{container, opaque, row, stack},
+    Alignment, Background, Element, Length, Theme, color,
+    widget::{container, opaque, row, stack, text},
 };
 
 #[cfg(target_os = "macos")]
 use iced::widget::{column, rule};
+use iced_aw::Spinner;
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = stack![
@@ -35,6 +37,19 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 (Page::Games, ViewAs::Table) => game_table(state),
                 (Page::HomebrewApps, ViewAs::Grid) => homebrew_app_grid(state),
                 (Page::HomebrewApps, ViewAs::Table) => homebrew_app_table(state),
+                (Page::Osc, _) => match &state.osc_contents {
+                    OscContents::NotYetLoaded => container(
+                        column![text("Loading..."), Spinner::new()]
+                            .spacing(10)
+                            .align_x(Alignment::Center),
+                    )
+                    .center(Length::Fill)
+                    .into(),
+                    OscContents::Errored(e) =>
+                        container(text!("Error: {e}")).center(Length::Fill).into(),
+                    OscContents::Loaded(_apps) =>
+                        container(text("TODO")).center(Length::Fill).into(),
+                },
                 (Page::Settings, _) => settings(state),
                 (Page::Toolbox, _) => toolbox(state),
                 (Page::ImportQueue, _) => import_queue(state),

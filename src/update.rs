@@ -7,7 +7,7 @@ use crate::{
     messages::Message,
     notifications::notification::Notification,
     state::{AppState, Ongoing},
-    ui::{dialogs, modals::Modal},
+    ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
 
@@ -16,7 +16,12 @@ impl AppState {
         match message {
             Message::NavigateTo(page) => {
                 self.current_page = page;
-                Task::none()
+
+                if page == Page::Osc {
+                    self.load_osc_contents_task()
+                } else {
+                    Task::none()
+                }
             }
             Message::PickMountPoint => self
                 .init_file_dialog_task()
@@ -329,6 +334,10 @@ impl AppState {
             }
             Message::SentFileViaWiiload(Err(e)) => {
                 self.notifications.push(Notification::error(e));
+                Task::none()
+            }
+            Message::GotOscContents(contents) => {
+                self.osc_contents = contents;
                 Task::none()
             }
         }

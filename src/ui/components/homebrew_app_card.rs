@@ -24,7 +24,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
             ]
             .spacing(5),
             image(&app.icon).height(96),
-            ellipsized_text(&app.meta.name).wrapping(text::Wrapping::None),
+            ellipsized_text(&*app.meta.name).wrapping(text::Wrapping::None),
             row![
                 my_button()
                     .label("Info")
