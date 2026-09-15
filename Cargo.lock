@@ -2287,9 +2287,9 @@ dependencies = [
 
 [[package]]
 name = "lucide-icons"
-version = "1.45.0"
+version = "1.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0bd2eb5c7d3d6b3aca41a0e305d347038dfc992515706c77e5b856585bb690c"
+checksum = "861278321b562ce3b48c6f2ab92190fcfaec5f5269a30c145f6fcf6e6a95b0a8"
 dependencies = [
  "iced",
 ]
@@ -5514,9 +5514,9 @@ dependencies = [
 
 [[package]]
 name = "zlib-rs"
-version = "0.6.7"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34b31d188d9d685a4f9c7b46d6e36631b07058d2cfe190267adce54dc230bf12"
+checksum = "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112"
 
 [[package]]
 name = "zmij"
