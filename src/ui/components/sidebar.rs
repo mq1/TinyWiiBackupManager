@@ -16,59 +16,57 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn sidebar(state: &AppState) -> Element<'_, Message> {
-    let import_queue_button: Element<'_, Message> = {
-        if !state.import_queue.is_empty() {
-            let icon = if state.ongoing.contains(Ongoing::AnimationState) {
-                Icon::ArrowUp10
-            } else {
-                Icon::ArrowUp01
-            };
-
-            tooltip(
-                my_sidebar_button([icon], state.current_page == Page::ImportQueue)
-                    .on_press(Message::NavigateTo(Page::ImportQueue)),
-                my_card("Import queue"),
-                tooltip::Position::Right,
-            )
-            .into()
+    let import_queue_button: Element<'_, Message> = if state.import_queue.is_empty() {
+        space().into()
+    } else {
+        let import_queue_icon = if state.ongoing.contains(Ongoing::AnimationState) {
+            Icon::ArrowUp10
         } else {
-            space().into()
-        }
+            Icon::ArrowUp01
+        };
+
+        tooltip(
+            my_sidebar_button(&[import_queue_icon])
+                .active(state.current_page == Page::ImportQueue)
+                .on_press(Message::NavigateTo(Page::ImportQueue)),
+            my_card("Import queue"),
+            tooltip::Position::Right,
+        )
+        .into()
     };
 
     column![
         tooltip(
-            my_sidebar_button([Icon::Gamepad2], state.current_page == Page::Games)
+            my_sidebar_button(&[Icon::Gamepad2])
+                .active(state.current_page == Page::Games)
                 .on_press(Message::NavigateTo(Page::Games)),
             my_card("Games"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button(
-                [Icon::Waves, Icon::Bubbles],
-                state.current_page == Page::HomebrewApps
-            )
-            .on_press(Message::NavigateTo(Page::HomebrewApps)),
+            my_sidebar_button(&[Icon::Waves, Icon::Bubbles])
+                .active(state.current_page == Page::HomebrewApps)
+                .on_press(Message::NavigateTo(Page::HomebrewApps)),
             my_card("Homebrew Apps"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button(
-                [Icon::Waves, Icon::ArrowBigDown],
-                state.current_page == Page::Osc
-            )
-            .on_press(Message::NavigateTo(Page::Osc)),
+            my_sidebar_button(&[Icon::Waves, Icon::ArrowBigDown])
+                .active(state.current_page == Page::Osc)
+                .on_press(Message::NavigateTo(Page::Osc)),
             my_card("Open Shop Channel"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button([Icon::ToolCase], state.current_page == Page::Toolbox)
+            my_sidebar_button(&[Icon::ToolCase])
+                .active(state.current_page == Page::Toolbox)
                 .on_press(Message::NavigateTo(Page::Toolbox)),
             my_card("Toolbox"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button([Icon::Settings], state.current_page == Page::Settings)
+            my_sidebar_button(&[Icon::Settings])
+                .active(state.current_page == Page::Settings)
                 .on_press(Message::NavigateTo(Page::Settings)),
             my_card("Settings"),
             tooltip::Position::Right
@@ -76,12 +74,13 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
         space::vertical(),
         import_queue_button,
         tooltip(
-            my_sidebar_button([Icon::HardDrive], false).on_press(Message::PickMountPoint),
+            my_sidebar_button(&[Icon::HardDrive]).on_press(Message::PickMountPoint),
             my_card("Select a drive"),
             tooltip::Position::Right
         ),
         tooltip(
-            my_sidebar_button([Icon::Info], state.current_page == Page::About)
+            my_sidebar_button(&[Icon::Info])
+                .active(state.current_page == Page::About)
                 .on_press(Message::NavigateTo(Page::About)),
             my_card("About"),
             tooltip::Position::Right

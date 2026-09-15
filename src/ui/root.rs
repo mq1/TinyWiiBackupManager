@@ -86,7 +86,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     // fill title bar
     #[cfg(target_os = "macos")]
     let content = column![
-        iced::widget::rule::horizontal(32).style(|theme: &Theme| rule::Style {
+        iced::widget::rule::horizontal(32).style(|theme: &Theme| iced::widget::rule::Style {
             color: theme.palette().background,
             ..iced::widget::rule::default(theme)
         }),

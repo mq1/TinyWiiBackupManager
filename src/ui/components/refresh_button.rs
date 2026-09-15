@@ -13,19 +13,13 @@ use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
-    let refresh_btn = my_button()
-        .icon(Icon::RotateCw)
-        .kind(MyButtonKind::Toolbar)
-        .on_press_maybe(
-            state
-                .ongoing
-                .is_disjoint(
-                    Ongoing::GettingGames
-                        | Ongoing::GettingHomebrewApps
-                        | Ongoing::GettingDriveInfo,
-                )
-                .then_some(Message::RefreshGamesAndApps),
-        );
+    let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
+
+    if state.ongoing.is_disjoint(
+        Ongoing::GettingGames | Ongoing::GettingHomebrewApps | Ongoing::GettingDriveInfo,
+    ) {
+        refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);
+    }
 
     tooltip(
         refresh_btn,

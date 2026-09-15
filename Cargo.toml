@@ -55,7 +55,6 @@ zip = { version = "8", default-features = false, features = [
 strum = "0.28"
 strum_macros = "0.28"
 derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
-derive_setters = "0.1"
 enumset = "1"
 wiiload = { version = "0.5", features = ["async"] }
 smol_str = { version = "0.3", features = ["serde"] }

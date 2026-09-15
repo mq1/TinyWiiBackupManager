@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{messages::Message, ui::components::my_card::my_card};
-use derive_setters::Setters;
 use iced::{
     Background, Border, Element, Theme, border,
     widget::{Row, button, text, tooltip},
@@ -41,12 +40,18 @@ fn toggle((index, item): (usize, DualToggleItem<'_>)) -> Element<'_, Message> {
     .into()
 }
 
-#[derive(Setters)]
 pub struct DualToggleItem<'a> {
     pub icon: Icon,
     pub desc: &'a str,
     pub active: bool,
     pub on_press: Message,
+}
+
+impl<'a> DualToggleItem<'a> {
+    pub fn active(mut self, active: bool) -> Self {
+        self.active = active;
+        self
+    }
 }
 
 pub fn dual_toggle(items: [DualToggleItem<'_>; 2]) -> Element<'_, Message> {

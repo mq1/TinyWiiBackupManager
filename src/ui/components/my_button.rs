@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::messages::Message;
-use derive_setters::Setters;
 use iced::{
     Element, Length, Theme, border,
-    widget::{button, container, row, text},
+    widget::{Button, button, container, row, text},
 };
 use lucide_icons::Icon;
 
@@ -43,47 +42,69 @@ impl MyButtonKind {
     }
 }
 
-pub trait Press {
-    fn msg(&self) -> Message;
-}
-
-impl Press for Message {
-    fn msg(&self) -> Message {
-        self.clone()
-    }
-}
-
-impl<T: Fn() -> Message> Press for T {
-    fn msg(&self) -> Message {
-        self()
-    }
-}
-
-#[derive(Setters)]
-pub struct MyButton<'a, T: Press> {
-    #[setters(strip_option)]
+pub struct MyButton<'a, T> {
     label: Option<&'a str>,
-
-    #[setters(strip_option)]
     icon: Option<Icon>,
-
     kind: MyButtonKind,
-
-    #[setters(skip)]
     press: Option<T>,
-
-    #[setters(bool)]
     expand_width: bool,
+}
+
+impl<'a, T> MyButton<'a, T> {
+    pub fn label(mut self, label: &'a str) -> Self {
+        self.label = Some(label);
+        self
+    }
+
+    pub fn icon(mut self, icon: Icon) -> Self {
+        self.icon = Some(icon);
+        self
+    }
+
+    pub fn kind(mut self, kind: MyButtonKind) -> Self {
+        self.kind = kind;
+        self
+    }
+
+    pub fn expand_width(mut self) -> Self {
+        self.expand_width = true;
+        self
+    }
+
+    fn base(self) -> Button<'a, Message> {
+        let mut btn = button(
+            container(
+                row![
+                    self.icon.map(Icon::widget).map(|icon| match self.kind {
+                        MyButtonKind::Toolbar => icon.size(18),
+                        _ => icon,
+                    }),
+                    self.label.map(text).map(|label| match self.kind {
+                        MyButtonKind::Toolbar => label.size(18),
+                        _ => label,
+                    })
+                ]
+                .spacing(5),
+            )
+            .center(Length::Shrink),
+        )
+        .style(self.kind.style());
+
+        if self.kind == MyButtonKind::Toolbar {
+            btn = btn.padding(0).width(34).height(34);
+        }
+
+        if self.expand_width {
+            btn = btn.width(Length::Fill);
+        }
+
+        btn
+    }
 }
 
 impl<'a> MyButton<'a, Message> {
     pub fn on_press(mut self, press: Message) -> Self {
         self.press = Some(press);
-        self
-    }
-
-    pub fn on_press_maybe(mut self, press: Option<Message>) -> Self {
-        self.press = press;
         self
     }
 }
@@ -95,43 +116,27 @@ impl<'a, T: Fn() -> Message> MyButton<'a, T> {
     }
 }
 
-impl<'a, T: Press + 'a> From<MyButton<'a, T>> for Element<'a, Message> {
-    fn from(value: MyButton<'a, T>) -> Self {
-        let mut btn = button(
-            container(
-                row![
-                    value.icon.map(Icon::widget).map(|icon| match value.kind {
-                        MyButtonKind::Toolbar => icon.size(18),
-                        _ => icon,
-                    }),
-                    value.label.map(text).map(|label| match value.kind {
-                        MyButtonKind::Toolbar => label.size(18),
-                        _ => label,
-                    })
-                ]
-                .spacing(5),
-            )
-            .center(Length::Shrink),
-        )
-        .style(value.kind.style());
-
-        if value.kind == MyButtonKind::Toolbar {
-            btn = btn.padding(0).width(34).height(34);
+impl<'a> From<MyButton<'a, Message>> for Element<'a, Message> {
+    fn from(mut value: MyButton<'a, Message>) -> Self {
+        if let Some(press) = value.press.take() {
+            value.base().on_press(press).into()
+        } else {
+            value.base().into()
         }
-
-        if let Some(press) = value.press {
-            btn = btn.on_press_with(move || press.msg());
-        }
-
-        if value.expand_width {
-            btn = btn.width(Length::Fill);
-        }
-
-        btn.into()
     }
 }
 
-pub fn my_button<'a, T: Press>() -> MyButton<'a, T> {
+impl<'a, T: Fn() -> Message + 'a> From<MyButton<'a, T>> for Element<'a, Message> {
+    fn from(mut value: MyButton<'a, T>) -> Self {
+        if let Some(press) = value.press.take() {
+            value.base().on_press_with(press).into()
+        } else {
+            value.base().into()
+        }
+    }
+}
+
+pub fn my_button<'a, T>() -> MyButton<'a, T> {
     MyButton {
         label: None,
         icon: None,
