@@ -24,11 +24,6 @@ pub fn game_info<'a>(
     disc_info: Option<&'a wii_disc_info::Meta>,
 ) -> Element<'a, Message> {
     let content: Element<'a, _> = if let Some(disc_info) = disc_info {
-        let cover: Element<'_, Message> = match &game.cover {
-            Some(cover) => image(cover.handle()).height(200).into(),
-            None => space().height(200).into(),
-        };
-
         row![
             column![
                 row![
@@ -64,7 +59,9 @@ pub fn game_info<'a>(
             ]
             .spacing(5),
             space::horizontal(),
-            cover,
+            game.cover
+                .as_ref()
+                .map(|cover| image(cover.handle()).height(200)),
         ]
         .padding(20)
         .align_y(Alignment::Center)
