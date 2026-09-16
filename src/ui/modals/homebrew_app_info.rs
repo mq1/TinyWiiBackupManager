@@ -47,7 +47,9 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
                 .width(Length::Fill)
         ]
         .spacing(5),
-        image(&app.icon).height(200),
+        app.icon
+            .as_ref()
+            .map(|icon| image(icon.handle()).height(200)),
     ]
     .padding(20)
     .spacing(50)

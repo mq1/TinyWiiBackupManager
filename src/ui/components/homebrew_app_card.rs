@@ -14,6 +14,11 @@ use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
 pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
+    let icon: Element<'_, Message> = match &app.icon {
+        Some(icon) => image(icon.handle()).height(96).into(),
+        None => space().height(96).into(),
+    };
+
     my_card(
         column![
             row![
@@ -23,7 +28,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
                 text!("{}", app.size)
             ]
             .spacing(5),
-            image(&app.icon).height(96),
+            icon,
             ellipsized_text(&*app.meta.name).wrapping(text::Wrapping::None),
             row![
                 my_button()

@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{errors::Error, homebrew::meta::HomebrewAppMeta, util::fs::get_dir_size};
-use iced::widget::image::Handle;
+use iced::{
+    advanced::image::{Allocation, allocate},
+    widget::image,
+};
 use size::Size;
 use smol::fs;
 use std::{
@@ -25,7 +28,7 @@ pub struct HomebrewApp {
     pub path: PathBuf,
     pub meta: HomebrewAppMeta,
     pub size: Size,
-    pub icon: Handle,
+    pub icon: Option<Allocation>,
     pub osc_url: OsString,
 }
 
@@ -52,9 +55,15 @@ impl HomebrewApp {
 
         let size = get_dir_size(&path).await;
 
-        let icon_path = path.join("icon.png");
-        let icon_bytes = fs::read(&icon_path).await.unwrap_or_default();
-        let icon = Handle::from_bytes(icon_bytes);
+        let icon = {
+            let path = path.join("icon.png");
+
+            fs::read(&path)
+                .await
+                .ok()
+                .map(image::Handle::from_bytes)
+                .map(|handle| unsafe { allocate(&handle, (128, 48).into()) })
+        };
 
         let osc_url = make_osc_url(&path);
 
