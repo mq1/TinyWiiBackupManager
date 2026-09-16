@@ -5,8 +5,11 @@ use crate::{
     errors::Error,
     util::{fs::get_dir_size, sha1_list},
 };
-use iced::task::{Straw, sipper};
-use image::{DynamicImage, ImageFormat, RgbaImage};
+use iced::{
+    advanced::image::{Allocation, allocate},
+    task::{Straw, sipper},
+    widget::image,
+};
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
@@ -27,7 +30,7 @@ pub struct Game {
     pub title: SmolStr,
     pub size: Size,
     pub is_wii: bool,
-    pub cover: Option<RgbaImage>,
+    pub cover: Option<Allocation>,
 }
 
 impl Game {
@@ -172,10 +175,8 @@ impl Game {
 
         self.cover = std::fs::read(cover_path)
             .ok()
-            .and_then(|bytes| {
-                image::load_from_memory_with_format(&bytes[..], ImageFormat::Png).ok()
-            })
-            .map(DynamicImage::into_rgba8);
+            .map(image::Handle::from_bytes)
+            .map(|handle| unsafe { allocate(&handle, (176, 248).into()) })
     }
 }
 

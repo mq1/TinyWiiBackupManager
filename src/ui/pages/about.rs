@@ -8,6 +8,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element, Length,
+    advanced::image::{Allocation, allocate},
     widget::{column, image, row, rule, space, text},
 };
 use lucide_icons::{
@@ -18,9 +19,10 @@ use std::sync::LazyLock;
 
 const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"));
 
-static ICON: LazyLock<image::Handle> = LazyLock::new(|| {
+static ICON: LazyLock<Allocation> = LazyLock::new(|| {
     let bytes = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
-    image::Handle::from_bytes(&bytes[..])
+    let handle = image::Handle::from_bytes(&bytes[..]);
+    unsafe { allocate(&handle, (128, 128).into()) }
 });
 
 pub fn about(state: &AppState) -> Element<'_, Message> {
@@ -39,7 +41,7 @@ pub fn about(state: &AppState) -> Element<'_, Message> {
         my_card(
             column![
                 row![
-                    image(&*ICON).width(128).height(128),
+                    image(ICON.handle()).width(128).height(128),
                     column![
                         space().height(20),
                         text(TITLE).size(20),

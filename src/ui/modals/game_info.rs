@@ -12,7 +12,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, image::Handle as ImageHandle, row, rule, space, text, tooltip},
+    widget::{column, image, row, rule, space, text, tooltip},
 };
 use lucide_icons::{
     Icon,
@@ -25,12 +25,7 @@ pub fn game_info<'a>(
 ) -> Element<'a, Message> {
     let content: Element<'a, _> = if let Some(disc_info) = disc_info {
         let cover: Element<'_, Message> = match &game.cover {
-            Some(cover) => {
-                let (w, h) = cover.dimensions();
-                let bytes = cover.as_raw().clone();
-                let handle = ImageHandle::from_rgba(w, h, bytes);
-                image(handle).height(200).into()
-            }
+            Some(cover) => image(cover.handle()).height(200).into(),
             None => space().height(200).into(),
         };
 

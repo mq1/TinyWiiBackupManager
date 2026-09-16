@@ -8,19 +8,14 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, image::Handle, row, space, text, tooltip},
+    widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
 pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     let cover: Element<'_, Message> = match &game.cover {
-        Some(cover) => {
-            let (w, h) = cover.dimensions();
-            let bytes = cover.as_raw().clone();
-            let handle = Handle::from_rgba(w, h, bytes);
-            image(handle).height(96).into()
-        }
+        Some(cover) => image(cover.handle()).height(96).into(),
         None => space().height(96).into(),
     };
 
