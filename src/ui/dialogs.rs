@@ -96,7 +96,7 @@ pub fn make_pick_games_recursively_dialog_task(
 }
 
 pub fn make_pick_export_game_dest_dialog_task(base: AsyncFileDialog, game: Game) -> Task<Message> {
-    let ascii_title = twbm_idmap::get_ascii_title(game.id).unwrap_or(&game.title);
+    let ascii_title = twbm_idmap::get_ascii_title(game.id()).unwrap_or(game.title());
     let sanitized_title = sanitize_title(ascii_title);
     let filename = format!("{sanitized_title}.rvz");
 

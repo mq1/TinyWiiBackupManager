@@ -6,10 +6,12 @@ use crate::{
     homebrew::homebrew_app_list::HomebrewAppList,
     messages::Message,
     notifications::notification::Notification,
+    osc::osc_contents::OscContents,
     state::{AppState, Ongoing},
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
+use smol_str::StrExt;
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -268,11 +270,11 @@ impl AppState {
                 self.write_config_task()
             }
             Message::SearchGames(search_term) => {
-                self.games.filter.search_term = search_term;
+                self.games.filter.search_term = search_term.to_lowercase_smolstr();
                 Task::none()
             }
             Message::SearchHomebrewApps(search_term) => {
-                self.homebrew_apps.filter.search_term = search_term;
+                self.homebrew_apps.filter.search_term = search_term.to_lowercase_smolstr();
                 Task::none()
             }
             Message::ToggleShowWii(checked) => {
@@ -301,7 +303,7 @@ impl AppState {
 
                 self.notifications.push(Notification::success(format!(
                     "Successfully exported {}",
-                    game.title
+                    game.title()
                 )));
                 Task::none()
             }
@@ -336,8 +338,15 @@ impl AppState {
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
+            Message::RefreshOscContents => self.load_osc_contents_task(),
             Message::GotOscContents(contents) => {
                 self.osc_contents = contents;
+                Task::none()
+            }
+            Message::SearchOscApps(search_term) => {
+                if let OscContents::Loaded(contents) = &mut self.osc_contents {
+                    contents.filter.search_term = search_term.to_lowercase_smolstr();
+                }
                 Task::none()
             }
         }

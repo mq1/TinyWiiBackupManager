@@ -93,7 +93,7 @@ pub fn export_game(game: Game, out_path: PathBuf) -> impl Straw<Game, String, Er
             FormatOptions::new(format)
         };
 
-        let game_title = game.title.to_string();
+        let game_title = game.title().to_string();
 
         let (tx, rx) = smol::channel::bounded(1);
 

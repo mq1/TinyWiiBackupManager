@@ -16,7 +16,7 @@ use nod::{
 };
 use size::Size;
 use smol::fs;
-use smol_str::SmolStr;
+use smol_str::{SmolStr, StrExt, ToSmolStr, format_smolstr};
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -25,12 +25,14 @@ use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
 pub struct Game {
-    pub path: PathBuf,
-    pub id: GameID,
-    pub title: SmolStr,
-    pub size: Size,
-    pub is_wii: bool,
-    pub cover: Option<Allocation>,
+    path: PathBuf,
+    id: GameID,
+    title: SmolStr,
+    size: Size,
+    size_str: SmolStr,
+    is_wii: bool,
+    cover: Option<Allocation>,
+    search_term_lowercase: SmolStr,
 }
 
 impl Game {
@@ -69,14 +71,19 @@ impl Game {
             .map_or_else(|| SmolStr::new(title_raw.trim()), SmolStr::new_static);
 
         let size = get_dir_size(&path).await;
+        let size_str = size.to_smolstr();
+
+        let search_term_lowercase = format_smolstr!("{}\0{}", title, id).to_lowercase_smolstr();
 
         Ok(Self {
             path,
             id,
             title,
             size,
+            size_str,
             is_wii,
             cover: None,
+            search_term_lowercase,
         })
     }
 
@@ -177,6 +184,46 @@ impl Game {
             .ok()
             .map(image::Handle::from_bytes)
             .map(|handle| unsafe { allocate(&handle, (176, 248).into()) })
+    }
+
+    pub fn matches_search(&self, search_term: &str) -> bool {
+        self.search_term_lowercase.contains(search_term)
+    }
+
+    pub fn size(&self) -> Size {
+        self.size
+    }
+
+    pub fn size_str(&self) -> &str {
+        &self.size_str
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn id(&self) -> GameID {
+        self.id
+    }
+
+    pub fn id_str(&self) -> &str {
+        self.id.as_str()
+    }
+
+    pub fn is_wii(&self) -> bool {
+        self.is_wii
+    }
+
+    pub fn is_ngc(&self) -> bool {
+        !self.is_wii
+    }
+
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    pub fn cover(&self) -> Option<&image::Handle> {
+        self.cover.as_ref().map(|cover| cover.handle())
     }
 }
 

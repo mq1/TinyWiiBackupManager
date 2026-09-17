@@ -140,11 +140,11 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
                 }
             }
 
-            let new_filename = make_game_dir_name(game.id, &game.title);
+            let new_filename = make_game_dir_name(game.id(), game.title());
             let new_path = games_dir.join(new_filename);
 
             if !new_path.exists() {
-                fs::rename(&game.path, &new_path).await?;
+                fs::rename(game.path(), &new_path).await?;
             }
 
             Ok::<_, Error>(())

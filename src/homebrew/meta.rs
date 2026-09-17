@@ -38,12 +38,12 @@ fn parse_release_date(raw: SmolStr) -> SmolStr {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewAppMeta {
-    pub name: SmolStr,
-    pub version: SmolStr,
-    pub release_date: SmolStr,
-    pub coder: SmolStr,
-    pub short_description: SmolStr,
-    pub long_description: SmolStr,
+    name: SmolStr,
+    version: SmolStr,
+    release_date: SmolStr,
+    coder: SmolStr,
+    short_description: SmolStr,
+    long_description: SmolStr,
 }
 
 impl HomebrewAppMeta {
@@ -73,5 +73,29 @@ impl HomebrewAppMeta {
             short_description,
             long_description,
         })
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    pub fn release_date(&self) -> &str {
+        &self.release_date
+    }
+
+    pub fn coder(&self) -> &str {
+        &self.coder
+    }
+
+    pub fn short_description(&self) -> &str {
+        &self.short_description
+    }
+
+    pub fn long_description(&self) -> &str {
+        &self.long_description
     }
 }

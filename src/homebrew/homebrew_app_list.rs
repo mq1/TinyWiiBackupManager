@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::homebrew_app::HomebrewApp;
-use crate::{config::SortBy, errors::Error, util::misc::contains_ignore_case};
+use crate::{config::SortBy, errors::Error};
 use itertools::Either;
 use size::Size;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
+use smol_str::SmolStr;
 use std::{
     ops::Add,
     path::{Path, PathBuf},
@@ -16,7 +17,7 @@ use std::{
 
 #[derive(Debug, Clone, Default)]
 pub struct HomebrewAppFilter {
-    pub search_term: String,
+    pub search_term: SmolStr,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -35,14 +36,14 @@ impl HomebrewAppList {
 
         let total_size = apps
             .iter()
-            .map(|app| app.size)
+            .map(|app| app.size())
             .fold(Size::from_bytes(0), Add::add);
 
         let mut order_by_name = (0..apps.len()).collect::<Vec<_>>();
         let mut order_by_size = order_by_name.clone();
 
-        order_by_name.sort_by_key(|&i| &apps[i].meta.name);
-        order_by_size.sort_by_key(|&i| apps[i].size);
+        order_by_name.sort_by_key(|&i| apps[i].name());
+        order_by_size.sort_by_key(|&i| apps[i].size());
 
         Ok(Self {
             apps,
@@ -61,8 +62,7 @@ impl HomebrewAppList {
             SortBy::SizeDescending => (&self.order_by_size, true),
         };
 
-        let matches_search =
-            |app: &&HomebrewApp| contains_ignore_case(&app.meta.name, &self.filter.search_term);
+        let matches_search = |app: &&HomebrewApp| app.matches_search(&self.filter.search_term);
 
         let iter = order.iter().map(|&i| &self.apps[i]).filter(matches_search);
 

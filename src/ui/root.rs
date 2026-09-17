@@ -13,17 +13,17 @@ use crate::{
             homebrew_app_info::homebrew_app_info,
         },
         pages::{
-            Page, about::about, game_grid::game_grid, game_table::game_table,
+            Page, about::about, errored::errored, game_grid::game_grid, game_table::game_table,
             homebrew_app_grid::homebrew_app_grid, homebrew_app_table::homebrew_app_table,
-            import_queue::import_queue, settings::settings, toolbox::toolbox,
+            import_queue::import_queue, loading::loading, osc_app_grid::osc_app_grid,
+            settings::settings, toolbox::toolbox,
         },
     },
 };
 use iced::{
-    Alignment, Background, Element, Length, Theme, color,
-    widget::{column, container, opaque, row, stack, text},
+    Background, Element, Length, Theme, color,
+    widget::{column, container, opaque, row, stack},
 };
-use iced_aw::Spinner;
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = stack![
@@ -35,17 +35,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 (Page::HomebrewApps, ViewAs::Grid) => homebrew_app_grid(state),
                 (Page::HomebrewApps, ViewAs::Table) => homebrew_app_table(state),
                 (Page::Osc, _) => match &state.osc_contents {
-                    OscContents::NotYetLoaded => container(
-                        column![text("Loading..."), Spinner::new()]
-                            .spacing(10)
-                            .align_x(Alignment::Center),
-                    )
-                    .center(Length::Fill)
-                    .into(),
-                    OscContents::Errored(e) =>
-                        container(text!("Error: {e}")).center(Length::Fill).into(),
-                    OscContents::Loaded(_apps) =>
-                        container(text("TODO")).center(Length::Fill).into(),
+                    OscContents::NotYetLoaded => loading(),
+                    OscContents::Errored(e) => errored(e),
+                    OscContents::Loaded(apps) => osc_app_grid(state, apps),
                 },
                 (Page::Settings, _) => settings(state),
                 (Page::Toolbox, _) => toolbox(state),

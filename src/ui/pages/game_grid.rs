@@ -22,7 +22,8 @@ pub fn game_grid(state: &AppState) -> Element<'_, Message> {
         .iter_by(state.config.sort_by)
         .map(|game| game_card(game, is_exporting))
         .collect::<Row<'_, _>>()
-        .spacing(10);
+        .spacing(10)
+        .wrap();
 
     column![games_titlebar(state), games_other_toolbar(state), content]
         .padding(10)

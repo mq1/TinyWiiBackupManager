@@ -45,16 +45,3 @@ pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<(
     })
     .await
 }
-
-pub fn contains_ignore_case(haystack: &str, needle: &str) -> bool {
-    let needle_len = needle.chars().flat_map(char::to_lowercase).count();
-
-    needle_len == 0
-        || haystack.char_indices().any(|(i, _)| {
-            haystack[i..]
-                .chars()
-                .flat_map(char::to_lowercase)
-                .take(needle_len)
-                .eq(needle.chars().flat_map(char::to_lowercase))
-        })
-}

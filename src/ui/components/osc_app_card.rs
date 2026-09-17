@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    homebrew::homebrew_app::HomebrewApp,
     messages::Message,
+    osc::osc_app::OscApp,
     ui::components::{my_button::my_button, my_card::my_card},
 };
 use iced::{
@@ -13,7 +13,7 @@ use iced::{
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
-pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
+pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
     let icon: Element<'_, Message> = match app.icon() {
         Some(icon) => image(icon).height(96).into(),
         None => space().height(96).into(),
@@ -33,14 +33,11 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
             icon,
             ellipsized_text(app.name()).wrapping(text::Wrapping::None),
             row![
-                my_button()
+                my_button::<Message>()
                     .label("Info")
                     .icon(Icon::Info)
-                    .expand_width()
-                    .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone())),
-                my_button()
-                    .icon(Icon::Trash)
-                    .on_press_with(|| Message::AskDeleteDir(app.path().to_path_buf()))
+                    .expand_width(),
+                my_button::<Message>().icon(Icon::Trash)
             ]
             .spacing(5)
         ]
@@ -48,6 +45,6 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
         .padding(5)
         .spacing(10),
     )
-    .width(172)
+    .width(169.5)
     .into()
 }

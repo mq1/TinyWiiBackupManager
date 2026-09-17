@@ -65,7 +65,9 @@ pub enum Message {
     PickFileToSendViaWiiload,
     SendViaWiiload(PathBuf),
     SentFileViaWiiload(Result<String, Error>),
+    RefreshOscContents,
     GotOscContents(OscContents),
+    SearchOscApps(String),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

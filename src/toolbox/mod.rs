@@ -10,6 +10,8 @@ mod cleanup;
 mod game_backup_loaders;
 mod os_specific;
 
+type RunFn = Pin<Box<dyn Future<Output = Result<String, Error>> + Send>>;
+
 #[derive(Debug, Clone)]
 pub struct ToolContext {
     pub config: Config,
@@ -19,7 +21,7 @@ pub struct ToolContext {
 #[derive(Debug)]
 pub struct ToolboxItem {
     label: &'static str,
-    run_fn: fn(ToolContext) -> Pin<Box<dyn Future<Output = Result<String, Error>> + Send>>,
+    run_fn: fn(ToolContext) -> RunFn,
 }
 
 impl ToolboxItem {

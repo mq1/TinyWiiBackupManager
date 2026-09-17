@@ -12,14 +12,14 @@ use lucide_icons::iced::{icon_info, icon_trash};
 
 pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
     row![
-        text!("{} ({})", &app.meta.name, app.meta.version),
+        text!("{} ({})", app.name(), app.version()),
         space::horizontal(),
-        text(app.size.to_string()),
+        text(app.size_str()),
         rule::vertical(1),
         tooltip(
             button(icon_trash().center())
                 .padding(0)
-                .on_press_with(|| Message::AskDeleteDir(app.path.clone()))
+                .on_press_with(|| Message::AskDeleteDir(app.path().to_path_buf()))
                 .style(button::text)
                 .width(20)
                 .height(20),

@@ -14,8 +14,8 @@ use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
 pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
-    let cover: Element<'_, Message> = match &game.cover {
-        Some(cover) => image(cover.handle()).height(96).into(),
+    let cover: Element<'_, Message> = match game.cover() {
+        Some(cover) => image(cover).height(96).into(),
         None => space().height(96).into(),
     };
 
@@ -23,13 +23,13 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         column![
             row![
                 icon_tag(),
-                text(game.id.as_str()),
+                text(game.id_str()),
                 space::horizontal(),
-                text(game.size.to_string())
+                text(game.size_str())
             ]
             .spacing(5),
             cover,
-            ellipsized_text(&*game.title).wrapping(text::Wrapping::None),
+            ellipsized_text(game.title()).wrapping(text::Wrapping::None),
             row![
                 my_button()
                     .label("Info")
@@ -52,7 +52,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
                 tooltip(
                     my_button()
                         .icon(Icon::Trash)
-                        .on_press_with(|| Message::AskDeleteDir(game.path.clone())),
+                        .on_press_with(|| Message::AskDeleteDir(game.path().to_path_buf())),
                     my_card("Delete game"),
                     tooltip::Position::Bottom
                 )

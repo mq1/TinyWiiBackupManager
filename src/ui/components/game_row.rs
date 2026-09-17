@@ -11,18 +11,22 @@ use lucide_icons::iced::{icon_box, icon_hard_drive_download, icon_info, icon_poi
 pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![
         tooltip(
-            game.is_wii.then(icon_pointer).unwrap_or_else(icon_box),
-            my_card(if game.is_wii { "Wii" } else { "GameCube" }),
+            if game.is_wii() {
+                icon_pointer()
+            } else {
+                icon_box()
+            },
+            my_card(if game.is_wii() { "Wii" } else { "GameCube" }),
             tooltip::Position::Top
         ),
-        text!("{} [{}]", &game.title, game.id),
+        text!("{} [{}]", game.title(), game.id()),
         space::horizontal(),
-        text(game.size.to_string()),
+        text(game.size_str()),
         rule::vertical(1),
         tooltip(
             button(icon_trash().center())
                 .padding(0)
-                .on_press_with(|| Message::AskDeleteDir(game.path.clone()))
+                .on_press_with(|| Message::AskDeleteDir(game.path().to_path_buf()))
                 .style(button::text)
                 .width(20)
                 .height(20),

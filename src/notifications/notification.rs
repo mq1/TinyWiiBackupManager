@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use derive_getters::Getters;
+use humantime::format_rfc3339_seconds;
+use smol_str::{SmolStr, ToSmolStr, format_smolstr};
+use std::time::SystemTime;
 use strum_macros::Display;
-use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display)]
 pub enum NotificationLevel {
@@ -15,56 +16,63 @@ pub enum NotificationLevel {
     Success,
 }
 
-#[derive(Debug, Clone, Getters)]
+#[derive(Debug, Clone)]
 pub struct Notification {
-    label: String,
-
-    #[getter(copy)]
+    label: SmolStr,
     level: NotificationLevel,
-
-    created: Option<OffsetDateTime>,
+    created: SystemTime,
 }
 
 impl Notification {
-    pub fn info(label: impl ToString) -> Self {
+    pub fn info(label: impl ToSmolStr) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_smolstr(),
             level: NotificationLevel::Info,
-            created: OffsetDateTime::now_local().ok(),
+            created: SystemTime::now(),
         }
     }
 
-    pub fn warning(label: impl ToString) -> Self {
+    pub fn warning(label: impl ToSmolStr) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_smolstr(),
             level: NotificationLevel::Warning,
-            created: OffsetDateTime::now_local().ok(),
+            created: SystemTime::now(),
         }
     }
 
     pub fn error(err: impl Into<Error>) -> Self {
         Self {
-            label: format!("{:#}", err.into()),
+            label: format_smolstr!("{:#}", err.into()),
             level: NotificationLevel::Error,
-            created: OffsetDateTime::now_local().ok(),
+            created: SystemTime::now(),
         }
     }
 
-    pub fn success(label: impl ToString) -> Self {
+    pub fn success(label: impl ToSmolStr) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_smolstr(),
             level: NotificationLevel::Success,
-            created: OffsetDateTime::now_local().ok(),
+            created: SystemTime::now(),
         }
+    }
+
+    pub fn label(&self) -> &str {
+        &self.label
+    }
+
+    pub fn level(&self) -> NotificationLevel {
+        self.level
     }
 }
 
 impl std::fmt::Display for Notification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(created) = &self.created {
-            write!(f, "{created} > ")?;
-        }
-
-        write!(f, "[{}] {}", self.level, self.label)
+        write!(
+            f,
+            "{} > [{}] {}",
+            format_rfc3339_seconds(self.created),
+            self.level,
+            self.label
+        )
     }
 }

@@ -21,7 +21,8 @@ pub fn homebrew_app_grid(state: &AppState) -> Element<'_, Message> {
         .iter_by(state.config.sort_by)
         .map(homebrew_app_card)
         .collect::<Row<'_, _>>()
-        .spacing(10);
+        .spacing(10)
+        .wrap();
 
     column![
         homebrew_apps_titlebar(state),

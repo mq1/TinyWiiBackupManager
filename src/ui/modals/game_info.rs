@@ -59,9 +59,7 @@ pub fn game_info<'a>(
             ]
             .spacing(5),
             space::horizontal(),
-            game.cover
-                .as_ref()
-                .map(|cover| image(cover.handle()).height(200)),
+            game.cover().map(|cover| image(cover).height(200)),
         ]
         .padding(20)
         .align_y(Alignment::Center)
@@ -73,8 +71,8 @@ pub fn game_info<'a>(
     my_card(
         column![
             column![
-                text(&*game.title).size(18),
-                my_link(game.path.to_string_lossy(), &game.path).icon(Icon::Folder)
+                text(game.title()).size(18),
+                my_link(game.path().to_string_lossy(), game.path()).icon(Icon::Folder)
             ]
             .spacing(10)
             .padding(20),

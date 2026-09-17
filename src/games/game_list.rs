@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::game::Game;
-use crate::{config::SortBy, errors::Error, util::misc::contains_ignore_case};
+use crate::{config::SortBy, errors::Error};
 use itertools::Either;
 use size::Size;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
+use smol_str::SmolStr;
 use std::{
     ops::Add,
     path::{Path, PathBuf},
@@ -19,7 +20,7 @@ use wii_disc_info::game_id::GameID;
 pub struct GameFilter {
     pub show_wii: bool,
     pub show_ngc: bool,
-    pub search_term: String,
+    pub search_term: SmolStr,
 }
 
 impl Default for GameFilter {
@@ -27,7 +28,7 @@ impl Default for GameFilter {
         Self {
             show_wii: true,
             show_ngc: true,
-            search_term: String::new(),
+            search_term: SmolStr::default(),
         }
     }
 }
@@ -52,14 +53,14 @@ impl GameList {
         let games = wii_games.chain(ngc_games).collect::<Vec<_>>().await;
         let total_size = games
             .iter()
-            .map(|game| game.size)
+            .map(|game| game.size())
             .fold(Size::from_bytes(0), Add::add);
 
         let mut order_by_name = (0..games.len()).collect::<Vec<_>>();
         let mut order_by_size = order_by_name.clone();
 
-        order_by_name.sort_by_key(|&i| &games[i].title);
-        order_by_size.sort_by_key(|&i| games[i].size);
+        order_by_name.sort_by_key(|&i| games[i].title());
+        order_by_size.sort_by_key(|&i| games[i].size());
 
         Ok(Self {
             games,
@@ -79,11 +80,10 @@ impl GameList {
         };
 
         let matches_console = |game: &&Game| {
-            (self.filter.show_wii && game.is_wii) || (self.filter.show_ngc && !game.is_wii)
+            (self.filter.show_wii && game.is_wii()) || (self.filter.show_ngc && game.is_ngc())
         };
 
-        let matches_search =
-            |game: &&Game| contains_ignore_case(&game.title, &self.filter.search_term);
+        let matches_search = |game: &&Game| game.matches_search(&self.filter.search_term);
 
         let iter = order
             .iter()
@@ -98,7 +98,7 @@ impl GameList {
     }
 
     pub fn reload_cover(&mut self, game_id: GameID, data_dir: &Path) {
-        if let Some(game) = self.games.iter_mut().find(|game| game.id == game_id) {
+        if let Some(game) = self.games.iter_mut().find(|game| game.id() == game_id) {
             game.load_cover_blocking(data_dir);
         }
     }
@@ -110,7 +110,7 @@ impl GameList {
     }
 
     pub fn get_all_game_ids(&self) -> Vec<GameID> {
-        self.games.iter().map(|game| game.id).collect()
+        self.games.iter().map(Game::id).collect()
     }
 
     pub fn count(&self) -> usize {

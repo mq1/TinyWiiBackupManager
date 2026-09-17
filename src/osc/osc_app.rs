@@ -5,8 +5,10 @@ use crate::{
     errors::Error,
     util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file},
 };
+use iced::{advanced::image::Allocation, widget::image::Handle};
 use serde::Deserialize;
-use smol_str::SmolStr;
+use size::Size;
+use smol_str::{SmolStr, StrExt, ToSmolStr, format_smolstr};
 use std::path::Path;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,32 +29,84 @@ pub struct OscAppDescription {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct OscApp {
+pub struct OscAppMeta {
     slug: SmolStr,
     name: SmolStr,
     author: SmolStr,
     version: SmolStr,
     assets: OscAppAssets,
-    uncompressed_size: u64,
+    uncompressed_size: Size,
     release_date: i64,
     description: OscAppDescription,
+}
+
+#[derive(Debug, Clone)]
+pub struct OscApp {
+    meta: OscAppMeta,
+    icon: Option<Allocation>,
+    uncompressed_size_str: SmolStr,
+    search_term_lowercase: SmolStr,
+}
+
+impl<'de> serde::Deserialize<'de> for OscApp {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        OscAppMeta::deserialize(deserializer).map(|meta| {
+            let uncompressed_size_str = meta.uncompressed_size.to_smolstr();
+            let search_term_lowercase =
+                format_smolstr!("{}\0{}", meta.name, meta.slug).to_lowercase_smolstr();
+
+            OscApp {
+                meta,
+                icon: None,
+                uncompressed_size_str,
+                search_term_lowercase,
+            }
+        })
+    }
 }
 
 impl OscApp {
     pub async fn download_icon(&self, data_dir: &Path) -> Result<(), Error> {
         let icon_path = data_dir
             .join("osc-icons")
-            .join(&self.slug)
+            .join(&self.meta.slug)
             .with_added_extension("png");
 
-        download_file(&self.assets.icon.url, &icon_path).await
+        download_file(&self.meta.assets.icon.url, &icon_path).await
     }
 
     pub async fn install(&self, root_dir: &Path) -> Result<(), Error> {
-        download_and_extract_zip(&self.assets.archive.url, root_dir).await
+        download_and_extract_zip(&self.meta.assets.archive.url, root_dir).await
     }
 
     pub async fn wiiload(&self, wii_ip: &str) -> Result<(), Error> {
-        download_and_send_via_wiiload(&self.assets.archive.url, wii_ip).await
+        download_and_send_via_wiiload(&self.meta.assets.archive.url, wii_ip).await
+    }
+
+    pub fn version(&self) -> &str {
+        &self.meta.version
+    }
+
+    pub fn size(&self) -> Size {
+        self.meta.uncompressed_size
+    }
+
+    pub fn size_str(&self) -> &str {
+        &self.uncompressed_size_str
+    }
+
+    pub fn name(&self) -> &str {
+        &self.meta.name
+    }
+
+    pub fn matches_search(&self, search_term: &str) -> bool {
+        self.search_term_lowercase.contains(search_term)
+    }
+
+    pub fn icon(&self) -> Option<&Handle> {
+        self.icon.as_ref().map(|icon| icon.handle())
     }
 }

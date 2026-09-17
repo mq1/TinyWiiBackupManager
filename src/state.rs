@@ -33,6 +33,7 @@ pub enum Ongoing {
     GettingGames,
     GettingHomebrewApps,
     GettingDriveInfo,
+    GettingOscContents,
     DownloadingUiCovers,
     AnimationState,
     ExportingGame,
