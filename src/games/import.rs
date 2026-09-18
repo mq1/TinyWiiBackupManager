@@ -3,15 +3,16 @@
 
 use crate::{
     config::{Config, GcOutputFormat, WiiOutputFormat},
-    errors::Error,
     games::disc_reader::get_disc_reader,
     util::{drive_info::DriveInfo, misc::OPTIMAL_THREADS},
 };
+use anyhow::{Context, Result, anyhow};
 use iced::task::{Straw, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
+use smol_str::{SmolStr, format_smolstr};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -28,8 +29,8 @@ fn perform_blocking(
     disc_path: PathBuf,
     config: Config,
     is_fat32: bool,
-    tx: smol::channel::Sender<String>,
-) -> Result<(), Error> {
+    tx: smol::channel::Sender<SmolStr>,
+) -> Result<()> {
     let disc_reader = get_disc_reader(&disc_path)?;
 
     let disc_header = disc_reader.header();
@@ -62,7 +63,8 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let status = format!("⤓  Importing {game_title}  {progress_percentage:02}%");
+                let status =
+                    format_smolstr!("⤓  Importing {game_title}  {progress_percentage:02}%");
                 let _ = tx.try_send(status);
 
                 prev_percentage = progress_percentage;
@@ -80,7 +82,9 @@ fn perform_blocking(
         },
     )?;
 
-    let mut out_writer = out_writer.into_inner()?;
+    let mut out_writer = out_writer
+        .into_inner()
+        .map_err(|_| anyhow!("Failed to get inner writer"))?;
 
     if !finalization.header.is_empty() {
         out_writer.write_header(&finalization.header)?;
@@ -94,16 +98,16 @@ pub fn import_game(
     path: PathBuf,
     config: Config,
     drive_info: Option<DriveInfo>,
-) -> impl Straw<(), String, Error> {
-    let is_fat32 = drive_info.is_some_and(|drive_info| drive_info.fs_kind == FsKind::Fat32);
+) -> impl Straw<(), SmolStr, anyhow::Error> {
+    let is_fat32 = drive_info.is_some_and(|drive_info| drive_info.fs_kind() == FsKind::Fat32);
 
     sipper(async move |mut sender| {
         let filename = path
             .file_name()
             .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
+            .context("invalid filename")?;
 
-        sender.send(format!("›  Opening {filename}")).await;
+        sender.send(format_smolstr!("›  Opening {filename}")).await;
 
         let remove_sources = config.remove_sources_games;
 
@@ -206,7 +210,7 @@ pub fn make_game_dir_name(game_id: impl AsRef<str>, fallback_title: &str) -> Str
     format!("{game_title} [{game_id}]")
 }
 
-fn make_game_dir(base_dir: &Path, game_id: &str, fallback_title: &str) -> Result<PathBuf, Error> {
+fn make_game_dir(base_dir: &Path, game_id: &str, fallback_title: &str) -> Result<PathBuf> {
     let dir_name = make_game_dir_name(game_id, fallback_title);
     let path = base_dir.join(dir_name);
 

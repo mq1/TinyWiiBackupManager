@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    errors::Error,
     games::{game_list, import::make_game_dir_name},
     toolbox::{ToolboxGroup, ToolboxItem},
 };
+use anyhow::{Context, Result, bail};
 use lucide_icons::Icon;
 use smol::{
     fs::{self, DirEntry, File},
     stream::{self, Stream, StreamExt},
 };
+use smol_str::ToSmolStr;
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -18,10 +19,10 @@ use std::{
 
 async fn scan_dir_for_discs(
     path: &Path,
-) -> Result<impl Stream<Item = (PathBuf, wii_disc_info::Meta)>, Error> {
+) -> Result<impl Stream<Item = (PathBuf, wii_disc_info::Meta)>> {
     async fn try_open_entry(
         entry: Result<DirEntry, std::io::Error>,
-    ) -> Result<(PathBuf, wii_disc_info::Meta), Error> {
+    ) -> Result<(PathBuf, wii_disc_info::Meta)> {
         let path = entry?.path();
         let mut f = File::open(&path).await?;
         let meta = wii_disc_info::Meta::read_async(&mut f).await?;
@@ -30,11 +31,11 @@ async fn scan_dir_for_discs(
 
     fs::read_dir(path)
         .await
-        .map_err(Error::from)
+        .map_err(anyhow::Error::from)
         .map(|entries| entries.then(try_open_entry).filter_map(Result::ok))
 }
 
-async fn adopt_orphaned_discs(games_dir: &Path) -> Result<(), Error> {
+async fn adopt_orphaned_discs(games_dir: &Path) -> Result<()> {
     let entries = scan_dir_for_discs(games_dir).await?;
 
     let results = entries
@@ -42,15 +43,13 @@ async fn adopt_orphaned_discs(games_dir: &Path) -> Result<(), Error> {
             let filename = path
                 .file_name()
                 .and_then(OsStr::to_str)
-                .ok_or(Error::InvalidFilename)?;
+                .context("invalid filename")?;
 
             let ext = match meta.format() {
                 wii_disc_info::Format::Iso => "iso",
                 wii_disc_info::Format::Wbfs => "wbfs",
                 wii_disc_info::Format::Ciso => "ciso",
-                _ => {
-                    return Err(Error::InvalidDiscFormat);
-                }
+                _ => bail!("unsupported disc format: {}", meta.format()),
             };
 
             let game_id = meta.game_id();
@@ -112,17 +111,17 @@ async fn adopt_orphaned_discs(games_dir: &Path) -> Result<(), Error> {
 
     match errors.is_empty() {
         true => Ok(()),
-        false => Err(Error::Multiple(errors)),
+        false => bail!("{errors:?}"),
     }
 }
 
-async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
+async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
     // is_wii is irrelevant here
     let all_games = game_list::scan_dir(games_dir, true).await;
 
     let results = all_games
         .then(|game| async move {
-            let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
+            let disc_path = game.get_disc_path().await.context("disc not found")?;
 
             // fix for an eventual wrong extension
             {
@@ -131,7 +130,7 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
                 let ext = disc_path
                     .extension()
                     .and_then(OsStr::to_str)
-                    .ok_or(Error::InvalidFilename)?;
+                    .context("invalid extension")?;
 
                 let lowercase = meta.format().to_string().to_ascii_lowercase();
                 if ext != lowercase {
@@ -147,7 +146,7 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
                 fs::rename(game.path(), &new_path).await?;
             }
 
-            Ok::<_, Error>(())
+            Ok::<_, anyhow::Error>(())
         })
         .collect::<Vec<_>>()
         .await;
@@ -159,7 +158,7 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<(), Error> {
 
     match errors.is_empty() {
         true => Ok(()),
-        false => Err(Error::Multiple(errors)),
+        false => bail!("{errors:?}"),
     }
 }
 
@@ -187,7 +186,7 @@ pub const ALL: &[ToolboxGroup] = {
                     .await
                     .into_iter()
                     .collect::<Result<Vec<_>, _>>()
-                    .map(|_| "Paths successfully normalized".to_string())
+                    .map(|_| "Paths successfully normalized".to_smolstr())
                 })
             },
         }],

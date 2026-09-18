@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
+use anyhow::{Context, Result};
 use smol_str::{SmolStr, format_smolstr};
 use std::{fs, path::Path};
 
@@ -20,7 +20,7 @@ macro_rules! get_property {
     ($contents:expr, $element:literal) => {{
         const START_PATTERN: &str = concat!("<", $element);
         const END_PATTERN: &str = concat!("</", $element, ">");
-        get_value($contents, START_PATTERN, END_PATTERN)
+        get_value($contents, START_PATTERN, END_PATTERN).context("failed to parse meta.xml")
     }};
 }
 
@@ -47,21 +47,18 @@ pub struct HomebrewAppMeta {
 }
 
 impl HomebrewAppMeta {
-    pub fn parse(app_path: &Path) -> Result<Self, Error> {
+    pub fn parse(app_path: &Path) -> Result<Self> {
         let path = app_path.join("meta.xml");
         let contents = fs::read_to_string(&path)?;
 
-        let root = get_property!(&contents, "app").ok_or(Error::InvalidHomebrewAppMeta)?;
+        let root = get_property!(&contents, "app")?;
 
-        let name = get_property!(&root, "name").ok_or(Error::InvalidHomebrewAppMeta)?;
-        let version = get_property!(&root, "version").ok_or(Error::InvalidHomebrewAppMeta)?;
-        let release_date =
-            get_property!(&root, "release_date").ok_or(Error::InvalidHomebrewAppMeta)?;
-        let coder = get_property!(&root, "coder").ok_or(Error::InvalidHomebrewAppMeta)?;
-        let short_description =
-            get_property!(&root, "short_description").ok_or(Error::InvalidHomebrewAppMeta)?;
-        let long_description =
-            get_property!(&root, "long_description").ok_or(Error::InvalidHomebrewAppMeta)?;
+        let name = get_property!(&root, "name")?;
+        let version = get_property!(&root, "version")?;
+        let release_date = get_property!(&root, "release_date")?;
+        let coder = get_property!(&root, "coder")?;
+        let short_description = get_property!(&root, "short_description")?;
+        let long_description = get_property!(&root, "long_description")?;
 
         let release_date = parse_release_date(release_date);
 

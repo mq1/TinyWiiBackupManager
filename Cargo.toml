@@ -37,7 +37,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 directories = "6"
 sys-locale = "0.3"
-size = { version = "0.5", features = ["serde"] }
+size = "0.5"
 fs4 = { version = "1", default-features = false }
 which-fs = "0.2"
 ureq = { version = "3", default-features = false, features = ["gzip", "json"] }
@@ -57,6 +57,8 @@ enumset = "1"
 wiiload = { version = "0.5", features = ["async"] }
 smol_str = { version = "0.3", features = ["serde"] }
 humantime = "2"
+anyhow = "1"
+tap = "1"
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

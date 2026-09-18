@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
 use humantime::format_rfc3339_seconds;
-use smol_str::{SmolStr, ToSmolStr, format_smolstr};
+use smol_str::{SmolStr, ToSmolStr};
 use std::time::SystemTime;
 use strum_macros::Display;
 
@@ -40,9 +39,9 @@ impl Notification {
         }
     }
 
-    pub fn error(err: impl Into<Error>) -> Self {
+    pub fn error(label: impl ToSmolStr) -> Self {
         Self {
-            label: format_smolstr!("{:#}", err.into()),
+            label: label.to_smolstr(),
             level: NotificationLevel::Error,
             created: SystemTime::now(),
         }
@@ -74,5 +73,20 @@ impl std::fmt::Display for Notification {
             self.level,
             self.label
         )
+    }
+}
+
+impl<S: ToSmolStr, E: ToSmolStr> From<std::result::Result<S, E>> for Notification {
+    fn from(result: anyhow::Result<S, E>) -> Self {
+        match result {
+            Ok(label) => Notification::success(label.to_smolstr()),
+            Err(e) => Notification::error(e.to_smolstr()),
+        }
+    }
+}
+
+impl From<anyhow::Error> for Notification {
+    fn from(e: anyhow::Error) -> Self {
+        Notification::error(e)
     }
 }

@@ -9,7 +9,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
-mod errors;
 mod games;
 mod homebrew;
 mod messages;

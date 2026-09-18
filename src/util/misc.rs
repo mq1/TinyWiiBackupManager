@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
+use anyhow::Result;
 use std::{
     fs::{self, File},
     path::PathBuf,
@@ -32,7 +32,7 @@ pub static OPTIMAL_THREADS: LazyLock<OptimalThreads> = LazyLock::new(|| {
     }
 });
 
-pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<(), Error> {
+pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<()> {
     let src = src.into();
     let dst = dst.into();
 

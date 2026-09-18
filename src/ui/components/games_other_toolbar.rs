@@ -12,7 +12,11 @@ fn usage(state: &AppState) -> Text<'_> {
         "{} game{}   ~ {}  ",
         state.games.count(),
         if state.games.count() == 1 { "" } else { "s" },
-        state.games.total_size()
+        if let Some(drive_info) = &state.drive_info {
+            drive_info.games_size_str()
+        } else {
+            ""
+        }
     )
 }
 

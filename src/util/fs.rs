@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use size::Size;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
@@ -12,8 +11,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub async fn get_dir_size(path: &Path) -> Size {
-    let bytes = stream::unfold(vec![path.to_path_buf()], |mut stack| async move {
+pub async fn get_dir_size(path: &Path) -> u64 {
+    stream::unfold(vec![path.to_path_buf()], |mut stack| async move {
         let current = stack.pop()?;
 
         match fs::symlink_metadata(&current).await {
@@ -37,9 +36,7 @@ pub async fn get_dir_size(path: &Path) -> Size {
         }
     })
     .fold(0, u64::saturating_add)
-    .await;
-
-    Size::from_bytes(bytes)
+    .await
 }
 
 pub fn recursive_file_scan<'a>(

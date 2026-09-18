@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
+use anyhow::{Context, Result, bail};
 use smol::{
     fs::{self, File},
     io::AsyncSeekExt,
@@ -44,18 +44,18 @@ static AGENT: LazyLock<Agent> = LazyLock::new(|| {
 
 /// Downloads a file, creating the parent directory if needed
 /// Skips if the file already exists
-pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
+pub async fn download_file(uri: &str, dest: &Path) -> Result<()> {
     let dest_filename = dest
         .file_name()
         .and_then(OsStr::to_str)
-        .ok_or(Error::InvalidFilename)?;
+        .context("invalid filename")?;
 
     if fs::symlink_metadata(&dest).await.is_ok() {
         println!("INFO: {} already exists, skipping", dest.display());
         return Ok(());
     }
 
-    let dest_parent = dest.parent().ok_or(Error::InvalidFilename)?;
+    let dest_parent = dest.parent().context("invalid path")?;
     fs::create_dir_all(dest_parent).await?;
 
     smol::unblock({
@@ -83,11 +83,7 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<(), Error> {
     .await
 }
 
-pub async fn download_file_with_fallback(
-    uri: &str,
-    dest: &Path,
-    fallback: &str,
-) -> Result<(), Error> {
+pub async fn download_file_with_fallback(uri: &str, dest: &Path, fallback: &str) -> Result<()> {
     if download_file(uri, dest).await.is_err() {
         download_file(fallback, dest).await
     } else {
@@ -95,9 +91,9 @@ pub async fn download_file_with_fallback(
     }
 }
 
-pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<(), Error> {
+pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
     if !fs::metadata(dest).await.is_ok_and(|m| m.is_dir()) {
-        return Err(Error::NotADir);
+        bail!("{} is not a directory", dest.display());
     }
 
     smol::unblock({
@@ -121,12 +117,12 @@ pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<(), Erro
 }
 
 // recompresses the archive with -9 before sending
-pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<(), Error> {
+pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()> {
     let filename = uri
         .split('/')
         .next_back()
         .and_then(|s| s.strip_suffix(".zip"))
-        .ok_or(Error::InvalidFilename)?;
+        .context("invalid filename")?;
 
     let file = smol::unblock({
         let uri = uri.to_string();
@@ -158,7 +154,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()
             }
             writer.finish()?;
 
-            Ok::<_, Error>(recompressed_app)
+            Ok::<_, anyhow::Error>(recompressed_app)
         }
     })
     .await?;

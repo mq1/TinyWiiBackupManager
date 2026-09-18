@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    errors::Error,
-    util::{fs::get_dir_size, sha1_list},
-};
+use crate::util::{fs::get_dir_size, sha1_list};
+use anyhow::{Context, Result, bail};
 use iced::{
     advanced::image::{Allocation, allocate},
     task::{Straw, sipper},
@@ -28,7 +26,7 @@ pub struct Game {
     path: PathBuf,
     id: GameID,
     title: SmolStr,
-    size: Size,
+    size: u64,
     size_str: SmolStr,
     is_wii: bool,
     cover: Option<Allocation>,
@@ -36,42 +34,38 @@ pub struct Game {
 }
 
 impl Game {
-    pub async fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self, Error> {
+    pub async fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self> {
         let path = path.into();
 
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
-            return Err(Error::NotADir);
+            bail!("{} is not a directory", path.display());
         }
 
         // Get the directory name
         let dir_name = path
             .file_name()
             .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
+            .context("invalid filename")?;
 
         if dir_name.starts_with('.') {
-            return Err(Error::HiddenDir);
+            bail!("hidden directory");
         }
 
         // Extract title and id from the directory name
-        let (title_raw, id_raw) = dir_name.split_once('[').ok_or(Error::InvalidFilename)?;
+        let (title_raw, id_raw) = dir_name.split_once('[').context("invalid filename")?;
 
-        let Some(id_raw) = id_raw.strip_suffix(']') else {
-            return Err(Error::InvalidFilename);
-        };
+        let id_raw = id_raw.strip_suffix(']').context("invalid filename")?;
 
         // Parse the id
-        let id = id_raw
-            .parse::<GameID>()
-            .map_err(|_| Error::InvalidFilename)?;
+        let id = id_raw.parse::<GameID>().context("invalid game id")?;
 
         // get the pretty title
         let title = twbm_idmap::get_title(id)
             .map_or_else(|| SmolStr::new(title_raw.trim()), SmolStr::new_static);
 
         let size = get_dir_size(&path).await;
-        let size_str = size.to_smolstr();
+        let size_str = Size::from_bytes(size).to_smolstr();
 
         let search_term_lowercase = format_smolstr!("{}\0{}", title, id).to_lowercase_smolstr();
 
@@ -111,13 +105,13 @@ impl Game {
         None
     }
 
-    pub fn calc_sha1(&self) -> impl Straw<String, String, Error> + use<> {
+    pub fn calc_sha1(&self) -> impl Straw<SmolStr, SmolStr, anyhow::Error> + use<> {
         let game = self.clone();
 
         sipper(async move |mut sender| {
             let (tx, rx) = smol::channel::bounded(1);
 
-            let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
+            let disc_path = game.get_disc_path().await.context("disc not found")?;
 
             let game_title = game.title.to_string();
             let handle = std::thread::spawn(move || {
@@ -136,8 +130,9 @@ impl Game {
                         let progress_percentage = progress * 100 / total;
 
                         if progress_percentage != prev_percentage {
-                            let status =
-                                format!("✓  Hashing {game_title}  {progress_percentage:02}%");
+                            let status = format_smolstr!(
+                                "✓  Hashing {game_title}  {progress_percentage:02}%"
+                            );
                             let _ = tx.try_send(status);
 
                             prev_percentage = progress_percentage;
@@ -148,13 +143,11 @@ impl Game {
                     &process_opts,
                 )?;
 
-                let sha1 = finalization
-                    .sha1
-                    .ok_or_else(|| Error::NodOther("No SHA1".into()))?;
+                let sha1 = finalization.sha1.context("Failed to calculate SHA1")?;
 
                 let known_sha1 = sha1_list::is_known(&sha1);
 
-                Ok::<_, Error>(known_sha1)
+                Ok::<_, anyhow::Error>(known_sha1)
             });
 
             while let Ok(msg) = rx.recv().await {
@@ -164,12 +157,12 @@ impl Game {
             let known_sha1 = handle.join().expect("Failed to join thread")?;
 
             if known_sha1 {
-                Ok(format!(
+                Ok(format_smolstr!(
                     "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
                     game.title
                 ))
             } else {
-                Err(Error::HashMismatch(game.title.clone()))
+                bail!("Hash mismatch for {}", game.title)
             }
         })
     }
@@ -190,7 +183,7 @@ impl Game {
         self.search_term_lowercase.contains(search_term)
     }
 
-    pub fn size(&self) -> Size {
+    pub fn size(&self) -> u64 {
         self.size
     }
 

@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::Config, errors::Error};
+use crate::config::Config;
+use anyhow::Result;
 use lucide_icons::Icon;
+use smol_str::SmolStr;
 use std::pin::Pin;
 use wii_disc_info::game_id::GameID;
 
@@ -10,7 +12,7 @@ mod cleanup;
 mod game_backup_loaders;
 mod os_specific;
 
-type RunFn = Pin<Box<dyn Future<Output = Result<String, Error>> + Send>>;
+type RunFn = Pin<Box<dyn Future<Output = Result<SmolStr>> + Send>>;
 
 #[derive(Debug, Clone)]
 pub struct ToolContext {
@@ -29,7 +31,7 @@ impl ToolboxItem {
         self.label
     }
 
-    pub async fn run(&self, context: ToolContext) -> Result<String, Error> {
+    pub async fn run(&self, context: ToolContext) -> Result<SmolStr> {
         (self.run_fn)(context).await
     }
 }

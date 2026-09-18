@@ -31,7 +31,8 @@ pub fn title(state: &AppState) -> String {
         write!(
             &mut s,
             "  ({}/{})",
-            drive_info.used_size, drive_info.total_size
+            drive_info.used_size_str(),
+            drive_info.total_size_str()
         )
         .unwrap();
     }

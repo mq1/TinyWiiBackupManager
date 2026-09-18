@@ -15,11 +15,10 @@ use iced::{
     widget::{column, row, text},
 };
 use lucide_icons::Icon;
-use size::Size;
 use which_fs::FsKind;
 
 fn fs_info(state: &AppState) -> (bool, Icon, &'static str) {
-    match state.drive_info.as_ref().map(|info| info.fs_kind) {
+    match state.drive_info.as_ref().map(|info| info.fs_kind()) {
         Some(FsKind::Fat32) => (
             true,
             Icon::Check,
@@ -39,17 +38,11 @@ fn fs_info(state: &AppState) -> (bool, Icon, &'static str) {
     }
 }
 
-fn has_optimal_allocation_granularity(drive_info: &DriveInfo) -> bool {
-    let is_small = drive_info.total_size <= Size::from_gib(32);
-    let optimal = Size::from_kib(if is_small { 32 } else { 64 });
-    optimal == drive_info.allocation_granularity
-}
-
 fn allocation_granularity(state: &AppState) -> (bool, Icon, &'static str) {
     match state
         .drive_info
         .as_ref()
-        .map(has_optimal_allocation_granularity)
+        .map(DriveInfo::has_optimal_allocation_granularity)
     {
         Some(true) => (true, Icon::Check, "optimal"),
         Some(false) => (false, Icon::TriangleAlert, "not optimal, but should work"),
@@ -83,7 +76,7 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
                 state
                     .drive_info
                     .as_ref()
-                    .map(|info| info.fs_kind)
+                    .map(|info| info.fs_kind())
                     .unwrap_or(FsKind::Unknown),
                 fs_info_comment
             )
@@ -96,7 +89,7 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
                 state
                     .drive_info
                     .as_ref()
-                    .map(|info| info.allocation_granularity)
+                    .map(|info| info.allocation_granularity_str())
                     .unwrap_or_default(),
                 allocation_granularity_comment
             )

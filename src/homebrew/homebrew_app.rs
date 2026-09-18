@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, homebrew::meta::HomebrewAppMeta, util::fs::get_dir_size};
+use crate::{homebrew::meta::HomebrewAppMeta, util::fs::get_dir_size};
+use anyhow::{Context, Result, bail};
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image,
@@ -13,6 +14,7 @@ use std::{
     ffi::{OsStr, OsString},
     path::{Path, PathBuf},
 };
+use tap::Pipe;
 
 pub fn make_osc_url(path: &Path) -> OsString {
     let mut base = OsString::from("https://oscwii.org/library/app/");
@@ -28,7 +30,7 @@ pub fn make_osc_url(path: &Path) -> OsString {
 pub struct HomebrewApp {
     path: PathBuf,
     meta: HomebrewAppMeta,
-    size: Size,
+    size: u64,
     size_str: SmolStr,
     icon: Option<Allocation>,
     osc_url: OsString,
@@ -36,38 +38,36 @@ pub struct HomebrewApp {
 }
 
 impl HomebrewApp {
-    pub async fn try_from_path(path: impl Into<PathBuf>) -> Result<Self, Error> {
+    pub async fn try_from_path(path: impl Into<PathBuf>) -> Result<Self> {
         let path = path.into();
 
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
-            return Err(Error::NotADir);
+            bail!("{} is not a directory", path.display());
         }
 
         // Get the directory name
         let dir_name = path
             .file_name()
             .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
+            .context("invalid filename")?;
 
         if dir_name.starts_with('.') {
-            return Err(Error::HiddenDir);
+            bail!("hidden directory");
         }
 
         let meta = HomebrewAppMeta::parse(&path)?;
 
         let size = get_dir_size(&path).await;
-        let size_str = size.to_smolstr();
+        let size_str = Size::from_bytes(size).to_smolstr();
 
-        let icon = {
-            let path = path.join("icon.png");
-
-            fs::read(&path)
-                .await
-                .ok()
-                .map(image::Handle::from_bytes)
-                .map(|handle| unsafe { allocate(&handle, (128, 48).into()) })
-        };
+        let icon = path
+            .join("icon.png")
+            .pipe(fs::read)
+            .await
+            .ok()
+            .map(image::Handle::from_bytes)
+            .map(|handle| unsafe { allocate(&handle, (128, 48).into()) });
 
         let osc_url = make_osc_url(&path);
 
@@ -89,7 +89,7 @@ impl HomebrewApp {
         self.search_term_lowercase.contains(search_term)
     }
 
-    pub fn size(&self) -> Size {
+    pub fn size(&self) -> u64 {
         self.size
     }
 

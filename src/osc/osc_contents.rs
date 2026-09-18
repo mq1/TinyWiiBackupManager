@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, osc::osc_app::OscApp, util::http::download_file};
+use crate::{osc::osc_app::OscApp, util::http::download_file};
 use smol::fs;
-use smol_str::SmolStr;
+use smol_str::{SmolStr, ToSmolStr};
 use std::{
     path::Path,
     time::{Duration, SystemTime},
@@ -43,7 +43,7 @@ pub enum OscContents {
     #[default]
     NotYetLoaded,
     Loaded(OscAppList),
-    Errored(Error),
+    Errored(SmolStr),
 }
 
 impl OscContents {
@@ -71,13 +71,13 @@ impl OscContents {
                 filter: OscAppFilter::default(),
             };
 
-            Ok(list)
+            Ok::<_, anyhow::Error>(list)
         }
         .await;
 
         match res {
             Ok(apps) => Self::Loaded(apps),
-            Err(err) => Self::Errored(err),
+            Err(err) => Self::Errored(err.to_smolstr()),
         }
     }
 }

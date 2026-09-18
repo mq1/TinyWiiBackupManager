@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    errors::Error,
     games::{disc_reader::get_disc_reader, game::Game},
     util::misc::OPTIMAL_THREADS,
 };
+use anyhow::{Context, Result};
 use iced::task::{Straw, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
+use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 use std::{
     ffi::OsStr,
     fs::File,
@@ -35,9 +36,9 @@ fn perform_blocking(
     disc_path: PathBuf,
     out_path: PathBuf,
     format_opts: FormatOptions,
-    game_title: String,
-    tx: smol::channel::Sender<String>,
-) -> Result<(), Error> {
+    game_title: SmolStr,
+    tx: smol::channel::Sender<SmolStr>,
+) -> Result<()> {
     let disc_reader = get_disc_reader(&disc_path)?;
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
     let mut out_writer = {
@@ -52,7 +53,8 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let status = format!("⤓  Exporting {game_title}  {progress_percentage:02}%");
+                let status =
+                    format_smolstr!("⤓  Exporting {game_title}  {progress_percentage:02}%");
                 let _ = tx.try_send(status);
 
                 prev_percentage = progress_percentage;
@@ -79,21 +81,21 @@ fn perform_blocking(
     Ok(())
 }
 
-pub fn export_game(game: Game, out_path: PathBuf) -> impl Straw<Game, String, Error> {
+pub fn export_game(game: Game, out_path: PathBuf) -> impl Straw<Game, SmolStr, anyhow::Error> {
     sipper(async move |mut sender| {
-        let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
+        let disc_path = game.get_disc_path().await.context("disc not found")?;
 
         let format_opts = {
             let format = out_path
                 .extension()
                 .and_then(OsStr::to_str)
                 .and_then(ext_to_format)
-                .ok_or(Error::InvalidFilename)?;
+                .context("invalid extension")?;
 
             FormatOptions::new(format)
         };
 
-        let game_title = game.title().to_string();
+        let game_title = game.title().to_smolstr();
 
         let (tx, rx) = smol::channel::bounded(1);
 

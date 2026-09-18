@@ -6,6 +6,7 @@ version = 4
 name = "TinyWiiBackupManager"
 version = "6.1.0"
 dependencies = [
+ "anyhow",
  "arrayvec",
  "dark-light",
  "directories",
@@ -32,6 +33,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "sys-locale",
+ "tap",
  "tempfile",
  "thiserror 2.0.20",
  "twbm-idmap",
@@ -138,6 +140,12 @@ checksum = "ae221649c9976a6f6c56ae1facf410f3ddb33cc661c4b7b61020a912d4237fbc"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "anyhow"
+version = "1.0.104"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "arrayref"
@@ -3777,9 +3785,6 @@ name = "size"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b6709c7b6754dca1311b3c73e79fcce40dd414c782c66d88e8823030093b02b"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "skrifa"
@@ -4067,6 +4072,12 @@ checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "tap"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"

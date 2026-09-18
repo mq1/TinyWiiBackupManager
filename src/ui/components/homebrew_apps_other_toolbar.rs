@@ -18,7 +18,11 @@ fn usage(state: &AppState) -> Text<'_> {
         } else {
             "s"
         },
-        state.homebrew_apps.total_size()
+        if let Some(drive_info) = &state.drive_info {
+            drive_info.apps_size_str()
+        } else {
+            ""
+        }
     )
 }
 

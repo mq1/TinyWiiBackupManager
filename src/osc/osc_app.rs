@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    errors::Error,
-    util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file},
-};
+use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
+use anyhow::Result;
 use iced::{advanced::image::Allocation, widget::image::Handle};
 use serde::Deserialize;
 use size::Size;
@@ -35,7 +33,7 @@ pub struct OscAppMeta {
     author: SmolStr,
     version: SmolStr,
     assets: OscAppAssets,
-    uncompressed_size: Size,
+    uncompressed_size: u64,
     release_date: i64,
     description: OscAppDescription,
 }
@@ -54,7 +52,7 @@ impl<'de> serde::Deserialize<'de> for OscApp {
         D: serde::Deserializer<'de>,
     {
         OscAppMeta::deserialize(deserializer).map(|meta| {
-            let uncompressed_size_str = meta.uncompressed_size.to_smolstr();
+            let uncompressed_size_str = Size::from_bytes(meta.uncompressed_size).to_smolstr();
             let search_term_lowercase =
                 format_smolstr!("{}\0{}", meta.name, meta.slug).to_lowercase_smolstr();
 
@@ -69,7 +67,7 @@ impl<'de> serde::Deserialize<'de> for OscApp {
 }
 
 impl OscApp {
-    pub async fn download_icon(&self, data_dir: &Path) -> Result<(), Error> {
+    pub async fn download_icon(&self, data_dir: &Path) -> Result<()> {
         let icon_path = data_dir
             .join("osc-icons")
             .join(&self.meta.slug)
@@ -78,11 +76,11 @@ impl OscApp {
         download_file(&self.meta.assets.icon.url, &icon_path).await
     }
 
-    pub async fn install(&self, root_dir: &Path) -> Result<(), Error> {
+    pub async fn install(&self, root_dir: &Path) -> Result<()> {
         download_and_extract_zip(&self.meta.assets.archive.url, root_dir).await
     }
 
-    pub async fn wiiload(&self, wii_ip: &str) -> Result<(), Error> {
+    pub async fn wiiload(&self, wii_ip: &str) -> Result<()> {
         download_and_send_via_wiiload(&self.meta.assets.archive.url, wii_ip).await
     }
 
@@ -90,7 +88,7 @@ impl OscApp {
         &self.meta.version
     }
 
-    pub fn size(&self) -> Size {
+    pub fn size(&self) -> u64 {
         self.meta.uncompressed_size
     }
 

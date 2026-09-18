@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::errors::Error;
+use anyhow::Result;
 use smol::{
     fs::File,
     stream::{Stream, StreamExt},
@@ -20,7 +20,7 @@ pub mod game;
 pub mod game_list;
 pub mod import;
 
-async fn get_id(path: &Path) -> Result<GameID, Error> {
+async fn get_id(path: &Path) -> Result<GameID> {
     let is_zip = path
         .extension()
         .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));

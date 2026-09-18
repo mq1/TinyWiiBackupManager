@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, util::misc::unzip};
+use crate::util::misc::unzip;
+use anyhow::Result;
 use smol::{
     fs,
     stream::{self, StreamExt},
@@ -16,7 +17,7 @@ pub async fn import(
     root_path: PathBuf,
     paths: Vec<PathBuf>,
     remove_sources: bool,
-) -> Result<usize, Error> {
+) -> Result<usize> {
     let count = paths.len();
 
     stream::iter(paths)
@@ -30,10 +31,10 @@ pub async fn import(
                     fs::remove_file(&p).await?;
                 }
 
-                Ok::<_, Error>(())
+                Ok::<_, anyhow::Error>(())
             }
         })
-        .try_collect::<(), Error, Vec<_>>()
+        .try_collect::<(), anyhow::Error, Vec<_>>()
         .await?;
 
     Ok(count)

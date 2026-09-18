@@ -3,7 +3,6 @@
 
 use crate::{
     config::{Config, ThemePreference},
-    errors::Error,
     games::{covers::download_ui_covers, game::Game, game_list::GameList, import::import_game},
     homebrew::{self, homebrew_app_list::HomebrewAppList},
     messages::Message,
@@ -13,6 +12,7 @@ use crate::{
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_info::DriveInfo},
 };
+use anyhow::Context;
 use enumset::{EnumSet, EnumSetType};
 use iced::{
     Subscription, Task, Theme,
@@ -23,6 +23,7 @@ use smol::{
     fs::{self, File},
     net::TcpStream,
 };
+use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 use std::{ffi::OsStr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
@@ -49,8 +50,8 @@ pub(crate) struct AppState {
     pub homebrew_apps: HomebrewAppList,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
-    pub status: String,
-    pub exporting_status: String,
+    pub status: SmolStr,
+    pub exporting_status: SmolStr,
     pub import_queue: Vec<PathBuf>,
     pub ongoing: EnumSet<Ongoing>,
     pub osc_contents: OscContents,
@@ -85,7 +86,10 @@ impl AppState {
 
     pub fn write_config_task(&self) -> Task<Message> {
         let config = self.config.clone();
-        Task::perform(async move { config.write().await }, Message::WroteConfig)
+        Task::perform(async move { config.write().await }, |res| match res {
+            Ok(()) => Message::NoOp,
+            Err(e) => Message::Notify(e.into()),
+        })
     }
 
     pub fn load_config_task(&self) -> Task<Message> {
@@ -100,7 +104,10 @@ impl AppState {
 
     pub fn get_games_task(&self) -> Task<Message> {
         let mount_point = self.config.mount_point.clone();
-        Task::perform(GameList::new(mount_point), Message::GotGames)
+        Task::perform(GameList::new(mount_point), |res| match res {
+            Ok(games) => Message::GotGames(games),
+            Err(e) => Message::CouldNotGetGames(e.to_smolstr()),
+        })
     }
 
     pub fn download_ui_covers_task(&self) -> Task<Message> {
@@ -114,7 +121,10 @@ impl AppState {
 
     pub fn get_homebrew_apps_task(&self) -> Task<Message> {
         let mount_point = self.config.mount_point.clone();
-        Task::perform(HomebrewAppList::new(mount_point), Message::GotHomebrewApps)
+        Task::perform(HomebrewAppList::new(mount_point), |res| match res {
+            Ok(apps) => Message::GotHomebrewApps(apps),
+            Err(e) => Message::CouldNotGetHomebrewApps(e.to_smolstr()),
+        })
     }
 
     pub fn get_drive_info_task(&self) -> Task<Message> {
@@ -124,28 +134,32 @@ impl AppState {
         }
 
         let mount_point = mount_point.clone();
-        Task::perform(DriveInfo::try_from_path(mount_point), Message::GotDriveInfo)
+        Task::perform(DriveInfo::try_from_path(mount_point), |res| {
+            Message::GotDriveInfo(res.map_err(|e| e.to_smolstr()))
+        })
     }
 
     pub fn get_disc_info_task(&self, game: Game) -> Task<Message> {
         Task::perform(
             async move {
-                let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
+                let disc_path = game.get_disc_path().await.context("disc not found")?;
                 let mut file = File::open(&disc_path).await?;
                 let meta = wii_disc_info::Meta::read_async(&mut file).await?;
-                Ok(meta)
+                Ok::<_, anyhow::Error>(meta)
             },
-            Message::GotDiscInfo,
+            |res| match res {
+                Ok(meta) => Message::GotDiscInfo(meta),
+                Err(e) => Message::CouldNotGetDiscInfo(e.to_smolstr()),
+            },
         )
     }
 
     pub fn delete_dir_task(&mut self, path: PathBuf) -> Task<Message> {
         self.current_modal = None;
 
-        Task::perform(
-            async move { fs::remove_dir_all(path).await.map_err(Into::into) },
-            Message::DirDeleted,
-        )
+        Task::perform(async move { fs::remove_dir_all(path).await }, |res| {
+            Message::DirDeleted(res.map_err(|e| e.to_smolstr()))
+        })
     }
 
     pub fn import_homebrew_apps_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
@@ -153,7 +167,10 @@ impl AppState {
 
         Task::perform(
             homebrew::import(mount_point, paths, self.config.remove_sources_apps),
-            Message::HomebrewAppsImported,
+            |res| match res {
+                Ok(n) => Message::HomebrewAppsImported(n),
+                Err(e) => Message::Notify(e.into()),
+            },
         )
     }
 
@@ -161,7 +178,7 @@ impl AppState {
         self.import_queue.extend(paths);
 
         if !self.ongoing.contains(Ongoing::Converting) {
-            self.status.clear();
+            self.status = SmolStr::default();
 
             let task = if let Some(path) = self.import_queue.pop() {
                 self.ongoing.remove(Ongoing::Converting);
@@ -169,7 +186,10 @@ impl AppState {
                 Task::sip(
                     import_game(path, self.config.clone(), self.drive_info.clone()),
                     Message::SetStatus,
-                    Message::GameImported,
+                    |res| match res {
+                        Ok(()) => Message::NoOp,
+                        Err(e) => Message::Notify(e.into()),
+                    },
                 )
             } else {
                 self.notifications
@@ -202,26 +222,27 @@ impl AppState {
             tool.label()
         )));
 
-        Task::perform(tool.run(ctx), Message::ToolResult)
+        Task::perform(tool.run(ctx), |res| Message::Notify(res.into()))
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip = self.config.wii_ip.clone();
+        let wii_ip = self.config.wii_ip.to_smolstr();
 
         Task::perform(
             async move {
-                let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).await?;
+                let mut conn = TcpStream::connect((wii_ip.as_str(), WIILOAD_PORT)).await?;
                 let filename = path
                     .file_name()
                     .and_then(OsStr::to_str)
-                    .ok_or(Error::InvalidFilename)?;
+                    .context("invalid filename")?;
                 let mut file = File::open(&path).await?;
 
                 wiiload::compress_then_send_async(&mut conn, filename, &mut file).await?;
 
-                Ok(filename.to_string())
+                let msg = format_smolstr!("Sent {filename} to {wii_ip}");
+                Ok::<_, anyhow::Error>(msg)
             },
-            Message::SentFileViaWiiload,
+            |res| Message::Notify(res.into()),
         )
     }
 

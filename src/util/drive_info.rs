@@ -1,36 +1,43 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, util::fs::get_dir_size};
+use crate::util::fs::get_dir_size;
+use anyhow::{Result, bail};
 use size::Size;
+use smol_str::{SmolStr, ToSmolStr};
 use std::path::Path;
 use which_fs::FsKind;
 
 #[derive(Debug, Clone, Default)]
 pub struct DriveInfo {
-    pub used_size: Size,
-    pub total_size: Size,
-    pub games_size: Size,
-    pub apps_size: Size,
-    pub fs_kind: FsKind,
-    pub allocation_granularity: Size,
+    used_size_str: SmolStr,
+    total_size: u64,
+    total_size_str: SmolStr,
+    games_size_str: SmolStr,
+    apps_size_str: SmolStr,
+    fs_kind: FsKind,
+    allocation_granularity: u64,
+    allocation_granularity_str: SmolStr,
 }
 
 impl DriveInfo {
-    pub async fn try_from_path(path: impl AsRef<Path>) -> Result<Self, Error> {
+    pub async fn try_from_path(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
 
         if !path.is_dir() {
-            return Err(Error::NotADir);
+            bail!("{} is not a directory", path.display());
         }
 
         let stat = fs4::statvfs(path)?;
 
-        let total_size = Size::from_bytes(stat.total_space());
-        let avail_size = Size::from_bytes(stat.available_space());
-        let used_size = total_size - avail_size;
+        let total_size = stat.total_space();
+        let avail_size = stat.available_space();
+        let used_size = total_size.saturating_sub(avail_size);
+        let allocation_granularity = stat.allocation_granularity();
 
-        let allocation_granularity = Size::from_bytes(stat.allocation_granularity());
+        let used_size_str = Size::from_bytes(used_size).to_smolstr();
+        let total_size_str = Size::from_bytes(total_size).to_smolstr();
+        let allocation_granularity_str = Size::from_bytes(allocation_granularity).to_smolstr();
 
         let fs_kind = FsKind::try_from_path(path).unwrap_or(FsKind::Unknown);
 
@@ -39,17 +46,51 @@ impl DriveInfo {
         let gc_games_dir = path.join("games");
         let gc_games_size = get_dir_size(&gc_games_dir).await;
         let games_size = wii_games_size + gc_games_size;
+        let games_size_str = Size::from_bytes(games_size).to_smolstr();
 
         let apps_dir = path.join("apps");
         let apps_size = get_dir_size(&apps_dir).await;
+        let apps_size_str = Size::from_bytes(apps_size).to_smolstr();
 
         Ok(Self {
-            used_size,
+            used_size_str,
             total_size,
-            games_size,
-            apps_size,
+            total_size_str,
+            games_size_str,
+            apps_size_str,
             fs_kind,
             allocation_granularity,
+            allocation_granularity_str,
         })
+    }
+
+    pub fn used_size_str(&self) -> &str {
+        &self.used_size_str
+    }
+
+    pub fn total_size_str(&self) -> &str {
+        &self.total_size_str
+    }
+
+    pub fn games_size_str(&self) -> &str {
+        &self.games_size_str
+    }
+
+    pub fn apps_size_str(&self) -> &str {
+        &self.apps_size_str
+    }
+
+    pub fn allocation_granularity_str(&self) -> &str {
+        &self.allocation_granularity_str
+    }
+
+    pub fn fs_kind(&self) -> FsKind {
+        self.fs_kind
+    }
+
+    pub fn has_optimal_allocation_granularity(&self) -> bool {
+        let is_small = self.total_size <= (32 * 1024 * 1024 * 1024); // 32 GiB
+        let optimal = if is_small { 32 * 1024 } else { 64 * 1024 };
+        optimal == self.allocation_granularity
     }
 }

@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    errors::Error,
     games::covers::{download_all_covers_for_usbloadergx, download_all_covers_for_wiiflow},
     toolbox::{ToolboxGroup, ToolboxItem},
 };
+use anyhow::bail;
 use lucide_icons::Icon;
+use smol_str::ToSmolStr;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
@@ -18,8 +19,10 @@ pub const ALL: &[ToolboxGroup] = {
                 run_fn: |ctx| {
                     Box::pin(async move {
                         match download_all_covers_for_usbloadergx(ctx.game_ids, &ctx.config).await {
-                            errored if !errored.is_empty() => Err(Error::DownloadCovers(errored)),
-                            _ => Ok("Covers successfully downloaded".to_string()),
+                            errored if !errored.is_empty() => {
+                                bail!("Could not download covers: {errored:?}")
+                            }
+                            _ => Ok("Covers successfully downloaded".to_smolstr()),
                         }
                     })
                 },
@@ -29,8 +32,10 @@ pub const ALL: &[ToolboxGroup] = {
                 run_fn: |ctx| {
                     Box::pin(async move {
                         match download_all_covers_for_wiiflow(ctx.game_ids, &ctx.config).await {
-                            errored if !errored.is_empty() => Err(Error::DownloadCovers(errored)),
-                            _ => Ok("Covers successfully downloaded".to_string()),
+                            errored if !errored.is_empty() => {
+                                bail!("Could not download covers: {errored:?}")
+                            }
+                            _ => Ok("Covers successfully downloaded".to_smolstr()),
                         }
                     })
                 },

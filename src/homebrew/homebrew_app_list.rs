@@ -2,18 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::homebrew_app::HomebrewApp;
-use crate::{config::SortBy, errors::Error};
+use crate::config::SortBy;
+use anyhow::Result;
 use itertools::Either;
-use size::Size;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
 use smol_str::SmolStr;
-use std::{
-    ops::Add,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Default)]
 pub struct HomebrewAppFilter {
@@ -23,21 +20,15 @@ pub struct HomebrewAppFilter {
 #[derive(Debug, Clone, Default)]
 pub struct HomebrewAppList {
     apps: Vec<HomebrewApp>,
-    total_size: Size,
     order_by_name: Vec<usize>,
     order_by_size: Vec<usize>,
     pub filter: HomebrewAppFilter,
 }
 
 impl HomebrewAppList {
-    pub async fn new(root_path: PathBuf) -> Result<Self, Error> {
+    pub async fn new(root_path: PathBuf) -> Result<Self> {
         let apps_dir_path = root_path.join("apps");
         let apps = scan_dir(&apps_dir_path).await.collect::<Vec<_>>().await;
-
-        let total_size = apps
-            .iter()
-            .map(|app| app.size())
-            .fold(Size::from_bytes(0), Add::add);
 
         let mut order_by_name = (0..apps.len()).collect::<Vec<_>>();
         let mut order_by_size = order_by_name.clone();
@@ -47,7 +38,6 @@ impl HomebrewAppList {
 
         Ok(Self {
             apps,
-            total_size,
             order_by_name,
             order_by_size,
             filter: HomebrewAppFilter::default(),
@@ -75,10 +65,6 @@ impl HomebrewAppList {
 
     pub fn count(&self) -> usize {
         self.apps.len()
-    }
-
-    pub fn total_size(&self) -> Size {
-        self.total_size
     }
 }
 

@@ -3,9 +3,9 @@
 
 use crate::{
     config::{Config, PreferredLanguage},
-    errors::Error,
     util::http::{download_file, download_file_with_fallback},
 };
+use anyhow::Result;
 use itertools::Itertools;
 use smol::stream::{self, Stream, StreamExt};
 use std::{
@@ -63,7 +63,7 @@ pub async fn download_cover(
     cover_type: CoverType,
     dir: &Path,
     preferred_language: PreferredLanguage,
-) -> Result<bool, Error> {
+) -> Result<bool> {
     let cover_path = dir.join(game_id.as_str()).with_added_extension("png");
     if cover_path.exists() {
         return Ok(false);

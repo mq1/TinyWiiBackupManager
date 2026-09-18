@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{errors::Error, util::misc::OPTIMAL_THREADS};
+use crate::util::misc::OPTIMAL_THREADS;
+use anyhow::{Context, Result};
 use arrayvec::ArrayVec;
 use nod::read::{DiscOptions, DiscReader, DiscStream};
 use std::{
@@ -103,15 +104,18 @@ impl DiscStream for SharedMultiFileReader {
     }
 }
 
-pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
+pub fn get_disc_reader(path: &Path) -> Result<DiscReader> {
     let disc_opts = DiscOptions {
         preloader_threads: OPTIMAL_THREADS.preloader,
         ..Default::default()
     };
 
-    let ext = path.extension().ok_or(Error::InvalidFilename)?;
+    let ext = path
+        .extension()
+        .and_then(OsStr::to_str)
+        .context("invalid extension")?;
 
-    let reader = if ext.eq_ignore_ascii_case("zip") {
+    let reader = if ext == "zip" || ext == "ZIP" {
         let mut zip = ZipArchive::new(File::open(path)?)?;
         let mut entry = zip.by_index(0)?;
 
@@ -124,7 +128,7 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader, Error> {
         let filename = path
             .file_name()
             .and_then(OsStr::to_str)
-            .ok_or(Error::InvalidFilename)?;
+            .context("invalid filename")?;
 
         let mut files = ArrayVec::<_, 4>::new();
         files.push(File::open(path)?);

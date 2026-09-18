@@ -11,11 +11,16 @@ use crate::{
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
-use smol_str::StrExt;
+use smol_str::{SmolStr, StrExt, ToSmolStr};
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::NoOp => Task::none(),
+            Message::Notify(notification) => {
+                self.notifications.push(notification);
+                Task::none()
+            }
             Message::NavigateTo(page) => {
                 self.current_page = page;
 
@@ -58,24 +63,24 @@ impl AppState {
                     Task::none()
                 }
             }
-            Message::GotGames(Ok(games)) => {
+            Message::GotGames(games) => {
                 self.games = games;
                 self.ongoing.remove(Ongoing::GettingGames);
                 self.reload_all_covers();
                 self.download_ui_covers_task()
             }
-            Message::GotGames(Err(e)) => {
+            Message::CouldNotGetGames(e) => {
                 self.games = GameList::default();
                 self.notifications.push(Notification::error(e));
                 self.ongoing.remove(Ongoing::GettingGames);
                 Task::none()
             }
-            Message::GotHomebrewApps(Ok(homebrew_apps)) => {
+            Message::GotHomebrewApps(homebrew_apps) => {
                 self.homebrew_apps = homebrew_apps;
                 self.ongoing.remove(Ongoing::GettingHomebrewApps);
                 Task::none()
             }
-            Message::GotHomebrewApps(Err(e)) => {
+            Message::CouldNotGetHomebrewApps(e) => {
                 self.homebrew_apps = HomebrewAppList::default();
                 self.notifications.push(Notification::error(e));
                 self.ongoing.remove(Ongoing::GettingHomebrewApps);
@@ -111,23 +116,18 @@ impl AppState {
                 self.current_modal = None;
                 Task::none()
             }
-            Message::GotDiscInfo(Ok(new_meta)) => {
+            Message::GotDiscInfo(new_meta) => {
                 if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
                     *meta = Some(new_meta);
                 }
 
                 Task::none()
             }
-            Message::GotDiscInfo(Err(e)) => {
+            Message::CouldNotGetDiscInfo(e) => {
                 if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
                     *meta = None;
                 }
 
-                self.notifications.push(Notification::error(e));
-                Task::none()
-            }
-            Message::WroteConfig(Ok(())) => Task::none(),
-            Message::WroteConfig(Err(e)) => {
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
@@ -157,18 +157,14 @@ impl AppState {
                 .init_file_dialog_task()
                 .then(dialogs::make_pick_homebrew_apps_dialog_task),
             Message::ImportHomebrewApps(paths) => self.import_homebrew_apps_task(paths),
-            Message::HomebrewAppsImported(Ok(n)) if n > 0 => {
+            Message::HomebrewAppsImported(n) if n > 0 => {
                 self.notifications.push(Notification::success(format!(
                     "{n} Homebrew app(s) successfully imported"
                 )));
 
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
-            Message::HomebrewAppsImported(Ok(_)) => Task::none(),
-            Message::HomebrewAppsImported(Err(e)) => {
-                self.notifications.push(Notification::error(e));
-                Task::none()
-            }
+            Message::HomebrewAppsImported(_) => Task::none(),
             Message::SetStatus(status) => {
                 self.status = status;
                 Task::none()
@@ -178,16 +174,19 @@ impl AppState {
                 Task::none()
             }
             Message::CalcGameSha1(game) => {
-                Task::sip(game.calc_sha1(), Message::SetStatus, Message::GotGameSha1)
+                Task::sip(game.calc_sha1(), Message::SetStatus, |res| match res {
+                    Ok(sha1) => Message::GotGameSha1(sha1),
+                    Err(e) => Message::CouldNotGetGameSha1(e.to_smolstr()),
+                })
             }
-            Message::GotGameSha1(Ok(msg)) => {
+            Message::GotGameSha1(msg) => {
                 self.notifications.push(Notification::success(msg));
-                self.status.clear();
+                self.status = SmolStr::default();
                 Task::none()
             }
-            Message::GotGameSha1(Err(e)) => {
+            Message::CouldNotGetGameSha1(e) => {
                 self.notifications.push(Notification::error(e));
-                self.status.clear();
+                self.status = SmolStr::default();
                 Task::none()
             }
             Message::PickGames => {
@@ -205,12 +204,12 @@ impl AppState {
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::GameImported(Ok(())) => {
                 self.ongoing.remove(Ongoing::Converting);
-                self.status.clear();
+                self.status = SmolStr::default();
                 self.import_games_task(vec![])
             }
             Message::GameImported(Err(e)) => {
                 self.ongoing.remove(Ongoing::Converting);
-                self.status.clear();
+                self.status = SmolStr::default();
                 self.notifications.push(Notification::error(e));
                 self.import_games_task(vec![])
             }
@@ -294,12 +293,15 @@ impl AppState {
                 Task::sip(
                     export_game(game, out_path),
                     Message::SetExportingStatus,
-                    Message::GameExported,
+                    |res| match res {
+                        Ok(game) => Message::GameExported(game),
+                        Err(e) => Message::CouldNotExportGame(e.to_smolstr()),
+                    },
                 )
             }
-            Message::GameExported(Ok(game)) => {
+            Message::GameExported(game) => {
                 self.ongoing.remove(Ongoing::ExportingGame);
-                self.exporting_status.clear();
+                self.exporting_status = SmolStr::default();
 
                 self.notifications.push(Notification::success(format!(
                     "Successfully exported {}",
@@ -307,36 +309,18 @@ impl AppState {
                 )));
                 Task::none()
             }
-            Message::GameExported(Err(e)) => {
+            Message::CouldNotExportGame(e) => {
                 self.ongoing.remove(Ongoing::ExportingGame);
-                self.exporting_status.clear();
+                self.exporting_status = SmolStr::default();
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::RunTool(tool) => self.run_tool(tool),
-            Message::ToolResult(Ok(msg)) => {
-                self.notifications.push(Notification::success(msg));
-                Task::none()
-            }
-            Message::ToolResult(Err(e)) => {
-                self.notifications.push(Notification::error(e));
-                Task::none()
-            }
             Message::PickFileToSendViaWiiload => self
                 .init_file_dialog_task()
                 .then(dialogs::make_pick_file_to_wiiload_dialog_task),
             Message::SendViaWiiload(path) => {
                 Task::batch([self.write_config_task(), self.send_via_wiiload(path)])
-            }
-            Message::SentFileViaWiiload(Ok(filename)) => {
-                self.notifications.push(Notification::success(format!(
-                    "Successfully sent {filename} via wiiload"
-                )));
-                Task::none()
-            }
-            Message::SentFileViaWiiload(Err(e)) => {
-                self.notifications.push(Notification::error(e));
-                Task::none()
             }
             Message::RefreshOscContents => self.load_osc_contents_task(),
             Message::GotOscContents(contents) => {

@@ -5,7 +5,8 @@ use crate::toolbox::ToolboxGroup;
 
 #[cfg(target_os = "macos")]
 pub const ALL: &[ToolboxGroup] = {
-    use crate::{errors::Error, toolbox::ToolboxItem};
+    use crate::toolbox::ToolboxItem;
+    use anyhow::anyhow;
     use lucide_icons::Icon;
     use smol::process::Command;
 
@@ -16,14 +17,16 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Run dot_clean (removes ._ files)",
             run_fn: |ctx| {
                 Box::pin(async move {
+                    use smol_str::ToSmolStr;
+
                     Command::new("dot_clean")
                         .arg("-m")
                         .arg(ctx.config.mount_point)
                         .status()
                         .await
-                        .map_err(Error::from)
-                        .and_then(|status| status.success().ok_or(Error::DotClean))
-                        .map(|_| "dot_clean ran successfully".to_string())
+                        .map_err(anyhow::Error::from)
+                        .and_then(|status| status.success().ok_or(anyhow!("dot_clean failed")))
+                        .map(|_| "dot_clean ran successfully".to_smolstr())
                 })
             },
         }],
