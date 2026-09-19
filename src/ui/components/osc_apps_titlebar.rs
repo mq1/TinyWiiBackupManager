@@ -7,7 +7,7 @@ use crate::{
     ui::components::{refresh_osc_button::refresh_osc_button, view_as::view_as},
 };
 use iced::{
-    Alignment, Element, padding,
+    Alignment, Element,
     widget::{row, space, text},
 };
 use lucide_icons::iced::icon_chevron_right;
@@ -23,6 +23,6 @@ pub fn osc_apps_titlebar(state: &AppState) -> Element<'_, Message> {
     ]
     .spacing(5)
     .align_y(Alignment::Center)
-    .padding(padding::all(10).bottom(0))
+    .padding(10)
     .into()
 }

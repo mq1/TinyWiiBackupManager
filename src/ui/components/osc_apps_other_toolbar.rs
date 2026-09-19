@@ -6,7 +6,7 @@ use crate::{
 };
 use humantime::format_duration;
 use iced::{
-    Alignment, Element, padding,
+    Alignment, Element,
     widget::{Text, row, space, text},
 };
 
@@ -21,6 +21,5 @@ pub fn osc_apps_other_toolbar(apps: &OscAppList) -> Element<'_, Message> {
         last_refresh(apps)
     ]
     .align_y(Alignment::Center)
-    .padding(padding::all(10).top(0).right(20))
     .into()
 }

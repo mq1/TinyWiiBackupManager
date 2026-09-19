@@ -11,7 +11,7 @@ use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use smol::stream::{Stream, StreamExt};
+use smol::stream::Stream;
 use smol_str::{ToSmolStr, format_smolstr};
 use split_write::SplitWriter;
 use std::{

@@ -37,6 +37,7 @@ pub fn homebrew_apps_titlebar(state: &AppState) -> Element<'_, Message> {
         )
     ]
     .spacing(5)
+    .padding(10)
     .align_y(Alignment::Center)
     .into()
 }

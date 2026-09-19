@@ -15,8 +15,8 @@ use crate::{
     },
 };
 use iced::{
-    Element,
-    widget::{Column, Row, column, rule},
+    Element, Length, padding,
+    widget::{Column, Row, column, rule, scrollable},
 };
 use itertools::Itertools;
 use tap::Pipe;
@@ -49,11 +49,13 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
 
             column![
                 games_titlebar(games, state),
-                games_other_toolbar(games, &state.drive),
-                content
+                scrollable(
+                    column![games_other_toolbar(games, &state.drive), content]
+                        .padding(padding::all(10).right(20).top(0))
+                        .spacing(10)
+                )
+                .width(Length::Fill),
             ]
-            .padding(10)
-            .spacing(10)
             .into()
         }
     }

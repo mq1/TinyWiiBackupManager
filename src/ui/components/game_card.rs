@@ -63,6 +63,6 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         .padding(5)
         .spacing(10),
     )
-    .width(172)
+    .width(169.5)
     .into()
 }

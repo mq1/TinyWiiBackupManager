@@ -48,6 +48,7 @@ pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'
         )
     ]
     .spacing(5)
+    .padding(10)
     .align_y(Alignment::Center)
     .into()
 }

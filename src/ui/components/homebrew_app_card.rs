@@ -48,6 +48,6 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
         .padding(5)
         .spacing(10),
     )
-    .width(172)
+    .width(169.5)
     .into()
 }

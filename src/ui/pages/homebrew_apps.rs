@@ -16,8 +16,8 @@ use crate::{
     },
 };
 use iced::{
-    Element,
-    widget::{Column, Row, column, rule},
+    Element, Length, padding,
+    widget::{Column, Row, column, rule, scrollable},
 };
 use itertools::Itertools;
 use tap::Pipe;
@@ -48,11 +48,13 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
 
             column![
                 homebrew_apps_titlebar(state),
-                homebrew_apps_other_toolbar(apps, &state.drive),
-                content
+                scrollable(
+                    column![homebrew_apps_other_toolbar(apps, &state.drive), content]
+                        .padding(padding::all(10).right(20).top(0))
+                        .spacing(10)
+                )
+                .width(Length::Fill),
             ]
-            .padding(10)
-            .spacing(10)
             .into()
         }
     }
