@@ -11,31 +11,11 @@ use std::{
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-#[derive(Debug, Clone, Default)]
-pub struct OscAppFilter {
-    pub search_term: SmolStr,
-}
-
 #[derive(Clone, Debug)]
 pub struct OscAppList {
     apps: Box<[OscApp]>,
     refreshed: SystemTime,
-    pub filter: OscAppFilter,
-}
-
-impl OscAppList {
-    pub fn iter(&self) -> impl Iterator<Item = &OscApp> {
-        self.apps
-            .iter()
-            .filter(|app| app.matches_search(&self.filter.search_term))
-    }
-
-    pub fn last_refresh(&self) -> Duration {
-        self.refreshed
-            .elapsed()
-            .map(|d| Duration::from_mins(d.as_secs() / 60))
-            .unwrap_or(Duration::MAX)
-    }
+    search_term: SmolStr,
 }
 
 #[derive(Default, Clone, Debug)]
@@ -69,7 +49,7 @@ impl OscState {
             let list = OscAppList {
                 apps,
                 refreshed,
-                filter: OscAppFilter::default(),
+                search_term: SmolStr::default(),
             };
 
             Ok::<_, anyhow::Error>(list)
@@ -80,5 +60,28 @@ impl OscState {
             Ok(apps) => Self::Loaded(apps),
             Err(err) => Self::Errored(err.to_smolstr()),
         }
+    }
+}
+
+impl OscAppList {
+    pub fn search_term(&self) -> &str {
+        &self.search_term
+    }
+
+    pub fn set_search_term(&mut self, search_term: SmolStr) {
+        self.search_term = search_term;
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &OscApp> {
+        self.apps
+            .iter()
+            .filter(|app| app.matches_search(&self.search_term))
+    }
+
+    pub fn last_refresh(&self) -> Duration {
+        self.refreshed
+            .elapsed()
+            .map(|d| Duration::from_mins(d.as_secs() / 60))
+            .unwrap_or(Duration::MAX)
     }
 }

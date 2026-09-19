@@ -2,32 +2,57 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ViewAs,
     messages::Message,
-    osc::osc_state::OscAppList,
+    osc::osc_state::OscState,
     state::AppState,
-    ui::components::{
-        osc_app_card::osc_app_card, osc_apps_other_toolbar::osc_apps_other_toolbar,
-        osc_apps_titlebar::osc_apps_titlebar,
+    ui::{
+        components::{
+            my_card::my_card, osc_app_card::osc_app_card, osc_app_row::osc_app_row,
+            osc_apps_other_toolbar::osc_apps_other_toolbar, osc_apps_titlebar::osc_apps_titlebar,
+        },
+        pages::{errored::errored, loading::loading},
     },
 };
 use iced::{
-    Element, Length, padding,
-    widget::{Row, column, scrollable},
+    Element,
+    widget::{Column, Row, column, rule},
 };
+use itertools::Itertools;
+use tap::Pipe;
 
-pub fn osc_apps<'a>(state: &'a AppState, apps: &'a OscAppList) -> Element<'a, Message> {
-    let content = apps
-        .iter()
-        .map(osc_app_card)
-        .collect::<Row<'_, _>>()
-        .spacing(10)
-        .padding(padding::left(10).bottom(10).right(20))
-        .wrap();
+pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
+    match &state.osc_contents {
+        OscState::NotLoaded | OscState::Loading => loading(),
+        OscState::Errored(e) => errored(e),
+        OscState::Loaded(apps) => {
+            let content: Element<'_, Message> = match state.config.view_as {
+                ViewAs::Grid => apps
+                    .iter()
+                    .map(osc_app_card)
+                    .collect::<Row<'_, _>>()
+                    .spacing(10)
+                    .wrap()
+                    .into(),
 
-    column![
-        osc_apps_titlebar(state),
-        scrollable(column![osc_apps_other_toolbar(apps), content]).width(Length::Fill)
-    ]
-    .spacing(10)
-    .into()
+                ViewAs::Table => apps
+                    .iter()
+                    .map(osc_app_row)
+                    .intersperse_with(|| rule::horizontal(1).into())
+                    .collect::<Column<'_, _>>()
+                    .pipe(my_card)
+                    .padding(0)
+                    .into(),
+            };
+
+            column![
+                osc_apps_titlebar(state),
+                osc_apps_other_toolbar(apps),
+                content
+            ]
+            .padding(10)
+            .spacing(10)
+            .into()
+        }
+    }
 }

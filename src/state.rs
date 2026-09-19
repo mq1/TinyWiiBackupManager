@@ -100,12 +100,16 @@ impl AppState {
     }
 
     pub fn download_ui_covers_task(&mut self) -> Task<Message> {
-        let ids = self.games.get_all_game_ids().collect::<Box<[_]>>();
-        let data_dir = self.data_dir.clone();
-        let preferred_language = self.config.preferred_language;
+        if let GamesState::Loaded(games) = &self.games {
+            let ids = games.get_all_game_ids().collect::<Box<[_]>>();
+            let data_dir = self.data_dir.clone();
+            let preferred_language = self.config.preferred_language;
 
-        Task::stream(download_ui_covers(ids, data_dir, preferred_language))
-            .map(Message::ReloadCover)
+            Task::stream(download_ui_covers(ids, data_dir, preferred_language))
+                .map(Message::ReloadCover)
+        } else {
+            Task::none()
+        }
     }
 
     pub fn get_homebrew_apps_task(&mut self) -> Task<Message> {
@@ -181,17 +185,26 @@ impl AppState {
     }
 
     pub fn reload_cover(&mut self, game_id: GameID) {
-        self.games.reload_cover(game_id, &self.data_dir);
+        if let GamesState::Loaded(games) = &mut self.games {
+            games.reload_cover(game_id, &self.data_dir);
+        }
     }
 
     pub fn reload_all_covers(&mut self) {
-        self.games.reload_all_covers(&self.data_dir);
+        if let GamesState::Loaded(games) = &mut self.games {
+            games.reload_all_covers(&self.data_dir);
+        }
     }
 
     pub fn run_tool(&mut self, tool: &'static ToolboxItem) -> Task<Message> {
+        let game_ids = match &self.games {
+            GamesState::Loaded(games) => games.get_all_game_ids().collect::<Box<[_]>>(),
+            _ => Box::new([]),
+        };
+
         let ctx = ToolContext {
             config: self.config.clone(),
-            game_ids: self.games.get_all_game_ids().collect(),
+            game_ids,
         };
 
         self.notifications.push(Notification::info(format!(

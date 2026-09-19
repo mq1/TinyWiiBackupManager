@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{conversion_state::ConversionState, games_state::GamesState},
-    homebrew::homebrew_state::HomebrewState,
+    games::conversion_state::ConversionState,
     messages::Message,
-    osc::osc_state::OscState,
     state::AppState,
     ui::{
         components::{notifications::notifications, sidebar::sidebar},
@@ -14,9 +12,8 @@ use crate::{
             homebrew_app_info::homebrew_app_info,
         },
         pages::{
-            Page, about::about, errored::errored, games::games, homebrew_apps::homebrew_apps,
-            import_queue::import_queue, loading::loading, osc_apps::osc_apps, settings::settings,
-            toolbox::toolbox,
+            Page, about::about, games::games, homebrew_apps::homebrew_apps,
+            import_queue::import_queue, osc_apps::osc_apps, settings::settings, toolbox::toolbox,
         },
     },
 };
@@ -30,23 +27,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         row![
             sidebar(state),
             container(match state.current_page {
-                Page::Games => {
-                    match &state.games {
-                        GamesState::NotLoaded | GamesState::Loading => loading(),
-                        GamesState::Errored(e) => errored(e),
-                        GamesState::Loaded(_) => games(state),
-                    }
-                }
-                Page::HomebrewApps => match &state.homebrew {
-                    HomebrewState::NotLoaded | HomebrewState::Loading => loading(),
-                    HomebrewState::Errored(e) => errored(e),
-                    HomebrewState::Loaded(_) => homebrew_apps(state),
-                },
-                Page::Osc => match &state.osc_contents {
-                    OscState::NotLoaded | OscState::Loading => loading(),
-                    OscState::Errored(e) => errored(e),
-                    OscState::Loaded(apps) => osc_apps(state, apps),
-                },
+                Page::Games => games(state),
+                Page::HomebrewApps => homebrew_apps(state),
+                Page::Osc => osc_apps(state),
                 Page::Settings => settings(state),
                 Page::Toolbox => toolbox(state),
                 Page::ImportQueue => import_queue(state),

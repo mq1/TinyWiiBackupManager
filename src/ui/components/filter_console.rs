@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, state::AppState, ui::components::my_card::my_card};
+use crate::{games::games_state::GameList, messages::Message, ui::components::my_card::my_card};
 use iced::{
     Element, Length,
     widget::{checkbox, container, row, rule, text, tooltip},
@@ -19,13 +19,13 @@ where
     .into()
 }
 
-pub fn filter_console(state: &AppState) -> Element<'_, Message> {
+pub fn filter_console(games: &GameList) -> Element<'_, Message> {
     my_card(
         row![
             container(filter(
                 "Wii",
                 "Show Wii",
-                state.games.show_wii(),
+                games.show_wii(),
                 Message::ToggleShowWii
             ))
             .padding(8),
@@ -33,7 +33,7 @@ pub fn filter_console(state: &AppState) -> Element<'_, Message> {
             container(filter(
                 "GC",
                 "Show GameCube",
-                state.games.show_ngc(),
+                games.show_ngc(),
                 Message::ToggleShowNgc
             ))
             .padding(8),

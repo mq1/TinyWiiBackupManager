@@ -5,12 +5,12 @@ use crate::{
     games::games_state::GamesState,
     homebrew::homebrew_state::HomebrewState,
     messages::Message,
-    osc::osc_state::OscState,
     state::AppState,
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
     },
+    util::drive_state::DriveState,
 };
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
@@ -20,7 +20,7 @@ pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
 
     if !matches!(state.games, GamesState::Loading)
         && !matches!(state.homebrew, HomebrewState::Loading)
-        && !matches!(state.osc_contents, OscState::Loading)
+        && !matches!(state.drive, DriveState::Loading)
     {
         refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);
     }

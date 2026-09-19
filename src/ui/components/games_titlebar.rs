@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    games::games_state::GameList,
     messages::Message,
     state::AppState,
     ui::components::{
@@ -19,12 +20,12 @@ use iced::{
 };
 use lucide_icons::{Icon, iced::icon_chevron_right};
 
-pub fn games_titlebar(state: &AppState) -> Element<'_, Message> {
+pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'a, Message> {
     row![
         icon_chevron_right().size(20),
         text("Games").size(20),
         space::horizontal(),
-        filter_console(state),
+        filter_console(games),
         sort_by(state),
         view_as(state),
         space().width(5),

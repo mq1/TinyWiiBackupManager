@@ -61,52 +61,38 @@ impl HomebrewState {
             Err(err) => HomebrewState::Errored(err.to_smolstr()),
         }
     }
+}
 
+impl HomebrewAppList {
     pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &HomebrewApp> {
-        match self {
-            HomebrewState::Loaded(app_list) => {
-                let (order, reversed) = match sort_by {
-                    SortBy::NameAscending => (&app_list.order_by_name, false),
-                    SortBy::NameDescending => (&app_list.order_by_name, true),
-                    SortBy::SizeAscending => (&app_list.order_by_size, false),
-                    SortBy::SizeDescending => (&app_list.order_by_size, true),
-                };
+        let (order, reversed) = match sort_by {
+            SortBy::NameAscending => (&self.order_by_name, false),
+            SortBy::NameDescending => (&self.order_by_name, true),
+            SortBy::SizeAscending => (&self.order_by_size, false),
+            SortBy::SizeDescending => (&self.order_by_size, true),
+        };
 
-                let matches_search = |app: &&HomebrewApp| app.matches_search(&app_list.search_term);
+        let matches_search = |app: &&HomebrewApp| app.matches_search(&self.search_term);
 
-                let iter = order
-                    .iter()
-                    .map(|&i| &app_list.apps[i])
-                    .filter(matches_search);
+        let iter = order.iter().map(|&i| &self.apps[i]).filter(matches_search);
 
-                Either::Left(if reversed {
-                    Either::Right(iter.rev())
-                } else {
-                    Either::Left(iter)
-                })
-            }
-            _ => Either::Right(std::iter::empty()),
+        if reversed {
+            Either::Right(iter.rev())
+        } else {
+            Either::Left(iter)
         }
     }
 
     pub fn count(&self) -> usize {
-        match self {
-            HomebrewState::Loaded(app_list) => app_list.apps.len(),
-            _ => 0,
-        }
+        self.apps.len()
     }
 
     pub fn search_term(&self) -> &str {
-        match self {
-            HomebrewState::Loaded(app_list) => &app_list.search_term,
-            _ => "",
-        }
+        &self.search_term
     }
 
     pub fn set_search_term(&mut self, search_term: SmolStr) {
-        if let HomebrewState::Loaded(app_list) = self {
-            app_list.search_term = search_term;
-        }
+        self.search_term = search_term;
     }
 }
 

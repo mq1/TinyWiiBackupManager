@@ -21,6 +21,7 @@ pub mod my_link;
 pub mod my_sidebar_button;
 pub mod notifications;
 pub mod osc_app_card;
+pub mod osc_app_row;
 pub mod osc_app_search;
 pub mod osc_apps_other_toolbar;
 pub mod osc_apps_titlebar;

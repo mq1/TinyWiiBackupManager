@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game},
+    games::{
+        calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game,
+        games_state::GamesState,
+    },
+    homebrew::homebrew_state::HomebrewState,
     messages::Message,
     notifications::notification::Notification,
     osc::osc_state::OscState,
@@ -159,16 +163,24 @@ impl AppState {
                 Task::none()
             }
             Message::PickGames => {
-                let existing_ids = self.games.get_all_game_ids().collect::<Box<[_]>>();
-                self.init_file_dialog_task().then(move |base| {
-                    dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
-                })
+                if let GamesState::Loaded(games) = &self.games {
+                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
+                    self.init_file_dialog_task().then(move |base| {
+                        dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
+                    })
+                } else {
+                    Task::none()
+                }
             }
             Message::PickGamesRecursively => {
-                let existing_ids = self.games.get_all_game_ids().collect::<Box<[_]>>();
-                self.init_file_dialog_task().then(move |base| {
-                    dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
-                })
+                if let GamesState::Loaded(games) = &self.games {
+                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
+                    self.init_file_dialog_task().then(move |base| {
+                        dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
+                    })
+                } else {
+                    Task::none()
+                }
             }
             Message::ImportGames(paths) => self.import_games_task(paths),
             Message::SetImporting(importing) => {
@@ -249,21 +261,31 @@ impl AppState {
                 self.write_config_task()
             }
             Message::SearchGames(search_term) => {
-                self.games
-                    .set_search_term(search_term.to_lowercase_smolstr());
+                if let GamesState::Loaded(games) = &mut self.games {
+                    games.set_search_term(search_term.to_lowercase_smolstr());
+                }
+
                 Task::none()
             }
             Message::SearchHomebrewApps(search_term) => {
-                self.homebrew
-                    .set_search_term(search_term.to_lowercase_smolstr());
+                if let HomebrewState::Loaded(apps) = &mut self.homebrew {
+                    apps.set_search_term(search_term.to_lowercase_smolstr());
+                }
+
                 Task::none()
             }
             Message::ToggleShowWii(checked) => {
-                self.games.set_show_wii(checked);
+                if let GamesState::Loaded(games) = &mut self.games {
+                    games.set_show_wii(checked);
+                }
+
                 Task::none()
             }
             Message::ToggleShowNgc(checked) => {
-                self.games.set_show_ngc(checked);
+                if let GamesState::Loaded(games) = &mut self.games {
+                    games.set_show_ngc(checked);
+                }
+
                 Task::none()
             }
             Message::PickExportDest(game) => self.init_file_dialog_task().then(move |base| {
@@ -301,9 +323,10 @@ impl AppState {
                 Task::none()
             }
             Message::SearchOscApps(search_term) => {
-                if let OscState::Loaded(contents) = &mut self.osc_contents {
-                    contents.filter.search_term = search_term.to_lowercase_smolstr();
+                if let OscState::Loaded(apps) = &mut self.osc_contents {
+                    apps.set_search_term(search_term.to_lowercase_smolstr());
                 }
+
                 Task::none()
             }
         }

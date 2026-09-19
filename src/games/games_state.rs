@@ -82,108 +82,78 @@ impl GamesState {
             Err(err) => GamesState::Errored(err.to_smolstr()),
         }
     }
+}
 
+impl GameList {
     pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Game> {
-        match self {
-            GamesState::Loaded(game_list) => {
-                let (order, reversed) = match sort_by {
-                    SortBy::NameAscending => (&game_list.order_by_name, false),
-                    SortBy::NameDescending => (&game_list.order_by_name, true),
-                    SortBy::SizeAscending => (&game_list.order_by_size, false),
-                    SortBy::SizeDescending => (&game_list.order_by_size, true),
-                };
+        let (order, reversed) = match sort_by {
+            SortBy::NameAscending => (&self.order_by_name, false),
+            SortBy::NameDescending => (&self.order_by_name, true),
+            SortBy::SizeAscending => (&self.order_by_size, false),
+            SortBy::SizeDescending => (&self.order_by_size, true),
+        };
 
-                let matches_console = |game: &&Game| {
-                    (game_list.filter.show_wii && game.is_wii())
-                        || (game_list.filter.show_ngc && game.is_ngc())
-                };
+        let matches_console = |game: &&Game| {
+            (self.filter.show_wii && game.is_wii()) || (self.filter.show_ngc && game.is_ngc())
+        };
 
-                let matches_search =
-                    |game: &&Game| game.matches_search(&game_list.filter.search_term);
+        let matches_search = |game: &&Game| game.matches_search(&self.filter.search_term);
 
-                let iter = order
-                    .iter()
-                    .map(|&i| &game_list.games[i])
-                    .filter(matches_console)
-                    .filter(matches_search);
+        let iter = order
+            .iter()
+            .map(|&i| &self.games[i])
+            .filter(matches_console)
+            .filter(matches_search);
 
-                Either::Left(if reversed {
-                    Either::Right(iter.rev())
-                } else {
-                    Either::Left(iter)
-                })
-            }
-            _ => Either::Right(std::iter::empty()),
+        if reversed {
+            Either::Right(iter.rev())
+        } else {
+            Either::Left(iter)
         }
     }
 
     pub fn reload_cover(&mut self, game_id: GameID, data_dir: &Path) {
-        if let GamesState::Loaded(game_list) = self
-            && let Some(game) = game_list.games.iter_mut().find(|game| game.id() == game_id)
-        {
+        if let Some(game) = self.games.iter_mut().find(|game| game.id() == game_id) {
             game.load_cover_blocking(data_dir);
         }
     }
 
     pub fn reload_all_covers(&mut self, data_dir: &Path) {
-        if let GamesState::Loaded(game_list) = self {
-            for game in &mut game_list.games {
-                game.load_cover_blocking(data_dir);
-            }
+        for game in &mut self.games {
+            game.load_cover_blocking(data_dir);
         }
     }
 
     pub fn get_all_game_ids(&self) -> impl Iterator<Item = GameID> {
-        match self {
-            GamesState::Loaded(game_list) => Either::Left(game_list.games.iter().map(Game::id)),
-            _ => Either::Right(std::iter::empty()),
-        }
+        self.games.iter().map(Game::id)
     }
 
     pub fn count(&self) -> usize {
-        match self {
-            GamesState::Loaded(game_list) => game_list.games.len(),
-            _ => 0,
-        }
+        self.games.len()
     }
 
     pub fn search_term(&self) -> &str {
-        match self {
-            GamesState::Loaded(game_list) => &game_list.filter.search_term,
-            _ => "",
-        }
+        &self.filter.search_term
     }
 
     pub fn show_wii(&self) -> bool {
-        match self {
-            GamesState::Loaded(game_list) => game_list.filter.show_wii,
-            _ => true,
-        }
+        self.filter.show_wii
     }
 
     pub fn show_ngc(&self) -> bool {
-        match self {
-            GamesState::Loaded(game_list) => game_list.filter.show_ngc,
-            _ => true,
-        }
+        self.filter.show_ngc
     }
 
     pub fn set_search_term(&mut self, search_term: SmolStr) {
-        if let GamesState::Loaded(game_list) = self {
-            game_list.filter.search_term = search_term;
-        }
+        self.filter.search_term = search_term;
     }
 
     pub fn set_show_wii(&mut self, show_wii: bool) {
-        if let GamesState::Loaded(game_list) = self {
-            game_list.filter.show_wii = show_wii;
-        }
+        self.filter.show_wii = show_wii;
     }
 
     pub fn set_show_ngc(&mut self, show_ngc: bool) {
-        if let GamesState::Loaded(game_list) = self {
-            game_list.filter.show_ngc = show_ngc;
-        }
+        self.filter.show_ngc = show_ngc;
     }
 }
 

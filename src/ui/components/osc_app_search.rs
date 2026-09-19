@@ -7,9 +7,5 @@ use crate::{
 use iced::Element;
 
 pub fn osc_app_search(apps: &OscAppList) -> Element<'_, Message> {
-    search_bar(
-        &apps.filter.search_term,
-        Message::SearchOscApps,
-        "Search by Name",
-    )
+    search_bar(apps.search_term(), Message::SearchOscApps, "Search by Name")
 }
