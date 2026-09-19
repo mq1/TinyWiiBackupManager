@@ -17,7 +17,7 @@ type RunFn = Pin<Box<dyn Future<Output = Result<SmolStr>> + Send>>;
 #[derive(Debug, Clone)]
 pub struct ToolContext {
     pub config: Config,
-    pub game_ids: Vec<GameID>,
+    pub game_ids: Box<[GameID]>,
 }
 
 #[derive(Debug)]

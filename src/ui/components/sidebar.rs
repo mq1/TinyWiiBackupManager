@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    state::{AppState, Ongoing},
+    state::AppState,
     ui::{
         components::{my_card::my_card, my_sidebar_button::my_sidebar_button},
         pages::Page,
@@ -54,7 +54,7 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
         ),
         space::vertical(),
         (!state.import_queue.is_empty()).then(|| {
-            let import_queue_icon = if state.ongoing.contains(Ongoing::AnimationState) {
+            let import_queue_icon = if state.animation_state {
                 Icon::ArrowUp10
             } else {
                 Icon::ArrowUp01

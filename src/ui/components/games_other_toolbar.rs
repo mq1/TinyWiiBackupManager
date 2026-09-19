@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, state::AppState, ui::components::game_search::game_search};
+use crate::{
+    messages::Message, state::AppState, ui::components::game_search::game_search,
+    util::drive_state::DriveState,
+};
 use iced::{
     Alignment, Element,
     widget::{Text, row, space, text},
@@ -12,8 +15,8 @@ fn usage(state: &AppState) -> Text<'_> {
         "{} game{}   ~ {}  ",
         state.games.count(),
         if state.games.count() == 1 { "" } else { "s" },
-        if let Some(drive_info) = &state.drive_info {
-            drive_info.games_size_str()
+        if let DriveState::Loaded(info) = &state.drive {
+            info.games_size_str()
         } else {
             ""
         }

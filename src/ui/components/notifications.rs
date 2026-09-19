@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    games::conversion_state::ConversionState,
     messages::Message,
     notifications::notification::{Notification, NotificationLevel},
     state::AppState,
@@ -51,11 +52,12 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     .into()
 }
 
-fn status(status: &str) -> impl Iterator<Item = Element<'_, Message>> {
-    if status.is_empty() {
-        Either::Right(empty())
-    } else {
-        Either::Left(once(Element::from(my_card(text(status)))))
+fn progress(conversion: &ConversionState) -> impl Iterator<Item = Element<'_, Message>> {
+    match conversion {
+        ConversionState::Progress(progress) => {
+            Either::Left(once(Element::from(my_card(text(progress.as_str())))))
+        }
+        _ => Either::Right(empty()),
     }
 }
 
@@ -65,8 +67,9 @@ pub fn notifications(state: &AppState) -> Element<'_, Message> {
         .iter()
         .enumerate()
         .map(item)
-        .chain(status(&state.status))
-        .chain(status(&state.exporting_status))
+        .chain(progress(&state.importing))
+        .chain(progress(&state.exporting))
+        .chain(progress(&state.hashing))
         .collect::<Column<'_, Message>>()
         .padding(10)
         .spacing(10)

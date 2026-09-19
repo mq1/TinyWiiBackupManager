@@ -25,7 +25,7 @@ pub fn filter_console(state: &AppState) -> Element<'_, Message> {
             container(filter(
                 "Wii",
                 "Show Wii",
-                state.games.filter.show_wii,
+                state.games.show_wii(),
                 Message::ToggleShowWii
             ))
             .padding(8),
@@ -33,7 +33,7 @@ pub fn filter_console(state: &AppState) -> Element<'_, Message> {
             container(filter(
                 "GC",
                 "Show GameCube",
-                state.games.filter.show_ngc,
+                state.games.show_ngc(),
                 Message::ToggleShowNgc
             ))
             .padding(8),

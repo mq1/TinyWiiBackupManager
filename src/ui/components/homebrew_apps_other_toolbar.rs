@@ -3,6 +3,7 @@
 
 use crate::{
     messages::Message, state::AppState, ui::components::homebrew_app_search::homebrew_app_search,
+    util::drive_state::DriveState,
 };
 use iced::{
     Alignment, Element,
@@ -12,14 +13,10 @@ use iced::{
 fn usage(state: &AppState) -> Text<'_> {
     text!(
         "{} app{}   ~ {}  ",
-        state.homebrew_apps.count(),
-        if state.homebrew_apps.count() == 1 {
-            ""
-        } else {
-            "s"
-        },
-        if let Some(drive_info) = &state.drive_info {
-            drive_info.apps_size_str()
+        state.homebrew.count(),
+        if state.homebrew.count() == 1 { "" } else { "s" },
+        if let DriveState::Loaded(info) = &state.drive {
+            info.apps_size_str()
         } else {
             ""
         }

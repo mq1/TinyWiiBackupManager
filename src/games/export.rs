@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{disc_reader::get_disc_reader, game::Game},
+    games::{conversion_state::ConversionState, disc_reader::get_disc_reader, game::Game},
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result};
-use iced::task::{Straw, sipper};
+use iced::task::{Sipper, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
@@ -81,34 +81,42 @@ fn perform_blocking(
     Ok(())
 }
 
-pub fn export_game(game: Game, out_path: PathBuf) -> impl Straw<Game, SmolStr, anyhow::Error> {
+pub fn export_game(game: Game, out_path: PathBuf) -> impl Sipper<ConversionState, ConversionState> {
     sipper(async move |mut sender| {
-        let disc_path = game.get_disc_path().await.context("disc not found")?;
+        let res = async move {
+            let disc_path = game.get_disc_path().await.context("disc not found")?;
 
-        let format_opts = {
-            let format = out_path
-                .extension()
-                .and_then(OsStr::to_str)
-                .and_then(ext_to_format)
-                .context("invalid extension")?;
+            let format_opts = {
+                let format = out_path
+                    .extension()
+                    .and_then(OsStr::to_str)
+                    .and_then(ext_to_format)
+                    .context("invalid extension")?;
 
-            FormatOptions::new(format)
-        };
+                FormatOptions::new(format)
+            };
 
-        let game_title = game.title().to_smolstr();
+            let game_title = game.title_cloned();
 
-        let (tx, rx) = smol::channel::bounded(1);
+            let (tx, rx) = smol::channel::bounded(1);
 
-        let handle = std::thread::spawn(move || {
-            perform_blocking(disc_path, out_path, format_opts, game_title, tx)
-        });
+            let handle = std::thread::spawn(move || {
+                perform_blocking(disc_path, out_path, format_opts, game_title, tx)
+            });
 
-        while let Ok(msg) = rx.recv().await {
-            sender.send(msg).await;
+            while let Ok(msg) = rx.recv().await {
+                sender.send(ConversionState::Progress(msg)).await;
+            }
+
+            handle.join().expect("Failed to join thread")?;
+
+            Ok::<_, anyhow::Error>(game.title_cloned())
         }
+        .await;
 
-        handle.join().expect("Failed to join thread")?;
-
-        Ok(game)
+        match res {
+            Ok(game_title) => ConversionState::Finished(format_smolstr!("Exported {game_title}")),
+            Err(e) => ConversionState::Errored(e.to_smolstr()),
+        }
     })
 }

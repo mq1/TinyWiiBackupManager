@@ -8,8 +8,9 @@ use crate::{
 };
 use iced::Task;
 use rfd::AsyncFileDialog;
-use smol::stream;
+use smol::stream::{self, StreamExt};
 use std::path::PathBuf;
+use tap::Pipe;
 use wii_disc_info::game_id::GameID;
 
 #[rustfmt::skip]
@@ -51,7 +52,7 @@ pub fn make_pick_homebrew_apps_dialog_task(base: AsyncFileDialog) -> Task<Messag
 
 pub fn make_pick_games_dialog_task(
     base: AsyncFileDialog,
-    existing_ids: Vec<GameID>,
+    existing_ids: Box<[GameID]>,
 ) -> Task<Message> {
     Task::perform(
         async move {
@@ -64,10 +65,16 @@ pub fn make_pick_games_dialog_task(
             if let Some(paths) = res
                 && !paths.is_empty()
             {
-                let it = paths.into_iter().map(PathBuf::from);
-                keep_valid_games(stream::iter(it), existing_ids).await
+                paths
+                    .into_iter()
+                    .map(PathBuf::from)
+                    .pipe(stream::iter)
+                    .pipe(|games| keep_valid_games(games, &existing_ids))
+                    .collect::<Vec<_>>()
+                    .await
+                    .into_boxed_slice()
             } else {
-                vec![]
+                Box::new([])
             }
         },
         Message::ImportGames,
@@ -76,7 +83,7 @@ pub fn make_pick_games_dialog_task(
 
 pub fn make_pick_games_recursively_dialog_task(
     base: AsyncFileDialog,
-    existing_ids: Vec<GameID>,
+    existing_ids: Box<[GameID]>,
 ) -> Task<Message> {
     Task::perform(
         async move {
@@ -86,9 +93,13 @@ pub fn make_pick_games_recursively_dialog_task(
                 .await;
 
             if let Some(path) = res {
-                keep_valid_games(recursive_file_scan(path, GAME_EXTS), existing_ids).await
+                recursive_file_scan(path, GAME_EXTS)
+                    .pipe(|games| keep_valid_games(games, &existing_ids))
+                    .collect::<Vec<_>>()
+                    .await
+                    .into_boxed_slice()
             } else {
-                vec![]
+                Box::new([])
             }
         },
         Message::ImportGames,

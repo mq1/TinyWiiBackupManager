@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message, osc::osc_contents::OscAppList, ui::components::search_bar::search_bar,
+    messages::Message, osc::osc_state::OscAppList, ui::components::search_bar::search_bar,
 };
 use iced::Element;
 

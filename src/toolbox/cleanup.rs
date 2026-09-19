@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{game_list, import::make_game_dir_name},
+    games::{games_state, import::make_game_dir_name},
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use anyhow::{Context, Result, bail};
@@ -117,7 +117,7 @@ async fn adopt_orphaned_discs(games_dir: &Path) -> Result<()> {
 
 async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
     // is_wii is irrelevant here
-    let all_games = game_list::scan_dir(games_dir, true).await;
+    let all_games = games_state::scan_dir(games_dir, true).await;
 
     let results = all_games
         .then(|game| async move {

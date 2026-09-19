@@ -6,7 +6,7 @@ use iced::Element;
 
 pub fn homebrew_app_search(state: &AppState) -> Element<'_, Message> {
     search_bar(
-        &state.homebrew_apps.filter.search_term,
+        state.homebrew.search_term(),
         Message::SearchHomebrewApps,
         "Search by Name",
     )

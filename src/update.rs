@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{export::export_game, game_list::GameList},
-    homebrew::homebrew_app_list::HomebrewAppList,
+    games::{calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game},
     messages::Message,
     notifications::notification::Notification,
-    osc::osc_contents::OscContents,
-    state::{AppState, Ongoing},
+    osc::osc_state::OscState,
+    state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
-use smol_str::{SmolStr, StrExt, ToSmolStr};
+use smol_str::StrExt;
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -41,17 +40,11 @@ impl AppState {
                 self.notifications.close(idx);
                 Task::none()
             }
-            Message::RefreshGamesAndApps => {
-                self.ongoing.insert(Ongoing::GettingGames);
-                self.ongoing.insert(Ongoing::GettingHomebrewApps);
-                self.ongoing.insert(Ongoing::GettingDriveInfo);
-
-                Task::batch([
-                    self.get_games_task(),
-                    self.get_homebrew_apps_task(),
-                    self.get_drive_info_task(),
-                ])
-            }
+            Message::RefreshGamesAndApps => Task::batch([
+                self.get_games_task(),
+                self.get_homebrew_apps_task(),
+                self.get_drive_info_task(),
+            ]),
             Message::GotConfig(config) => {
                 let new_mount_point = config.mount_point != self.config.mount_point;
 
@@ -65,36 +58,15 @@ impl AppState {
             }
             Message::GotGames(games) => {
                 self.games = games;
-                self.ongoing.remove(Ongoing::GettingGames);
                 self.reload_all_covers();
                 self.download_ui_covers_task()
             }
-            Message::CouldNotGetGames(e) => {
-                self.games = GameList::default();
-                self.notifications.push(Notification::error(e));
-                self.ongoing.remove(Ongoing::GettingGames);
+            Message::GotHomebrew(homebrew) => {
+                self.homebrew = homebrew;
                 Task::none()
             }
-            Message::GotHomebrewApps(homebrew_apps) => {
-                self.homebrew_apps = homebrew_apps;
-                self.ongoing.remove(Ongoing::GettingHomebrewApps);
-                Task::none()
-            }
-            Message::CouldNotGetHomebrewApps(e) => {
-                self.homebrew_apps = HomebrewAppList::default();
-                self.notifications.push(Notification::error(e));
-                self.ongoing.remove(Ongoing::GettingHomebrewApps);
-                Task::none()
-            }
-            Message::GotDriveInfo(Ok(drive_info)) => {
-                self.drive_info = Some(drive_info);
-                self.ongoing.remove(Ongoing::GettingDriveInfo);
-                Task::none()
-            }
-            Message::GotDriveInfo(Err(e)) => {
-                self.drive_info = None;
-                self.notifications.push(Notification::error(e));
-                self.ongoing.remove(Ongoing::GettingDriveInfo);
+            Message::GotDrive(drive) => {
+                self.drive = drive;
                 Task::none()
             }
             Message::Open(url) => {
@@ -148,9 +120,11 @@ impl AppState {
                 Task::none()
             }
             Message::DeleteDir(path) => self.delete_dir_task(path),
-            Message::DirDeleted(Ok(())) => Task::done(Message::RefreshGamesAndApps),
-            Message::DirDeleted(Err(e)) => {
-                self.notifications.push(Notification::error(e));
+            Message::DirDeleted(res) => {
+                if let Err(e) = res {
+                    self.notifications.push(Notification::error(e));
+                }
+
                 Task::done(Message::RefreshGamesAndApps)
             }
             Message::PickHomebrewApps => self
@@ -165,53 +139,56 @@ impl AppState {
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
             Message::HomebrewAppsImported(_) => Task::none(),
-            Message::SetStatus(status) => {
-                self.status = status;
-                Task::none()
-            }
-            Message::SetExportingStatus(status) => {
-                self.exporting_status = status;
-                Task::none()
-            }
-            Message::CalcGameSha1(game) => {
-                Task::sip(game.calc_sha1(), Message::SetStatus, |res| match res {
-                    Ok(sha1) => Message::GotGameSha1(sha1),
-                    Err(e) => Message::CouldNotGetGameSha1(e.to_smolstr()),
-                })
-            }
-            Message::GotGameSha1(msg) => {
-                self.notifications.push(Notification::success(msg));
-                self.status = SmolStr::default();
-                Task::none()
-            }
-            Message::CouldNotGetGameSha1(e) => {
-                self.notifications.push(Notification::error(e));
-                self.status = SmolStr::default();
+            Message::CalcGameSha1(game) => Task::stream(calc_sha1(game)).map(Message::SetHashing),
+            Message::SetHashing(hashing) => {
+                self.hashing = match hashing {
+                    ConversionState::Finished(success) => {
+                        self.notifications.push(Notification::success(success));
+                        ConversionState::Idle
+                    }
+                    ConversionState::Errored(e) => {
+                        self.notifications.push(Notification::error(e));
+                        ConversionState::Idle
+                    }
+                    _ => hashing,
+                };
+
                 Task::none()
             }
             Message::PickGames => {
-                let existing_ids = self.games.get_all_game_ids();
+                let existing_ids = self.games.get_all_game_ids().collect::<Box<[_]>>();
                 self.init_file_dialog_task().then(move |base| {
                     dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
                 })
             }
             Message::PickGamesRecursively => {
-                let existing_ids = self.games.get_all_game_ids();
+                let existing_ids = self.games.get_all_game_ids().collect::<Box<[_]>>();
                 self.init_file_dialog_task().then(move |base| {
                     dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
                 })
             }
             Message::ImportGames(paths) => self.import_games_task(paths),
-            Message::GameImported(Ok(())) => {
-                self.ongoing.remove(Ongoing::Converting);
-                self.status = SmolStr::default();
-                self.import_games_task(vec![])
-            }
-            Message::GameImported(Err(e)) => {
-                self.ongoing.remove(Ongoing::Converting);
-                self.status = SmolStr::default();
-                self.notifications.push(Notification::error(e));
-                self.import_games_task(vec![])
+            Message::SetImporting(importing) => {
+                let task;
+                (self.importing, task) = match importing {
+                    ConversionState::Finished(_success) => {
+                        //self.notifications.push(Notification::success(success));
+                        (
+                            ConversionState::Idle,
+                            self.import_games_task(std::iter::empty()),
+                        )
+                    }
+                    ConversionState::Errored(e) => {
+                        self.notifications.push(Notification::error(e));
+                        (
+                            ConversionState::Idle,
+                            self.import_games_task(std::iter::empty()),
+                        )
+                    }
+                    _ => (importing, Task::none()),
+                };
+
+                task
             }
             Message::CancelImport(i) => {
                 self.import_queue.remove(i);
@@ -222,8 +199,8 @@ impl AppState {
                 Task::none()
             }
             Message::ToggleAnimationState => {
-                if self.ongoing.contains(Ongoing::Converting) {
-                    self.ongoing ^= Ongoing::AnimationState;
+                if let ConversionState::Progress(_) = self.importing {
+                    self.animation_state = !self.animation_state;
                 }
 
                 Task::none()
@@ -269,50 +246,44 @@ impl AppState {
                 self.write_config_task()
             }
             Message::SearchGames(search_term) => {
-                self.games.filter.search_term = search_term.to_lowercase_smolstr();
+                self.games
+                    .set_search_term(search_term.to_lowercase_smolstr());
                 Task::none()
             }
             Message::SearchHomebrewApps(search_term) => {
-                self.homebrew_apps.filter.search_term = search_term.to_lowercase_smolstr();
+                self.homebrew
+                    .set_search_term(search_term.to_lowercase_smolstr());
                 Task::none()
             }
             Message::ToggleShowWii(checked) => {
-                self.games.filter.show_wii = checked;
+                self.games.set_show_wii(checked);
                 Task::none()
             }
             Message::ToggleShowNgc(checked) => {
-                self.games.filter.show_ngc = checked;
+                self.games.set_show_ngc(checked);
                 Task::none()
             }
             Message::PickExportDest(game) => self.init_file_dialog_task().then(move |base| {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
-            Message::ExportGame(game, out_path) => {
-                self.ongoing.insert(Ongoing::ExportingGame);
+            Message::ExportGame(game, out_path) => Task::sip(
+                export_game(game, out_path),
+                Message::SetExporting,
+                Message::SetExporting,
+            ),
+            Message::SetExporting(exporting) => {
+                self.exporting = match exporting {
+                    ConversionState::Finished(success) => {
+                        self.notifications.push(Notification::success(success));
+                        ConversionState::Idle
+                    }
+                    ConversionState::Errored(error) => {
+                        self.notifications.push(Notification::error(error));
+                        ConversionState::Idle
+                    }
+                    _ => exporting,
+                };
 
-                Task::sip(
-                    export_game(game, out_path),
-                    Message::SetExportingStatus,
-                    |res| match res {
-                        Ok(game) => Message::GameExported(game),
-                        Err(e) => Message::CouldNotExportGame(e.to_smolstr()),
-                    },
-                )
-            }
-            Message::GameExported(game) => {
-                self.ongoing.remove(Ongoing::ExportingGame);
-                self.exporting_status = SmolStr::default();
-
-                self.notifications.push(Notification::success(format!(
-                    "Successfully exported {}",
-                    game.title()
-                )));
-                Task::none()
-            }
-            Message::CouldNotExportGame(e) => {
-                self.ongoing.remove(Ongoing::ExportingGame);
-                self.exporting_status = SmolStr::default();
-                self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::RunTool(tool) => self.run_tool(tool),
@@ -328,7 +299,7 @@ impl AppState {
                 Task::none()
             }
             Message::SearchOscApps(search_term) => {
-                if let OscContents::Loaded(contents) = &mut self.osc_contents {
+                if let OscState::Loaded(contents) = &mut self.osc_contents {
                     contents.filter.search_term = search_term.to_lowercase_smolstr();
                 }
                 Task::none()

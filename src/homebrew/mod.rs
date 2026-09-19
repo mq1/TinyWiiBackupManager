@@ -10,7 +10,7 @@ use smol::{
 use std::path::PathBuf;
 
 pub mod homebrew_app;
-pub mod homebrew_app_list;
+pub mod homebrew_state;
 pub mod meta;
 
 pub async fn import(

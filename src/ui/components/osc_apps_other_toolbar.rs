@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message, osc::osc_contents::OscAppList,
-    ui::components::osc_app_search::osc_app_search,
+    messages::Message, osc::osc_state::OscAppList, ui::components::osc_app_search::osc_app_search,
 };
 use humantime::format_duration;
 use iced::{

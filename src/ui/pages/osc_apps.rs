@@ -3,7 +3,7 @@
 
 use crate::{
     messages::Message,
-    osc::osc_contents::OscAppList,
+    osc::osc_state::OscAppList,
     state::AppState,
     ui::components::{
         osc_app_card::osc_app_card, osc_apps_other_toolbar::osc_apps_other_toolbar,
@@ -15,7 +15,7 @@ use iced::{
     widget::{Row, column, scrollable},
 };
 
-pub fn osc_app_grid<'a>(state: &'a AppState, apps: &'a OscAppList) -> Element<'a, Message> {
+pub fn osc_apps<'a>(state: &'a AppState, apps: &'a OscAppList) -> Element<'a, Message> {
     let content = apps
         .iter()
         .map(osc_app_card)

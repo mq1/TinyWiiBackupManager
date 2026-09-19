@@ -3,16 +3,16 @@
 
 use crate::{
     config::{Config, GcOutputFormat, WiiOutputFormat},
-    games::disc_reader::get_disc_reader,
-    util::{drive_info::DriveInfo, misc::OPTIMAL_THREADS},
+    games::{conversion_state::ConversionState, disc_reader::get_disc_reader},
+    util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
 use anyhow::{Context, Result, anyhow};
-use iced::task::{Straw, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use smol_str::{SmolStr, format_smolstr};
+use smol::stream::{Stream, StreamExt};
+use smol_str::{ToSmolStr, format_smolstr};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -28,9 +28,18 @@ const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4
 fn perform_blocking(
     disc_path: PathBuf,
     config: Config,
-    is_fat32: bool,
-    tx: smol::channel::Sender<SmolStr>,
+    drive: DriveState,
+    tx: &smol::channel::Sender<ConversionState>,
 ) -> Result<()> {
+    let filename = disc_path
+        .file_name()
+        .and_then(OsStr::to_str)
+        .context("invalid filename")?;
+
+    tx.send_blocking(ConversionState::Progress(format_smolstr!(
+        "›  Opening {filename}"
+    )))?;
+
     let disc_reader = get_disc_reader(&disc_path)?;
 
     let disc_header = disc_reader.header();
@@ -38,6 +47,12 @@ fn perform_blocking(
     let game_id = disc_header.game_id_str().to_string();
     let game_title = disc_header.game_title_str().to_string();
     let disc_num = usize::from(disc_header.disc_num);
+
+    let is_fat32 = if let DriveState::Loaded(info) = drive {
+        info.fs_kind() == FsKind::Fat32
+    } else {
+        false
+    };
 
     let must_split = is_wii && (is_fat32 || config.always_split);
     let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
@@ -63,9 +78,9 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let status =
-                    format_smolstr!("⤓  Importing {game_title}  {progress_percentage:02}%");
-                let _ = tx.try_send(status);
+                let _ = tx.try_send(ConversionState::Progress(format_smolstr!(
+                    "⤓  Importing {game_title}  {progress_percentage:02}%"
+                )));
 
                 prev_percentage = progress_percentage;
             }
@@ -91,45 +106,31 @@ fn perform_blocking(
     }
 
     out_writer.flush()?;
+    drop(out_writer);
+    drop(disc_writer);
+
+    if config.remove_sources_games {
+        let _ = std::fs::remove_file(disc_path);
+    }
+
     Ok(())
 }
 
 pub fn import_game(
     path: PathBuf,
     config: Config,
-    drive_info: Option<DriveInfo>,
-) -> impl Straw<(), SmolStr, anyhow::Error> {
-    let is_fat32 = drive_info.is_some_and(|drive_info| drive_info.fs_kind() == FsKind::Fat32);
+    drive: DriveState,
+) -> impl Stream<Item = ConversionState> {
+    let (tx, rx) = smol::channel::bounded(1);
 
-    sipper(async move |mut sender| {
-        let filename = path
-            .file_name()
-            .and_then(OsStr::to_str)
-            .context("invalid filename")?;
-
-        sender.send(format_smolstr!("›  Opening {filename}")).await;
-
-        let remove_sources = config.remove_sources_games;
-
-        let (tx, rx) = smol::channel::bounded(1);
-
-        let handle = std::thread::spawn({
-            let path = path.clone();
-            move || perform_blocking(path, config, is_fat32, tx)
-        });
-
-        while let Ok(msg) = rx.recv().await {
-            sender.send(msg).await;
+    let _ = std::thread::spawn(move || match perform_blocking(path, config, drive, &tx) {
+        Ok(()) => {}
+        Err(e) => {
+            let _ = tx.send_blocking(ConversionState::Errored(e.to_smolstr()));
         }
+    });
 
-        handle.join().expect("Failed to join thread")?;
-
-        if remove_sources {
-            smol::fs::remove_file(&path).await?;
-        }
-
-        Ok(())
-    })
+    rx
 }
 
 fn get_filename(

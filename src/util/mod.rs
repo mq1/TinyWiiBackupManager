@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod data_dir;
-pub mod drive_info;
+pub mod drive_state;
 pub mod fs;
 pub mod http;
 pub mod misc;

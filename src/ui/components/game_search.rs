@@ -6,7 +6,7 @@ use iced::Element;
 
 pub fn game_search(state: &AppState) -> Element<'_, Message> {
     search_bar(
-        &state.games.filter.search_term,
+        state.games.search_term(),
         Message::SearchGames,
         "Search by Title/ID",
     )

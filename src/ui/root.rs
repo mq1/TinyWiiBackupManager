@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::ViewAs,
+    games::{conversion_state::ConversionState, games_state::GamesState},
+    homebrew::homebrew_state::HomebrewState,
     messages::Message,
-    osc::osc_contents::OscContents,
+    osc::osc_state::OscState,
     state::AppState,
     ui::{
         components::{notifications::notifications, sidebar::sidebar},
@@ -13,10 +14,9 @@ use crate::{
             homebrew_app_info::homebrew_app_info,
         },
         pages::{
-            Page, about::about, errored::errored, game_grid::game_grid, game_table::game_table,
-            homebrew_app_grid::homebrew_app_grid, homebrew_app_table::homebrew_app_table,
-            import_queue::import_queue, loading::loading, osc_app_grid::osc_app_grid,
-            settings::settings, toolbox::toolbox,
+            Page, about::about, errored::errored, games::games, homebrew_apps::homebrew_apps,
+            import_queue::import_queue, loading::loading, osc_apps::osc_apps, settings::settings,
+            toolbox::toolbox,
         },
     },
 };
@@ -29,20 +29,28 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = stack![
         row![
             sidebar(state),
-            container(match (state.current_page, state.config.view_as) {
-                (Page::Games, ViewAs::Grid) => game_grid(state),
-                (Page::Games, ViewAs::Table) => game_table(state),
-                (Page::HomebrewApps, ViewAs::Grid) => homebrew_app_grid(state),
-                (Page::HomebrewApps, ViewAs::Table) => homebrew_app_table(state),
-                (Page::Osc, _) => match &state.osc_contents {
-                    OscContents::NotYetLoaded => loading(),
-                    OscContents::Errored(e) => errored(e),
-                    OscContents::Loaded(apps) => osc_app_grid(state, apps),
+            container(match state.current_page {
+                Page::Games => {
+                    match &state.games {
+                        GamesState::NotLoaded | GamesState::Loading => loading(),
+                        GamesState::Errored(e) => errored(e),
+                        GamesState::Loaded(_) => games(state),
+                    }
+                }
+                Page::HomebrewApps => match &state.homebrew {
+                    HomebrewState::NotLoaded | HomebrewState::Loading => loading(),
+                    HomebrewState::Errored(e) => errored(e),
+                    HomebrewState::Loaded(_) => homebrew_apps(state),
                 },
-                (Page::Settings, _) => settings(state),
-                (Page::Toolbox, _) => toolbox(state),
-                (Page::ImportQueue, _) => import_queue(state),
-                (Page::About, _) => about(state),
+                Page::Osc => match &state.osc_contents {
+                    OscState::NotLoaded | OscState::Loading => loading(),
+                    OscState::Errored(e) => errored(e),
+                    OscState::Loaded(apps) => osc_apps(state, apps),
+                },
+                Page::Settings => settings(state),
+                Page::Toolbox => toolbox(state),
+                Page::ImportQueue => import_queue(state),
+                Page::About => about(state),
             })
             .width(Length::Fill)
             .height(Length::Fill)
@@ -66,8 +74,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             )
         }),
         (state.notifications.has_notifications()
-            || !state.status.is_empty()
-            || !state.exporting_status.is_empty())
+            || [&state.importing, &state.exporting, &state.hashing]
+                .into_iter()
+                .any(|conversion| matches!(conversion, ConversionState::Progress(_))))
         .then(|| {
             container(notifications(state))
                 .align_right(Length::Fill)

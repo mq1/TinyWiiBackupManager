@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::state::AppState;
+use crate::{state::AppState, util::drive_state::DriveState};
 use std::fmt::Write;
 
 pub mod components;
@@ -27,12 +27,12 @@ pub fn title(state: &AppState) -> String {
     let label = mount_point.file_name().unwrap_or(mount_point.as_os_str());
     write!(&mut s, "{}", label.display()).unwrap();
 
-    if let Some(drive_info) = &state.drive_info {
+    if let DriveState::Loaded(info) = &state.drive {
         write!(
             &mut s,
             "  ({}/{})",
-            drive_info.used_size_str(),
-            drive_info.total_size_str()
+            info.used_size_str(),
+            info.total_size_str()
         )
         .unwrap();
     }

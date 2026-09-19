@@ -13,11 +13,13 @@ use std::{
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
 
+pub mod calc_sha1;
+pub mod conversion_state;
 pub mod covers;
 pub mod disc_reader;
 pub mod export;
 pub mod game;
-pub mod game_list;
+pub mod games_state;
 pub mod import;
 
 async fn get_id(path: &Path) -> Result<GameID> {
@@ -46,10 +48,10 @@ async fn get_id(path: &Path) -> Result<GameID> {
     .map(|meta| meta.game_id())
 }
 
-pub async fn keep_valid_games(
+pub fn keep_valid_games(
     games: impl Stream<Item = PathBuf>,
-    existing_ids: Vec<GameID>,
-) -> Vec<PathBuf> {
+    existing_ids: &[GameID],
+) -> impl Stream<Item = PathBuf> {
     games
         .then(|p| async {
             match get_id(&p).await {
@@ -64,6 +66,4 @@ pub async fn keep_valid_games(
             }
         })
         .filter_map(identity)
-        .collect()
-        .await
 }

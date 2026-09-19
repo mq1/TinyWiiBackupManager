@@ -8,7 +8,7 @@ use crate::{
         my_group::my_group,
         my_link::{MyLink, my_link},
     },
-    util::drive_info::DriveInfo,
+    util::drive_state::{DriveInfo, DriveState},
 };
 use iced::{
     Element,
@@ -17,19 +17,19 @@ use iced::{
 use lucide_icons::Icon;
 use which_fs::FsKind;
 
-fn fs_info(state: &AppState) -> (bool, Icon, &'static str) {
-    match state.drive_info.as_ref().map(|info| info.fs_kind()) {
-        Some(FsKind::Fat32) => (
+fn fs_info(info: &DriveInfo) -> (bool, Icon, &'static str) {
+    match info.fs_kind() {
+        FsKind::Fat32 => (
             true,
             Icon::Check,
             "optimal choice for game backups and homebrew apps",
         ),
-        Some(FsKind::Ntfs | FsKind::ExFat) => (
+        FsKind::Ntfs | FsKind::ExFat => (
             false,
             Icon::TriangleAlert,
             "limited support for game backups and homebrew apps",
         ),
-        None | Some(FsKind::Unknown) => (false, Icon::TriangleAlert, "unknown support"),
+        FsKind::Unknown => (false, Icon::TriangleAlert, "unknown support"),
         _ => (
             false,
             Icon::TriangleAlert,
@@ -38,19 +38,15 @@ fn fs_info(state: &AppState) -> (bool, Icon, &'static str) {
     }
 }
 
-fn allocation_granularity(state: &AppState) -> (bool, Icon, &'static str) {
-    match state
-        .drive_info
-        .as_ref()
-        .map(DriveInfo::has_optimal_allocation_granularity)
-    {
-        Some(true) => (true, Icon::Check, "optimal"),
-        Some(false) => (false, Icon::TriangleAlert, "not optimal, but should work"),
-        None => (false, Icon::TriangleAlert, "unknown"),
+fn allocation_granularity(info: &DriveInfo) -> (bool, Icon, &'static str) {
+    if info.has_optimal_allocation_granularity() {
+        (true, Icon::Check, "optimal")
+    } else {
+        (false, Icon::TriangleAlert, "not optimal, but should work")
     }
 }
 
-fn drive_formatting_guide_link<'a>() -> MyLink<&'a str, &'a str> {
+fn drive_formatting_guide_link() -> MyLink<&'static str, &'static str> {
     my_link(
         "Drive formatting guide",
         "https://gbatemp.net/threads/usb-loader-gx-troubleshooting-guide.617564/#fs",
@@ -58,45 +54,50 @@ fn drive_formatting_guide_link<'a>() -> MyLink<&'a str, &'a str> {
 }
 
 pub fn drive_info(state: &AppState) -> Element<'_, Message> {
-    let (optimal_fs_info, fs_info_icon, fs_info_comment) = fs_info(state);
-    let (
-        optimal_allocation_granularity,
-        allocation_granularity_icon,
-        allocation_granularity_comment,
-    ) = allocation_granularity(state);
+    let (content, top_right_content): (Element<'_, Message>, Element<'_, Message>) =
+        match &state.drive {
+            DriveState::NotLoaded | DriveState::Loading => (
+                text("Loading...").into(),
+                None::<Element<'_, Message>>.into(),
+            ),
+            DriveState::Errored(msg) => (
+                text(msg.as_str()).into(),
+                None::<Element<'_, Message>>.into(),
+            ),
+            DriveState::Loaded(info) => {
+                let (optimal_fs_info, fs_info_icon, fs_info_comment) = fs_info(info);
+                let (
+                    optimal_allocation_granularity,
+                    allocation_granularity_icon,
+                    allocation_granularity_comment,
+                ) = allocation_granularity(info);
 
-    let top_right_content =
-        (!optimal_fs_info || !optimal_allocation_granularity).then(drive_formatting_guide_link);
+                let top_right_content = (!optimal_fs_info || !optimal_allocation_granularity)
+                    .then(drive_formatting_guide_link)
+                    .into();
 
-    let content = column![
-        row![
-            fs_info_icon.widget(),
-            text!(
-                "Filesystem: {}  ({})",
-                state
-                    .drive_info
-                    .as_ref()
-                    .map(|info| info.fs_kind())
-                    .unwrap_or(FsKind::Unknown),
-                fs_info_comment
-            )
-        ]
-        .spacing(5),
-        row![
-            allocation_granularity_icon.widget(),
-            text!(
-                "Allocation granularity: {}  ({})",
-                state
-                    .drive_info
-                    .as_ref()
-                    .map(|info| info.allocation_granularity_str())
-                    .unwrap_or_default(),
-                allocation_granularity_comment
-            )
-        ]
-        .spacing(5),
-    ]
-    .spacing(5);
+                let content = column![
+                    row![
+                        fs_info_icon.widget(),
+                        text!("Filesystem: {}  ({})", info.fs_kind(), fs_info_comment)
+                    ]
+                    .spacing(5),
+                    row![
+                        allocation_granularity_icon.widget(),
+                        text!(
+                            "Allocation granularity: {}  ({})",
+                            info.allocation_granularity_str(),
+                            allocation_granularity_comment
+                        )
+                    ]
+                    .spacing(5),
+                ]
+                .spacing(5)
+                .into();
+
+                (content, top_right_content)
+            }
+        };
 
     my_group("Drive info", content)
         .icon(Icon::HardDrive)

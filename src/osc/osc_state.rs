@@ -18,7 +18,7 @@ pub struct OscAppFilter {
 
 #[derive(Clone, Debug)]
 pub struct OscAppList {
-    apps: Vec<OscApp>,
+    apps: Box<[OscApp]>,
     refreshed: SystemTime,
     pub filter: OscAppFilter,
 }
@@ -39,14 +39,15 @@ impl OscAppList {
 }
 
 #[derive(Default, Clone, Debug)]
-pub enum OscContents {
+pub enum OscState {
     #[default]
-    NotYetLoaded,
+    NotLoaded,
+    Loading,
     Loaded(OscAppList),
     Errored(SmolStr),
 }
 
-impl OscContents {
+impl OscState {
     pub async fn load(data_dir: &Path) -> Self {
         let cache_path = data_dir.join("osc-cache.json");
 
