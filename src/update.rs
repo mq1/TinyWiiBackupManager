@@ -10,7 +10,7 @@ use crate::{
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
-use smol_str::StrExt;
+use smol_str::{SmolStr, StrExt};
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -139,7 +139,10 @@ impl AppState {
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
             Message::HomebrewAppsImported(_) => Task::none(),
-            Message::CalcGameSha1(game) => Task::stream(calc_sha1(game)).map(Message::SetHashing),
+            Message::CalcGameSha1(game) => {
+                self.hashing = ConversionState::Progress(SmolStr::default());
+                Task::stream(calc_sha1(game)).map(Message::SetHashing)
+            }
             Message::SetHashing(hashing) => {
                 self.hashing = match hashing {
                     ConversionState::Finished(success) => {
@@ -267,6 +270,7 @@ impl AppState {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => {
+                self.exporting = ConversionState::Progress(SmolStr::default());
                 Task::stream(export_game(game, out_path)).map(Message::SetExporting)
             }
             Message::SetExporting(exporting) => {
