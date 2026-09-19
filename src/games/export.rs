@@ -6,18 +6,19 @@ use crate::{
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result};
-use iced::task::{Sipper, sipper};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use smol_str::{SmolStr, ToSmolStr, format_smolstr};
+use smol::stream::Stream;
+use smol_str::{ToSmolStr, format_smolstr};
 use std::{
     ffi::OsStr,
     fs::File,
     io::{BufWriter, Seek, Write},
     path::PathBuf,
 };
+use tap::Pipe;
 
 fn ext_to_format(ext: &str) -> Option<Format> {
     match ext {
@@ -33,12 +34,19 @@ fn ext_to_format(ext: &str) -> Option<Format> {
 }
 
 fn perform_blocking(
-    disc_path: PathBuf,
+    game: Game,
     out_path: PathBuf,
-    format_opts: FormatOptions,
-    game_title: SmolStr,
-    tx: smol::channel::Sender<SmolStr>,
+    tx: &smol::channel::Sender<ConversionState>,
 ) -> Result<()> {
+    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+
+    let format_opts = out_path
+        .extension()
+        .and_then(OsStr::to_str)
+        .and_then(ext_to_format)
+        .context("invalid extension")?
+        .pipe(FormatOptions::new);
+
     let disc_reader = get_disc_reader(&disc_path)?;
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
     let mut out_writer = {
@@ -53,9 +61,10 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let status =
-                    format_smolstr!("⤓  Exporting {game_title}  {progress_percentage:02}%");
-                let _ = tx.try_send(status);
+                let _ = tx.try_send(ConversionState::Progress(format_smolstr!(
+                    "⤓  Exporting {}  {progress_percentage:02}%",
+                    game.title()
+                )));
 
                 prev_percentage = progress_percentage;
             }
@@ -81,42 +90,20 @@ fn perform_blocking(
     Ok(())
 }
 
-pub fn export_game(game: Game, out_path: PathBuf) -> impl Sipper<ConversionState, ConversionState> {
-    sipper(async move |mut sender| {
-        let res = async move {
-            let disc_path = game.get_disc_path().await.context("disc not found")?;
+pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
+    let game_title = game.title_cloned();
+    let (tx, rx) = smol::channel::bounded(1);
 
-            let format_opts = {
-                let format = out_path
-                    .extension()
-                    .and_then(OsStr::to_str)
-                    .and_then(ext_to_format)
-                    .context("invalid extension")?;
-
-                FormatOptions::new(format)
-            };
-
-            let game_title = game.title_cloned();
-
-            let (tx, rx) = smol::channel::bounded(1);
-
-            let handle = std::thread::spawn(move || {
-                perform_blocking(disc_path, out_path, format_opts, game_title, tx)
-            });
-
-            while let Ok(msg) = rx.recv().await {
-                sender.send(ConversionState::Progress(msg)).await;
-            }
-
-            handle.join().expect("Failed to join thread")?;
-
-            Ok::<_, anyhow::Error>(game.title_cloned())
+    let _ = std::thread::spawn(move || match perform_blocking(game, out_path, &tx) {
+        Ok(()) => {
+            let _ = tx.try_send(ConversionState::Finished(format_smolstr!(
+                "Exported {game_title}"
+            )));
         }
-        .await;
-
-        match res {
-            Ok(game_title) => ConversionState::Finished(format_smolstr!("Exported {game_title}")),
-            Err(e) => ConversionState::Errored(e.to_smolstr()),
+        Err(e) => {
+            let _ = tx.try_send(ConversionState::Errored(e.to_smolstr()));
         }
-    })
+    });
+
+    rx
 }

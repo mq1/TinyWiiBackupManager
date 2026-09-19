@@ -266,11 +266,9 @@ impl AppState {
             Message::PickExportDest(game) => self.init_file_dialog_task().then(move |base| {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
-            Message::ExportGame(game, out_path) => Task::sip(
-                export_game(game, out_path),
-                Message::SetExporting,
-                Message::SetExporting,
-            ),
+            Message::ExportGame(game, out_path) => {
+                Task::stream(export_game(game, out_path)).map(Message::SetExporting)
+            }
             Message::SetExporting(exporting) => {
                 self.exporting = match exporting {
                     ConversionState::Finished(success) => {
