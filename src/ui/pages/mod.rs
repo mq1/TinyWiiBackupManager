@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use strum_macros::Display;
+use strum_macros::{Display, IntoStaticStr};
 
 pub mod about;
 pub mod errored;
@@ -13,7 +13,7 @@ pub mod osc_apps;
 pub mod settings;
 pub mod toolbox;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display, IntoStaticStr)]
 pub enum Page {
     #[default]
     Games,

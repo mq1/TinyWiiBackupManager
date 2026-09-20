@@ -8,7 +8,10 @@ use crate::{
 use std::fmt::Write;
 
 pub fn title(state: &AppState) -> String {
-    let mut s = "TinyWiiBackupManager  ›  ".to_string();
+    let mut s = String::with_capacity(128);
+
+    s.push_str(env!("CARGO_PKG_NAME"));
+    s.push_str("  ›  ");
 
     let mount_point = &state.config.mount_point;
     if mount_point.as_os_str().is_empty() {
@@ -29,7 +32,8 @@ pub fn title(state: &AppState) -> String {
         .unwrap();
     }
 
-    write!(&mut s, "  ›  {}", state.current_page).unwrap();
+    s.push_str("  ›  ");
+    s.push_str(state.current_page.into());
 
     match state.current_page {
         Page::Games if let GamesState::Loaded(games) = &state.games => {
@@ -37,14 +41,14 @@ pub fn title(state: &AppState) -> String {
             if let DriveState::Loaded(info) = &state.drive {
                 write!(&mut s, "  ~{}", info.games_size_str()).unwrap();
             }
-            write!(&mut s, ")").unwrap();
+            s.push(')');
         }
         Page::HomebrewApps if let HomebrewState::Loaded(apps) = &state.homebrew => {
             write!(&mut s, "  (x{}", apps.count()).unwrap();
             if let DriveState::Loaded(info) = &state.drive {
                 write!(&mut s, "  ~{}", info.apps_size_str()).unwrap();
             }
-            write!(&mut s, ")").unwrap();
+            s.push(')');
         }
         _ => {}
     }
