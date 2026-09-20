@@ -11,7 +11,7 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use smol::stream::Stream;
-use smol_str::{ToSmolStr, format_smolstr};
+use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 use std::{
     ffi::OsStr,
     fs::File,
@@ -37,7 +37,7 @@ fn perform_blocking(
     game: Game,
     out_path: PathBuf,
     tx: &smol::channel::Sender<ConversionState>,
-) -> Result<()> {
+) -> Result<SmolStr> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let format_opts = out_path
@@ -87,18 +87,15 @@ fn perform_blocking(
     }
 
     out_writer.flush()?;
-    Ok(())
+    Ok(format_smolstr!("Exported {}", game.title()))
 }
 
 pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
-    let game_title = game.title_cloned();
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || match perform_blocking(game, out_path, &tx) {
-        Ok(()) => {
-            let _ = tx.try_send(ConversionState::Finished(format_smolstr!(
-                "Exported {game_title}"
-            )));
+        Ok(msg) => {
+            let _ = tx.try_send(ConversionState::Finished(msg));
         }
         Err(e) => {
             let _ = tx.try_send(ConversionState::Errored(e.to_smolstr()));

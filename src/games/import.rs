@@ -12,7 +12,7 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use smol::stream::Stream;
-use smol_str::{ToSmolStr, format_smolstr};
+use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -30,7 +30,7 @@ fn perform_blocking(
     config: Config,
     drive: DriveState,
     tx: &smol::channel::Sender<ConversionState>,
-) -> Result<()> {
+) -> Result<SmolStr> {
     let filename = disc_path
         .file_name()
         .and_then(OsStr::to_str)
@@ -110,10 +110,10 @@ fn perform_blocking(
     drop(disc_writer);
 
     if config.remove_sources_games {
-        let _ = std::fs::remove_file(disc_path);
+        let _ = std::fs::remove_file(&disc_path);
     }
 
-    Ok(())
+    Ok(format_smolstr!("Imported {game_title}"))
 }
 
 pub fn import_game(
@@ -124,7 +124,9 @@ pub fn import_game(
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || match perform_blocking(path, config, drive, &tx) {
-        Ok(()) => {}
+        Ok(msg) => {
+            let _ = tx.send_blocking(ConversionState::Finished(msg));
+        }
         Err(e) => {
             let _ = tx.send_blocking(ConversionState::Errored(e.to_smolstr()));
         }

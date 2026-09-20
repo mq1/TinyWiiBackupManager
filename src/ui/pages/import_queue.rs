@@ -7,27 +7,23 @@ use crate::{
     ui::components::{my_card::my_card, queued_import_row::queued_import_row},
 };
 use iced::{
-    Element, padding,
-    widget::{Column, column, row, rule, text},
+    Element, Length, padding,
+    widget::{Column, rule, scrollable},
 };
 use itertools::Itertools;
-use lucide_icons::iced::icon_chevron_right;
+use tap::Pipe;
 
 pub fn import_queue(state: &AppState) -> Element<'_, Message> {
-    let titlebar = row![icon_chevron_right().size(20), text("Import Queue").size(20)]
-        .spacing(5)
-        .padding(padding::all(14).left(10));
-
-    let content = state
+    state
         .import_queue
         .iter()
         .enumerate()
         .map(queued_import_row)
         .intersperse_with(|| rule::horizontal(1).into())
-        .collect::<Column<'_, _>>();
-
-    column![titlebar, my_card(content).padding(0)]
-        .padding(10)
-        .spacing(10)
+        .collect::<Column<'_, _>>()
+        .pipe(my_card)
+        .padding(padding::all(10).right(20))
+        .width(Length::Fill)
+        .pipe(scrollable)
         .into()
 }
