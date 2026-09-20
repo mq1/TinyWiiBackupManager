@@ -58,6 +58,7 @@ smol_str = { version = "0.3", features = ["serde"] }
 humantime = "2"
 anyhow = "1"
 tap = "1"
+nod = { git = "https://github.com/rowanG077/nod.git", branch = "rowan/remove-non-rust" }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
@@ -67,18 +68,6 @@ mundy = { version = "0.2", default-features = false, features = [
 
 [target.'cfg(not(any(target_os = "linux", target_arch = "aarch64")))'.dependencies]
 dark-light = { version = "3", default-features = false }
-
-# windows x86 has issues with bzip2 + lld
-[target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
-nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
-  "compress-lzma-vendored",
-  "compress-zlib-vendored",
-  "compress-zstd-vendored",
-  "threading",
-] }
-
-[target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
-nod = "=2.0.0-alpha.9"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
