@@ -93,13 +93,13 @@ fn perform_blocking(
 pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
     let (tx, rx) = smol::channel::bounded(1);
 
-    let _ = std::thread::spawn(move || match perform_blocking(game, out_path, &tx) {
-        Ok(msg) => {
-            let _ = tx.try_send(ConversionState::Finished(msg));
-        }
-        Err(e) => {
-            let _ = tx.try_send(ConversionState::Errored(e.to_smolstr()));
-        }
+    let _ = std::thread::spawn(move || {
+        let exit = match perform_blocking(game, out_path, &tx) {
+            Ok(msg) => ConversionState::Finished(msg),
+            Err(e) => ConversionState::Errored(e.to_smolstr()),
+        };
+
+        tx.send_blocking(exit).expect("Channel should be open");
     });
 
     rx

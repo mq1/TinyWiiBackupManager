@@ -123,13 +123,13 @@ pub fn import_game(
 ) -> impl Stream<Item = ConversionState> {
     let (tx, rx) = smol::channel::bounded(1);
 
-    let _ = std::thread::spawn(move || match perform_blocking(path, config, drive, &tx) {
-        Ok(msg) => {
-            let _ = tx.send_blocking(ConversionState::Finished(msg));
-        }
-        Err(e) => {
-            let _ = tx.send_blocking(ConversionState::Errored(e.to_smolstr()));
-        }
+    let _ = std::thread::spawn(move || {
+        let exit = match perform_blocking(path, config, drive, &tx) {
+            Ok(msg) => ConversionState::Finished(msg),
+            Err(e) => ConversionState::Errored(e.to_smolstr()),
+        };
+
+        tx.send_blocking(exit).expect("Channel should be open");
     });
 
     rx

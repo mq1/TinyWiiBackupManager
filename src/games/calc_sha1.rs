@@ -13,7 +13,7 @@ use nod::{
 use smol::stream::Stream;
 use smol_str::{ToSmolStr, format_smolstr};
 
-fn perform_blocking(game: Game, tx: smol::channel::Sender<ConversionState>) -> Result<bool> {
+fn perform_blocking(game: Game, tx: &smol::channel::Sender<ConversionState>) -> Result<bool> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
@@ -55,12 +55,18 @@ pub fn calc_sha1(game: Game) -> impl Stream<Item = ConversionState> {
     let (tx, rx) = smol::channel::bounded(1);
     let game_title = game.title_cloned();
 
-    let _ = std::thread::spawn(move || match perform_blocking(game, tx) {
-        Ok(true) => ConversionState::Finished(format_smolstr!(
-            "Hash match for {game_title}!  -  SHA1 is well known, your dump is perfect",
-        )),
-        Ok(false) => ConversionState::Errored(format_smolstr!("Hash mismatch for {game_title}")),
-        Err(e) => ConversionState::Errored(e.to_smolstr()),
+    let _ = std::thread::spawn(move || {
+        let exit = match perform_blocking(game, &tx) {
+            Ok(true) => ConversionState::Finished(format_smolstr!(
+                "Hash match for {game_title}!  -  SHA1 is well known, your dump is perfect",
+            )),
+            Ok(false) => {
+                ConversionState::Errored(format_smolstr!("Hash mismatch for {game_title}"))
+            }
+            Err(e) => ConversionState::Errored(e.to_smolstr()),
+        };
+
+        tx.send_blocking(exit).expect("Channel should be open");
     });
 
     rx
