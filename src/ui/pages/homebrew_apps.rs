@@ -9,7 +9,6 @@ use crate::{
     ui::{
         components::{
             homebrew_app_card::homebrew_app_card, homebrew_app_row::homebrew_app_row,
-            homebrew_apps_other_toolbar::homebrew_apps_other_toolbar,
             homebrew_apps_titlebar::homebrew_apps_titlebar, my_card::my_card,
         },
         pages::{errored::errored, loading::loading},
@@ -17,7 +16,7 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, Row, column, rule, scrollable},
+    widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
 use tap::Pipe;
@@ -47,13 +46,9 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
             };
 
             column![
-                homebrew_apps_titlebar(state),
-                scrollable(
-                    column![homebrew_apps_other_toolbar(apps, &state.drive), content]
-                        .padding(padding::all(10).right(20).top(0))
-                        .spacing(10)
-                )
-                .width(Length::Fill),
+                homebrew_apps_titlebar(apps, state),
+                scrollable(container(content).padding(padding::all(10).right(20).top(0)))
+                    .width(Length::Fill),
             ]
             .into()
         }

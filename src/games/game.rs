@@ -99,13 +99,8 @@ impl Game {
     }
 
     pub fn get_disc_path_blocking(&self) -> Option<PathBuf> {
-        for path in self.get_possible_disc_paths() {
-            if std::fs::metadata(&path).is_ok_and(|meta| meta.is_file()) {
-                return Some(path);
-            }
-        }
-
-        None
+        self.get_possible_disc_paths()
+            .find(|path| std::fs::metadata(path).is_ok_and(|meta| meta.is_file()))
     }
 
     pub fn load_cover_blocking(&mut self, data_dir: &Path) {

@@ -8,15 +8,15 @@ use crate::{
     state::AppState,
     ui::{
         components::{
-            game_card::game_card, game_row::game_row, games_other_toolbar::games_other_toolbar,
-            games_titlebar::games_titlebar, my_card::my_card,
+            game_card::game_card, game_row::game_row, games_titlebar::games_titlebar,
+            my_card::my_card,
         },
         pages::{errored::errored, loading::loading},
     },
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, Row, column, rule, scrollable},
+    widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
 use tap::Pipe;
@@ -49,12 +49,8 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
 
             column![
                 games_titlebar(games, state),
-                scrollable(
-                    column![games_other_toolbar(games, &state.drive), content]
-                        .padding(padding::all(10).right(20).top(0))
-                        .spacing(10)
-                )
-                .width(Length::Fill),
+                scrollable(container(content).padding(padding::all(10).right(20).top(0)))
+                    .width(Length::Fill),
             ]
             .into()
         }

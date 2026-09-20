@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    homebrew::homebrew_state::HomebrewAppList,
     messages::Message,
     state::AppState,
     ui::components::{
+        homebrew_app_search::homebrew_app_search,
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
@@ -14,14 +16,16 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{row, space, text, tooltip},
+    widget::{row, space, tooltip},
 };
-use lucide_icons::{Icon, iced::icon_chevron_right};
+use lucide_icons::Icon;
 
-pub fn homebrew_apps_titlebar(state: &AppState) -> Element<'_, Message> {
+pub fn homebrew_apps_titlebar<'a>(
+    apps: &'a HomebrewAppList,
+    state: &'a AppState,
+) -> Element<'a, Message> {
     row![
-        icon_chevron_right().size(20),
-        text("Homebrew Apps").size(20),
+        homebrew_app_search(apps),
         space::horizontal(),
         sort_by(state),
         view_as(state),

@@ -20,7 +20,7 @@ mod ui;
 mod update;
 mod util;
 
-use crate::state::AppState;
+use crate::{state::AppState, ui::title::title};
 use lucide_icons::LUCIDE_FONT_BYTES;
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]
@@ -120,7 +120,7 @@ pub fn main() -> iced::Result {
     iced::application(AppState::boot, AppState::update, ui::root::view)
         .settings(settings)
         .window(window)
-        .title(ui::title)
+        .title(title)
         .subscription(AppState::subscription)
         .theme(AppState::theme)
         .run()

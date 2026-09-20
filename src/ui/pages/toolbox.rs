@@ -12,13 +12,9 @@ use iced::{
     Alignment, Element, Length, padding,
     widget::{Column, column, row, scrollable, text},
 };
-use lucide_icons::{Icon, iced::icon_chevron_right};
+use lucide_icons::Icon;
 
 pub fn toolbox(state: &AppState) -> Element<'_, Message> {
-    let titlebar = row![icon_chevron_right().size(20), text("Toolbox").size(20)]
-        .spacing(5)
-        .padding(padding::all(14).left(10));
-
     let tool_groups = crate::toolbox::all()
         .map(|tool_group| {
             let tools = tool_group
@@ -44,12 +40,11 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
         .collect::<Column<'_, _>>()
         .spacing(10);
 
-    let contents = scrollable(
+    scrollable(
         column![drive_info(state), wiiload(state), tool_groups]
             .spacing(10)
-            .padding(padding::left(10).bottom(10).right(20))
+            .padding(padding::all(10).right(20))
             .width(Length::Fill),
-    );
-
-    column![titlebar, contents].into()
+    )
+    .into()
 }

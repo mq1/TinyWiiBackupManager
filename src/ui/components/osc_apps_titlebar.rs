@@ -3,19 +3,20 @@
 
 use crate::{
     messages::Message,
+    osc::osc_state::OscAppList,
     state::AppState,
-    ui::components::{refresh_osc_button::refresh_osc_button, view_as::view_as},
+    ui::components::{
+        osc_app_search::osc_app_search, refresh_osc_button::refresh_osc_button, view_as::view_as,
+    },
 };
 use iced::{
     Alignment, Element,
-    widget::{row, space, text},
+    widget::{row, space},
 };
-use lucide_icons::iced::icon_chevron_right;
 
-pub fn osc_apps_titlebar(state: &AppState) -> Element<'_, Message> {
+pub fn osc_apps_titlebar<'a>(apps: &'a OscAppList, state: &'a AppState) -> Element<'a, Message> {
     row![
-        icon_chevron_right().size(20),
-        text("Open Shop Channel (oscwii.org)").size(20),
+        osc_app_search(apps),
         space::horizontal(),
         view_as(state),
         space().width(5),

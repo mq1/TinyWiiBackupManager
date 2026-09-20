@@ -9,14 +9,14 @@ use crate::{
     ui::{
         components::{
             my_card::my_card, osc_app_card::osc_app_card, osc_app_row::osc_app_row,
-            osc_apps_other_toolbar::osc_apps_other_toolbar, osc_apps_titlebar::osc_apps_titlebar,
+            osc_apps_titlebar::osc_apps_titlebar,
         },
         pages::{errored::errored, loading::loading},
     },
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, Row, column, rule, scrollable},
+    widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
 use tap::Pipe;
@@ -46,13 +46,9 @@ pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
             };
 
             column![
-                osc_apps_titlebar(state),
-                scrollable(
-                    column![osc_apps_other_toolbar(apps), content]
-                        .padding(padding::all(10).right(20).top(0))
-                        .spacing(10)
-                )
-                .width(Length::Fill),
+                osc_apps_titlebar(apps, state),
+                scrollable(container(content).padding(padding::all(10).right(20).top(0)))
+                    .width(Length::Fill),
             ]
             .into()
         }

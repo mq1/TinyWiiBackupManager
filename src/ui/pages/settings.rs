@@ -9,9 +9,9 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, column, radio, row, scrollable, text},
+    widget::{Column, column, radio, scrollable},
 };
-use lucide_icons::{Icon, iced::icon_chevron_right};
+use lucide_icons::Icon;
 use strum::IntoEnumIterator;
 
 fn setting<T: Eq + Copy>(
@@ -31,11 +31,7 @@ fn setting<T: Eq + Copy>(
 }
 
 pub fn settings(state: &AppState) -> Element<'_, Message> {
-    let titlebar = row![icon_chevron_right().size(20), text("Settings").size(20)]
-        .spacing(5)
-        .padding(padding::all(14).left(10));
-
-    let contents = scrollable(
+    scrollable(
         column![
             setting(
                 "Wii output format",
@@ -127,9 +123,8 @@ pub fn settings(state: &AppState) -> Element<'_, Message> {
             )
         ]
         .spacing(10)
-        .padding(padding::left(10).bottom(10).right(20))
+        .padding(padding::all(10).right(20))
         .width(Length::Fill),
-    );
-
-    column![titlebar, contents].into()
+    )
+    .into()
 }

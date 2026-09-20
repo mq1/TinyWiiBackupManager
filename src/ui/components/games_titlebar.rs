@@ -7,6 +7,7 @@ use crate::{
     state::AppState,
     ui::components::{
         filter_console::filter_console,
+        game_search::game_search,
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
@@ -16,14 +17,13 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{row, space, text, tooltip},
+    widget::{row, space, tooltip},
 };
-use lucide_icons::{Icon, iced::icon_chevron_right};
+use lucide_icons::Icon;
 
 pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'a, Message> {
     row![
-        icon_chevron_right().size(20),
-        text("Games").size(20),
+        game_search(games),
         space::horizontal(),
         filter_console(games),
         sort_by(state),
