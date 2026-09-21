@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{config::SortBy, homebrew::homebrew_app::HomebrewApp};
+use compact_str::{CompactString, ToCompactString};
 use itertools::Either;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use smol_str::{SmolStr, ToSmolStr};
 use std::path::PathBuf;
 use tap::Pipe;
 
@@ -16,7 +16,7 @@ pub struct HomebrewAppList {
     apps: Box<[HomebrewApp]>,
     order_by_name: Box<[usize]>,
     order_by_size: Box<[usize]>,
-    search_term: SmolStr,
+    search_term: CompactString,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -25,7 +25,7 @@ pub enum HomebrewState {
     NotLoaded,
     Loading,
     Loaded(HomebrewAppList),
-    Errored(SmolStr),
+    Errored(CompactString),
 }
 
 impl HomebrewState {
@@ -49,7 +49,7 @@ impl HomebrewState {
                 apps,
                 order_by_name,
                 order_by_size,
-                search_term: SmolStr::default(),
+                search_term: CompactString::default(),
             };
 
             Ok::<_, anyhow::Error>(app_list)
@@ -58,7 +58,7 @@ impl HomebrewState {
 
         match res {
             Ok(app_list) => HomebrewState::Loaded(app_list),
-            Err(err) => HomebrewState::Errored(err.to_smolstr()),
+            Err(err) => HomebrewState::Errored(err.to_compact_string()),
         }
     }
 }
@@ -91,7 +91,7 @@ impl HomebrewAppList {
         &self.search_term
     }
 
-    pub fn set_search_term(&mut self, search_term: SmolStr) {
+    pub fn set_search_term(&mut self, search_term: CompactString) {
         self.search_term = search_term;
     }
 }

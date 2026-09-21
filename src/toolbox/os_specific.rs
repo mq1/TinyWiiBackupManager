@@ -17,7 +17,7 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Run dot_clean (removes ._ files)",
             run_fn: |ctx| {
                 Box::pin(async move {
-                    use smol_str::ToSmolStr;
+                    use compact_str::ToCompactString;
 
                     Command::new("dot_clean")
                         .arg("-m")
@@ -26,7 +26,7 @@ pub const ALL: &[ToolboxGroup] = {
                         .await
                         .map_err(anyhow::Error::from)
                         .and_then(|status| status.success().ok_or(anyhow!("dot_clean failed")))
-                        .map(|_| "dot_clean ran successfully".to_smolstr())
+                        .map(|_| "dot_clean ran successfully".to_compact_string())
                 })
             },
         }],

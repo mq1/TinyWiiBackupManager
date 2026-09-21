@@ -16,6 +16,7 @@ use crate::{
     util::{data_dir::get_data_dir, drive_state::DriveState},
 };
 use anyhow::Context;
+use compact_str::{CompactString, ToCompactString, format_compact};
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
@@ -25,7 +26,6 @@ use smol::{
     fs::{self, File},
     net::TcpStream,
 };
-use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 use std::{ffi::OsStr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
@@ -157,7 +157,7 @@ impl AppState {
             },
             |res| match res {
                 Ok(meta) => Message::GotDiscInfo(meta),
-                Err(e) => Message::CouldNotGetDiscInfo(e.to_smolstr()),
+                Err(e) => Message::CouldNotGetDiscInfo(e.to_compact_string()),
             },
         )
     }
@@ -166,7 +166,7 @@ impl AppState {
         self.current_modal = None;
 
         Task::perform(fs::remove_dir_all(path), |res| {
-            Message::DirDeleted(res.map_err(|e| e.to_smolstr()))
+            Message::DirDeleted(res.map_err(|e| e.to_compact_string()))
         })
     }
 
@@ -190,7 +190,7 @@ impl AppState {
         }
 
         let task = if let Some(path) = self.import_queue.pop() {
-            self.importing = ConversionState::Progress(SmolStr::default());
+            self.importing = ConversionState::Progress(CompactString::default());
             Task::stream(import_game(path, self.config.clone(), self.drive.clone()))
                 .map(Message::SetImporting)
         } else {
@@ -246,7 +246,7 @@ impl AppState {
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip = self.config.wii_ip.to_smolstr();
+        let wii_ip = self.config.wii_ip.to_compact_string();
 
         Task::perform(
             async move {
@@ -259,7 +259,7 @@ impl AppState {
 
                 wiiload::compress_then_send_async(&mut conn, filename, &mut file).await?;
 
-                let msg = format_smolstr!("Sent {filename} to {wii_ip}");
+                let msg = format_compact!("Sent {filename} to {wii_ip}");
                 Ok::<_, anyhow::Error>(msg)
             },
             |res| Message::Notify(res.into()),

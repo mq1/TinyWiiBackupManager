@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{config::SortBy, games::game::Game};
+use compact_str::{CompactString, ToCompactString};
 use itertools::Either;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use smol_str::{SmolStr, ToSmolStr};
 use std::path::{Path, PathBuf};
 use wii_disc_info::game_id::GameID;
 
@@ -15,7 +15,7 @@ use wii_disc_info::game_id::GameID;
 pub struct GameFilter {
     show_wii: bool,
     show_ngc: bool,
-    search_term: SmolStr,
+    search_term: CompactString,
 }
 
 impl Default for GameFilter {
@@ -23,7 +23,7 @@ impl Default for GameFilter {
         Self {
             show_wii: true,
             show_ngc: true,
-            search_term: SmolStr::default(),
+            search_term: CompactString::default(),
         }
     }
 }
@@ -42,7 +42,7 @@ pub enum GamesState {
     NotLoaded,
     Loading,
     Loaded(GameList),
-    Errored(SmolStr),
+    Errored(CompactString),
 }
 
 impl GamesState {
@@ -79,7 +79,7 @@ impl GamesState {
 
         match res {
             Ok(game_list) => GamesState::Loaded(game_list),
-            Err(err) => GamesState::Errored(err.to_smolstr()),
+            Err(err) => GamesState::Errored(err.to_compact_string()),
         }
     }
 }
@@ -144,7 +144,7 @@ impl GameList {
         self.filter.show_ngc
     }
 
-    pub fn set_search_term(&mut self, search_term: SmolStr) {
+    pub fn set_search_term(&mut self, search_term: CompactString) {
         self.filter.search_term = search_term;
     }
 

@@ -6,8 +6,8 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use anyhow::bail;
+use compact_str::ToCompactString;
 use lucide_icons::Icon;
-use smol_str::ToSmolStr;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
@@ -22,7 +22,7 @@ pub const ALL: &[ToolboxGroup] = {
                             errored if !errored.is_empty() => {
                                 bail!("Could not download covers: {errored:?}")
                             }
-                            _ => Ok("Covers successfully downloaded".to_smolstr()),
+                            _ => Ok("Covers successfully downloaded".to_compact_string()),
                         }
                     })
                 },
@@ -35,7 +35,7 @@ pub const ALL: &[ToolboxGroup] = {
                             errored if !errored.is_empty() => {
                                 bail!("Could not download covers: {errored:?}")
                             }
-                            _ => Ok("Covers successfully downloaded".to_smolstr()),
+                            _ => Ok("Covers successfully downloaded".to_compact_string()),
                         }
                     })
                 },

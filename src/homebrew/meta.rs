@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result};
-use smol_str::{SmolStr, format_smolstr};
+use compact_str::{CompactString, format_compact};
 use std::{fs, path::Path};
 
-fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<SmolStr> {
+fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<CompactString> {
     let start = contents.find(start_pattern)?;
     let slice = &contents[start..];
     let start = slice.find('>')? + 1;
@@ -13,7 +13,7 @@ fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<S
     let end = slice.find(end_pattern)?;
     let value = &slice[..end];
 
-    Some(SmolStr::new(value.trim()))
+    Some(CompactString::new(value.trim()))
 }
 
 macro_rules! get_property {
@@ -24,13 +24,13 @@ macro_rules! get_property {
     }};
 }
 
-fn parse_release_date(raw: SmolStr) -> SmolStr {
+fn parse_release_date(raw: CompactString) -> CompactString {
     if raw.len() >= 8 {
         let year = &raw[0..4];
         let month = &raw[4..6];
         let day = &raw[6..8];
 
-        format_smolstr!("{year}-{month}-{day}")
+        format_compact!("{year}-{month}-{day}")
     } else {
         raw
     }
@@ -38,12 +38,12 @@ fn parse_release_date(raw: SmolStr) -> SmolStr {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewAppMeta {
-    name: SmolStr,
-    version: SmolStr,
-    release_date: SmolStr,
-    coder: SmolStr,
-    short_description: SmolStr,
-    long_description: SmolStr,
+    name: CompactString,
+    version: CompactString,
+    release_date: CompactString,
+    coder: CompactString,
+    short_description: CompactString,
+    long_description: CompactString,
 }
 
 impl HomebrewAppMeta {

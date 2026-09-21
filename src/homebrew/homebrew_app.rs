@@ -3,13 +3,13 @@
 
 use crate::{homebrew::meta::HomebrewAppMeta, util::fs::get_dir_size};
 use anyhow::{Context, Result, bail};
+use compact_str::{CompactString, ToCompactString, format_compact};
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image,
 };
 use size::Size;
 use smol::fs;
-use smol_str::{SmolStr, StrExt, ToSmolStr, format_smolstr};
 use std::{
     ffi::{OsStr, OsString},
     path::{Path, PathBuf},
@@ -31,10 +31,10 @@ pub struct HomebrewApp {
     path: PathBuf,
     meta: HomebrewAppMeta,
     size: u64,
-    size_str: SmolStr,
+    size_str: CompactString,
     icon: Option<Allocation>,
     osc_url: OsString,
-    search_term_lowercase: SmolStr,
+    search_term_lowercase: CompactString,
 }
 
 impl HomebrewApp {
@@ -59,7 +59,7 @@ impl HomebrewApp {
         let meta = HomebrewAppMeta::parse(&path)?;
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_smolstr();
+        let size_str = Size::from_bytes(size).to_compact_string();
 
         let icon = path
             .join("icon.png")
@@ -71,8 +71,7 @@ impl HomebrewApp {
 
         let osc_url = make_osc_url(&path);
 
-        let search_term_lowercase =
-            format_smolstr!("{}\0{}", meta.name(), dir_name).to_lowercase_smolstr();
+        let search_term_lowercase = format_compact!("{}\0{}", meta.name(), dir_name).to_lowercase();
 
         Ok(Self {
             path,

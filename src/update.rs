@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
-
 use crate::{
     games::{
         calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game,
@@ -15,8 +13,9 @@ use crate::{
     state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
+use compact_str::CompactString;
 use iced::Task;
-use smol_str::{SmolStr, StrExt};
+use std::sync::Arc;
 use tap::Pipe;
 
 impl AppState {
@@ -151,7 +150,7 @@ impl AppState {
             }
             Message::HomebrewAppsImported(_) => Task::none(),
             Message::CalcGameSha1(game) => {
-                self.hashing = ConversionState::Progress(SmolStr::default());
+                self.hashing = ConversionState::Progress(CompactString::default());
                 Task::stream(calc_sha1(game)).map(Message::SetHashing)
             }
             Message::SetHashing(hashing) => {
@@ -281,14 +280,14 @@ impl AppState {
             }
             Message::SearchGames(search_term) => {
                 if let GamesState::Loaded(games) = &mut self.games {
-                    games.set_search_term(search_term.to_lowercase_smolstr());
+                    games.set_search_term(CompactString::from_str_to_lowercase(&search_term));
                 }
 
                 Task::none()
             }
             Message::SearchHomebrewApps(search_term) => {
                 if let HomebrewState::Loaded(apps) = &mut self.homebrew {
-                    apps.set_search_term(search_term.to_lowercase_smolstr());
+                    apps.set_search_term(CompactString::from_str_to_lowercase(&search_term));
                 }
 
                 Task::none()
@@ -311,7 +310,7 @@ impl AppState {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => {
-                self.exporting = ConversionState::Progress(SmolStr::default());
+                self.exporting = ConversionState::Progress(CompactString::default());
                 Task::stream(export_game(game, out_path)).map(Message::SetExporting)
             }
             Message::SetExporting(exporting) => {
@@ -344,7 +343,7 @@ impl AppState {
             }
             Message::SearchOscApps(search_term) => {
                 if let OscState::Loaded(apps) = &mut self.osc_contents {
-                    apps.set_search_term(search_term.to_lowercase_smolstr());
+                    apps.set_search_term(CompactString::from_str_to_lowercase(&search_term));
                 }
 
                 Task::none()

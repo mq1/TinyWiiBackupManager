@@ -6,14 +6,14 @@ use crate::{
     util::sha1_list,
 };
 use anyhow::{Context, Result};
+use compact_str::{ToCompactString, format_compact};
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
 use smol::stream::Stream;
-use smol_str::{ToSmolStr, format_smolstr};
 
-fn perform_blocking(game: Game, tx: &smol::channel::Sender<ConversionState>) -> Result<bool> {
+fn perform_blocking(game: &Game, tx: &smol::channel::Sender<ConversionState>) -> Result<bool> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
@@ -31,7 +31,7 @@ fn perform_blocking(game: Game, tx: &smol::channel::Sender<ConversionState>) -> 
             let progress_percentage = progress * 100 / total;
 
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(ConversionState::Progress(format_smolstr!(
+                let _ = tx.try_send(ConversionState::Progress(format_compact!(
                     "✓  Hashing {}  {progress_percentage:02}%",
                     game.title()
                 )));
@@ -53,17 +53,17 @@ fn perform_blocking(game: Game, tx: &smol::channel::Sender<ConversionState>) -> 
 
 pub fn calc_sha1(game: Game) -> impl Stream<Item = ConversionState> {
     let (tx, rx) = smol::channel::bounded(1);
-    let game_title = game.title_cloned();
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(game, &tx) {
-            Ok(true) => ConversionState::Finished(format_smolstr!(
-                "Hash match for {game_title}!  -  SHA1 is well known, your dump is perfect",
+        let exit = match perform_blocking(&game, &tx) {
+            Ok(true) => ConversionState::Finished(format_compact!(
+                "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
+                game.title()
             )),
             Ok(false) => {
-                ConversionState::Errored(format_smolstr!("Hash mismatch for {game_title}"))
+                ConversionState::Errored(format_compact!("Hash mismatch for {}", game.title()))
             }
-            Err(e) => ConversionState::Errored(e.to_smolstr()),
+            Err(e) => ConversionState::Errored(e.to_compact_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");

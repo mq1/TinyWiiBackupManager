@@ -14,7 +14,7 @@ use crate::{
     ui::pages::Page,
     util::drive_state::DriveState,
 };
-use smol_str::SmolStr;
+use compact_str::CompactString;
 use std::{ffi::OsString, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
@@ -36,11 +36,11 @@ pub enum Message {
     OpenHomebrewAppInfo(HomebrewApp),
     CloseModal,
     GotDiscInfo(wii_disc_info::Meta),
-    CouldNotGetDiscInfo(SmolStr),
+    CouldNotGetDiscInfo(CompactString),
     SetViewAs(ViewAs),
     AskDeleteDir(PathBuf),
     DeleteDir(PathBuf),
-    DirDeleted(Result<(), SmolStr>),
+    DirDeleted(Result<(), CompactString>),
     PickHomebrewApps,
     ImportHomebrewApps(Vec<PathBuf>),
     HomebrewAppsImported(usize),
@@ -55,7 +55,7 @@ pub enum Message {
     CancelAllImports,
     ToggleAnimationState,
     ReloadCover(GameID),
-    ReloadOscIcon(SmolStr),
+    ReloadOscIcon(CompactString),
     SearchGames(String),
     ToggleShowWii(bool),
     ToggleShowNgc(bool),

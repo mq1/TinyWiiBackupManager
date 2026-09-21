@@ -54,7 +54,7 @@ zip = { version = "8", default-features = false, features = [
 strum = "0.28"
 strum_macros = "0.28"
 wiiload = { version = "0.5", features = ["async"] }
-smol_str = { version = "0.3", features = ["serde"] }
+compact_str = { version = "0.10", features = ["serde"] }
 anyhow = "1"
 tap = "1"
 time = { version = "0.3", features = ["local-offset"] }

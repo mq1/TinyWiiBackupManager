@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{osc::osc_app::OscApp, util::http::download_file};
+use compact_str::{CompactString, ToCompactString};
 use smol::fs;
-use smol_str::{SmolStr, ToSmolStr};
 use std::{
     path::Path,
     time::{Duration, SystemTime},
@@ -15,7 +15,7 @@ const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 pub struct OscAppList {
     apps: Box<[OscApp]>,
     refreshed: SystemTime,
-    search_term: SmolStr,
+    search_term: CompactString,
 }
 
 #[derive(Default, Clone, Debug)]
@@ -24,7 +24,7 @@ pub enum OscState {
     NotLoaded,
     Loading,
     Loaded(OscAppList),
-    Errored(SmolStr),
+    Errored(CompactString),
 }
 
 impl OscState {
@@ -49,7 +49,7 @@ impl OscState {
             let list = OscAppList {
                 apps,
                 refreshed,
-                search_term: SmolStr::default(),
+                search_term: CompactString::default(),
             };
 
             Ok::<_, anyhow::Error>(list)
@@ -58,7 +58,7 @@ impl OscState {
 
         match res {
             Ok(apps) => Self::Loaded(apps),
-            Err(err) => Self::Errored(err.to_smolstr()),
+            Err(err) => Self::Errored(err.to_compact_string()),
         }
     }
 }
@@ -68,7 +68,7 @@ impl OscAppList {
         &self.search_term
     }
 
-    pub fn set_search_term(&mut self, search_term: SmolStr) {
+    pub fn set_search_term(&mut self, search_term: CompactString) {
         self.search_term = search_term;
     }
 

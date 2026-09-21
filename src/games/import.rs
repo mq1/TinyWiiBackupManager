@@ -7,12 +7,12 @@ use crate::{
     util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
 use anyhow::{Context, Result, anyhow};
+use compact_str::{CompactString, ToCompactString, format_compact};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use smol::stream::Stream;
-use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -30,13 +30,13 @@ fn perform_blocking(
     config: Config,
     drive: DriveState,
     tx: &smol::channel::Sender<ConversionState>,
-) -> Result<SmolStr> {
+) -> Result<CompactString> {
     let filename = disc_path
         .file_name()
         .and_then(OsStr::to_str)
         .context("invalid filename")?;
 
-    tx.send_blocking(ConversionState::Progress(format_smolstr!(
+    tx.send_blocking(ConversionState::Progress(format_compact!(
         "›  Opening {filename}"
     )))?;
 
@@ -78,7 +78,7 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(ConversionState::Progress(format_smolstr!(
+                let _ = tx.try_send(ConversionState::Progress(format_compact!(
                     "⤓  Importing {game_title}  {progress_percentage:02}%"
                 )));
 
@@ -113,7 +113,7 @@ fn perform_blocking(
         let _ = std::fs::remove_file(&disc_path);
     }
 
-    Ok(format_smolstr!("Imported {game_title}"))
+    Ok(format_compact!("Imported {game_title}"))
 }
 
 pub fn import_game(
@@ -126,7 +126,7 @@ pub fn import_game(
     let _ = std::thread::spawn(move || {
         let exit = match perform_blocking(path, config, drive, &tx) {
             Ok(msg) => ConversionState::Finished(msg),
-            Err(e) => ConversionState::Errored(e.to_smolstr()),
+            Err(e) => ConversionState::Errored(e.to_compact_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");

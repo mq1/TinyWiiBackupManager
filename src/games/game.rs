@@ -3,13 +3,13 @@
 
 use crate::util::fs::get_dir_size;
 use anyhow::{Context, Result, bail};
+use compact_str::{CompactString, ToCompactString, format_compact};
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image,
 };
 use size::Size;
 use smol::fs;
-use smol_str::{SmolStr, StrExt, ToSmolStr, format_smolstr};
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -20,12 +20,12 @@ use wii_disc_info::game_id::GameID;
 pub struct Game {
     path: PathBuf,
     id: GameID,
-    title: SmolStr,
+    title: CompactString,
     size: u64,
-    size_str: SmolStr,
+    size_str: CompactString,
     is_wii: bool,
     cover: Option<Allocation>,
-    search_term_lowercase: SmolStr,
+    search_term_lowercase: CompactString,
 }
 
 impl Game {
@@ -56,13 +56,15 @@ impl Game {
         let id = id_raw.parse::<GameID>().context("invalid game id")?;
 
         // get the pretty title
-        let title = twbm_idmap::get_title(id)
-            .map_or_else(|| SmolStr::new(title_raw.trim()), SmolStr::new_static);
+        let title = match twbm_idmap::get_title(id) {
+            Some(title) => CompactString::const_new(title),
+            None => CompactString::new(title_raw.trim()),
+        };
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_smolstr();
+        let size_str = Size::from_bytes(size).to_compact_string();
 
-        let search_term_lowercase = format_smolstr!("{}\0{}", title, id).to_lowercase_smolstr();
+        let search_term_lowercase = format_compact!("{}\0{}", title, id).to_lowercase();
 
         Ok(Self {
             path,
@@ -78,11 +80,11 @@ impl Game {
 
     fn get_possible_disc_paths<'a>(&'a self) -> impl Iterator<Item = PathBuf> + 'a {
         [
-            format_smolstr!("{}.wbfs", self.id),
-            format_smolstr!("{}.iso", self.id),
-            format_smolstr!("{}.part0.iso", self.id),
-            SmolStr::new_static("game.iso"),
-            SmolStr::new_static("game.ciso"),
+            format_compact!("{}.wbfs", self.id),
+            format_compact!("{}.iso", self.id),
+            format_compact!("{}.part0.iso", self.id),
+            CompactString::const_new("game.iso"),
+            CompactString::const_new("game.ciso"),
         ]
         .into_iter()
         .map(|filename| self.path.join(filename))
@@ -129,10 +131,6 @@ impl Game {
 
     pub fn title(&self) -> &str {
         &self.title
-    }
-
-    pub fn title_cloned(&self) -> SmolStr {
-        self.title.clone()
     }
 
     pub fn id(&self) -> GameID {

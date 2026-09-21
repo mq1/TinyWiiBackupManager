@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use smol_str::{SmolStr, ToSmolStr};
+use compact_str::{CompactString, ToCompactString};
 use strum_macros::Display;
 use time::OffsetDateTime;
 
@@ -16,39 +16,39 @@ pub enum NotificationLevel {
 
 #[derive(Debug, Clone)]
 pub struct Notification {
-    label: SmolStr,
+    label: CompactString,
     level: NotificationLevel,
     created: Option<OffsetDateTime>,
 }
 
 impl Notification {
-    pub fn info(label: impl ToSmolStr) -> Self {
+    pub fn info(label: impl ToCompactString) -> Self {
         Self {
-            label: label.to_smolstr(),
+            label: label.to_compact_string(),
             level: NotificationLevel::Info,
             created: OffsetDateTime::now_local().ok(),
         }
     }
 
-    pub fn warning(label: impl ToSmolStr) -> Self {
+    pub fn warning(label: impl ToCompactString) -> Self {
         Self {
-            label: label.to_smolstr(),
+            label: label.to_compact_string(),
             level: NotificationLevel::Warning,
             created: OffsetDateTime::now_local().ok(),
         }
     }
 
-    pub fn error(label: impl ToSmolStr) -> Self {
+    pub fn error(label: impl ToCompactString) -> Self {
         Self {
-            label: label.to_smolstr(),
+            label: label.to_compact_string(),
             level: NotificationLevel::Error,
             created: OffsetDateTime::now_local().ok(),
         }
     }
 
-    pub fn success(label: impl ToSmolStr) -> Self {
+    pub fn success(label: impl ToCompactString) -> Self {
         Self {
-            label: label.to_smolstr(),
+            label: label.to_compact_string(),
             level: NotificationLevel::Success,
             created: OffsetDateTime::now_local().ok(),
         }
@@ -82,11 +82,11 @@ impl std::fmt::Display for Notification {
     }
 }
 
-impl<S: ToSmolStr, E: ToSmolStr> From<std::result::Result<S, E>> for Notification {
+impl<S: ToCompactString, E: ToCompactString> From<std::result::Result<S, E>> for Notification {
     fn from(result: anyhow::Result<S, E>) -> Self {
         match result {
-            Ok(label) => Notification::success(label.to_smolstr()),
-            Err(e) => Notification::error(e.to_smolstr()),
+            Ok(label) => Notification::success(label.to_compact_string()),
+            Err(e) => Notification::error(e.to_compact_string()),
         }
     }
 }

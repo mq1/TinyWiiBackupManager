@@ -3,8 +3,8 @@
 
 use crate::config::Config;
 use anyhow::Result;
+use compact_str::CompactString;
 use lucide_icons::Icon;
-use smol_str::SmolStr;
 use std::pin::Pin;
 use wii_disc_info::game_id::GameID;
 
@@ -12,7 +12,7 @@ mod cleanup;
 mod game_backup_loaders;
 mod os_specific;
 
-type RunFn = Pin<Box<dyn Future<Output = Result<SmolStr>> + Send>>;
+type RunFn = Pin<Box<dyn Future<Output = Result<CompactString>> + Send>>;
 
 #[derive(Debug, Clone)]
 pub struct ToolContext {
@@ -31,7 +31,7 @@ impl ToolboxItem {
         self.label
     }
 
-    pub async fn run(&self, context: ToolContext) -> Result<SmolStr> {
+    pub async fn run(&self, context: ToolContext) -> Result<CompactString> {
         (self.run_fn)(context).await
     }
 }

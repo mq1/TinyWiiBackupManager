@@ -3,21 +3,21 @@
 
 use crate::util::fs::get_dir_size;
 use anyhow::bail;
+use compact_str::{CompactString, ToCompactString};
 use size::Size;
-use smol_str::{SmolStr, ToSmolStr};
 use std::path::PathBuf;
 use which_fs::FsKind;
 
 #[derive(Debug, Clone, Default)]
 pub struct DriveInfo {
-    used_size_str: SmolStr,
+    used_size_str: CompactString,
     total_size: u64,
-    total_size_str: SmolStr,
-    games_size_str: SmolStr,
-    apps_size_str: SmolStr,
+    total_size_str: CompactString,
+    games_size_str: CompactString,
+    apps_size_str: CompactString,
     fs_kind: FsKind,
     allocation_granularity: u64,
-    allocation_granularity_str: SmolStr,
+    allocation_granularity_str: CompactString,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -26,7 +26,7 @@ pub enum DriveState {
     NotLoaded,
     Loading,
     Loaded(DriveInfo),
-    Errored(SmolStr),
+    Errored(CompactString),
 }
 
 impl DriveState {
@@ -43,9 +43,10 @@ impl DriveState {
             let used_size = total_size.saturating_sub(avail_size);
             let allocation_granularity = stat.allocation_granularity();
 
-            let used_size_str = Size::from_bytes(used_size).to_smolstr();
-            let total_size_str = Size::from_bytes(total_size).to_smolstr();
-            let allocation_granularity_str = Size::from_bytes(allocation_granularity).to_smolstr();
+            let used_size_str = Size::from_bytes(used_size).to_compact_string();
+            let total_size_str = Size::from_bytes(total_size).to_compact_string();
+            let allocation_granularity_str =
+                Size::from_bytes(allocation_granularity).to_compact_string();
 
             let fs_kind = FsKind::try_from_path(&path).unwrap_or(FsKind::Unknown);
 
@@ -54,11 +55,11 @@ impl DriveState {
             let gc_games_dir = path.join("games");
             let gc_games_size = get_dir_size(&gc_games_dir).await;
             let games_size = wii_games_size + gc_games_size;
-            let games_size_str = Size::from_bytes(games_size).to_smolstr();
+            let games_size_str = Size::from_bytes(games_size).to_compact_string();
 
             let apps_dir = path.join("apps");
             let apps_size = get_dir_size(&apps_dir).await;
-            let apps_size_str = Size::from_bytes(apps_size).to_smolstr();
+            let apps_size_str = Size::from_bytes(apps_size).to_compact_string();
 
             Ok(DriveInfo {
                 used_size_str,
@@ -75,7 +76,7 @@ impl DriveState {
 
         match res {
             Ok(info) => DriveState::Loaded(info),
-            Err(err) => DriveState::Errored(err.to_smolstr()),
+            Err(err) => DriveState::Errored(err.to_compact_string()),
         }
     }
 }

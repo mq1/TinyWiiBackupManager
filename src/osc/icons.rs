@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::util::http::download_file;
+use compact_str::CompactString;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use smol_str::SmolStr;
 use std::{convert::identity, path::PathBuf};
 
 pub fn download_all_icons(
-    slugs_and_icon_uris: impl IntoIterator<Item = (SmolStr, SmolStr)>,
+    slugs_and_icon_uris: impl IntoIterator<Item = (CompactString, CompactString)>,
     data_dir: PathBuf,
-) -> impl Stream<Item = SmolStr> {
+) -> impl Stream<Item = CompactString> {
     let icons_dir = data_dir.join("osc-icons");
 
     let it = slugs_and_icon_uris.into_iter().map(move |(slug, uri)| {

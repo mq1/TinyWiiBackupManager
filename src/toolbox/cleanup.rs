@@ -6,12 +6,12 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use anyhow::{Context, Result, bail};
+use compact_str::ToCompactString;
 use lucide_icons::Icon;
 use smol::{
     fs::{self, DirEntry, File},
     stream::{self, Stream, StreamExt},
 };
-use smol_str::ToSmolStr;
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -186,7 +186,7 @@ pub const ALL: &[ToolboxGroup] = {
                     .await
                     .into_iter()
                     .collect::<Result<Vec<_>, _>>()
-                    .map(|_| "Paths successfully normalized".to_smolstr())
+                    .map(|_| "Paths successfully normalized".to_compact_string())
                 })
             },
         }],
