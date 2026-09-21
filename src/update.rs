@@ -88,6 +88,10 @@ impl AppState {
                 self.current_modal = Some(Modal::HomebrewAppInfo(app));
                 Task::none()
             }
+            Message::OpenOscAppInfo(app) => {
+                self.current_modal = Some(Modal::OscAppInfo(app));
+                Task::none()
+            }
             Message::CloseModal => {
                 self.current_modal = None;
                 Task::none()

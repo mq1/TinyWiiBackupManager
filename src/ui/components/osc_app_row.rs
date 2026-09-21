@@ -19,7 +19,8 @@ pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
                 .padding(0)
                 .style(button::text)
                 .width(20)
-                .height(20),
+                .height(20)
+                .on_press(Message::OpenOscAppInfo(app.clone())),
             my_card("App info"),
             tooltip::Position::Top
         ),

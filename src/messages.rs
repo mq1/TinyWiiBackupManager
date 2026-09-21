@@ -9,7 +9,7 @@ use crate::{
     games::{conversion_state::ConversionState, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     notifications::notification::Notification,
-    osc::osc_state::OscState,
+    osc::{osc_app::OscApp, osc_state::OscState},
     toolbox::ToolboxItem,
     ui::pages::Page,
     util::drive_state::DriveState,
@@ -68,6 +68,7 @@ pub enum Message {
     RefreshOscContents,
     GotOscContents(OscState),
     SearchOscApps(String),
+    OpenOscAppInfo(OscApp),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

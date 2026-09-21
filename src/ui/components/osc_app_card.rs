@@ -33,11 +33,11 @@ pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
             icon,
             ellipsized_text(app.name()).wrapping(text::Wrapping::None),
             row![
-                my_button::<Message>()
+                my_button()
                     .label("Info")
                     .icon(Icon::Info)
-                    .expand_width(),
-                my_button::<Message>().icon(Icon::Trash)
+                    .expand_width()
+                    .on_press(Message::OpenOscAppInfo(app.clone())),
             ]
             .spacing(5)
         ]

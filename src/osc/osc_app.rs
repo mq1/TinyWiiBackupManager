@@ -12,6 +12,7 @@ use size::Size;
 use smol_str::{SmolStr, StrExt, ToSmolStr, format_smolstr};
 use std::path::Path;
 use tap::Pipe;
+use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppAsset {
@@ -48,6 +49,8 @@ pub struct OscApp {
     icon: Option<Allocation>,
     uncompressed_size_str: SmolStr,
     search_term_lowercase: SmolStr,
+    release_date_str: SmolStr,
+    osc_url: SmolStr,
 }
 
 impl<'de> serde::Deserialize<'de> for OscApp {
@@ -55,17 +58,27 @@ impl<'de> serde::Deserialize<'de> for OscApp {
     where
         D: serde::Deserializer<'de>,
     {
-        OscAppMeta::deserialize(deserializer).map(|meta| {
-            let uncompressed_size_str = Size::from_bytes(meta.uncompressed_size).to_smolstr();
-            let search_term_lowercase =
-                format_smolstr!("{}\0{}", meta.name, meta.slug).to_lowercase_smolstr();
+        let meta = OscAppMeta::deserialize(deserializer)?;
 
-            OscApp {
-                meta,
-                icon: None,
-                uncompressed_size_str,
-                search_term_lowercase,
-            }
+        let uncompressed_size_str = Size::from_bytes(meta.uncompressed_size).to_smolstr();
+        let search_term_lowercase =
+            format_smolstr!("{}\0{}", meta.name, meta.slug).to_lowercase_smolstr();
+
+        let release_date_str = meta
+            .release_date
+            .pipe(OffsetDateTime::from_unix_timestamp)
+            .map_err(|_| serde::de::Error::custom("invalid release date"))
+            .map(|dt| format_smolstr!("{}-{}-{}", dt.year(), dt.month(), dt.day()))?;
+
+        let osc_url = format_smolstr!("https://oscwii.org/library/app/{}", meta.slug);
+
+        Ok(OscApp {
+            meta,
+            icon: None,
+            uncompressed_size_str,
+            search_term_lowercase,
+            release_date_str,
+            osc_url,
         })
     }
 }
@@ -129,5 +142,25 @@ impl OscApp {
 
     pub fn slug(&self) -> &str {
         &self.meta.slug
+    }
+
+    pub fn release_date_str(&self) -> &str {
+        &self.release_date_str
+    }
+
+    pub fn coder(&self) -> &str {
+        &self.meta.author
+    }
+
+    pub fn short_description(&self) -> &str {
+        &self.meta.description.short
+    }
+
+    pub fn long_description(&self) -> &str {
+        &self.meta.description.long
+    }
+
+    pub fn osc_url(&self) -> &str {
+        &self.osc_url
     }
 }

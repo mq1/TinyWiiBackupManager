@@ -55,9 +55,9 @@ strum = "0.28"
 strum_macros = "0.28"
 wiiload = { version = "0.5", features = ["async"] }
 smol_str = { version = "0.3", features = ["serde"] }
-humantime = "2"
 anyhow = "1"
 tap = "1"
+time = { version = "0.3", features = ["local-offset"] }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

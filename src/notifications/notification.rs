@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use humantime::format_rfc3339_seconds;
 use smol_str::{SmolStr, ToSmolStr};
-use std::time::SystemTime;
 use strum_macros::Display;
+use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display)]
 pub enum NotificationLevel {
@@ -19,7 +18,7 @@ pub enum NotificationLevel {
 pub struct Notification {
     label: SmolStr,
     level: NotificationLevel,
-    created: SystemTime,
+    created: Option<OffsetDateTime>,
 }
 
 impl Notification {
@@ -27,7 +26,7 @@ impl Notification {
         Self {
             label: label.to_smolstr(),
             level: NotificationLevel::Info,
-            created: SystemTime::now(),
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
@@ -35,7 +34,7 @@ impl Notification {
         Self {
             label: label.to_smolstr(),
             level: NotificationLevel::Warning,
-            created: SystemTime::now(),
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
@@ -43,7 +42,7 @@ impl Notification {
         Self {
             label: label.to_smolstr(),
             level: NotificationLevel::Error,
-            created: SystemTime::now(),
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
@@ -51,7 +50,7 @@ impl Notification {
         Self {
             label: label.to_smolstr(),
             level: NotificationLevel::Success,
-            created: SystemTime::now(),
+            created: OffsetDateTime::now_local().ok(),
         }
     }
 
@@ -66,13 +65,20 @@ impl Notification {
 
 impl std::fmt::Display for Notification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} > [{}] {}",
-            format_rfc3339_seconds(self.created),
-            self.level,
-            self.label
-        )
+        if let Some(created) = self.created {
+            write!(
+                f,
+                "{}-{}-{} {}:{}:{} > ",
+                created.year(),
+                created.month(),
+                created.day(),
+                created.hour(),
+                created.minute(),
+                created.second()
+            )?;
+        }
+
+        write!(f, "[{}] {}", self.level, self.label)
     }
 }
 

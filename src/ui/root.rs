@@ -9,7 +9,7 @@ use crate::{
         components::{notifications::notifications, sidebar::sidebar},
         modals::{
             Modal, delete_dir::delete_dir, game_info::game_info,
-            homebrew_app_info::homebrew_app_info,
+            homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
         },
         pages::{
             Page, about::about, games::games, homebrew_apps::homebrew_apps,
@@ -47,6 +47,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 container(match modal {
                     Modal::GameInfo((game, disc_info)) => game_info(game, disc_info.as_ref()),
                     Modal::HomebrewAppInfo(app) => homebrew_app_info(app),
+                    Modal::OscAppInfo(app) => osc_app_info(app),
                     Modal::DeleteDir(path) => delete_dir(path),
                 })
                 .center(Length::Fill)
