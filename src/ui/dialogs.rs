@@ -9,7 +9,7 @@ use crate::{
 use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::stream::{self, StreamExt};
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 use tap::Pipe;
 use wii_disc_info::game_id::GameID;
 
@@ -52,7 +52,7 @@ pub fn make_pick_homebrew_apps_dialog_task(base: AsyncFileDialog) -> Task<Messag
 
 pub fn make_pick_games_dialog_task(
     base: AsyncFileDialog,
-    existing_ids: Box<[GameID]>,
+    existing_ids: Arc<Box<[GameID]>>,
 ) -> Task<Message> {
     Task::perform(
         async move {
@@ -83,7 +83,7 @@ pub fn make_pick_games_dialog_task(
 
 pub fn make_pick_games_recursively_dialog_task(
     base: AsyncFileDialog,
-    existing_ids: Box<[GameID]>,
+    existing_ids: Arc<Box<[GameID]>>,
 ) -> Task<Message> {
     Task::perform(
         async move {

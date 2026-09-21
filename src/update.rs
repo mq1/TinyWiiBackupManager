@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use crate::{
     games::{
         calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game,
@@ -15,6 +17,7 @@ use crate::{
 };
 use iced::Task;
 use smol_str::{SmolStr, StrExt};
+use tap::Pipe;
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -168,7 +171,11 @@ impl AppState {
             }
             Message::PickGames => {
                 if let GamesState::Loaded(games) = &self.games {
-                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
+                    let existing_ids = games
+                        .get_all_game_ids()
+                        .collect::<Box<[_]>>()
+                        .pipe(Arc::new);
+
                     self.init_file_dialog_task().then(move |base| {
                         dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
                     })
@@ -178,7 +185,11 @@ impl AppState {
             }
             Message::PickGamesRecursively => {
                 if let GamesState::Loaded(games) = &self.games {
-                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
+                    let existing_ids = games
+                        .get_all_game_ids()
+                        .collect::<Box<[_]>>()
+                        .pipe(Arc::new);
+
                     self.init_file_dialog_task().then(move |base| {
                         dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
                     })
