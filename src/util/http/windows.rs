@@ -3,7 +3,7 @@
 
 use crate::util::http::USER_AGENT;
 use anyhow::{Result, bail};
-use winsafe::{HINTERNET, HttpInfo, co};
+use winsafe::{HINTERNET, co};
 
 pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
     let inet = HINTERNET::InternetOpen(
@@ -21,8 +21,10 @@ pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
         None,                                                  // context
     )?;
 
-    let status = req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)?;
-    if status.unwrap_number() != 200 {
+    let status = req
+        .HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)?
+        .unwrap_number();
+    if status != 200 {
         bail!("HTTP error: {status}");
     }
 

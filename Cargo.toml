@@ -10,8 +10,8 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
 default = ["native-https"]
-native-https = ["minreq/https-openssl-probe"]
-static-https = ["minreq/https-rustls-probe"]
+native-https = ["ureq/native-tls"]
+static-https = ["ureq/rustls", "ureq/platform-verifier"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -59,7 +59,7 @@ tap = "1"
 time = { version = "0.3", features = ["local-offset"] }
 
 [target.'cfg(unix)'.dependencies]
-minreq = { version = "3" }
+ureq = { version = "3", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 winsafe = { version = "0.0.29", features = ["dwm", "wininet"] }
