@@ -19,7 +19,7 @@ use crate::{
 };
 use iced::{
     Background, Element, Length, Theme, color,
-    widget::{column, container, opaque, row, stack},
+    widget::{container, opaque, row, stack},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
@@ -70,7 +70,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     // fill title bar
     #[cfg(target_os = "macos")]
-    let content = column![
+    let content = iced::widget::column![
         iced::widget::rule::horizontal(32).style(|theme: &Theme| iced::widget::rule::Style {
             color: theme.palette().background,
             ..iced::widget::rule::default(theme)

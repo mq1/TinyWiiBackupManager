@@ -31,7 +31,7 @@ use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
 
 #[derive(Default)]
-pub(crate) struct AppState {
+pub struct AppState {
     pub data_dir: PathBuf,
     pub config: Config,
     pub notifications: NotificationList,
