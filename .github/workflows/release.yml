@@ -127,7 +127,7 @@ jobs:
 
       - name: Install LLVM
         shell: pwsh
-        run: choco install llvm --version=22.1.7 -y
+        run: choco install llvm --version=22.1.8 -y
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.98
