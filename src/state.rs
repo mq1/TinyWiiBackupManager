@@ -10,7 +10,7 @@ use crate::{
     homebrew::{self, homebrew_state::HomebrewState},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
-    osc::osc_state::OscState,
+    osc::{self, osc_app::OscApp, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
     util::{data_dir::get_data_dir, drive_state::DriveState},
@@ -112,6 +112,24 @@ impl AppState {
         }
     }
 
+    pub fn download_osc_icons_task(&mut self) -> Task<Message> {
+        if let OscState::Loaded(apps) = &self.osc_contents {
+            let slugs_and_icon_uris = apps
+                .iter()
+                .map(OscApp::slug_and_icon_url)
+                .collect::<Box<[_]>>();
+            let data_dir = self.data_dir.clone();
+
+            Task::stream(osc::icons::download_all_icons(
+                slugs_and_icon_uris,
+                data_dir,
+            ))
+            .map(Message::ReloadOscIcon)
+        } else {
+            Task::none()
+        }
+    }
+
     pub fn get_homebrew_apps_task(&mut self) -> Task<Message> {
         self.homebrew = HomebrewState::Loading;
         let mount_point = self.config.mount_point.clone();
@@ -193,6 +211,18 @@ impl AppState {
     pub fn reload_all_covers(&mut self) {
         if let GamesState::Loaded(games) = &mut self.games {
             games.reload_all_covers(&self.data_dir);
+        }
+    }
+
+    pub fn reload_osc_icon(&mut self, slug: &str) {
+        if let OscState::Loaded(apps) = &mut self.osc_contents {
+            apps.reload_icon(slug, &self.data_dir);
+        }
+    }
+
+    pub fn reload_all_osc_icons(&mut self) {
+        if let OscState::Loaded(apps) = &mut self.osc_contents {
+            apps.reload_all_icons(&self.data_dir);
         }
     }
 

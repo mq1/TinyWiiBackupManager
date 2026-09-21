@@ -55,6 +55,7 @@ pub enum Message {
     CancelAllImports,
     ToggleAnimationState,
     ReloadCover(GameID),
+    ReloadOscIcon(SmolStr),
     SearchGames(String),
     ToggleShowWii(bool),
     ToggleShowNgc(bool),

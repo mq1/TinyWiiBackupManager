@@ -3,15 +3,19 @@
 
 use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 use anyhow::Result;
-use iced::{advanced::image::Allocation, widget::image::Handle};
+use iced::{
+    advanced::image::{Allocation, allocate},
+    widget::image::{self, Handle},
+};
 use serde::Deserialize;
 use size::Size;
 use smol_str::{SmolStr, StrExt, ToSmolStr, format_smolstr};
 use std::path::Path;
+use tap::Pipe;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppAsset {
-    pub url: SmolStr,
+    url: SmolStr,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -76,6 +80,17 @@ impl OscApp {
         download_file(&self.meta.assets.icon.url, &icon_path).await
     }
 
+    pub fn load_icon_blocking(&mut self, data_dir: &Path) {
+        self.icon = data_dir
+            .join("osc-icons")
+            .join(&self.meta.slug)
+            .with_added_extension("png")
+            .pipe(std::fs::read)
+            .ok()
+            .map(image::Handle::from_bytes)
+            .map(|handle| unsafe { allocate(&handle, (128, 48).into()) });
+    }
+
     pub async fn install(&self, root_dir: &Path) -> Result<()> {
         download_and_extract_zip(&self.meta.assets.archive.url, root_dir).await
     }
@@ -104,7 +119,15 @@ impl OscApp {
         self.search_term_lowercase.contains(search_term)
     }
 
+    pub fn slug_and_icon_url(&self) -> (SmolStr, SmolStr) {
+        (self.meta.slug.clone(), self.meta.assets.icon.url.clone())
+    }
+
     pub fn icon(&self) -> Option<&Handle> {
         self.icon.as_ref().map(|icon| icon.handle())
+    }
+
+    pub fn slug(&self) -> &str {
+        &self.meta.slug
     }
 }

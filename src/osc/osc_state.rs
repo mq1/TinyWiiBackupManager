@@ -84,4 +84,16 @@ impl OscAppList {
             .map(|d| Duration::from_mins(d.as_secs() / 60))
             .unwrap_or(Duration::MAX)
     }
+
+    pub fn reload_icon(&mut self, slug: &str, data_dir: &Path) {
+        if let Some(app) = self.apps.iter_mut().find(|app| app.slug() == slug) {
+            app.load_icon_blocking(data_dir);
+        }
+    }
+
+    pub fn reload_all_icons(&mut self, data_dir: &Path) {
+        for app in &mut self.apps {
+            app.load_icon_blocking(data_dir);
+        }
+    }
 }

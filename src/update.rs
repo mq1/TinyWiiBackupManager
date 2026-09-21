@@ -224,6 +224,10 @@ impl AppState {
                 self.reload_cover(game_id);
                 Task::none()
             }
+            Message::ReloadOscIcon(slug) => {
+                self.reload_osc_icon(&slug);
+                Task::none()
+            }
             Message::SetWiiOutputFormat(format) => {
                 self.config.wii_output_format = format;
                 self.write_config_task()
@@ -320,7 +324,8 @@ impl AppState {
             Message::RefreshOscContents => self.load_osc_contents_task(),
             Message::GotOscContents(contents) => {
                 self.osc_contents = contents;
-                Task::none()
+                self.reload_all_osc_icons();
+                self.download_osc_icons_task()
             }
             Message::SearchOscApps(search_term) => {
                 if let OscState::Loaded(apps) = &mut self.osc_contents {
