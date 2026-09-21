@@ -6,7 +6,6 @@ use crate::{
     util::sha1_list,
 };
 use anyhow::{Context, Result};
-use compact_str::{ToCompactString, format_compact};
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
@@ -31,7 +30,7 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<ConversionState>) ->
             let progress_percentage = progress * 100 / total;
 
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(ConversionState::Progress(format_compact!(
+                let _ = tx.try_send(ConversionState::Progress(format!(
                     "✓  Hashing {}  {progress_percentage:02}%",
                     game.title()
                 )));
@@ -56,14 +55,12 @@ pub fn calc_sha1(game: Game) -> impl Stream<Item = ConversionState> {
 
     let _ = std::thread::spawn(move || {
         let exit = match perform_blocking(&game, &tx) {
-            Ok(true) => ConversionState::Finished(format_compact!(
+            Ok(true) => ConversionState::Finished(format!(
                 "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
                 game.title()
             )),
-            Ok(false) => {
-                ConversionState::Errored(format_compact!("Hash mismatch for {}", game.title()))
-            }
-            Err(e) => ConversionState::Errored(e.to_compact_string()),
+            Ok(false) => ConversionState::Errored(format!("Hash mismatch for {}", game.title())),
+            Err(e) => ConversionState::Errored(e.to_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");

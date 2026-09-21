@@ -16,7 +16,7 @@ use crate::{
     util::{data_dir::get_data_dir, drive_state::DriveState},
 };
 use anyhow::Context;
-use compact_str::{CompactString, ToCompactString, format_compact};
+use compact_str::{ToCompactString, format_compact};
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
@@ -190,7 +190,7 @@ impl AppState {
         }
 
         let task = if let Some(path) = self.import_queue.pop() {
-            self.importing = ConversionState::Progress(CompactString::default());
+            self.importing = ConversionState::Progress(String::new());
             Task::stream(import_game(path, self.config.clone(), self.drive.clone()))
                 .map(Message::SetImporting)
         } else {

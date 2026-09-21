@@ -150,7 +150,7 @@ impl AppState {
             }
             Message::HomebrewAppsImported(_) => Task::none(),
             Message::CalcGameSha1(game) => {
-                self.hashing = ConversionState::Progress(CompactString::default());
+                self.hashing = ConversionState::Progress(String::new());
                 Task::stream(calc_sha1(game)).map(Message::SetHashing)
             }
             Message::SetHashing(hashing) => {
@@ -310,7 +310,7 @@ impl AppState {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => {
-                self.exporting = ConversionState::Progress(CompactString::default());
+                self.exporting = ConversionState::Progress(String::new());
                 Task::stream(export_game(game, out_path)).map(Message::SetExporting)
             }
             Message::SetExporting(exporting) => {

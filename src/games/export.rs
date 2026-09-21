@@ -6,7 +6,6 @@ use crate::{
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result};
-use compact_str::{CompactString, ToCompactString, format_compact};
 use nod::{
     common::Format,
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
@@ -34,10 +33,10 @@ fn ext_to_format(ext: &str) -> Option<Format> {
 }
 
 fn perform_blocking(
-    game: Game,
+    game: &Game,
     out_path: PathBuf,
     tx: &smol::channel::Sender<ConversionState>,
-) -> Result<CompactString> {
+) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let format_opts = out_path
@@ -61,7 +60,7 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(ConversionState::Progress(format_compact!(
+                let _ = tx.try_send(ConversionState::Progress(format!(
                     "⤓  Exporting {}  {progress_percentage:02}%",
                     game.title()
                 )));
@@ -87,16 +86,16 @@ fn perform_blocking(
     }
 
     out_writer.flush()?;
-    Ok(format_compact!("Exported {}", game.title()))
+    Ok(())
 }
 
 pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(game, out_path, &tx) {
-            Ok(msg) => ConversionState::Finished(msg),
-            Err(e) => ConversionState::Errored(e.to_compact_string()),
+        let exit = match perform_blocking(&game, out_path, &tx) {
+            Ok(()) => ConversionState::Finished(format!("Exported {}", game.title())),
+            Err(e) => ConversionState::Errored(e.to_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");
