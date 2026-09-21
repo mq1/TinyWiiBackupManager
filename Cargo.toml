@@ -10,8 +10,8 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
 default = ["native-https"]
-native-https = ["ureq/native-tls"]
-static-https = ["ureq/rustls", "ureq/platform-verifier"]
+native-https = ["minreq/https-openssl-probe"]
+static-https = ["minreq/https-rustls-probe"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -40,7 +40,6 @@ sys-locale = "0.3"
 size = "0.5"
 fs4 = { version = "1", default-features = false }
 which-fs = "0.2"
-ureq = { version = "3", default-features = false, features = ["gzip", "json"] }
 open = "5"
 wii-disc-info = { version = "0.10", features = ["async"] }
 twbm-idmap = { version = "0.5", features = ["ascii-titles"] }
@@ -58,6 +57,12 @@ compact_str = { version = "0.10", features = ["serde"] }
 anyhow = "1"
 tap = "1"
 time = { version = "0.3", features = ["local-offset"] }
+
+[target.'cfg(unix)'.dependencies]
+minreq = { version = "3" }
+
+[target.'cfg(windows)'.dependencies]
+winsafe = { version = "0.0.29", features = ["dwm", "wininet"] }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
@@ -86,7 +91,6 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "dx12",
 ] }
-winsafe = { version = "0.0.29", features = ["dwm"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
