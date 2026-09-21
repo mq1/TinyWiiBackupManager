@@ -10,8 +10,7 @@ use std::fmt::Write;
 pub fn title(state: &AppState) -> String {
     let mut s = String::with_capacity(128);
 
-    s.push_str(env!("CARGO_PKG_NAME"));
-    s.push_str("  ›  ");
+    s.push_str(concat!(env!("CARGO_PKG_NAME"), "  ›  "));
 
     let mount_point = &state.config.mount_point;
     if mount_point.as_os_str().is_empty() {
