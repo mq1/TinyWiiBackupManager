@@ -842,6 +842,8 @@ checksum = "3a45ee8994e5307cb4c60cfc1c20bf7263ffb771ddc135c9f768a14bcbc15b09"
 dependencies = [
  "curl-sys",
  "libc",
+ "openssl-probe",
+ "openssl-sys",
  "schannel",
  "socket2",
  "windows-sys 0.61.2",
@@ -2720,6 +2722,12 @@ dependencies = [
  "is-wsl",
  "libc",
 ]
+
+[[package]]
+name = "openssl-probe"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 
 [[package]]
 name = "openssl-src"
