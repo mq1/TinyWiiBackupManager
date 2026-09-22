@@ -176,7 +176,7 @@ jobs:
 
   build-macos:
     name: Build for macOS
-    runs-on: xcode-27
+    runs-on: macos-26
     strategy:
       fail-fast: false
       matrix:
@@ -224,7 +224,7 @@ jobs:
 
   build-macos-universal:
     name: Build for macOS (Universal)
-    runs-on: macos-26
+    runs-on: macos-latest
     needs: [build-macos]
 
     steps:
