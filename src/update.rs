@@ -13,7 +13,7 @@ use crate::{
     state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
-use compact_str::CompactString;
+use compact_str::{CompactString, ToCompactString};
 use iced::Task;
 use std::sync::Arc;
 use tap::Pipe;
@@ -347,6 +347,23 @@ impl AppState {
                 }
 
                 Task::none()
+            }
+            Message::InstallOscApp(app) => {
+                self.notifications
+                    .push(Notification::info(format!("Installing {}", app.name())));
+
+                let app_name = app.name().to_compact_string();
+                let mount_point = self.config.mount_point.clone();
+
+                Task::perform(
+                    async move { app.install(&mount_point).await },
+                    move |result| match result {
+                        Ok(()) => {
+                            Message::Notify(Notification::success(format!("Installed {app_name}")))
+                        }
+                        Err(err) => Message::Notify(Notification::error(err.to_compact_string())),
+                    },
+                )
             }
         }
     }

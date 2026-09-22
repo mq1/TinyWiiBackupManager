@@ -69,6 +69,7 @@ pub enum Message {
     GotOscContents(OscState),
     SearchOscApps(String),
     OpenOscAppInfo(OscApp),
+    InstallOscApp(OscApp),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

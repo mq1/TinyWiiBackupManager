@@ -6,7 +6,7 @@ use iced::{
     Element, Length, padding,
     widget::{button, row, rule, space, text, tooltip},
 };
-use lucide_icons::iced::icon_info;
+use lucide_icons::iced::{icon_cloud_download, icon_info};
 
 pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
     row![
@@ -14,6 +14,16 @@ pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
         space::horizontal(),
         text(app.size_str()),
         rule::vertical(1),
+        tooltip(
+            button(icon_cloud_download().center())
+                .padding(0)
+                .on_press_with(|| Message::InstallOscApp(app.clone()))
+                .style(button::text)
+                .width(20)
+                .height(20),
+            my_card("Install"),
+            tooltip::Position::Top
+        ),
         tooltip(
             button(icon_info().center())
                 .padding(0)

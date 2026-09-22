@@ -8,7 +8,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, row, space, text},
+    widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
@@ -37,7 +37,14 @@ pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
                     .label("Info")
                     .icon(Icon::Info)
                     .expand_width()
-                    .on_press(Message::OpenOscAppInfo(app.clone())),
+                    .on_press_with(|| Message::OpenOscAppInfo(app.clone())),
+                tooltip(
+                    my_button()
+                        .icon(Icon::CloudDownload)
+                        .on_press_with(|| Message::InstallOscApp(app.clone())),
+                    my_card("Install"),
+                    tooltip::Position::Bottom
+                )
             ]
             .spacing(5)
         ]
