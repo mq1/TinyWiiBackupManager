@@ -29,7 +29,7 @@ impl AppState {
             Message::NavigateTo(page) => {
                 self.current_page = page;
 
-                if page == Page::Osc {
+                if page == Page::Osc && matches!(self.osc_contents, OscState::NotLoaded) {
                     self.load_osc_contents_task()
                 } else {
                     Task::none()
