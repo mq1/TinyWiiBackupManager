@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result};
-use compact_str::{CompactString, format_compact};
+use compact_str::{CompactString, ToCompactString, format_compact};
 use std::{fs, path::Path};
 
 fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<CompactString> {
@@ -13,7 +13,7 @@ fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<C
     let end = slice.find(end_pattern)?;
     let value = &slice[..end];
 
-    Some(CompactString::new(value.trim()))
+    Some(value.trim().to_compact_string())
 }
 
 macro_rules! get_property {
