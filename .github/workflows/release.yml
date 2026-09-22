@@ -183,8 +183,10 @@ jobs:
         include:
           - arch: arm64
             target: aarch64-apple-darwin
+            deployment_target: 11
           - arch: x86_64
             target: x86_64-apple-darwin
+            deployment_target: 10.12
 
     steps:
       - name: Checkout
@@ -210,6 +212,7 @@ jobs:
           AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
           CFLAGS: -O3 -flto
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
+          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
           CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
 
