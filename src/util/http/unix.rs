@@ -3,36 +3,19 @@
 
 use crate::util::http::USER_AGENT;
 use anyhow::Result;
-use std::sync::LazyLock;
-use ureq::{
-    Agent,
-    tls::{RootCerts, TlsConfig, TlsProvider},
-};
-
-#[cfg(feature = "native-https")]
-const PROVIDER: TlsProvider = TlsProvider::NativeTls;
-
-#[cfg(feature = "static-https")]
-const PROVIDER: TlsProvider = TlsProvider::Rustls;
-
-static AGENT: LazyLock<Agent> = LazyLock::new(|| {
-    Agent::config_builder()
-        .user_agent(USER_AGENT)
-        .tls_config(
-            TlsConfig::builder()
-                .provider(PROVIDER)
-                .root_certs(RootCerts::PlatformVerifier)
-                .build(),
-        )
-        .build()
-        .new_agent()
-});
+use curl::easy::{Easy, WriteError};
 
 pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
-    let mut resp = AGENT.get(url).call()?;
-    let mut body = resp.body_mut().as_reader();
+    let mut easy = Easy::new();
+    easy.useragent(USER_AGENT)?;
+    easy.url(url)?;
 
-    std::io::copy(&mut body, &mut dest)?;
+    let mut transfer = easy.transfer();
+    transfer.write_function(move |data| {
+        dest.write_all(data).map_err(|_| WriteError::Pause)?;
+        Ok(data.len())
+    })?;
+    transfer.perform()?;
 
     Ok(())
 }
