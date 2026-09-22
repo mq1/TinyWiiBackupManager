@@ -176,7 +176,7 @@ jobs:
 
   build-macos:
     name: Build for macOS
-    runs-on: xcode-27
+    runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
