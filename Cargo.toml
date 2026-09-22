@@ -10,7 +10,7 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
 default = ["static-https"]
-native-https = ["curl/force-system-lib-on-osx"]
+native-https = []
 static-https = ["curl/static-curl", "curl/static-ssl"]
 
 [dependencies]
