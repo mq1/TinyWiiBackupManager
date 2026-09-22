@@ -78,6 +78,7 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           CC: clang-22
           AR: llvm-ar-22
+          RANLIB: llvm-ranlib-22
           CFLAGS: -O3 -flto
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
@@ -142,7 +143,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
@@ -175,15 +176,17 @@ jobs:
 
   build-macos:
     name: Build for macOS
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
         include:
           - arch: arm64
             target: aarch64-apple-darwin
+            deployment_target: 11
           - arch: x86_64
             target: x86_64-apple-darwin
+            deployment_target: 10.12
 
     steps:
       - name: Checkout
@@ -201,7 +204,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features native-https
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
@@ -209,6 +212,7 @@ jobs:
           AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
           CFLAGS: -O3 -flto
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
+          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
           CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
 

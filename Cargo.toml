@@ -9,9 +9,9 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["native-https"]
-native-https = ["ureq/native-tls"]
-static-https = ["ureq/rustls", "ureq/platform-verifier"]
+default = ["static-https"]
+native-https = ["curl/force-system-lib-on-osx"]
+static-https = ["curl/ssl", "curl/static-curl", "curl/static-ssl"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -40,7 +40,6 @@ sys-locale = "0.3"
 size = "0.5"
 fs4 = { version = "1", default-features = false }
 which-fs = "0.2"
-ureq = { version = "3", default-features = false, features = ["gzip", "json"] }
 open = "5"
 wii-disc-info = { version = "0.10", features = ["async"] }
 twbm-idmap = { version = "0.5", features = ["ascii-titles"] }
@@ -86,7 +85,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "dx12",
 ] }
-winsafe = { version = "0.0.29", features = ["dwm"] }
+winsafe = { version = "0.0.29", features = ["dwm", "wininet"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
@@ -94,6 +93,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "vulkan",
 ] }
+curl = "0.4"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
@@ -101,7 +101,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "metal",
 ] }
-
+curl = { version = "0.4", default-features = false }
 
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
