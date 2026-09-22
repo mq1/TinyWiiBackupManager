@@ -210,7 +210,7 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           CC: /opt/homebrew/opt/llvm@22/bin/clang
           AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
-          CFLAGS: -O3 -flto
+          CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
