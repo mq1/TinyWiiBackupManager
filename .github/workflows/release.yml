@@ -143,7 +143,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
@@ -176,7 +176,7 @@ jobs:
 
   build-macos:
     name: Build for macOS
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
@@ -202,7 +202,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features native-https
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
