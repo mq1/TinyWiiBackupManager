@@ -68,9 +68,9 @@ impl std::fmt::Display for Notification {
         if let Some(created) = self.created {
             write!(
                 f,
-                "{}-{}-{} {}:{}:{} > ",
+                "{}-{:02}-{:02} {:02}:{:02}:{:02} > ",
                 created.year(),
-                created.month(),
+                u8::from(created.month()),
                 created.day(),
                 created.hour(),
                 created.minute(),

@@ -67,7 +67,9 @@ impl<'de> serde::Deserialize<'de> for OscApp {
             .release_date
             .pipe(OffsetDateTime::from_unix_timestamp)
             .map_err(|_| serde::de::Error::custom("invalid release date"))
-            .map(|dt| format_compact!("{}-{}-{}", dt.year(), dt.month(), dt.day()))?;
+            .map(|dt| {
+                format_compact!("{}-{:02}-{:02}", dt.year(), u8::from(dt.month()), dt.day())
+            })?;
 
         let osc_url = format_compact!("https://oscwii.org/library/app/{}", meta.slug);
 
