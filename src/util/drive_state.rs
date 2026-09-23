@@ -8,7 +8,7 @@ use size::Size;
 use std::path::PathBuf;
 use which_fs::FsKind;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct DriveInfo {
     used_size_str: CompactString,
     total_size: u64,
@@ -20,9 +20,8 @@ pub struct DriveInfo {
     allocation_granularity_str: CompactString,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub enum DriveState {
-    #[default]
     NotLoaded,
     Loading,
     Loaded(DriveInfo),

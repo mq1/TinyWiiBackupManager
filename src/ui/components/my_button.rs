@@ -8,9 +8,8 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MyButtonKind {
-    #[default]
     Secondary,
     Primary,
     Danger,

@@ -18,9 +18,8 @@ pub struct OscAppList {
     search_term: CompactString,
 }
 
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum OscState {
-    #[default]
     NotLoaded,
     Loading,
     Loaded(OscAppList),

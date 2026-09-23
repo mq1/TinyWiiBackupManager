@@ -11,7 +11,7 @@ use smol::{
 use std::path::PathBuf;
 use tap::Pipe;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct HomebrewAppList {
     apps: Box<[HomebrewApp]>,
     order_by_name: Box<[usize]>,
@@ -19,9 +19,8 @@ pub struct HomebrewAppList {
     search_term: CompactString,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub enum HomebrewState {
-    #[default]
     NotLoaded,
     Loading,
     Loaded(HomebrewAppList),

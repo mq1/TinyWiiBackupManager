@@ -13,9 +13,8 @@ pub mod osc_apps;
 pub mod settings;
 pub mod toolbox;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display, IntoStaticStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display, IntoStaticStr)]
 pub enum Page {
-    #[default]
     Games,
     #[strum(serialize = "Homebrew Apps")]
     HomebrewApps,

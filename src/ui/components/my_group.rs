@@ -8,17 +8,21 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-#[derive(Default)]
 pub struct MyGroup<'a> {
     pub title: &'a str,
     pub icon: Option<Icon>,
+    pub content: Element<'a, Message>,
     pub top_right_content: Option<Element<'a, Message>>,
-    pub content: Option<Element<'a, Message>>,
 }
 
 impl<'a> MyGroup<'a> {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(title: &'a str, content: impl Into<Element<'a, Message>>) -> Self {
+        Self {
+            title,
+            icon: None,
+            top_right_content: None,
+            content: content.into(),
+        }
     }
 
     pub fn title(mut self, title: &'a str) -> Self {
@@ -37,7 +41,7 @@ impl<'a> MyGroup<'a> {
     }
 
     pub fn content(mut self, content: impl Into<Element<'a, Message>>) -> Self {
-        self.content = Some(content.into());
+        self.content = content.into();
         self
     }
 }
@@ -65,5 +69,5 @@ impl<'a> From<MyGroup<'a>> for Element<'a, Message> {
 }
 
 pub fn my_group<'a>(title: &'a str, content: impl Into<Element<'a, Message>>) -> MyGroup<'a> {
-    MyGroup::new().title(title).content(content)
+    MyGroup::new(title, content)
 }

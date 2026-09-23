@@ -18,17 +18,7 @@ pub struct GameFilter {
     search_term: CompactString,
 }
 
-impl Default for GameFilter {
-    fn default() -> Self {
-        Self {
-            show_wii: true,
-            show_ngc: true,
-            search_term: CompactString::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct GameList {
     games: Box<[Game]>,
     order_by_name: Box<[usize]>,
@@ -36,9 +26,8 @@ pub struct GameList {
     filter: GameFilter,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub enum GamesState {
-    #[default]
     NotLoaded,
     Loading,
     Loaded(GameList),
@@ -70,7 +59,11 @@ impl GamesState {
                 games,
                 order_by_name,
                 order_by_size,
-                filter: GameFilter::default(),
+                filter: GameFilter {
+                    show_wii: true,
+                    show_ngc: true,
+                    search_term: CompactString::default(),
+                },
             };
 
             Ok::<_, anyhow::Error>(game_list)

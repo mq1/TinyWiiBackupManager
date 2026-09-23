@@ -5,9 +5,8 @@ use compact_str::{CompactString, ToCompactString};
 use strum_macros::Display;
 use time::OffsetDateTime;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
 pub enum NotificationLevel {
-    #[default]
     Info,
     Warning,
     Error,

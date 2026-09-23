@@ -5,7 +5,7 @@ use crate::notifications::notification::Notification;
 use smol::{fs::File, io::AsyncWriteExt, lock::Mutex};
 use std::{path::Path, sync::Arc};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct NotificationList {
     inner: Vec<Notification>,
     log: Option<Arc<Mutex<File>>>,
