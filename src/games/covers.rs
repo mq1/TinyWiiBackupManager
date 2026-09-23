@@ -84,7 +84,7 @@ pub async fn download_cover(
 
 pub fn download_ui_covers(
     ids: impl IntoIterator<Item = GameID>,
-    data_dir: PathBuf,
+    data_dir: &'static Path,
     preferred_language: PreferredLanguage,
 ) -> impl Stream<Item = GameID> {
     let covers_dir = data_dir.join("covers");

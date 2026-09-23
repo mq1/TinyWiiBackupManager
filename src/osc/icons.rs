@@ -7,11 +7,11 @@ use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use std::{convert::identity, path::PathBuf};
+use std::{convert::identity, path::Path};
 
 pub fn download_all_icons(
     slugs_and_icon_uris: impl IntoIterator<Item = (CompactString, CompactString)>,
-    data_dir: PathBuf,
+    data_dir: &'static Path,
 ) -> impl Stream<Item = CompactString> {
     let icons_dir = data_dir.join("osc-icons");
 

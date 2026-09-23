@@ -62,8 +62,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub async fn load(data_dir: impl AsRef<Path>) -> Self {
-        let path = data_dir.as_ref().join("config.json");
+    pub async fn load(data_dir: &'static Path) -> Self {
+        let path = data_dir.join("config.json");
         let s = fs::read_to_string(&path).await.unwrap_or_default();
         let config = serde_json::from_str(&s).unwrap_or_default();
 

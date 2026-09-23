@@ -13,7 +13,7 @@ use crate::{
     osc::{self, osc_app::OscApp, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
-    util::{data_dir::get_data_dir, drive_state::DriveState},
+    util::drive_state::DriveState,
 };
 use anyhow::Context;
 use compact_str::{ToCompactString, format_compact};
@@ -21,18 +21,21 @@ use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
 };
+use lucide_icons::LUCIDE_FONT_BYTES;
 use rfd::AsyncFileDialog;
 use smol::{
     fs::{self, File},
     net::TcpStream,
 };
-use std::{ffi::OsStr, path::PathBuf};
+use std::{
+    ffi::OsStr,
+    path::{Path, PathBuf},
+};
 use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
 
-#[derive(Default)]
 pub struct AppState {
-    pub data_dir: PathBuf,
+    pub data_dir: &'static Path,
     pub config: Config,
     pub notifications: NotificationList,
     pub drive: DriveState,
@@ -49,18 +52,36 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn boot() -> (Self, Task<Message>) {
-        let data_dir = get_data_dir().expect("Unable to get data directory");
-
-        let state = Self {
-            notifications: NotificationList::new(&data_dir),
-            data_dir,
-            ..Default::default()
-        };
-
-        let task = state.load_config_task();
-
-        (state, task)
+    pub fn boot(data_dir: &'static Path) -> impl Fn() -> (Self, Task<Message>) {
+        move || {
+            (
+                Self {
+                    data_dir,
+                    config: Config::default(),
+                    notifications: NotificationList::new(data_dir),
+                    drive: DriveState::NotLoaded,
+                    games: GamesState::NotLoaded,
+                    homebrew: HomebrewState::NotLoaded,
+                    current_page: Page::Games,
+                    current_modal: None,
+                    importing: ConversionState::Idle,
+                    exporting: ConversionState::Idle,
+                    hashing: ConversionState::Idle,
+                    import_queue: Vec::new(),
+                    osc_contents: OscState::NotLoaded,
+                    animation_state: false,
+                },
+                Task::batch([
+                    Task::perform(Config::load(data_dir), Message::GotConfig),
+                    iced::font::load(LUCIDE_FONT_BYTES).map(|res| match res {
+                        Ok(()) => Message::NoOp,
+                        Err(e) => Message::Notify(Notification::error(format_compact!(
+                            "Failed to load lucide icons: {e:?}"
+                        ))),
+                    }),
+                ]),
+            )
+        }
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
@@ -83,11 +104,6 @@ impl AppState {
         })
     }
 
-    pub fn load_config_task(&self) -> Task<Message> {
-        let data_dir = self.data_dir.clone();
-        Task::perform(Config::load(data_dir), Message::GotConfig)
-    }
-
     pub fn init_file_dialog_task(&self) -> Task<AsyncFileDialog> {
         iced::window::oldest()
             .and_then(|id| iced::window::run(id, |w| AsyncFileDialog::new().set_parent(w)))
@@ -102,10 +118,9 @@ impl AppState {
     pub fn download_ui_covers_task(&mut self) -> Task<Message> {
         if let GamesState::Loaded(games) = &self.games {
             let ids = games.get_all_game_ids().collect::<Box<[_]>>();
-            let data_dir = self.data_dir.clone();
             let preferred_language = self.config.preferred_language;
 
-            Task::stream(download_ui_covers(ids, data_dir, preferred_language))
+            Task::stream(download_ui_covers(ids, self.data_dir, preferred_language))
                 .map(Message::ReloadCover)
         } else {
             Task::none()
@@ -118,11 +133,10 @@ impl AppState {
                 .iter()
                 .map(OscApp::slug_and_icon_url)
                 .collect::<Box<[_]>>();
-            let data_dir = self.data_dir.clone();
 
             Task::stream(osc::icons::download_all_icons(
                 slugs_and_icon_uris,
-                data_dir,
+                self.data_dir,
             ))
             .map(Message::ReloadOscIcon)
         } else {
@@ -204,25 +218,25 @@ impl AppState {
 
     pub fn reload_cover(&mut self, game_id: GameID) {
         if let GamesState::Loaded(games) = &mut self.games {
-            games.reload_cover(game_id, &self.data_dir);
+            games.reload_cover(game_id, self.data_dir);
         }
     }
 
     pub fn reload_all_covers(&mut self) {
         if let GamesState::Loaded(games) = &mut self.games {
-            games.reload_all_covers(&self.data_dir);
+            games.reload_all_covers(self.data_dir);
         }
     }
 
     pub fn reload_osc_icon(&mut self, slug: &str) {
         if let OscState::Loaded(apps) = &mut self.osc_contents {
-            apps.reload_icon(slug, &self.data_dir);
+            apps.reload_icon(slug, self.data_dir);
         }
     }
 
     pub fn reload_all_osc_icons(&mut self) {
         if let OscState::Loaded(apps) = &mut self.osc_contents {
-            apps.reload_all_icons(&self.data_dir);
+            apps.reload_all_icons(self.data_dir);
         }
     }
 
@@ -267,11 +281,6 @@ impl AppState {
     }
 
     pub fn load_osc_contents_task(&self) -> Task<Message> {
-        let data_dir = self.data_dir.clone();
-
-        Task::perform(
-            async move { OscState::load(&data_dir).await },
-            Message::GotOscContents,
-        )
+        Task::perform(OscState::load(self.data_dir), Message::GotOscContents)
     }
 }
