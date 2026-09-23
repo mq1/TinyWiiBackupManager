@@ -10,13 +10,13 @@ use crate::{
     homebrew::{self, homebrew_state::HomebrewState},
     messages::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
-    osc::{self, osc_app::OscApp, osc_state::OscState},
+    osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
     util::drive_state::DriveState,
 };
 use anyhow::Context;
-use compact_str::{ToCompactString, format_compact};
+
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
@@ -73,9 +73,10 @@ impl AppState {
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
+                    Task::perform(OscState::load(data_dir), Message::GotOscContents),
                     iced::font::load(LUCIDE_FONT_BYTES).map(|res| match res {
                         Ok(()) => Message::NoOp,
-                        Err(e) => Message::Notify(Notification::error(format_compact!(
+                        Err(e) => Message::Notify(Notification::error(format!(
                             "Failed to load lucide icons: {e:?}"
                         ))),
                     }),
@@ -131,7 +132,7 @@ impl AppState {
         if let OscState::Loaded(apps) = &self.osc_contents {
             let slugs_and_icon_uris = apps
                 .iter()
-                .map(OscApp::slug_and_icon_url)
+                .map(|app| (app.icon_uri().to_string(), app.slug().to_string()))
                 .collect::<Box<[_]>>();
 
             Task::stream(osc::icons::download_all_icons(
@@ -171,7 +172,7 @@ impl AppState {
             },
             |res| match res {
                 Ok(meta) => Message::GotDiscInfo(meta),
-                Err(e) => Message::CouldNotGetDiscInfo(e.to_compact_string()),
+                Err(e) => Message::CouldNotGetDiscInfo(e.to_string()),
             },
         )
     }
@@ -180,7 +181,7 @@ impl AppState {
         self.current_modal = None;
 
         Task::perform(fs::remove_dir_all(path), |res| {
-            Message::DirDeleted(res.map_err(|e| e.to_compact_string()))
+            Message::DirDeleted(res.map_err(|e| e.to_string()))
         })
     }
 
@@ -228,9 +229,9 @@ impl AppState {
         }
     }
 
-    pub fn reload_osc_icon(&mut self, slug: &str) {
+    pub fn reload_osc_icon(&mut self, idx: usize) {
         if let OscState::Loaded(apps) = &mut self.osc_contents {
-            apps.reload_icon(slug, self.data_dir);
+            apps.reload_icon(idx, self.data_dir);
         }
     }
 
@@ -260,7 +261,7 @@ impl AppState {
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip = self.config.wii_ip.to_compact_string();
+        let wii_ip = self.config.wii_ip.to_string();
 
         Task::perform(
             async move {
@@ -273,14 +274,30 @@ impl AppState {
 
                 wiiload::compress_then_send_async(&mut conn, filename, &mut file).await?;
 
-                let msg = format_compact!("Sent {filename} to {wii_ip}");
+                let msg = format!("Sent {filename} to {wii_ip}");
                 Ok::<_, anyhow::Error>(msg)
             },
             |res| Message::Notify(res.into()),
         )
     }
 
-    pub fn load_osc_contents_task(&self) -> Task<Message> {
-        Task::perform(OscState::load(self.data_dir), Message::GotOscContents)
+    pub fn set_homebrew_apps(&mut self, homebrew: HomebrewState) {
+        self.homebrew = homebrew;
+
+        if let HomebrewState::Loaded(apps) = &mut self.homebrew
+            && let OscState::Loaded(osc_apps) = &self.osc_contents
+        {
+            apps.set_osc_apps(osc_apps);
+        }
+    }
+
+    pub fn set_osc_contents(&mut self, contents: OscState) {
+        self.osc_contents = contents;
+
+        if let OscState::Loaded(osc_apps) = &self.osc_contents
+            && let HomebrewState::Loaded(apps) = &mut self.homebrew
+        {
+            apps.set_osc_apps(osc_apps);
+        }
     }
 }

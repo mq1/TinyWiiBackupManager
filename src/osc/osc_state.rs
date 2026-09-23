@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{osc::osc_app::OscApp, util::http::download_file};
-use compact_str::{CompactString, ToCompactString};
+
 use smol::fs;
 use std::{
     path::Path,
@@ -15,7 +15,7 @@ const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 pub struct OscAppList {
     apps: Box<[OscApp]>,
     refreshed: SystemTime,
-    search_term: CompactString,
+    search_term: String,
 }
 
 #[derive(Clone, Debug)]
@@ -23,7 +23,7 @@ pub enum OscState {
     NotLoaded,
     Loading,
     Loaded(OscAppList),
-    Errored(CompactString),
+    Errored(String),
 }
 
 impl OscState {
@@ -48,7 +48,7 @@ impl OscState {
             let list = OscAppList {
                 apps,
                 refreshed,
-                search_term: CompactString::default(),
+                search_term: String::default(),
             };
 
             Ok::<_, anyhow::Error>(list)
@@ -57,7 +57,7 @@ impl OscState {
 
         match res {
             Ok(apps) => Self::Loaded(apps),
-            Err(err) => Self::Errored(err.to_compact_string()),
+            Err(err) => Self::Errored(err.to_string()),
         }
     }
 }
@@ -67,7 +67,7 @@ impl OscAppList {
         &self.search_term
     }
 
-    pub fn set_search_term(&mut self, search_term: CompactString) {
+    pub fn set_search_term(&mut self, search_term: String) {
         self.search_term = search_term;
     }
 
@@ -84,15 +84,21 @@ impl OscAppList {
             .unwrap_or(Duration::MAX)
     }
 
-    pub fn reload_icon(&mut self, slug: &str, data_dir: &Path) {
-        if let Some(app) = self.apps.iter_mut().find(|app| app.slug() == slug) {
-            app.load_icon_blocking(data_dir);
-        }
+    pub fn reload_icon(&mut self, idx: usize, data_dir: &Path) {
+        self.apps[idx].load_icon_blocking(data_dir);
     }
 
     pub fn reload_all_icons(&mut self, data_dir: &Path) {
         for app in &mut self.apps {
             app.load_icon_blocking(data_dir);
         }
+    }
+}
+
+impl std::ops::Index<usize> for OscAppList {
+    type Output = OscApp;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.apps[index]
     }
 }

@@ -3,7 +3,7 @@
 
 use crate::util::fs::get_dir_size;
 use anyhow::{Context, Result, bail};
-use compact_str::{CompactString, ToCompactString, format_compact};
+
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image,
@@ -11,6 +11,7 @@ use iced::{
 use size::Size;
 use smol::fs;
 use std::{
+    borrow::Cow,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
@@ -20,18 +21,16 @@ use wii_disc_info::game_id::GameID;
 pub struct Game {
     path: PathBuf,
     id: GameID,
-    title: CompactString,
+    title: Cow<'static, str>,
     size: u64,
-    size_str: CompactString,
+    size_str: String,
     is_wii: bool,
     cover: Option<Allocation>,
-    search_term_lowercase: CompactString,
+    search_term_lowercase: String,
 }
 
 impl Game {
-    pub async fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self> {
-        let path = path.into();
-
+    pub async fn try_from_path(path: PathBuf, is_wii: bool) -> Result<Self> {
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
             bail!("{} is not a directory", path.display());
@@ -57,14 +56,14 @@ impl Game {
 
         // get the pretty title
         let title = match twbm_idmap::get_title(id) {
-            Some(title) => CompactString::const_new(title),
-            None => CompactString::new(title_raw.trim()),
+            Some(title) => Cow::Borrowed(title),
+            None => Cow::Owned(title_raw.trim().to_string()),
         };
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_compact_string();
+        let size_str = Size::from_bytes(size).to_string();
 
-        let search_term_lowercase = format_compact!("{}\0{}", title, id).to_lowercase();
+        let search_term_lowercase = format!("{}\0{}", title, id).to_lowercase();
 
         Ok(Self {
             path,
@@ -80,11 +79,11 @@ impl Game {
 
     fn get_possible_disc_paths<'a>(&'a self) -> impl Iterator<Item = PathBuf> + 'a {
         [
-            format_compact!("{}.wbfs", self.id),
-            format_compact!("{}.iso", self.id),
-            format_compact!("{}.part0.iso", self.id),
-            CompactString::const_new("game.iso"),
-            CompactString::const_new("game.ciso"),
+            format!("{}.wbfs", self.id),
+            format!("{}.iso", self.id),
+            format!("{}.part0.iso", self.id),
+            "game.iso".to_string(),
+            "game.ciso".to_string(),
         ]
         .into_iter()
         .map(|filename| self.path.join(filename))

@@ -1,9 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{homebrew::meta::HomebrewAppMeta, util::fs::get_dir_size};
+use crate::{
+    homebrew::meta::HomebrewAppMeta,
+    osc::{osc_app::OscApp, osc_state::OscAppList},
+    util::fs::get_dir_size,
+};
 use anyhow::{Context, Result, bail};
-use compact_str::{CompactString, ToCompactString, format_compact};
+
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image,
@@ -31,16 +35,15 @@ pub struct HomebrewApp {
     path: PathBuf,
     meta: HomebrewAppMeta,
     size: u64,
-    size_str: CompactString,
+    size_str: String,
     icon: Option<Allocation>,
     osc_url: OsString,
-    search_term_lowercase: CompactString,
+    osc_app: Option<OscApp>,
+    search_term_lowercase: String,
 }
 
 impl HomebrewApp {
-    pub async fn try_from_path(path: impl Into<PathBuf>) -> Result<Self> {
-        let path = path.into();
-
+    pub async fn try_from_path(path: PathBuf) -> Result<Self> {
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
             bail!("{} is not a directory", path.display());
@@ -59,7 +62,7 @@ impl HomebrewApp {
         let meta = HomebrewAppMeta::parse(&path)?;
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_compact_string();
+        let size_str = Size::from_bytes(size).to_string();
 
         let icon = path
             .join("icon.png")
@@ -71,7 +74,7 @@ impl HomebrewApp {
 
         let osc_url = make_osc_url(&path);
 
-        let search_term_lowercase = format_compact!("{}\0{}", meta.name(), dir_name).to_lowercase();
+        let search_term_lowercase = format!("{}\0{}", meta.name(), dir_name).to_lowercase();
 
         Ok(Self {
             path,
@@ -80,6 +83,7 @@ impl HomebrewApp {
             size_str,
             icon,
             osc_url,
+            osc_app: None,
             search_term_lowercase,
         })
     }
@@ -130,6 +134,16 @@ impl HomebrewApp {
 
     pub fn osc_url(&self) -> &OsStr {
         &self.osc_url
+    }
+
+    pub fn set_osc_app(&mut self, osc_apps: &OscAppList) {
+        if let Some(file_name) = self.path.file_name().and_then(OsStr::to_str) {
+            self.osc_app = osc_apps.iter().find(|app| app.slug() == file_name).cloned();
+        }
+    }
+
+    pub fn osc_app(&self) -> &Option<OscApp> {
+        &self.osc_app
     }
 }
 

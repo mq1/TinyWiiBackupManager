@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, homebrew::homebrew_app::HomebrewApp};
-use compact_str::{CompactString, ToCompactString};
+use crate::{config::SortBy, homebrew::homebrew_app::HomebrewApp, osc::osc_state::OscAppList};
 use itertools::Either;
 use smol::{
     fs,
@@ -16,7 +15,7 @@ pub struct HomebrewAppList {
     apps: Box<[HomebrewApp]>,
     order_by_name: Box<[usize]>,
     order_by_size: Box<[usize]>,
-    search_term: CompactString,
+    search_term: String,
 }
 
 #[derive(Debug, Clone)]
@@ -24,7 +23,7 @@ pub enum HomebrewState {
     NotLoaded,
     Loading,
     Loaded(HomebrewAppList),
-    Errored(CompactString),
+    Errored(String),
 }
 
 impl HomebrewState {
@@ -48,7 +47,7 @@ impl HomebrewState {
                 apps,
                 order_by_name,
                 order_by_size,
-                search_term: CompactString::default(),
+                search_term: String::default(),
             };
 
             Ok::<_, anyhow::Error>(app_list)
@@ -57,7 +56,7 @@ impl HomebrewState {
 
         match res {
             Ok(app_list) => HomebrewState::Loaded(app_list),
-            Err(err) => HomebrewState::Errored(err.to_compact_string()),
+            Err(err) => HomebrewState::Errored(err.to_string()),
         }
     }
 }
@@ -90,8 +89,14 @@ impl HomebrewAppList {
         &self.search_term
     }
 
-    pub fn set_search_term(&mut self, search_term: CompactString) {
+    pub fn set_search_term(&mut self, search_term: String) {
         self.search_term = search_term;
+    }
+
+    pub fn set_osc_apps(&mut self, osc_apps: &OscAppList) {
+        for app in &mut self.apps {
+            app.set_osc_app(osc_apps);
+        }
     }
 }
 

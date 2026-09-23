@@ -6,7 +6,7 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use anyhow::{Context, Result, bail};
-use compact_str::ToCompactString;
+
 use lucide_icons::Icon;
 use smol::{
     fs::{self, DirEntry, File},
@@ -186,7 +186,7 @@ pub const ALL: &[ToolboxGroup] = {
                     .await
                     .into_iter()
                     .collect::<Result<Vec<_>, _>>()
-                    .map(|_| "Paths successfully normalized".to_compact_string())
+                    .map(|_| "Paths successfully normalized".to_string())
                 })
             },
         }],

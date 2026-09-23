@@ -13,7 +13,7 @@ use crate::{
     state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
-use compact_str::{CompactString, ToCompactString};
+
 use iced::Task;
 use std::sync::Arc;
 use tap::Pipe;
@@ -29,8 +29,9 @@ impl AppState {
             Message::NavigateTo(page) => {
                 self.current_page = page;
 
-                if page == Page::Osc && matches!(self.osc_contents, OscState::NotLoaded) {
-                    self.load_osc_contents_task()
+                if page == Page::Osc && matches!(self.osc_contents, OscState::Loaded(_)) {
+                    self.reload_all_osc_icons();
+                    self.download_osc_icons_task()
                 } else {
                     Task::none()
                 }
@@ -68,7 +69,7 @@ impl AppState {
                 self.download_ui_covers_task()
             }
             Message::GotHomebrew(homebrew) => {
-                self.homebrew = homebrew;
+                self.set_homebrew_apps(homebrew);
                 Task::none()
             }
             Message::GotDrive(drive) => {
@@ -238,8 +239,8 @@ impl AppState {
                 self.reload_cover(game_id);
                 Task::none()
             }
-            Message::ReloadOscIcon(slug) => {
-                self.reload_osc_icon(&slug);
+            Message::ReloadOscIcon(idx) => {
+                self.reload_osc_icon(idx);
                 Task::none()
             }
             Message::SetWiiOutputFormat(format) => {
@@ -280,14 +281,14 @@ impl AppState {
             }
             Message::SearchGames(search_term) => {
                 if let GamesState::Loaded(games) = &mut self.games {
-                    games.set_search_term(CompactString::from_str_to_lowercase(&search_term));
+                    games.set_search_term(search_term.to_lowercase());
                 }
 
                 Task::none()
             }
             Message::SearchHomebrewApps(search_term) => {
                 if let HomebrewState::Loaded(apps) = &mut self.homebrew {
-                    apps.set_search_term(CompactString::from_str_to_lowercase(&search_term));
+                    apps.set_search_term(search_term.to_lowercase());
                 }
 
                 Task::none()
@@ -335,15 +336,24 @@ impl AppState {
             Message::SendViaWiiload(path) => {
                 Task::batch([self.write_config_task(), self.send_via_wiiload(path)])
             }
-            Message::RefreshOscContents => self.load_osc_contents_task(),
+            Message::RefreshOscContents => {
+                Task::perform(OscState::load(self.data_dir), Message::GotOscContents)
+            }
             Message::GotOscContents(contents) => {
-                self.osc_contents = contents;
-                self.reload_all_osc_icons();
-                self.download_osc_icons_task()
+                self.set_osc_contents(contents);
+
+                if self.current_page == Page::Osc
+                    && matches!(self.osc_contents, OscState::Loaded(_))
+                {
+                    self.reload_all_covers();
+                    self.download_osc_icons_task()
+                } else {
+                    Task::none()
+                }
             }
             Message::SearchOscApps(search_term) => {
                 if let OscState::Loaded(apps) = &mut self.osc_contents {
-                    apps.set_search_term(CompactString::from_str_to_lowercase(&search_term));
+                    apps.set_search_term(search_term.to_lowercase());
                 }
 
                 Task::none()
@@ -352,7 +362,7 @@ impl AppState {
                 self.notifications
                     .push(Notification::info(format!("Installing {}", app.name())));
 
-                let app_name = app.name().to_compact_string();
+                let app_name = app.name().to_string();
                 let mount_point = self.config.mount_point.clone();
 
                 Task::perform(
@@ -361,7 +371,7 @@ impl AppState {
                         Ok(()) => {
                             Message::Notify(Notification::success(format!("Installed {app_name}")))
                         }
-                        Err(err) => Message::Notify(Notification::error(err.to_compact_string())),
+                        Err(err) => Message::Notify(Notification::error(err.to_string())),
                     },
                 )
             }

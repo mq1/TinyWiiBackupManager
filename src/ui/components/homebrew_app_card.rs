@@ -8,10 +8,13 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{column, image, row, space, text},
+    widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
-use lucide_icons::{Icon, iced::icon_tag};
+use lucide_icons::{
+    Icon,
+    iced::{icon_check, icon_message_circle_warning, icon_tag},
+};
 
 pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
     let icon: Element<'_, Message> = match app.icon() {
@@ -19,10 +22,30 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
         None => space().height(96).into(),
     };
 
+    let version_icon: Element<'_, Message> = if let Some(osc_app) = app.osc_app() {
+        if osc_app.version() == app.version() {
+            tooltip(
+                icon_check(),
+                my_card("Up to date"),
+                tooltip::Position::Bottom,
+            )
+            .into()
+        } else {
+            tooltip(
+                icon_message_circle_warning(),
+                my_card("Outdated"),
+                tooltip::Position::Bottom,
+            )
+            .into()
+        }
+    } else {
+        icon_tag().into()
+    };
+
     my_card(
         column![
             row![
-                icon_tag(),
+                version_icon,
                 ellipsized_text(app.version())
                     .wrapping(text::Wrapping::None)
                     .width(60),
