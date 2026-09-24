@@ -12,17 +12,37 @@ use size::Size;
 use smol::fs;
 use std::fmt::Write;
 use std::{
-    borrow::Cow,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
+enum GameTitle {
+    FromIdMap(&'static str),
+    FromDisc(Box<str>),
+}
+
+impl GameTitle {
+    fn as_str(&self) -> &str {
+        match self {
+            GameTitle::FromIdMap(title) => title,
+            GameTitle::FromDisc(title) => title,
+        }
+    }
+}
+
+impl std::fmt::Display for GameTitle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.as_str().fmt(f)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Game {
     path: PathBuf,
     id: GameID,
-    title: Cow<'static, str>,
+    title: GameTitle,
     size: u64,
     size_str: ArrayString<10>,
     is_wii: bool,
@@ -57,8 +77,8 @@ impl Game {
 
         // get the pretty title
         let title = match twbm_idmap::get_title(id) {
-            Some(title) => Cow::Borrowed(title),
-            None => Cow::Owned(title_raw.trim().into()),
+            Some(title) => GameTitle::FromIdMap(title),
+            None => GameTitle::FromDisc(Box::from(title_raw.trim())),
         };
 
         let size = get_dir_size(&path).await;
@@ -132,7 +152,7 @@ impl Game {
     }
 
     pub fn title(&self) -> &str {
-        &self.title
+        self.title.as_str()
     }
 
     pub fn id(&self) -> GameID {
