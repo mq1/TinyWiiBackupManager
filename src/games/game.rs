@@ -20,14 +20,14 @@ use wii_disc_info::game_id::GameID;
 #[derive(Debug, Clone)]
 enum GameTitle {
     FromIdMap(&'static str),
-    FromDisc(Box<str>),
+    FromFilename(Box<str>),
 }
 
 impl GameTitle {
     fn as_str(&self) -> &str {
         match self {
             GameTitle::FromIdMap(title) => title,
-            GameTitle::FromDisc(title) => title,
+            GameTitle::FromFilename(title) => title,
         }
     }
 }
@@ -78,7 +78,7 @@ impl Game {
         // get the pretty title
         let title = match twbm_idmap::get_title(id) {
             Some(title) => GameTitle::FromIdMap(title),
-            None => GameTitle::FromDisc(Box::from(title_raw.trim())),
+            None => GameTitle::FromFilename(Box::from(title_raw.trim())),
         };
 
         let size = get_dir_size(&path).await;
