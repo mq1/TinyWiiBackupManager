@@ -78,7 +78,7 @@ impl Game {
         // get the pretty title
         let title = match twbm_idmap::get_title(id) {
             Some(title) => GameTitle::FromIdMap(title),
-            None => GameTitle::FromFilename(Box::from(title_raw.trim())),
+            None => GameTitle::FromFilename(title_raw.trim().into()),
         };
 
         let size = get_dir_size(&path).await;
