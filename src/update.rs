@@ -378,7 +378,7 @@ impl AppState {
                 };
 
                 self.notifications.push(notification);
-                Task::done(Message::RefreshGamesAndApps)
+                Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
         }
     }
