@@ -33,7 +33,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
         } else {
             tooltip(
                 icon_message_circle_warning(),
-                my_card("Outdated"),
+                my_card(text!("Update available ({})", osc_app.version())),
                 tooltip::Position::Bottom,
             )
             .into()
@@ -41,6 +41,20 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
     } else {
         icon_tag().into()
     };
+
+    let update_button = app
+        .osc_app()
+        .as_ref()
+        .filter(|osc_app| osc_app.version() != app.version())
+        .map(|osc_app| {
+            tooltip(
+                my_button()
+                    .icon(Icon::CloudDownload)
+                    .on_press_with(|| Message::InstallOscApp(osc_app.clone())),
+                my_card("Update (from oscwii.org)"),
+                tooltip::Position::Bottom,
+            )
+        });
 
     my_card(
         column![
@@ -61,6 +75,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
                     .icon(Icon::Info)
                     .expand_width()
                     .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone())),
+                update_button,
                 my_button()
                     .icon(Icon::Trash)
                     .on_press_with(|| Message::AskDeleteDir(app.path().to_path_buf()))
