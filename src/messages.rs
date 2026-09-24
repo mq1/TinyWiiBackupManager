@@ -70,6 +70,7 @@ pub enum Message {
     SearchOscApps(String),
     OpenOscAppInfo(OscApp),
     InstallOscApp(OscApp),
+    OscAppInstalled(Result<String, String>),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

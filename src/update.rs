@@ -365,15 +365,20 @@ impl AppState {
                 let app_name = app.name().to_string();
                 let mount_point = self.config.mount_point.clone();
 
-                Task::perform(
-                    async move { app.install(&mount_point).await },
-                    move |result| match result {
-                        Ok(()) => {
-                            Message::Notify(Notification::success(format!("Installed {app_name}")))
-                        }
-                        Err(err) => Message::Notify(Notification::error(err.to_string())),
-                    },
-                )
+                Task::perform(async move { app.install(&mount_point).await }, move |res| {
+                    res.map(|_| app_name)
+                        .map_err(|err| err.to_string())
+                        .pipe(Message::OscAppInstalled)
+                })
+            }
+            Message::OscAppInstalled(res) => {
+                let notification = match res {
+                    Ok(app_name) => Notification::success(format!("Installed {app_name}")),
+                    Err(err) => Notification::error(err),
+                };
+
+                self.notifications.push(notification);
+                Task::done(Message::RefreshGamesAndApps)
             }
         }
     }

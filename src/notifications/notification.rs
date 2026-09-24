@@ -14,7 +14,7 @@ pub enum NotificationLevel {
 
 #[derive(Debug, Clone)]
 pub struct Notification {
-    label: String,
+    label: Box<str>,
     level: NotificationLevel,
     created: Option<OffsetDateTime>,
 }
@@ -22,7 +22,7 @@ pub struct Notification {
 impl Notification {
     pub fn info(label: impl ToString) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Info,
             created: OffsetDateTime::now_local().ok(),
         }
@@ -30,7 +30,7 @@ impl Notification {
 
     pub fn warning(label: impl ToString) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Warning,
             created: OffsetDateTime::now_local().ok(),
         }
@@ -38,7 +38,7 @@ impl Notification {
 
     pub fn error(label: impl ToString) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Error,
             created: OffsetDateTime::now_local().ok(),
         }
@@ -46,7 +46,7 @@ impl Notification {
 
     pub fn success(label: impl ToString) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Success,
             created: OffsetDateTime::now_local().ok(),
         }
@@ -66,7 +66,7 @@ impl std::fmt::Display for Notification {
         if let Some(created) = self.created {
             write!(
                 f,
-                "{}-{:02}-{:02} {:02}:{:02}:{:02} > ",
+                "{:04}-{:02}-{:02} {:02}:{:02}:{:02} > ",
                 created.year(),
                 u8::from(created.month()),
                 created.day(),
@@ -83,8 +83,8 @@ impl std::fmt::Display for Notification {
 impl<S: ToString, E: ToString> From<std::result::Result<S, E>> for Notification {
     fn from(result: anyhow::Result<S, E>) -> Self {
         match result {
-            Ok(label) => Notification::success(label.to_string()),
-            Err(e) => Notification::error(e.to_string()),
+            Ok(label) => Notification::success(label),
+            Err(e) => Notification::error(e),
         }
     }
 }
