@@ -3,13 +3,14 @@
 
 use crate::util::fs::get_dir_size;
 use anyhow::{Context, Result, bail};
-
+use arrayvec::ArrayString;
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image,
 };
 use size::Size;
 use smol::fs;
+use std::fmt::Write;
 use std::{
     borrow::Cow,
     ffi::OsStr,
@@ -23,7 +24,7 @@ pub struct Game {
     id: GameID,
     title: Cow<'static, str>,
     size: u64,
-    size_str: Box<str>,
+    size_str: ArrayString<10>,
     is_wii: bool,
     cover: Option<Allocation>,
     search_term_lowercase: Box<str>,
@@ -61,7 +62,9 @@ impl Game {
         };
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_string().into_boxed_str();
+
+        let mut size_str = ArrayString::new();
+        let _ = write!(&mut size_str, "{}", Size::from_bytes(size));
 
         let search_term_lowercase = format!("{}\0{}", title, id).to_lowercase().into_boxed_str();
 

@@ -47,7 +47,7 @@ pub struct OscAppMeta {
 pub struct OscApp {
     meta: OscAppMeta,
     icon: Option<Allocation>,
-    uncompressed_size_str: Box<str>,
+    uncompressed_size_str: ArrayString<10>,
     search_term_lowercase: Box<str>,
     release_date_str: ArrayString<10>,
     osc_url: Box<str>,
@@ -60,33 +60,27 @@ impl<'de> serde::Deserialize<'de> for OscApp {
     {
         let meta = OscAppMeta::deserialize(deserializer)?;
 
-        let uncompressed_size_str = Size::from_bytes(meta.uncompressed_size)
-            .to_string()
-            .into_boxed_str();
+        let mut uncompressed_size_str = ArrayString::new();
+        let _ = write!(
+            &mut uncompressed_size_str,
+            "{}",
+            Size::from_bytes(meta.uncompressed_size)
+        );
 
         let search_term_lowercase = format!("{}\0{}", meta.name, meta.slug)
             .to_lowercase()
             .into_boxed_str();
 
-        let release_date_str = meta
-            .release_date
-            .pipe(OffsetDateTime::from_unix_timestamp)
-            .ok()
-            .and_then(|dt| {
-                let mut buf = ArrayString::new();
-
-                write!(
-                    &mut buf,
-                    "{:04}-{:02}-{:02}",
-                    dt.year(),
-                    u8::from(dt.month()),
-                    dt.day()
-                )
-                .ok()?;
-
-                Some(buf)
-            })
-            .unwrap_or_default();
+        let mut release_date_str = ArrayString::new();
+        if let Ok(dt) = OffsetDateTime::from_unix_timestamp(meta.release_date) {
+            let _ = write!(
+                &mut release_date_str,
+                "{:04}-{:02}-{:02}",
+                dt.year(),
+                dt.month(),
+                dt.day()
+            );
+        }
 
         let osc_url = format!("https://oscwii.org/library/app/{}", meta.slug).into_boxed_str();
 

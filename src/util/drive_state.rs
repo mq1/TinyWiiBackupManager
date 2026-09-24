@@ -3,21 +3,22 @@
 
 use crate::util::fs::get_dir_size;
 use anyhow::bail;
-
+use arrayvec::ArrayString;
 use size::Size;
+use std::fmt::Write;
 use std::path::PathBuf;
 use which_fs::FsKind;
 
 #[derive(Debug, Clone)]
 pub struct DriveInfo {
-    used_size_str: String,
+    used_size_str: ArrayString<10>,
     total_size: u64,
-    total_size_str: String,
-    games_size_str: String,
-    apps_size_str: String,
+    total_size_str: ArrayString<10>,
+    games_size_str: ArrayString<10>,
+    apps_size_str: ArrayString<10>,
     fs_kind: FsKind,
     allocation_granularity: u64,
-    allocation_granularity_str: String,
+    allocation_granularity_str: ArrayString<10>,
 }
 
 #[derive(Debug, Clone)]
@@ -42,9 +43,18 @@ impl DriveState {
             let used_size = total_size.saturating_sub(avail_size);
             let allocation_granularity = stat.allocation_granularity();
 
-            let used_size_str = Size::from_bytes(used_size).to_string();
-            let total_size_str = Size::from_bytes(total_size).to_string();
-            let allocation_granularity_str = Size::from_bytes(allocation_granularity).to_string();
+            let mut used_size_str = ArrayString::new();
+            let _ = write!(&mut used_size_str, "{}", Size::from_bytes(used_size));
+
+            let mut total_size_str = ArrayString::new();
+            let _ = write!(&mut total_size_str, "{}", Size::from_bytes(total_size));
+
+            let mut allocation_granularity_str = ArrayString::new();
+            let _ = write!(
+                &mut allocation_granularity_str,
+                "{}",
+                Size::from_bytes(allocation_granularity)
+            );
 
             let fs_kind = FsKind::try_from_path(&path).unwrap_or(FsKind::Unknown);
 
@@ -53,11 +63,15 @@ impl DriveState {
             let gc_games_dir = path.join("games");
             let gc_games_size = get_dir_size(&gc_games_dir).await;
             let games_size = wii_games_size + gc_games_size;
-            let games_size_str = Size::from_bytes(games_size).to_string();
+
+            let mut games_size_str = ArrayString::new();
+            let _ = write!(&mut games_size_str, "{}", Size::from_bytes(games_size));
 
             let apps_dir = path.join("apps");
             let apps_size = get_dir_size(&apps_dir).await;
-            let apps_size_str = Size::from_bytes(apps_size).to_string();
+
+            let mut apps_size_str = ArrayString::new();
+            let _ = write!(&mut apps_size_str, "{}", Size::from_bytes(apps_size));
 
             Ok(DriveInfo {
                 used_size_str,
