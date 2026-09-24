@@ -3,20 +3,20 @@
 
 use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 use anyhow::Result;
-
+use arrayvec::ArrayString;
 use iced::{
     advanced::image::{Allocation, allocate},
     widget::image::{self, Handle},
 };
 use serde::Deserialize;
 use size::Size;
-use std::path::Path;
+use std::{fmt::Write, path::Path};
 use tap::Pipe;
 use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppAsset {
-    url: String,
+    url: Box<str>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,16 +27,16 @@ pub struct OscAppAssets {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppDescription {
-    short: String,
-    long: String,
+    short: Box<str>,
+    long: Box<str>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppMeta {
-    slug: String,
-    name: String,
-    author: String,
-    version: String,
+    slug: Box<str>,
+    name: Box<str>,
+    author: Box<str>,
+    version: Box<str>,
     assets: OscAppAssets,
     uncompressed_size: u64,
     release_date: i64,
@@ -47,10 +47,10 @@ pub struct OscAppMeta {
 pub struct OscApp {
     meta: OscAppMeta,
     icon: Option<Allocation>,
-    uncompressed_size_str: String,
-    search_term_lowercase: String,
-    release_date_str: String,
-    osc_url: String,
+    uncompressed_size_str: Box<str>,
+    search_term_lowercase: Box<str>,
+    release_date_str: ArrayString<10>,
+    osc_url: Box<str>,
 }
 
 impl<'de> serde::Deserialize<'de> for OscApp {
@@ -60,16 +60,35 @@ impl<'de> serde::Deserialize<'de> for OscApp {
     {
         let meta = OscAppMeta::deserialize(deserializer)?;
 
-        let uncompressed_size_str = Size::from_bytes(meta.uncompressed_size).to_string();
-        let search_term_lowercase = format!("{}\0{}", meta.name, meta.slug).to_lowercase();
+        let uncompressed_size_str = Size::from_bytes(meta.uncompressed_size)
+            .to_string()
+            .into_boxed_str();
+
+        let search_term_lowercase = format!("{}\0{}", meta.name, meta.slug)
+            .to_lowercase()
+            .into_boxed_str();
 
         let release_date_str = meta
             .release_date
             .pipe(OffsetDateTime::from_unix_timestamp)
-            .map(|dt| format!("{}-{:02}-{:02}", dt.year(), u8::from(dt.month()), dt.day()))
+            .ok()
+            .and_then(|dt| {
+                let mut buf = ArrayString::new();
+
+                write!(
+                    &mut buf,
+                    "{:04}-{:02}-{:02}",
+                    dt.year(),
+                    u8::from(dt.month()),
+                    dt.day()
+                )
+                .ok()?;
+
+                Some(buf)
+            })
             .unwrap_or_default();
 
-        let osc_url = format!("https://oscwii.org/library/app/{}", meta.slug);
+        let osc_url = format!("https://oscwii.org/library/app/{}", meta.slug).into_boxed_str();
 
         Ok(OscApp {
             meta,
@@ -86,7 +105,7 @@ impl OscApp {
     pub async fn download_icon(&self, data_dir: &Path) -> Result<()> {
         let icon_path = data_dir
             .join("osc-icons")
-            .join(&self.meta.slug)
+            .join(&*self.meta.slug)
             .with_added_extension("png");
 
         download_file(&self.meta.assets.icon.url, &icon_path).await
@@ -95,7 +114,7 @@ impl OscApp {
     pub fn load_icon_blocking(&mut self, data_dir: &Path) {
         self.icon = data_dir
             .join("osc-icons")
-            .join(&self.meta.slug)
+            .join(&*self.meta.slug)
             .with_added_extension("png")
             .pipe(std::fs::read)
             .ok()

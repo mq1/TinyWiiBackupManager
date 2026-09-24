@@ -35,11 +35,11 @@ pub struct HomebrewApp {
     path: PathBuf,
     meta: HomebrewAppMeta,
     size: u64,
-    size_str: String,
+    size_str: Box<str>,
     icon: Option<Allocation>,
     osc_url: OsString,
     osc_app: Option<OscApp>,
-    search_term_lowercase: String,
+    search_term_lowercase: Box<str>,
 }
 
 impl HomebrewApp {
@@ -62,7 +62,7 @@ impl HomebrewApp {
         let meta = HomebrewAppMeta::parse(&path)?;
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_string();
+        let size_str = Size::from_bytes(size).to_string().into_boxed_str();
 
         let icon = path
             .join("icon.png")
@@ -74,7 +74,9 @@ impl HomebrewApp {
 
         let osc_url = make_osc_url(&path);
 
-        let search_term_lowercase = format!("{}\0{}", meta.name(), dir_name).to_lowercase();
+        let search_term_lowercase = format!("{}\0{}", meta.name(), dir_name)
+            .to_lowercase()
+            .into_boxed_str();
 
         Ok(Self {
             path,

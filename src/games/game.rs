@@ -23,10 +23,10 @@ pub struct Game {
     id: GameID,
     title: Cow<'static, str>,
     size: u64,
-    size_str: String,
+    size_str: Box<str>,
     is_wii: bool,
     cover: Option<Allocation>,
-    search_term_lowercase: String,
+    search_term_lowercase: Box<str>,
 }
 
 impl Game {
@@ -57,13 +57,13 @@ impl Game {
         // get the pretty title
         let title = match twbm_idmap::get_title(id) {
             Some(title) => Cow::Borrowed(title),
-            None => Cow::Owned(title_raw.trim().to_string()),
+            None => Cow::Owned(title_raw.trim().into()),
         };
 
         let size = get_dir_size(&path).await;
-        let size_str = Size::from_bytes(size).to_string();
+        let size_str = Size::from_bytes(size).to_string().into_boxed_str();
 
-        let search_term_lowercase = format!("{}\0{}", title, id).to_lowercase();
+        let search_term_lowercase = format!("{}\0{}", title, id).to_lowercase().into_boxed_str();
 
         Ok(Self {
             path,

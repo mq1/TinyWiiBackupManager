@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result};
-
 use std::{fs, path::Path};
 
-fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<String> {
+fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<Box<str>> {
     let start = contents.find(start_pattern)?;
     let slice = &contents[start..];
     let start = slice.find('>')? + 1;
@@ -13,7 +12,7 @@ fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<S
     let end = slice.find(end_pattern)?;
     let value = &slice[..end];
 
-    Some(value.trim().to_string())
+    Some(value.trim().into())
 }
 
 macro_rules! get_property {
@@ -24,13 +23,13 @@ macro_rules! get_property {
     }};
 }
 
-fn parse_release_date(raw: String) -> String {
+fn parse_release_date(raw: Box<str>) -> Box<str> {
     if raw.len() >= 8 {
         let year = &raw[0..4];
         let month = &raw[4..6];
         let day = &raw[6..8];
 
-        format!("{year}-{month}-{day}")
+        format!("{year}-{month}-{day}").into_boxed_str()
     } else {
         raw
     }
@@ -38,12 +37,12 @@ fn parse_release_date(raw: String) -> String {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewAppMeta {
-    name: String,
-    version: String,
-    release_date: String,
-    coder: String,
-    short_description: String,
-    long_description: String,
+    name: Box<str>,
+    version: Box<str>,
+    release_date: Box<str>,
+    coder: Box<str>,
+    short_description: Box<str>,
+    long_description: Box<str>,
 }
 
 impl HomebrewAppMeta {

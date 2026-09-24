@@ -33,7 +33,6 @@ dependencies = [
  "sys-locale",
  "tap",
  "tempfile",
- "thiserror 2.0.20",
  "time",
  "twbm-idmap",
  "wgpu",

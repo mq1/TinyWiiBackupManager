@@ -32,7 +32,6 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 lucide-icons = { version = "1", features = ["iced"] }
 rfd = "0.17"
 smol = "2"
-thiserror = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 directories = "6"
