@@ -6,7 +6,9 @@ use std::{fs, path::Path};
 
 fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<Box<str>> {
     let start = contents.find(start_pattern)?;
-    let slice = &contents[start + start_pattern.len() + 1..];
+    let slice = &contents[start..];
+    let start = slice.find('>')? + 1;
+    let slice = &slice[start..];
     let end = slice.find(end_pattern)?;
     let value = &slice[..end];
 
