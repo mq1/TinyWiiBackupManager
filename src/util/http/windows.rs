@@ -28,7 +28,7 @@ pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
     match req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)? {
         HttpInfo::Number(status) if status >= 400 => bail!("HTTP error: {status}"),
         HttpInfo::Number(_) => {}
-        _ => bail!("HTTP error: {status}"),
+        _ => bail!("Failed to parse HTTP status code"),
     };
 
     let mut buf = [0u8; 64 * 1024];
@@ -83,7 +83,7 @@ pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write)
     match req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)? {
         HttpInfo::Number(status) if status >= 400 => bail!("HTTP error: {status}"),
         HttpInfo::Number(_) => {}
-        _ => bail!("HTTP error: {status}"),
+        _ => bail!("Failed to parse HTTP status code"),
     };
 
     let mut buf = [0u8; 64 * 1024];
