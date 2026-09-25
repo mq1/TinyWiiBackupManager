@@ -21,6 +21,7 @@ pub mod export;
 pub mod game;
 pub mod games_state;
 pub mod import;
+pub mod txtcodes;
 
 async fn get_id(path: &Path) -> Result<GameID> {
     let is_zip = path

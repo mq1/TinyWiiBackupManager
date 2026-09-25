@@ -41,7 +41,7 @@ fs4 = { version = "1", default-features = false }
 which-fs = "0.2"
 open = "5"
 wii-disc-info = { version = "0.10", features = ["async"] }
-twbm-idmap = { version = "0.5", features = ["ascii-titles"] }
+twbm-idmap = { version = "0.5", features = ["ascii-titles", "gamehacking"] }
 itertools = "0.15"
 split-write = "0.2"
 tempfile = "3"

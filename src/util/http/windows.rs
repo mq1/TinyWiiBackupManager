@@ -3,16 +3,20 @@
 
 use crate::util::http::USER_AGENT;
 use anyhow::{Result, bail};
-use winsafe::{HINTERNET, co};
+use winsafe::{HINTERNET, SysResult, co, guard::InternetCloseHandleGuard};
 
-pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
-    let inet = HINTERNET::InternetOpen(
+fn inet() -> SysResult<InternetCloseHandleGuard<HINTERNET>> {
+    HINTERNET::InternetOpen(
         USER_AGENT,
         co::INTERNET_OPEN_TYPE::PRECONFIG,
-        None, // proxy name (unused with PRECONFIG)
-        None, // proxy bypass
+        None,
+        None,
         co::INTERNET_FLAG::NoValue,
-    )?;
+    )
+}
+
+pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
+    let inet = inet()?;
 
     let req = inet.InternetOpenUrl(
         url,
@@ -24,7 +28,63 @@ pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
     let status = req
         .HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)?
         .unwrap_number();
-    if status != 200 {
+    if status >= 400 {
+        bail!("HTTP error: {status}");
+    }
+
+    let mut buf = [0u8; 64 * 1024];
+    loop {
+        let read = req.InternetReadFile(&mut buf)? as usize;
+        if read == 0 {
+            break; // EOF
+        }
+        dest.write_all(&buf[..read])?;
+    }
+
+    Ok(())
+}
+
+pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write) -> Result<()> {
+    let inet = inet()?;
+
+    let Some(rest) = url.strip_prefix("https://") else {
+        bail!("invalid URL: {url}");
+    };
+
+    let (host, path) = match rest.find('/') {
+        Some(idx) => (&rest[..idx], &rest[idx..]),
+        None => (rest, "/"),
+    };
+
+    let conn = inet.InternetConnect(
+        host,
+        443,
+        None, // user_name
+        None, // password
+        co::INTERNET_SERVICE::HTTP,
+        co::INTERNET_FLAG::NoValue,
+        None, // context
+    )?;
+
+    let req = conn.HttpOpenRequest(
+        "POST",
+        path,
+        None, // version (defaults to HTTP/1.1)
+        None, // referer
+        None, // accept_types
+        co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD,
+        None, // context
+    )?;
+
+    req.HttpSendRequest(
+        Some("Content-Type: application/x-www-form-urlencoded"), // headers
+        Some(body),                                              // optional_data (body)
+    )?;
+
+    let status = req
+        .HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)?
+        .unwrap_number();
+    if status >= 400 {
         bail!("HTTP error: {status}");
     }
 

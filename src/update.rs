@@ -4,7 +4,7 @@
 use crate::{
     games::{
         calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game,
-        games_state::GamesState,
+        games_state::GamesState, txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     messages::Message,
@@ -379,6 +379,25 @@ impl AppState {
 
                 self.notifications.push(notification);
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
+            }
+            Message::DownloadTxtCodes(game) => {
+                let game_title = game.title().to_string();
+                let config = self.config.clone();
+
+                self.notifications.push(Notification::info(format!(
+                    "Downloading cheats for {game_title}",
+                )));
+
+                Task::perform(
+                    async move { download_cheats(game.id(), &config).await },
+                    move |res| match res {
+                        Ok(()) => {
+                            Notification::success(format!("Downloaded cheats for {game_title}"))
+                        }
+                        Err(err) => Notification::error(err.to_string()),
+                    },
+                )
+                .map(Message::Notify)
             }
         }
     }

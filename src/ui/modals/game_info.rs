@@ -84,6 +84,15 @@ pub fn game_info<'a>(
                 space::horizontal(),
                 tooltip(
                     my_button()
+                        .label("Get cheats")
+                        .icon(Icon::Skull)
+                        .kind(MyButtonKind::Secondary)
+                        .on_press_with(|| Message::DownloadTxtCodes(game.clone())),
+                    my_card("Download txtcodes (source configurable in settings)"),
+                    tooltip::Position::Bottom
+                ),
+                tooltip(
+                    my_button()
                         .label("SHA1")
                         .icon(Icon::SearchCheck)
                         .kind(MyButtonKind::Secondary)

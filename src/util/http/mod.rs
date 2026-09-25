@@ -28,6 +28,8 @@ mod unix;
 #[cfg(unix)]
 use unix::download;
 
+use crate::util::http::unix::post_then_download;
+
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 /// Downloads a file, creating the parent directory if needed
@@ -147,4 +149,40 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()
     wiiload::send_async(&mut conn, filename, &mut file, size).await?;
 
     Ok(())
+}
+
+pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Result<()> {
+    let dest_filename = dest
+        .file_name()
+        .and_then(OsStr::to_str)
+        .context("invalid filename")?;
+
+    if fs::symlink_metadata(&dest).await.is_ok() {
+        println!("INFO: {} already exists, skipping", dest.display());
+        return Ok(());
+    }
+
+    let dest_parent = dest.parent().context("invalid path")?;
+    fs::create_dir_all(dest_parent).await?;
+
+    smol::unblock({
+        let uri = uri.to_string();
+        let dest = dest.to_path_buf();
+        let dest_filename = dest_filename.to_string();
+        let dest_parent = dest_parent.to_path_buf();
+
+        move || {
+            let mut out = tempfile::Builder::new()
+                .prefix(&dest_filename)
+                .suffix(".part")
+                .rand_bytes(0)
+                .tempfile_in(dest_parent)?;
+
+            post_then_download(&uri, data.as_bytes(), &mut out)?;
+            out.persist(&dest)?;
+
+            Ok(())
+        }
+    })
+    .await
 }
