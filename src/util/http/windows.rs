@@ -62,16 +62,16 @@ pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write)
         None, // user_name
         None, // password
         co::INTERNET_SERVICE::HTTP,
-        co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD,
+        co::INTERNET_FLAG::NoValue,
         None, // context
     )?;
 
     let req = conn.HttpOpenRequest(
         Some("POST"),
         path,
-        None, // version (defaults to HTTP/1.1)
-        None, // referrer
-        None, // accept_types
+        None,           // version (defaults to HTTP/1.1)
+        None,           // referrer
+        &[] as &[&str], // accept_types
         co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD,
         None, // context
     )?;
