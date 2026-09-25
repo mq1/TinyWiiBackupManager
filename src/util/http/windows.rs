@@ -3,7 +3,7 @@
 
 use crate::util::http::USER_AGENT;
 use anyhow::{Result, bail};
-use winsafe::{HINTERNET, SysResult, co, guard::InternetCloseHandleGuard};
+use winsafe::{HINTERNET, HttpInfo, SysResult, co, guard::InternetCloseHandleGuard};
 
 fn inet() -> SysResult<InternetCloseHandleGuard<HINTERNET>> {
     HINTERNET::InternetOpen(
@@ -25,12 +25,11 @@ pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
         None,                                                  // context
     )?;
 
-    let status = req
-        .HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)?
-        .unwrap_number();
-    if status >= 400 {
-        bail!("HTTP error: {status}");
-    }
+    match req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)? {
+        HttpInfo::Number(status) if status >= 400 => bail!("HTTP error: {status}"),
+        HttpInfo::Number(_) => {}
+        _ => bail!("HTTP error: {status}"),
+    };
 
     let mut buf = [0u8; 64 * 1024];
     loop {
@@ -81,12 +80,11 @@ pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write)
         body,
     )?;
 
-    let status = req
-        .HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)?
-        .unwrap_number();
-    if status >= 400 {
-        bail!("HTTP error: {status}");
-    }
+    match req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)? {
+        HttpInfo::Number(status) if status >= 400 => bail!("HTTP error: {status}"),
+        HttpInfo::Number(_) => {}
+        _ => bail!("HTTP error: {status}"),
+    };
 
     let mut buf = [0u8; 64 * 1024];
     loop {
