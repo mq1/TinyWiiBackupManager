@@ -58,19 +58,19 @@ pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write)
 
     let conn = inet.InternetConnect(
         host,
-        443,
+        co::INTERNET_DEFAULT_PORT::HTTPS,
         None, // user_name
         None, // password
         co::INTERNET_SERVICE::HTTP,
-        co::INTERNET_FLAG::NoValue,
+        co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD,
         None, // context
     )?;
 
     let req = conn.HttpOpenRequest(
-        "POST",
+        Some("POST"),
         path,
         None, // version (defaults to HTTP/1.1)
-        None, // referer
+        None, // referrer
         None, // accept_types
         co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD,
         None, // context
@@ -78,7 +78,7 @@ pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write)
 
     req.HttpSendRequest(
         Some("Content-Type: application/x-www-form-urlencoded"), // headers
-        Some(body),                                              // optional_data (body)
+        body,
     )?;
 
     let status = req

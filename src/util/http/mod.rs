@@ -20,15 +20,13 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 mod windows;
 
 #[cfg(windows)]
-use windows::download;
+use windows::{download, post_then_download};
 
 #[cfg(unix)]
 mod unix;
 
 #[cfg(unix)]
-use unix::download;
-
-use crate::util::http::unix::post_then_download;
+use unix::{download, post_then_download};
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
