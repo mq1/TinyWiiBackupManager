@@ -16,7 +16,7 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Download cheats for all games",
             run_fn: |ctx| {
                 Box::pin(async move {
-                    let mut failed = Vec::new();
+                    let mut failed = Vec::with_capacity(ctx.game_ids.len());
 
                     for game_id in ctx.game_ids {
                         if download_cheats(game_id, &ctx.config).await.is_err() {
@@ -32,10 +32,10 @@ pub const ALL: &[ToolboxGroup] = {
                         let mut buf = String::with_capacity(BASE.len() + failed.len() * 8);
                         buf.push_str(BASE);
 
-                        while let Some(game_id) = failed.pop() {
-                            write!(&mut buf, "{game_id}").unwrap();
+                        for (i, game_id) in failed.iter().enumerate() {
+                            buf.push_str(game_id.as_str());
 
-                            if !failed.is_empty() {
+                            if i < failed.len() - 1 {
                                 buf.push_str(", ");
                             }
                         }
