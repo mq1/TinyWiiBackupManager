@@ -12,7 +12,7 @@ mod game_backup_loaders;
 mod os_specific;
 mod txtcodes;
 
-type RunFn = Pin<Box<dyn Future<Output = Result<String>> + Send>>;
+type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 #[derive(Debug, Clone)]
 pub struct ToolContext {
@@ -23,7 +23,7 @@ pub struct ToolContext {
 #[derive(Debug)]
 pub struct ToolboxItem {
     label: &'static str,
-    run_fn: fn(ToolContext) -> RunFn,
+    run_fn: fn(ToolContext) -> BoxFuture<'static, Result<String>>,
 }
 
 impl ToolboxItem {
