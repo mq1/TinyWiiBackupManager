@@ -19,9 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⚡️ All IO operations are now executed on a thread pool, UI should be more responsive \
   may improve on <https://github.com/mq1/TinyWiiBackupManager/issues/468>
 - 🐧 Linux appimages now require at least glibc 2.35 (previously was 2.31)
-- 🪶 Windows, macOS and Linux/Flatpak builds now use the OS http client instead of bundling one. \
-  Windows builds use WinINet APIs, while macOS and Linux/Flatpak builds use the system Curl. \
-  Linux/AppImage builds use a bundled Curl build.
 
 ### Removed
 
