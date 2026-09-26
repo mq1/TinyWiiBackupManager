@@ -5,6 +5,7 @@ use crate::{
     games::txtcodes::download_cheats,
     toolbox::{ToolboxGroup, ToolboxItem},
 };
+use itertools::Itertools;
 use lucide_icons::Icon;
 
 pub const ALL: &[ToolboxGroup] = {
@@ -26,20 +27,10 @@ pub const ALL: &[ToolboxGroup] = {
                     let msg = if failed.is_empty() {
                         "Downloaded cheats for all games".to_string()
                     } else {
-                        const BASE: &str = "Downloaded cheats for all games except for: ";
-
-                        let mut buf = String::with_capacity(BASE.len() + failed.len() * 8);
-                        buf.push_str(BASE);
-
-                        for (i, game_id) in failed.iter().enumerate() {
-                            buf.push_str(game_id.as_str());
-
-                            if i < failed.len() - 1 {
-                                buf.push_str(", ");
-                            }
-                        }
-
-                        buf
+                        format!(
+                            "Downloaded cheats for all games except for: {}",
+                            failed.iter().map(|id| id.as_str()).format(", ")
+                        )
                     };
 
                     Ok(msg)
