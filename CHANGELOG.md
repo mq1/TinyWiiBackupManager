@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛 Converting very small games to usb flash drive makes them very large on usb (<https://github.com/mq1/TinyWiiBackupManager/issues/664>)
 - 🐛 macOS version crashes when i try to open it (<https://github.com/mq1/TinyWiiBackupManager/issues/646>)
 - 🐛 Visual Corruiption With Large Library (<https://github.com/mq1/TinyWiiBackupManager/issues/670>)
+- 🐛 transparent titlebar on macos 27 (<https://github.com/mq1/TinyWiiBackupManager/issues/676>)
 
 ## [v6.0.7] - 2026-06-05
 
