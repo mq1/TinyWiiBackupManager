@@ -6,7 +6,6 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use lucide_icons::Icon;
-use std::fmt::Write;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
