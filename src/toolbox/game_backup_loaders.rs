@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::covers::{download_all_covers_for_usbloadergx, download_all_covers_for_wiiflow},
+    games::{
+        banners::download_all_banners,
+        covers::{download_all_covers_for_usbloadergx, download_all_covers_for_wiiflow},
+    },
     toolbox::{ToolboxGroup, ToolboxItem},
     util::http::download_and_extract_zip,
 };
-use anyhow::bail;
+use anyhow::anyhow;
 use itertools::Itertools;
 use lucide_icons::Icon;
 
@@ -20,10 +23,25 @@ pub const ALL: &[ToolboxGroup] = {
                 run_fn: |ctx| {
                     Box::pin(async move {
                         match download_all_covers_for_usbloadergx(ctx.game_ids, &ctx.config).await {
-                            errored if !errored.is_empty() => {
-                                bail!("Could not download covers: {}", errored.iter().format(", "))
-                            }
+                            errored if !errored.is_empty() => Err(anyhow!(
+                                "Covers downloaded successfully, except: {}",
+                                errored.iter().format(", ")
+                            )),
                             _ => Ok("Covers successfully downloaded".to_string()),
+                        }
+                    })
+                },
+            },
+            ToolboxItem {
+                label: "Download banners for USB Loader GX (GameCube)",
+                run_fn: |ctx| {
+                    Box::pin(async move {
+                        match download_all_banners(ctx.game_ids, &ctx.config.mount_point).await {
+                            errored if !errored.is_empty() => Err(anyhow!(
+                                "Banners downloaded successfully, except: {}",
+                                errored.iter().format(", ")
+                            )),
+                            _ => Ok("Banners successfully downloaded".to_string()),
                         }
                     })
                 },
@@ -47,9 +65,10 @@ pub const ALL: &[ToolboxGroup] = {
                 run_fn: |ctx| {
                     Box::pin(async move {
                         match download_all_covers_for_wiiflow(ctx.game_ids, &ctx.config).await {
-                            errored if !errored.is_empty() => {
-                                bail!("Could not download covers: {}", errored.iter().format(", "))
-                            }
+                            errored if !errored.is_empty() => Err(anyhow!(
+                                "Covers downloaded successfully, except: {}",
+                                errored.iter().format(", ")
+                            )),
                             _ => Ok("Covers successfully downloaded".to_string()),
                         }
                     })

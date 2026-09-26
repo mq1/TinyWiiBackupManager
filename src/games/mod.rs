@@ -13,6 +13,7 @@ use std::{
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
 
+pub mod banners;
 pub mod calc_sha1;
 pub mod conversion_state;
 pub mod covers;

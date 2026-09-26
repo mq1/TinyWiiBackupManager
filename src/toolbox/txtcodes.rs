@@ -7,7 +7,6 @@ use crate::{
 };
 use itertools::Itertools;
 use lucide_icons::Icon;
-use wii_disc_info::game_id::GameID;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
