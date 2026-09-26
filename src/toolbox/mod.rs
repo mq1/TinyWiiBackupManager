@@ -3,7 +3,6 @@
 
 use crate::config::Config;
 use anyhow::Result;
-
 use lucide_icons::Icon;
 use std::pin::Pin;
 use wii_disc_info::game_id::GameID;
@@ -11,6 +10,7 @@ use wii_disc_info::game_id::GameID;
 mod cleanup;
 mod game_backup_loaders;
 mod os_specific;
+mod txtcodes;
 
 type RunFn = Pin<Box<dyn Future<Output = Result<String>> + Send>>;
 
@@ -57,7 +57,12 @@ impl ToolboxGroup {
 }
 
 pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
-    [game_backup_loaders::ALL, cleanup::ALL, os_specific::ALL]
-        .into_iter()
-        .flatten()
+    [
+        game_backup_loaders::ALL,
+        txtcodes::ALL,
+        cleanup::ALL,
+        os_specific::ALL,
+    ]
+    .into_iter()
+    .flatten()
 }

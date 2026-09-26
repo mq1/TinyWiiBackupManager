@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- ✅ re-added Redump hash verification (redump sha1 hashes are now embedded into the executable)
+- ✅ Re-added Redump hash verification (redump sha1 hashes are now embedded into the executable)
 - 📝 Log the conversation to see where a problem occurred (<https://github.com/mq1/tinywiibackupmanager/issues/671>)
 - 🔗 Hovering links now show the url
 - 🍎 TWBM should now work again on macOS 10.12 and 10.13 (needs testing)
+- ☠️ Re-added bulk cheat downloading
 
 ### Changed
 
