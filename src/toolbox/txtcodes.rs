@@ -14,7 +14,7 @@ pub const ALL: &[ToolboxGroup] = {
         label: "Cheats",
         icon: Icon::Skull,
         items: &[ToolboxItem {
-            label: "Download cheats for all games",
+            label: "Download cheats for all games (source configurable in settings)",
             run_fn: |ctx| {
                 Box::pin(async move {
                     let mut failed = Vec::with_capacity(ctx.game_ids.len());
