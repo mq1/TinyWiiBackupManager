@@ -399,6 +399,23 @@ impl AppState {
                 )
                 .map(Message::Notify)
             }
+            Message::SendOscAppViaWiiload(app) => {
+                let app_name = app.name().to_string();
+                let wii_ip = self.config.wii_ip.clone();
+
+                self.notifications.push(Notification::info(format!(
+                    "Sending {app_name} via wiiload"
+                )));
+
+                Task::perform(
+                    async move { app.wiiload(&wii_ip).await },
+                    move |res| match res {
+                        Ok(()) => Notification::success(format!("Sent {app_name} via wiiload")),
+                        Err(err) => Notification::error(err.to_string()),
+                    },
+                )
+                .map(Message::Notify)
+            }
         }
     }
 }

@@ -65,6 +65,7 @@ pub enum Message {
     RunTool(&'static ToolboxItem),
     PickFileToSendViaWiiload,
     SendViaWiiload(PathBuf),
+    SendOscAppViaWiiload(OscApp),
     RefreshOscContents,
     GotOscContents(OscState),
     SearchOscApps(String),

@@ -44,6 +44,13 @@ pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
                         .on_press_with(|| Message::InstallOscApp(app.clone())),
                     my_card("Install"),
                     tooltip::Position::Bottom
+                ),
+                tooltip(
+                    my_button()
+                        .icon(Icon::MonitorUp)
+                        .on_press_with(|| Message::SendOscAppViaWiiload(app.clone())),
+                    my_card("Send via Wiiload"),
+                    tooltip::Position::Bottom
                 )
             ]
             .spacing(5)
