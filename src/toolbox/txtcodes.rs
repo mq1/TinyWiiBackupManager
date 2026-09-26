@@ -7,6 +7,7 @@ use crate::{
 };
 use itertools::Itertools;
 use lucide_icons::Icon;
+use wii_disc_info::game_id::GameID;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
@@ -29,7 +30,7 @@ pub const ALL: &[ToolboxGroup] = {
                     } else {
                         format!(
                             "Downloaded cheats for all games except for: {}",
-                            failed.iter().map(|id| id.as_str()).format(", ")
+                            failed.iter().map(GameID::as_str).format(", ")
                         )
                     };
 
