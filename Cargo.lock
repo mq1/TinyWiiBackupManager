@@ -3859,9 +3859,9 @@ dependencies = [
 
 [[package]]
 name = "twbm-idmap"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4894f67736c475f9123c16771f96840778f529506b8791640e5171ca7b8ef2c4"
+checksum = "6e179217e22cf815f7c6ffb824c099c145d987ce615587bf42f6c22c3e4ebf46"
 
 [[package]]
 name = "typed-path"
