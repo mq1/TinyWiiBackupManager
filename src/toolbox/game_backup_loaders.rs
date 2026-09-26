@@ -4,9 +4,10 @@
 use crate::{
     games::covers::{download_all_covers_for_usbloadergx, download_all_covers_for_wiiflow},
     toolbox::{ToolboxGroup, ToolboxItem},
+    util::http::download_and_extract_zip,
 };
 use anyhow::bail;
-
+use itertools::Itertools;
 use lucide_icons::Icon;
 
 pub const ALL: &[ToolboxGroup] = {
@@ -20,10 +21,24 @@ pub const ALL: &[ToolboxGroup] = {
                     Box::pin(async move {
                         match download_all_covers_for_usbloadergx(ctx.game_ids, &ctx.config).await {
                             errored if !errored.is_empty() => {
-                                bail!("Could not download covers: {errored:?}")
+                                bail!("Could not download covers: {}", errored.iter().format(", "))
                             }
                             _ => Ok("Covers successfully downloaded".to_string()),
                         }
+                    })
+                },
+            },
+            ToolboxItem {
+                label: "Download wiitdb.xml for USB Loader GX",
+                run_fn: |ctx| {
+                    Box::pin(async move {
+                        download_and_extract_zip(
+                            "https://www.gametdb.com/wiitdb.zip",
+                            &ctx.config.mount_point.join("apps").join("usbloader_gx"),
+                        )
+                        .await?;
+
+                        Ok("wiitdb.xml successfully downloaded".to_string())
                     })
                 },
             },
@@ -33,7 +48,7 @@ pub const ALL: &[ToolboxGroup] = {
                     Box::pin(async move {
                         match download_all_covers_for_wiiflow(ctx.game_ids, &ctx.config).await {
                             errored if !errored.is_empty() => {
-                                bail!("Could not download covers: {errored:?}")
+                                bail!("Could not download covers: {}", errored.iter().format(", "))
                             }
                             _ => Ok("Covers successfully downloaded".to_string()),
                         }

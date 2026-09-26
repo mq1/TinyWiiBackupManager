@@ -30,7 +30,7 @@ pub const ALL: &[ToolboxGroup] = {
                     } else {
                         format!(
                             "Downloaded cheats for all games except for: {}",
-                            failed.iter().map(GameID::as_str).format(", ")
+                            failed.iter().format(", ")
                         )
                     };
 

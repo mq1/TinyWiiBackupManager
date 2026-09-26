@@ -73,10 +73,6 @@ pub async fn download_file_with_fallback(uri: &str, dest: &Path, fallback: &str)
 }
 
 pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
-    if !fs::metadata(dest).await.is_ok_and(|m| m.is_dir()) {
-        bail!("{} is not a directory", dest.display());
-    }
-
     smol::unblock({
         let uri = uri.to_string();
         let dest = dest.to_path_buf();
@@ -95,6 +91,7 @@ pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
 
             tmp.rewind()?;
             let mut archive = ZipArchive::new(&mut tmp)?;
+            std::fs::create_dir_all(&dest)?;
             archive.extract(dest)?;
 
             Ok(())
