@@ -89,6 +89,7 @@ pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
             let mut tmp = tempfile()?;
             download(&uri, &mut tmp)?;
 
+            tmp.rewind()?;
             let mut archive = ZipArchive::new(&mut tmp)?;
             archive.extract(dest)?;
 

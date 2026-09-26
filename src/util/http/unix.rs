@@ -9,6 +9,7 @@ pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
     let mut easy = Easy::new();
     easy.useragent(USER_AGENT)?;
     easy.fail_on_error(true)?;
+    easy.follow_location(true)?;
     easy.url(url)?;
 
     let mut transfer = easy.transfer();
@@ -25,6 +26,7 @@ pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write)
     let mut easy = Easy::new();
     easy.useragent(USER_AGENT)?;
     easy.fail_on_error(true)?;
+    easy.follow_location(true)?;
     easy.url(url)?;
     easy.post(true)?;
     easy.post_fields_copy(body)?;

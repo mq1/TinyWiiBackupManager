@@ -3,37 +3,37 @@
 
 use crate::util::http::USER_AGENT;
 use anyhow::{Result, bail};
-use winsafe::{HINTERNET, HttpInfo, SysResult, co, guard::InternetCloseHandleGuard};
+use winhttp::{Session, SessionConfig, WinResult, crack_url};
 
-fn inet() -> SysResult<InternetCloseHandleGuard<HINTERNET>> {
-    HINTERNET::InternetOpen(
-        USER_AGENT,
-        co::INTERNET_OPEN_TYPE::PRECONFIG,
-        None,
-        None,
-        co::INTERNET_FLAG::NoValue,
-    )
+fn session() -> WinResult<Session> {
+    Session::with_config(SessionConfig {
+        user_agent: USER_AGENT.to_string(),
+        ..Default::default()
+    })
 }
 
 pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
-    let inet = inet()?;
+    let url_components = crack_url(url)?;
 
-    let req = inet.InternetOpenUrl(
-        url,
-        None,                                                  // extra request headers
-        co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD, // RELOAD = skip cache
-        None,                                                  // context
-    )?;
+    let session = session()?;
+    let connection = session.connect(&url_components.host, url_components.port)?;
 
-    match req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)? {
-        HttpInfo::Number(status) if status >= 400 => bail!("HTTP error: {status}"),
-        HttpInfo::Number(_) => {}
-        _ => bail!("Failed to parse HTTP status code"),
-    };
+    let request = connection
+        .request("GET", &url_components.path)
+        .secure()
+        .build()?;
+
+    request.send()?;
+    request.receive_response()?;
+
+    let status = request.status_code()?;
+    if status >= 400 {
+        bail!("HTTP error: {status}");
+    }
 
     let mut buf = [0u8; 64 * 1024];
     loop {
-        let read = req.InternetReadFile(&mut buf)? as usize;
+        let read = request.read_data(&mut buf)?;
         if read == 0 {
             break; // EOF
         }
@@ -44,51 +44,28 @@ pub fn download(url: &str, mut dest: impl std::io::Write) -> Result<()> {
 }
 
 pub fn post_then_download(url: &str, body: &[u8], mut dest: impl std::io::Write) -> Result<()> {
-    let inet = inet()?;
+    let url_components = crack_url(url)?;
 
-    let Some(rest) = url.strip_prefix("https://") else {
-        bail!("invalid URL: {url}");
-    };
+    let session = session()?;
+    let connection = session.connect(&url_components.host, url_components.port)?;
 
-    let (host, path) = match rest.find('/') {
-        Some(idx) => (&rest[..idx], &rest[idx..]),
-        None => (rest, "/"),
-    };
+    let request = connection
+        .request("POST", &url_components.path)
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .secure()
+        .build()?;
 
-    let conn = inet.InternetConnect(
-        host,
-        co::INTERNET_DEFAULT_PORT::HTTPS,
-        None, // user_name
-        None, // password
-        co::INTERNET_SERVICE::HTTP,
-        co::INTERNET_FLAG::NoValue,
-        None, // context
-    )?;
+    request.send_with_body(body)?;
+    request.receive_response()?;
 
-    let req = conn.HttpOpenRequest(
-        Some("POST"),
-        path,
-        None,           // version (defaults to HTTP/1.1)
-        None,           // referrer
-        &[] as &[&str], // accept_types
-        co::INTERNET_FLAG::SECURE | co::INTERNET_FLAG::RELOAD,
-        None, // context
-    )?;
-
-    req.HttpSendRequest(
-        Some("Content-Type: application/x-www-form-urlencoded"), // headers
-        body,
-    )?;
-
-    match req.HttpQueryInfo(co::HTTP_QUERY::STATUS_CODE, co::HTTP_QUERY_FLAG::NUMBER)? {
-        HttpInfo::Number(status) if status >= 400 => bail!("HTTP error: {status}"),
-        HttpInfo::Number(_) => {}
-        _ => bail!("Failed to parse HTTP status code"),
-    };
+    let status = request.status_code()?;
+    if status >= 400 {
+        bail!("HTTP error: {status}");
+    }
 
     let mut buf = [0u8; 64 * 1024];
     loop {
-        let read = req.InternetReadFile(&mut buf)? as usize;
+        let read = request.read_data(&mut buf)?;
         if read == 0 {
             break; // EOF
         }
