@@ -24,7 +24,7 @@ pub const ALL: &[ToolboxGroup] = {
                     Box::pin(async move {
                         match download_all_covers_for_usbloadergx(ctx.game_ids, &ctx.config).await {
                             errored if !errored.is_empty() => Err(anyhow!(
-                                "Covers downloaded successfully, except: {}",
+                                "Finished downloading covers. Failed: {}",
                                 errored.iter().format(", ")
                             )),
                             _ => Ok("Covers successfully downloaded".to_string()),
@@ -38,7 +38,7 @@ pub const ALL: &[ToolboxGroup] = {
                     Box::pin(async move {
                         match download_all_banners(ctx.game_ids, &ctx.config.mount_point).await {
                             errored if !errored.is_empty() => Err(anyhow!(
-                                "Banners downloaded successfully, except: {}",
+                                "Finished downloading banners: Failed: {}",
                                 errored.iter().format(", ")
                             )),
                             _ => Ok("Banners successfully downloaded".to_string()),
@@ -66,7 +66,7 @@ pub const ALL: &[ToolboxGroup] = {
                     Box::pin(async move {
                         match download_all_covers_for_wiiflow(ctx.game_ids, &ctx.config).await {
                             errored if !errored.is_empty() => Err(anyhow!(
-                                "Covers downloaded successfully, except: {}",
+                                "Finished downloading covers. Failed: {}",
                                 errored.iter().format(", ")
                             )),
                             _ => Ok("Covers successfully downloaded".to_string()),
