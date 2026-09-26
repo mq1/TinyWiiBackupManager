@@ -16,18 +16,6 @@ use tempfile::tempfile;
 use wiiload::WIILOAD_PORT;
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
-#[cfg(windows)]
-mod windows;
-
-#[cfg(windows)]
-use windows::{download, post_then_download};
-
-#[cfg(unix)]
-mod unix;
-
-#[cfg(unix)]
-use unix::{download, post_then_download};
-
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 /// Downloads a file, creating the parent directory if needed
@@ -59,7 +47,15 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<()> {
                 .rand_bytes(0)
                 .tempfile_in(dest_parent)?;
 
-            download(&uri, &mut out)?;
+            let mut resp = minreq::get(&uri)
+                .with_header("User-Agent", USER_AGENT)
+                .send_lazy()?;
+            if resp.status_code >= 400 {
+                bail!("error downloading {}: {}", uri, resp.status_code);
+            }
+
+            std::io::copy(&mut resp, &mut out)?;
+
             out.persist(&dest)?;
 
             Ok(())
@@ -87,7 +83,15 @@ pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
 
         move || {
             let mut tmp = tempfile()?;
-            download(&uri, &mut tmp)?;
+
+            let mut resp = minreq::get(&uri)
+                .with_header("User-Agent", USER_AGENT)
+                .send_lazy()?;
+            if resp.status_code >= 400 {
+                bail!("error downloading {}: {}", uri, resp.status_code);
+            }
+
+            std::io::copy(&mut resp, &mut tmp)?;
 
             tmp.rewind()?;
             let mut archive = ZipArchive::new(&mut tmp)?;
@@ -112,7 +116,16 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()
 
         move || {
             let mut og_app = tempfile()?;
-            download(&uri, &mut og_app)?;
+
+            let mut resp = minreq::get(&uri)
+                .with_header("User-Agent", USER_AGENT)
+                .send_lazy()?;
+            if resp.status_code >= 400 {
+                bail!("error downloading {}: {}", uri, resp.status_code);
+            }
+
+            std::io::copy(&mut resp, &mut og_app)?;
+
             og_app.rewind()?;
             let mut og_app = ZipArchive::new(&mut og_app)?;
 
@@ -177,7 +190,16 @@ pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Re
                 .rand_bytes(0)
                 .tempfile_in(dest_parent)?;
 
-            post_then_download(&uri, data.as_bytes(), &mut out)?;
+            let mut resp = minreq::post(&uri)
+                .with_header("User-Agent", USER_AGENT)
+                .with_body(data)
+                .send_lazy()?;
+            if resp.status_code >= 400 {
+                bail!("error downloading {}: {}", uri, resp.status_code);
+            }
+
+            std::io::copy(&mut resp, &mut out)?;
+
             out.persist(&dest)?;
 
             Ok(())

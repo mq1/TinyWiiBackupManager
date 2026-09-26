@@ -143,7 +143,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features native-https
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
