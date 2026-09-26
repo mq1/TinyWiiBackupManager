@@ -1,13 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, messages::Message, ui::components::my_card::my_card};
+use crate::{
+    games::game::Game,
+    messages::Message,
+    ui::components::{my_card::my_card, row_button::row_button},
+};
 use iced::{
     Element, Length, padding,
-    widget::{button, row, rule, space, text, tooltip},
+    widget::{row, rule, space, text, tooltip},
 };
-use lucide_icons::iced::{icon_box, icon_hard_drive_download, icon_info, icon_pointer, icon_trash};
-use tap::Pipe;
+use lucide_icons::{
+    Icon,
+    iced::{icon_box, icon_pointer},
+};
 
 pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![
@@ -24,39 +30,20 @@ pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         space::horizontal(),
         text(game.size_str()),
         rule::vertical(1),
-        tooltip(
-            button(icon_trash().center())
-                .padding(0)
-                .on_press_with(|| Message::AskDeleteDir(game.path().to_path_buf()))
-                .style(button::text)
-                .width(20)
-                .height(20),
-            my_card("Delete game"),
-            tooltip::Position::Top
+        row_button(
+            Icon::Trash,
+            "Delete game",
+            Some(|| Message::AskDeleteDir(game.path().to_path_buf()))
         ),
-        tooltip(
-            button(icon_hard_drive_download().center())
-                .padding(0)
-                .style(button::text)
-                .width(20)
-                .height(20)
-                .pipe(|btn| if is_exporting {
-                    btn
-                } else {
-                    btn.on_press_with(|| Message::PickExportDest(game.clone()))
-                }),
-            my_card("Export game"),
-            tooltip::Position::Top
+        row_button(
+            Icon::HardDriveDownload,
+            "Export game",
+            is_exporting.then_some(|| Message::PickExportDest(game.clone()))
         ),
-        tooltip(
-            button(icon_info().center())
-                .padding(0)
-                .on_press_with(|| Message::OpenGameInfo(game.clone()))
-                .style(button::text)
-                .width(20)
-                .height(20),
-            my_card("Game info"),
-            tooltip::Position::Top
+        row_button(
+            Icon::Info,
+            "Game info",
+            Some(|| Message::OpenGameInfo(game.clone()))
         ),
     ]
     .spacing(5)

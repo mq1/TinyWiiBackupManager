@@ -25,6 +25,7 @@ pub mod osc_apps_titlebar;
 pub mod queued_import_row;
 pub mod refresh_button;
 pub mod refresh_osc_button;
+pub mod row_button;
 pub mod search_bar;
 pub mod sidebar;
 pub mod sort_by;

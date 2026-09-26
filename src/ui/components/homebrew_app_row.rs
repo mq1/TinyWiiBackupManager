@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    homebrew::homebrew_app::HomebrewApp, messages::Message, ui::components::my_card::my_card,
+    homebrew::homebrew_app::HomebrewApp,
+    messages::Message,
+    ui::components::{my_card::my_card, row_button::row_button},
 };
 use iced::{
     Element, Length, padding,
-    widget::{button, row, rule, space, text, tooltip},
+    widget::{row, rule, space, text, tooltip},
 };
-use lucide_icons::iced::{
-    icon_check, icon_cloud_download, icon_info, icon_message_circle_warning, icon_tag, icon_trash,
+use lucide_icons::{
+    Icon,
+    iced::{icon_check, icon_message_circle_warning, icon_tag},
 };
 
 pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
@@ -33,15 +36,10 @@ pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
         .as_ref()
         .filter(|osc_app| osc_app.version() != app.version())
         .map(|osc_app| {
-            tooltip(
-                button(icon_cloud_download().center())
-                    .padding(0)
-                    .on_press_with(|| Message::InstallOscApp(osc_app.clone()))
-                    .style(button::text)
-                    .width(20)
-                    .height(20),
-                my_card("Update (from oscwii.org)"),
-                tooltip::Position::Top,
+            row_button(
+                Icon::CloudDownload,
+                "Update (from oscwii.org)",
+                Some(|| Message::InstallOscApp(osc_app.clone())),
             )
         });
 
@@ -51,26 +49,16 @@ pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
         space::horizontal(),
         text(app.size_str()),
         rule::vertical(1),
-        tooltip(
-            button(icon_trash().center())
-                .padding(0)
-                .on_press_with(|| Message::AskDeleteDir(app.path().to_path_buf()))
-                .style(button::text)
-                .width(20)
-                .height(20),
-            my_card("Delete app"),
-            tooltip::Position::Top
+        row_button(
+            Icon::Trash,
+            "Delete app",
+            Some(|| Message::AskDeleteDir(app.path().to_path_buf()))
         ),
         update_button,
-        tooltip(
-            button(icon_info().center())
-                .padding(0)
-                .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone()))
-                .style(button::text)
-                .width(20)
-                .height(20),
-            my_card("App info"),
-            tooltip::Position::Top
+        row_button(
+            Icon::Info,
+            "App info",
+            Some(|| Message::OpenHomebrewAppInfo(app.clone()))
         ),
     ]
     .spacing(5)

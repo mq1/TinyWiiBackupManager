@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, osc::osc_app::OscApp, ui::components::my_card::my_card};
+use crate::{messages::Message, osc::osc_app::OscApp, ui::components::row_button::row_button};
 use iced::{
     Element, Length, padding,
-    widget::{button, row, rule, space, text, tooltip},
+    widget::{row, rule, space, text},
 };
-use lucide_icons::iced::{icon_cloud_download, icon_info, icon_monitor_up};
+use lucide_icons::Icon;
 
 pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
     row![
@@ -14,35 +14,20 @@ pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
         space::horizontal(),
         text(app.size_str()),
         rule::vertical(1),
-        tooltip(
-            button(icon_cloud_download().center())
-                .padding(0)
-                .on_press_with(|| Message::InstallOscApp(app.clone()))
-                .style(button::text)
-                .width(20)
-                .height(20),
-            my_card("Install"),
-            tooltip::Position::Top
+        row_button(
+            Icon::CloudDownload,
+            "Install",
+            Some(|| Message::InstallOscApp(app.clone()))
         ),
-        tooltip(
-            button(icon_info().center())
-                .padding(0)
-                .style(button::text)
-                .width(20)
-                .height(20)
-                .on_press(Message::OpenOscAppInfo(app.clone())),
-            my_card("App info"),
-            tooltip::Position::Top
+        row_button(
+            Icon::Info,
+            "App info",
+            Some(|| Message::OpenOscAppInfo(app.clone()))
         ),
-        tooltip(
-            button(icon_monitor_up().center())
-                .padding(0)
-                .style(button::text)
-                .width(20)
-                .height(20)
-                .on_press(Message::SendOscAppViaWiiload(app.clone())),
-            my_card("Send via Wiiload"),
-            tooltip::Position::Top
+        row_button(
+            Icon::MonitorUp,
+            "Send via Wiiload",
+            Some(|| Message::SendOscAppViaWiiload(app.clone()))
         ),
     ]
     .spacing(5)
