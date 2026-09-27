@@ -57,12 +57,9 @@ impl ToolboxGroup {
 }
 
 pub fn all() -> impl Iterator<Item = &'static ToolboxGroup> {
-    [
-        game_backup_loaders::ALL,
-        txtcodes::ALL,
-        cleanup::ALL,
-        os_specific::ALL,
-    ]
-    .into_iter()
-    .flatten()
+    game_backup_loaders::ALL
+        .into_iter()
+        .chain(txtcodes::ALL)
+        .chain(cleanup::ALL)
+        .chain(os_specific::ALL)
 }
