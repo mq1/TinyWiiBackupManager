@@ -23,7 +23,7 @@ dist-appimage = ["static-https", "static-nod", "static-nod-bzip2"]
 dist-flatpak = ["native-https", "nod/default"]
 dist-windows-x64 = ["native-https", "static-nod", "static-nod-bzip2"]
 dist-windows-arm64 = ["dist-windows-x64"]
-dist-windows-x86 = ["static-https", "static-nod"]                     # bzip2 doesn't compile
+dist-windows-x86 = ["native-https", "static-nod"]                     # bzip2 doesn't compile
 dist-macos = ["native-https", "static-nod", "static-nod-bzip2"]
 
 [dependencies]
