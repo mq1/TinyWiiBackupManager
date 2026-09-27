@@ -41,7 +41,11 @@ impl AppState {
                 .then(dialogs::make_pick_mount_point_dialog_task),
             Message::MountPointPicked(path) => {
                 self.config.mount_point = path;
-                self.write_config_task()
+
+                Task::batch([
+                    self.write_config_task(),
+                    Task::done(Message::RefreshGamesAndApps),
+                ])
             }
             Message::CloseNotification(idx) => {
                 self.notifications.close(idx);
