@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐧 Linux appimages now require at least glibc 2.35 (previously was 2.31)
 - 📦 All builds (excluding Flatpak) now statically link compression libraries
 - 🪶 Smaller binary size (without compromising performance)
+- 📝 Game directory names are now based on english titles
 
 ### Removed
 
@@ -41,6 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛 macOS version crashes when i try to open it (<https://github.com/mq1/TinyWiiBackupManager/issues/646>)
 - 🐛 Visual Corruiption With Large Library (<https://github.com/mq1/TinyWiiBackupManager/issues/670>)
 - 🐛 transparent titlebar on macos 27 (<https://github.com/mq1/TinyWiiBackupManager/issues/676>)
+
+## [v6.0.8] - 2026-07-13
+
+## Fixed
+
+- 🐛 Block handling fixes by @wiidev (<https://github.com/encounter/nod/compare/main...wiidev:nod:fix-block-handling>)
+- 🐛 Crash when there are no apps with thumbnail (<https://gbatemp.net/threads/personal-project-i-made-a-simple-backup-manager-for-wii-supporting-direct-rvz-conversion.674406/post-10880960>)
+- 🐛 Create USB Loader GX cover dirs (<https://github.com/mq1/TinyWiiBackupManager/pull/659>) by @yisraeldov
 
 ## [v6.0.7] - 2026-06-05
 
