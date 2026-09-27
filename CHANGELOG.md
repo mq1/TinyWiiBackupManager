@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📦 All builds (excluding Flatpak) now statically link compression libraries
 - 🪶 Smaller binary size (without compromising performance)
 - 📝 Game directory names are now based on english titles
+- 💄 More compact UI + minor UI changes
 
 ### Removed
 
