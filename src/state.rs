@@ -96,7 +96,16 @@ impl AppState {
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
-        time::every(milliseconds(500)).map(|_| Message::ToggleAnimationState)
+        Subscription::batch([
+            iced::event::listen_with(|event, _status, _id| {
+                if let iced::Event::Window(iced::window::Event::FileDropped(path)) = event {
+                    Some(Message::FileDropped(path))
+                } else {
+                    None
+                }
+            }),
+            time::every(milliseconds(500)).map(|_| Message::ToggleAnimationState),
+        ])
     }
 
     pub fn theme(&self) -> Option<Theme> {

@@ -79,6 +79,7 @@ pub enum Message {
     ConvertGame(PathBuf, PathBuf),
     GotUpdate(Version),
     TriggerImport,
+    FileDropped(PathBuf),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),
