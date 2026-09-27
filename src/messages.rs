@@ -15,6 +15,7 @@ use crate::{
     util::drive_state::DriveState,
 };
 
+use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
@@ -76,6 +77,7 @@ pub enum Message {
     PickGameToConvert,
     SetConverting(ConversionState),
     ConvertGame(PathBuf, PathBuf),
+    GotUpdate(Version),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

@@ -7,3 +7,4 @@ pub mod fs;
 pub mod http;
 pub mod misc;
 pub mod sha1_list;
+pub mod updates;

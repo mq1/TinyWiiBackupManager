@@ -437,6 +437,10 @@ impl AppState {
             Message::ConvertGame(disc_path, out_path) => {
                 Task::stream(convert_game(disc_path, out_path)).map(Message::SetConverting)
             }
+            Message::GotUpdate(new_version) => {
+                self.new_version = Some(new_version);
+                Task::none()
+            }
         }
     }
 }

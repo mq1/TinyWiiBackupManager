@@ -23,6 +23,7 @@ dependencies = [
  "nod",
  "open",
  "rfd",
+ "semver",
  "serde",
  "serde_json",
  "size",
@@ -2106,6 +2107,8 @@ dependencies = [
  "native-tls",
  "openssl",
  "openssl-probe 0.1.6",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

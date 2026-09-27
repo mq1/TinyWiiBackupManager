@@ -68,10 +68,11 @@ wiiload = { version = "0.5", features = ["async"] }
 anyhow = "1"
 tap = "1"
 time = { version = "0.3", features = ["local-offset"] }
-minreq = "3"
+minreq = { version = "3", features = ["json-using-serde"] }
 nod = { git = "https://github.com/rom-weaver/nod.git", branch = "perf/preloader-read-ahead", default-features = false, features = [
   "threading",
 ] }
+semver = "1"
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

@@ -11,7 +11,7 @@ use crate::{
 };
 use iced::{
     Element,
-    widget::{column, space, tooltip},
+    widget::{column, space, text, tooltip},
 };
 use lucide_icons::Icon;
 
@@ -53,6 +53,19 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
             tooltip::Position::Right
         ),
         space::vertical(),
+        state.new_version.as_ref().map(|new_version| {
+            tooltip(
+                my_sidebar_button(&[Icon::BellPlus]).on_press_with(|| {
+                    Message::Open(
+                        "https://github.com/mq1/TinyWiiBackupManager/releases/latest".into(),
+                    )
+                }),
+                my_card(text!(
+                    "New TinyWiiBackupManager version available: {new_version}"
+                )),
+                tooltip::Position::Right,
+            )
+        }),
         (!state.import_queue.is_empty()).then(|| {
             let import_queue_icon = if state.animation_state {
                 Icon::ArrowUp10

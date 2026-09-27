@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result, bail};
+use serde::de::DeserializeOwned;
 use smol::{
     fs::{self, File},
     io::AsyncSeekExt,
@@ -201,6 +202,18 @@ pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Re
 
             Ok(())
         }
+    })
+    .await
+}
+
+pub async fn get_json<T: DeserializeOwned + Send + 'static>(uri: &'static str) -> Result<T> {
+    smol::unblock(move || {
+        let resp = minreq::get(uri)
+            .with_header("User-Agent", USER_AGENT)
+            .send()?
+            .json()?;
+
+        Ok(resp)
     })
     .await
 }

@@ -13,7 +13,7 @@ use crate::{
     osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
-    util::drive_state::DriveState,
+    util::{drive_state::DriveState, updates},
 };
 use anyhow::Context;
 
@@ -23,6 +23,7 @@ use iced::{
 };
 use lucide_icons::LUCIDE_FONT_BYTES;
 use rfd::AsyncFileDialog;
+use semver::Version;
 use smol::{
     fs::{self, File},
     net::TcpStream,
@@ -50,6 +51,7 @@ pub struct AppState {
     pub import_queue: Vec<PathBuf>,
     pub osc_contents: OscState,
     pub animation_state: bool,
+    pub new_version: Option<Version>,
 }
 
 impl AppState {
@@ -72,10 +74,16 @@ impl AppState {
                     import_queue: Vec::new(),
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
+                    new_version: None,
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
                     Task::perform(OscState::load(data_dir), Message::GotOscContents),
+                    Task::perform(updates::check(), |res| match res {
+                        Ok(Some(version)) => Message::GotUpdate(version),
+                        Ok(None) => Message::NoOp,
+                        Err(e) => Message::Notify(e.into()),
+                    }),
                     iced::font::load(LUCIDE_FONT_BYTES).map(|res| match res {
                         Ok(()) => Message::NoOp,
                         Err(e) => Message::Notify(Notification::error(format!(

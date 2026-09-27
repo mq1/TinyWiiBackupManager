@@ -12,6 +12,7 @@ pub struct MySidebarButton<'a> {
     icons: &'a [Icon],
     active: bool,
     on_press: Option<Message>,
+    on_press_with: Option<fn() -> Message>,
 }
 
 impl<'a> MySidebarButton<'a> {
@@ -20,6 +21,7 @@ impl<'a> MySidebarButton<'a> {
             icons,
             active: false,
             on_press: None,
+            on_press_with: None,
         }
     }
 
@@ -30,6 +32,11 @@ impl<'a> MySidebarButton<'a> {
 
     pub fn on_press(mut self, on_press: Message) -> Self {
         self.on_press = Some(on_press);
+        self
+    }
+
+    pub fn on_press_with(mut self, on_press_with: fn() -> Message) -> Self {
+        self.on_press_with = Some(on_press_with);
         self
     }
 }
@@ -60,6 +67,10 @@ impl<'a> From<MySidebarButton<'a>> for Element<'_, Message> {
 
         if let Some(on_press) = value.on_press.take() {
             btn = btn.on_press(on_press);
+        }
+
+        if let Some(on_press_with) = value.on_press_with.take() {
+            btn = btn.on_press_with(on_press_with);
         }
 
         btn.into()
