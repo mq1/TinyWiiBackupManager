@@ -11,7 +11,7 @@ use crate::{
             homebrew_app_card::homebrew_app_card, homebrew_app_row::homebrew_app_row,
             homebrew_apps_titlebar::homebrew_apps_titlebar, my_card::my_card,
         },
-        pages::{errored::errored, loading::loading},
+        pages::{errored::errored, loading::loading, no_drive::no_drive},
     },
 };
 use iced::{
@@ -22,6 +22,10 @@ use itertools::Itertools;
 use tap::Pipe;
 
 pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
+    if state.config.mount_point.as_os_str().is_empty() {
+        return no_drive();
+    }
+
     match &state.homebrew {
         HomebrewState::NotLoaded | HomebrewState::Loading => loading(),
         HomebrewState::Errored(e) => errored(e),

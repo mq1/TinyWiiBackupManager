@@ -11,7 +11,7 @@ use crate::{
             game_card::game_card, game_row::game_row, games_titlebar::games_titlebar,
             my_card::my_card,
         },
-        pages::{errored::errored, loading::loading},
+        pages::{errored::errored, loading::loading, no_drive::no_drive},
     },
 };
 use iced::{
@@ -22,6 +22,10 @@ use itertools::Itertools;
 use tap::Pipe;
 
 pub fn games(state: &AppState) -> Element<'_, Message> {
+    if state.config.mount_point.as_os_str().is_empty() {
+        return no_drive();
+    }
+
     match &state.games {
         GamesState::NotLoaded | GamesState::Loading => loading(),
         GamesState::Errored(e) => errored(e),

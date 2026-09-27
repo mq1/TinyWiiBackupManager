@@ -9,6 +9,7 @@ pub mod games;
 pub mod homebrew_apps;
 pub mod import_queue;
 pub mod loading;
+pub mod no_drive;
 pub mod osc_apps;
 pub mod settings;
 pub mod toolbox;

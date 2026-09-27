@@ -16,6 +16,8 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn toolbox(state: &AppState) -> Element<'_, Message> {
+    let has_drive = !state.config.mount_point.as_os_str().is_empty();
+
     let tool_groups = crate::toolbox::all()
         .map(|tool_group| {
             let tools = tool_group
@@ -42,10 +44,15 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
         .spacing(10);
 
     scrollable(
-        column![drive_info(state), wiiload(state), convert(), tool_groups]
-            .spacing(10)
-            .padding(padding::all(10).right(20))
-            .width(Length::Fill),
+        column![
+            has_drive.then_some(drive_info(state)),
+            wiiload(state),
+            convert(),
+            has_drive.then_some(tool_groups)
+        ]
+        .spacing(10)
+        .padding(padding::all(10).right(20))
+        .width(Length::Fill),
     )
     .into()
 }
