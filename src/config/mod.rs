@@ -22,52 +22,52 @@ pub struct Config {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigContents {
     #[serde(default)]
-    pub(super) always_split: bool,
+    always_split: bool,
 
     #[serde(default)]
-    pub(super) mount_point: PathBuf,
+    mount_point: PathBuf,
 
     #[serde(default)]
-    pub(super) remove_sources_apps: bool,
+    remove_sources_apps: bool,
 
     #[serde(default)]
-    pub(super) remove_sources_games: bool,
+    remove_sources_games: bool,
 
     #[serde(default)]
-    pub(super) scrub_update_partition: bool,
+    scrub_update_partition: bool,
 
     #[serde(default)]
-    pub(super) sort_by: SortBy,
+    sort_by: SortBy,
 
     #[serde(default)]
-    pub(super) view_as: ViewAs,
+    view_as: ViewAs,
 
     #[serde(default = "yes")]
-    pub(super) show_wii: bool,
+    show_wii: bool,
 
     #[serde(default = "yes")]
-    pub(super) show_gc: bool,
+    show_gc: bool,
 
     #[serde(default = "default_wii_ip")]
-    pub(super) wii_ip: String,
+    wii_ip: String,
 
     #[serde(default)]
-    pub(super) txt_codes_source: TxtCodesSource,
+    txt_codes_source: TxtCodesSource,
 
     #[serde(default)]
-    pub(super) theme_preference: ThemePreference,
+    theme_preference: ThemePreference,
 
     #[serde(default)]
-    pub(super) wii_output_format: WiiOutputFormat,
+    wii_output_format: WiiOutputFormat,
 
     #[serde(default)]
-    pub(super) gc_output_format: GcOutputFormat,
+    gc_output_format: GcOutputFormat,
 
     #[serde(default)]
     known_drives: Vec<PathBuf>,
 
     #[serde(default = "system_language")]
-    pub(super) preferred_language: PreferredLanguage,
+    preferred_language: PreferredLanguage,
 }
 
 impl Config {
@@ -85,7 +85,7 @@ impl Config {
         Ok(())
     }
 
-    pub(super) fn write(&self) -> Task<ConfigMessage> {
+    fn write(&self) -> Task<ConfigMessage> {
         let config = self.clone();
 
         Task::perform(
