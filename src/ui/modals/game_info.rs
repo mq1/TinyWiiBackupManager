@@ -81,6 +81,8 @@ pub fn game_info<'a>(
             space::vertical(),
             rule::horizontal(1),
             row![
+                space(),
+                my_link("GameTDB Page", game.gametdb_url()),
                 space::horizontal(),
                 tooltip(
                     my_button()
@@ -107,6 +109,7 @@ pub fn game_info<'a>(
             ]
             .spacing(10)
             .padding(10)
+            .align_y(Alignment::Center)
         ]
         .width(600)
         .height(400),

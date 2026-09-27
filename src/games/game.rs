@@ -48,6 +48,7 @@ pub struct Game {
     is_wii: bool,
     cover: Option<Allocation>,
     search_term_lowercase: Box<str>,
+    gametdb_url: Box<str>,
 }
 
 impl Game {
@@ -88,6 +89,8 @@ impl Game {
 
         let search_term_lowercase = format!("{}\0{}", title, id).to_lowercase().into_boxed_str();
 
+        let gametdb_url = format!("https://www.gametdb.com/Wii/{id}").into_boxed_str();
+
         Ok(Self {
             path,
             id,
@@ -97,6 +100,7 @@ impl Game {
             is_wii,
             cover: None,
             search_term_lowercase,
+            gametdb_url,
         })
     }
 
@@ -177,6 +181,10 @@ impl Game {
 
     pub fn cover(&self) -> Option<&image::Handle> {
         self.cover.as_ref().map(|cover| cover.handle())
+    }
+
+    pub fn gametdb_url(&self) -> &str {
+        &self.gametdb_url
     }
 }
 
