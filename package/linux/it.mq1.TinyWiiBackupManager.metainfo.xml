@@ -13,15 +13,14 @@
         <p>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</p>
         <p>✨ Features</p>
         <ul>
-            <li>Native app written in Rust and Slint, no Electron!</li>
-            <li>Cross-Platform: Windows 7+, macOS 10.14+, Linux (glibc 2.31+)</li>
+            <li>Native app written in Rust and Iced, no Electron!</li>
+            <li>Cross-Platform: Windows 7+, macOS 10.12+, Linux (glibc 2.35+)</li>
         </ul>
         <p>🎮 Game Management</p>
         <ul>
             <li>Games view: Manage your Wii and GameCube games</li>
             <li>Format Support: .iso, .rvz and major formats thanks to NOD</li>
             <li>Automatic Splitting: .wbfs file splitting when needed</li>
-            <li>Partition Stripping: Remove the update partition to save space</li>
             <li>Game Archiving: Archive games using RVZ+zstd-19</li>
             <li>Integrity Checks: Verify game data for corruption</li>
             <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB</li>
