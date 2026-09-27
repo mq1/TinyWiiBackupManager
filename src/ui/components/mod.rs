@@ -13,6 +13,7 @@ pub mod homebrew_app_card;
 pub mod homebrew_app_row;
 pub mod homebrew_app_search;
 pub mod homebrew_apps_titlebar;
+pub mod import_queue_titlebar;
 pub mod my_button;
 pub mod my_card;
 pub mod my_group;

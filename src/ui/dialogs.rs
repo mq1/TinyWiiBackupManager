@@ -104,7 +104,7 @@ pub fn make_pick_games_dialog_task(
                 Box::new([])
             }
         },
-        Message::ImportGames,
+        Message::PickedGames,
     )
 }
 
@@ -129,7 +129,7 @@ pub fn make_pick_games_recursively_dialog_task(
                 Box::new([])
             }
         },
-        Message::ImportGames,
+        Message::PickedGames,
     )
 }
 

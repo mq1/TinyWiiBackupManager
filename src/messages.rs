@@ -51,7 +51,7 @@ pub enum Message {
     SetHashing(ConversionState),
     PickGames,
     PickGamesRecursively,
-    ImportGames(Box<[PathBuf]>),
+    PickedGames(Box<[PathBuf]>),
     CancelImport(usize),
     CancelAllImports,
     ToggleAnimationState,
@@ -78,6 +78,7 @@ pub enum Message {
     SetConverting(ConversionState),
     ConvertGame(PathBuf, PathBuf),
     GotUpdate(Version),
+    TriggerImport,
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

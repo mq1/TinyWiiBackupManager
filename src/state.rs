@@ -207,24 +207,22 @@ impl AppState {
         )
     }
 
-    pub fn import_games_task(&mut self, paths: impl IntoIterator<Item = PathBuf>) -> Task<Message> {
-        self.import_queue.extend(paths);
-
-        if let ConversionState::Progress(_) = self.importing {
-            return Task::none();
-        }
-
-        let task = if let Some(path) = self.import_queue.pop() {
-            self.importing = ConversionState::Progress(String::new());
+    pub fn trigger_import_task(&mut self) -> Task<Message> {
+        if let Some(path) = self.import_queue.pop()
+            && let Some(filename) = path.file_name().and_then(OsStr::to_str)
+        {
+            self.importing = ConversionState::Progress(format!("⤓  Importing {filename}"));
             Task::stream(import_game(path, self.config.clone(), self.drive.clone()))
                 .map(Message::SetImporting)
         } else {
             self.notifications
                 .push(Notification::info("Import queue is empty"));
             Task::none()
-        };
+        }
+    }
 
-        Task::batch([task, self.get_games_task(), self.get_drive_info_task()])
+    pub fn add_to_import_queue(&mut self, paths: impl IntoIterator<Item = PathBuf>) {
+        self.import_queue.extend(paths);
     }
 
     pub fn reload_cover(&mut self, game_id: GameID) {

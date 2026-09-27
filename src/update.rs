@@ -197,28 +197,37 @@ impl AppState {
                     Task::none()
                 }
             }
-            Message::ImportGames(paths) => self.import_games_task(paths),
+            Message::PickedGames(paths) => {
+                self.add_to_import_queue(paths);
+                self.current_page = Page::ImportQueue;
+                Task::none()
+            }
             Message::SetImporting(importing) => {
-                let task;
-                (self.importing, task) = match importing {
-                    ConversionState::Finished(_success) => {
-                        //self.notifications.push(Notification::success(success));
-                        (
-                            ConversionState::Idle,
-                            self.import_games_task(std::iter::empty()),
-                        )
+                let (importing, should_continue) = match importing {
+                    ConversionState::Finished(success) => {
+                        #[cfg(debug_assertions)]
+                        self.notifications.push(Notification::success(success));
+
+                        (ConversionState::Idle, true)
                     }
                     ConversionState::Errored(e) => {
                         self.notifications.push(Notification::error(e));
-                        (
-                            ConversionState::Idle,
-                            self.import_games_task(std::iter::empty()),
-                        )
+                        (ConversionState::Idle, true)
                     }
-                    _ => (importing, Task::none()),
+                    _ => (importing, false),
                 };
 
-                task
+                self.importing = importing;
+
+                if should_continue {
+                    Task::batch([
+                        self.trigger_import_task(),
+                        self.get_games_task(),
+                        self.get_drive_info_task(),
+                    ])
+                } else {
+                    Task::none()
+                }
             }
             Message::CancelImport(i) => {
                 self.import_queue.remove(i);
@@ -441,6 +450,7 @@ impl AppState {
                 self.new_version = Some(new_version);
                 Task::none()
             }
+            Message::TriggerImport => self.trigger_import_task(),
         }
     }
 }
