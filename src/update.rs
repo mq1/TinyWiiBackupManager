@@ -198,9 +198,15 @@ impl AppState {
                 }
             }
             Message::PickedGames(paths) => {
-                self.add_to_import_queue(paths);
-                self.current_page = Page::ImportQueue;
-                Task::none()
+                if paths.is_empty() {
+                    self.notifications
+                        .push(Notification::info("No new games selected"));
+                    Task::none()
+                } else {
+                    self.add_to_import_queue(paths);
+                    self.current_page = Page::ImportQueue;
+                    Task::none()
+                }
             }
             Message::SetImporting(importing) => {
                 let (importing, should_continue) = match importing {
