@@ -17,7 +17,6 @@ use std::{
     io::{BufWriter, Seek, Write},
     path::PathBuf,
 };
-use tap::Pipe;
 
 pub fn ext_to_format(ext: &str) -> Option<Format> {
     match ext {
@@ -39,12 +38,13 @@ fn perform_blocking(
 ) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
-    let format_opts = out_path
+    let ext = out_path
         .extension()
         .and_then(OsStr::to_str)
         .and_then(ext_to_format)
-        .context("invalid extension")?
-        .pipe(FormatOptions::new);
+        .context("invalid extension")?;
+
+    let format_opts = FormatOptions::new(ext);
 
     let disc_reader = get_disc_reader(&disc_path)?;
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;

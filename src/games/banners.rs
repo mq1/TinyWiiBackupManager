@@ -5,7 +5,6 @@ use crate::util::http::download_file_with_fallback;
 use anyhow::Result;
 use smol::stream::{self, StreamExt};
 use std::{convert::identity, path::Path};
-use tap::Pipe;
 use wii_disc_info::game_id::GameID;
 
 pub async fn download_banner(game_id: GameID, root_dir: &Path) -> Result<()> {
@@ -30,10 +29,9 @@ pub async fn download_all_banners(
     game_ids: impl IntoIterator<Item = GameID>,
     root_dir: &Path,
 ) -> Vec<GameID> {
-    game_ids
-        .into_iter()
-        .filter(is_ngc)
-        .pipe(stream::iter)
+    let it = game_ids.into_iter().filter(is_ngc);
+
+    stream::iter(it)
         .then(move |game_id| async move {
             download_banner(game_id, root_dir)
                 .await

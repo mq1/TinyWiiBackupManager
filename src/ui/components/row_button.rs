@@ -7,25 +7,21 @@ use iced::{
     widget::{button, tooltip},
 };
 use lucide_icons::Icon;
-use tap::Pipe;
 
 pub fn row_button<'a>(
     icon: Icon,
     hint: &'static str,
     on_press: Option<impl Fn() -> Message + 'a>,
 ) -> Element<'a, Message> {
-    let btn = button(icon.widget().center())
+    let mut btn = button(icon.widget().center())
         .padding(0)
         .style(button::text)
         .width(20)
-        .height(20)
-        .pipe(|btn| {
-            if let Some(on_press) = on_press {
-                btn.on_press_with(on_press)
-            } else {
-                btn
-            }
-        });
+        .height(20);
+
+    if let Some(on_press) = on_press {
+        btn = btn.on_press_with(on_press);
+    }
 
     tooltip(btn, my_card(hint), tooltip::Position::Top).into()
 }

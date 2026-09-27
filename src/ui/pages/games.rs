@@ -19,7 +19,6 @@ use iced::{
     widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
-use tap::Pipe;
 
 pub fn games(state: &AppState) -> Element<'_, Message> {
     if state.config.mount_point().as_os_str().is_empty() {
@@ -41,14 +40,15 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
                     .wrap()
                     .into(),
 
-                ViewAs::Table => games
-                    .iter_by(state.config.sort_by())
-                    .map(|game| game_row(game, is_exporting))
-                    .intersperse_with(|| rule::horizontal(1).into())
-                    .collect::<Column<'_, _>>()
-                    .pipe(my_card)
-                    .padding(0)
-                    .into(),
+                ViewAs::Table => my_card(
+                    games
+                        .iter_by(state.config.sort_by())
+                        .map(|game| game_row(game, is_exporting))
+                        .intersperse_with(|| rule::horizontal(1).into())
+                        .collect::<Column<'_, _>>(),
+                )
+                .padding(0)
+                .into(),
             };
 
             column![

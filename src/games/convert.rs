@@ -16,7 +16,6 @@ use std::{
     io::{BufWriter, Seek, Write},
     path::PathBuf,
 };
-use tap::Pipe;
 
 fn perform_blocking(
     disc_path: PathBuf,
@@ -28,12 +27,13 @@ fn perform_blocking(
         .and_then(OsStr::to_str)
         .context("invalid filename")?;
 
-    let format_opts = out_path
+    let ext = out_path
         .extension()
         .and_then(OsStr::to_str)
         .and_then(ext_to_format)
-        .context("invalid extension")?
-        .pipe(FormatOptions::new);
+        .context("invalid extension")?;
+
+    let format_opts = FormatOptions::new(ext);
 
     let disc_reader = get_disc_reader(&disc_path)?;
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;

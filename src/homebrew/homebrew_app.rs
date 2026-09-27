@@ -19,7 +19,6 @@ use std::{
     ffi::{OsStr, OsString},
     path::{Path, PathBuf},
 };
-use tap::Pipe;
 
 pub fn make_osc_url(path: &Path) -> OsString {
     let mut base = OsString::from("https://oscwii.org/library/app/");
@@ -67,9 +66,8 @@ impl HomebrewApp {
         let mut size_str = ArrayString::new();
         let _ = write!(&mut size_str, "{}", Size::from_bytes(size));
 
-        let icon = path
-            .join("icon.png")
-            .pipe(fs::read)
+        let icon_path = path.join("icon.png");
+        let icon = fs::read(icon_path)
             .await
             .ok()
             .map(image::Handle::from_bytes)

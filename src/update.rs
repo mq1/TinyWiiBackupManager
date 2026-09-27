@@ -16,8 +16,6 @@ use crate::{
 };
 
 use iced::Task;
-use std::sync::Arc;
-use tap::Pipe;
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -165,10 +163,7 @@ impl AppState {
             }
             Message::PickGames => {
                 if let GamesState::Loaded(games) = &self.games {
-                    let existing_ids = games
-                        .get_all_game_ids()
-                        .collect::<Box<[_]>>()
-                        .pipe(Arc::new);
+                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
 
                     self.init_file_dialog_task().then(move |base| {
                         dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
@@ -338,11 +333,13 @@ impl AppState {
                 let app_name = app.name().to_string();
                 let mount_point = self.config.mount_point().to_path_buf();
 
-                Task::perform(async move { app.install(&mount_point).await }, move |res| {
-                    res.map(|_| app_name)
-                        .map_err(|err| err.to_string())
-                        .pipe(Message::OscAppInstalled)
-                })
+                Task::perform(
+                    async move { app.install(&mount_point).await },
+                    move |res| match res {
+                        Ok(()) => Message::OscAppInstalled(Ok(app_name)),
+                        Err(e) => Message::OscAppInstalled(Err(e.to_string())),
+                    },
+                )
             }
             Message::OscAppInstalled(res) => {
                 let notification = match res {

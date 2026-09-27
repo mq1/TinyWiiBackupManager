@@ -12,21 +12,16 @@ use iced::{
     widget::{row, space},
 };
 use lucide_icons::Icon;
-use tap::Pipe;
 
 pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
-    row![
-        space::horizontal(),
-        my_button()
-            .label("Start importing")
-            .icon(Icon::Play)
-            .kind(MyButtonKind::Primary)
-            .pipe(|btn| if matches!(state.importing, ConversionState::Idle) {
-                btn.on_press(Message::TriggerImport)
-            } else {
-                btn
-            })
-    ]
-    .padding(10)
-    .into()
+    let mut btn = my_button()
+        .label("Start importing")
+        .icon(Icon::Play)
+        .kind(MyButtonKind::Primary);
+
+    if matches!(state.importing, ConversionState::Idle) {
+        btn = btn.on_press(Message::TriggerImport);
+    }
+
+    row![space::horizontal(), btn].padding(10).into()
 }

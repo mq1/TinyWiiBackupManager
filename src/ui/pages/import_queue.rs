@@ -14,18 +14,18 @@ use iced::{
     widget::{Column, column, container, rule, scrollable},
 };
 use itertools::Itertools;
-use tap::Pipe;
 
 pub fn import_queue(state: &AppState) -> Element<'_, Message> {
-    let content = state
-        .import_queue
-        .iter()
-        .enumerate()
-        .map(queued_import_row)
-        .intersperse_with(|| rule::horizontal(1).into())
-        .collect::<Column<'_, _>>()
-        .pipe(my_card)
-        .padding(0);
+    let content = my_card(
+        state
+            .import_queue
+            .iter()
+            .enumerate()
+            .map(queued_import_row)
+            .intersperse_with(|| rule::horizontal(1).into())
+            .collect::<Column<'_, _>>(),
+    )
+    .padding(0);
 
     column![
         import_queue_titlebar(state),

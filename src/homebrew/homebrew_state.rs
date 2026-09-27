@@ -8,7 +8,6 @@ use smol::{
     stream::{self, Stream, StreamExt},
 };
 use std::path::PathBuf;
-use tap::Pipe;
 
 #[derive(Debug, Clone)]
 pub struct HomebrewAppList {
@@ -29,9 +28,9 @@ pub enum HomebrewState {
 impl HomebrewState {
     pub async fn load(root_path: PathBuf) -> Self {
         let res = async move {
-            let apps = root_path
-                .join("apps")
-                .pipe_ref(scan_dir)
+            let apps_path = root_path.join("apps");
+
+            let apps = scan_dir(&apps_path)
                 .await
                 .collect::<Vec<_>>()
                 .await

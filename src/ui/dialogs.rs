@@ -9,8 +9,7 @@ use crate::{
 use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::stream::{self, StreamExt};
-use std::{ffi::OsStr, path::PathBuf, sync::Arc};
-use tap::Pipe;
+use std::{ffi::OsStr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
 #[rustfmt::skip]
@@ -82,7 +81,7 @@ pub fn make_pick_in_out_dialogs_task(base: AsyncFileDialog) -> Task<Message> {
 
 pub fn make_pick_games_dialog_task(
     base: AsyncFileDialog,
-    existing_ids: Arc<Box<[GameID]>>,
+    existing_ids: Box<[GameID]>,
 ) -> Task<Message> {
     Task::perform(
         async move {
@@ -95,11 +94,9 @@ pub fn make_pick_games_dialog_task(
             if let Some(paths) = res
                 && !paths.is_empty()
             {
-                paths
-                    .into_iter()
-                    .map(PathBuf::from)
-                    .pipe(stream::iter)
-                    .pipe(|games| keep_valid_games(games, &existing_ids))
+                let it = paths.into_iter().map(PathBuf::from);
+
+                keep_valid_games(stream::iter(it), &existing_ids)
                     .collect::<Vec<_>>()
                     .await
             } else {
@@ -122,8 +119,9 @@ pub fn make_pick_games_recursively_dialog_task(
                 .await;
 
             if let Some(path) = res {
-                recursive_file_scan(path, GAME_EXTS)
-                    .pipe(|games| keep_valid_games(games, &existing_ids))
+                let games = recursive_file_scan(path, GAME_EXTS);
+
+                keep_valid_games(games, &existing_ids)
                     .collect::<Vec<_>>()
                     .await
             } else {

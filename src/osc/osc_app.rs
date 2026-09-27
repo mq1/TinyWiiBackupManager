@@ -11,7 +11,6 @@ use iced::{
 use serde::Deserialize;
 use size::Size;
 use std::{fmt::Write, path::Path};
-use tap::Pipe;
 use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -106,11 +105,12 @@ impl OscApp {
     }
 
     pub fn load_icon_blocking(&mut self, data_dir: &Path) {
-        self.icon = data_dir
+        let icon_path = data_dir
             .join("osc-icons")
             .join(&*self.meta.slug)
-            .with_added_extension("png")
-            .pipe(std::fs::read)
+            .with_added_extension("png");
+
+        self.icon = std::fs::read(icon_path)
             .ok()
             .map(image::Handle::from_bytes)
             .map(|handle| unsafe { allocate(&handle, (128, 48).into()) });

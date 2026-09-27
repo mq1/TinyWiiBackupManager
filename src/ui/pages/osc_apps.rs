@@ -19,7 +19,6 @@ use iced::{
     widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
-use tap::Pipe;
 
 pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
     match &state.osc_contents {
@@ -35,14 +34,14 @@ pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
                     .wrap()
                     .into(),
 
-                ViewAs::Table => apps
-                    .iter()
-                    .map(osc_app_row)
-                    .intersperse_with(|| rule::horizontal(1).into())
-                    .collect::<Column<'_, _>>()
-                    .pipe(my_card)
-                    .padding(0)
-                    .into(),
+                ViewAs::Table => my_card(
+                    apps.iter()
+                        .map(osc_app_row)
+                        .intersperse_with(|| rule::horizontal(1).into())
+                        .collect::<Column<'_, _>>(),
+                )
+                .padding(0)
+                .into(),
             };
 
             column![

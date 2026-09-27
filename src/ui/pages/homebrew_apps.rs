@@ -19,7 +19,6 @@ use iced::{
     widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
-use tap::Pipe;
 
 pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
     if state.config.mount_point().as_os_str().is_empty() {
@@ -39,14 +38,14 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
                     .wrap()
                     .into(),
 
-                ViewAs::Table => apps
-                    .iter_by(state.config.sort_by())
-                    .map(homebrew_app_row)
-                    .intersperse_with(|| rule::horizontal(1).into())
-                    .collect::<Column<'_, _>>()
-                    .pipe(my_card)
-                    .padding(0)
-                    .into(),
+                ViewAs::Table => my_card(
+                    apps.iter_by(state.config.sort_by())
+                        .map(homebrew_app_row)
+                        .intersperse_with(|| rule::horizontal(1).into())
+                        .collect::<Column<'_, _>>(),
+                )
+                .padding(0)
+                .into(),
             };
 
             column![
