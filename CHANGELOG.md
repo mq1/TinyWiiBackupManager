@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- ⚡️ Now using this nod branch <https://github.com/rom-weaver/nod/tree/perf/preloader-read-ahead> (<https://github.com/encounter/nod/pull/27>)
 - ⚡️ All IO operations are now executed on a thread pool, UI should be more responsive \
   may improve on <https://github.com/mq1/TinyWiiBackupManager/issues/468>
 - 🐧 Linux appimages now require at least glibc 2.35 (previously was 2.31)

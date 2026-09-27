@@ -2237,7 +2237,7 @@ checksum = "cf5a574dadd7941adeaa71823ecba5e28331b8313fb2e1c6a5c7e5981ea53ad6"
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.12"
-source = "git+https://github.com/encounter/nod.git?tag=v2.0.0-alpha.12#ebd80cac99b48a323200d84365e07a58cc27412d"
+source = "git+https://github.com/rom-weaver/nod.git?branch=perf%2Fpreloader-read-ahead#87a2af6435ff21f4c958d891e1f549b32fd3be30"
 dependencies = [
  "adler2",
  "aes",

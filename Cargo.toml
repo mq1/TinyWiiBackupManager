@@ -69,7 +69,7 @@ anyhow = "1"
 tap = "1"
 time = { version = "0.3", features = ["local-offset"] }
 minreq = "3"
-nod = { git = "https://github.com/encounter/nod.git", tag = "v2.0.0-alpha.12", default-features = false, features = [
+nod = { git = "https://github.com/rom-weaver/nod.git", branch = "perf/preloader-read-ahead", default-features = false, features = [
   "threading",
 ] }
 
