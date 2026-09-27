@@ -9,9 +9,15 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["static-https"]
+default = ["static-https", "static-nod"]
 native-https = ["minreq/https-native-tls"]
 static-https = ["minreq/https-openssl-probe"]
+static-nod = [
+  "nod/compress-bzip2-static",
+  "nod/compress-lzma-static",
+  "nod/compress-zlib-static",
+  "nod/compress-zstd-static",
+]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -47,7 +53,7 @@ split-write = "0.2"
 tempfile = "3"
 arrayvec = "0.7"
 zip = { version = "8", default-features = false, features = [
-  "deflate-flate2-zlib-rs",
+  "deflate-flate2-zlib",
 ] }
 strum = "0.28"
 strum_macros = "0.28"
@@ -56,6 +62,7 @@ anyhow = "1"
 tap = "1"
 time = { version = "0.3", features = ["local-offset"] }
 minreq = "3"
+nod = { git = "https://github.com/encounter/nod.git", tag = "v2.0.0-alpha.12" }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
@@ -65,18 +72,6 @@ mundy = { version = "0.2", default-features = false, features = [
 
 [target.'cfg(not(any(target_os = "linux", target_arch = "aarch64")))'.dependencies]
 dark-light = { version = "3", default-features = false }
-
-# windows x86 has issues with bzip2 + lld
-[target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
-nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
-  "compress-lzma-vendored",
-  "compress-zlib-vendored",
-  "compress-zstd-vendored",
-  "threading",
-] }
-
-[target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
-nod = "=2.0.0-alpha.9"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
