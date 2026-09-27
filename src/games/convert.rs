@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{conversion_state::ConversionState, disc_reader::get_disc_reader, game::Game},
+    games::{
+        conversion_state::ConversionState, disc_reader::get_disc_reader, export::ext_to_format,
+    },
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result};
-use nod::{
-    common::Format,
-    write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
-};
+use nod::write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel};
 use smol::stream::Stream;
 use std::{
     ffi::OsStr,
@@ -19,25 +18,15 @@ use std::{
 };
 use tap::Pipe;
 
-pub fn ext_to_format(ext: &str) -> Option<Format> {
-    match ext {
-        "iso" | "ISO" => Some(Format::Iso),
-        "ciso" | "CISO" => Some(Format::Ciso),
-        "gcz" | "CGZ" => Some(Format::Gcz),
-        "rvz" | "RVZ" => Some(Format::Rvz),
-        "wbfs" | "WBFS" => Some(Format::Wbfs),
-        "wia" | "WIA" => Some(Format::Wia),
-        "tgc" | "TGC" => Some(Format::Tgc),
-        _ => None,
-    }
-}
-
 fn perform_blocking(
-    game: &Game,
+    disc_path: PathBuf,
     out_path: PathBuf,
     tx: &smol::channel::Sender<ConversionState>,
-) -> Result<()> {
-    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+) -> Result<String> {
+    let filename = out_path
+        .file_name()
+        .and_then(OsStr::to_str)
+        .context("invalid filename")?;
 
     let format_opts = out_path
         .extension()
@@ -49,7 +38,7 @@ fn perform_blocking(
     let disc_reader = get_disc_reader(&disc_path)?;
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
     let mut out_writer = {
-        let file = File::create(out_path)?;
+        let file = File::create(&out_path)?;
         BufWriter::new(file)
     };
 
@@ -61,8 +50,7 @@ fn perform_blocking(
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
                 let _ = tx.try_send(ConversionState::Progress(format!(
-                    "⤓  Exporting {}  {progress_percentage:02}%",
-                    game.title()
+                    "Converting into {filename}  {progress_percentage:02}%",
                 )));
 
                 prev_percentage = progress_percentage;
@@ -86,15 +74,15 @@ fn perform_blocking(
     }
 
     out_writer.flush()?;
-    Ok(())
+    Ok(filename.to_string())
 }
 
-pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
+pub fn convert_game(disc_path: PathBuf, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, out_path, &tx) {
-            Ok(()) => ConversionState::Finished(format!("Exported {}", game.title())),
+        let exit = match perform_blocking(disc_path, out_path, &tx) {
+            Ok(filename) => ConversionState::Finished(format!("Converted {filename}")),
             Err(e) => ConversionState::Errored(e.to_string()),
         };
 

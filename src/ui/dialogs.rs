@@ -50,6 +50,33 @@ pub fn make_pick_homebrew_apps_dialog_task(base: AsyncFileDialog) -> Task<Messag
     )
 }
 
+pub fn make_pick_in_out_dialogs_task(base: AsyncFileDialog) -> Task<Message> {
+    Task::perform(
+        async move {
+            let in_path = base
+                .clone()
+                .set_title("Select Game to convert")
+                .add_filter("Wii/NGC rom", GAME_EXTS)
+                .pick_file()
+                .await?
+                .into();
+
+            let out_path = base
+                .set_title("Save converted game to")
+                .add_filter("Wii/NGC rom", GAME_EXTS)
+                .pick_file()
+                .await?
+                .into();
+
+            Some((in_path, out_path))
+        },
+        |opt| match opt {
+            Some((in_path, out_path)) => Message::ConvertGame(in_path, out_path),
+            None => Message::NoOp,
+        },
+    )
+}
+
 pub fn make_pick_games_dialog_task(
     base: AsyncFileDialog,
     existing_ids: Arc<Box<[GameID]>>,
@@ -122,12 +149,17 @@ pub fn make_pick_export_game_dest_dialog_task(base: AsyncFileDialog, game: Game)
 }
 
 pub fn make_pick_file_to_wiiload_dialog_task(base: AsyncFileDialog) -> Task<Message> {
-    Task::future(async move {
-        base.set_title("Select a file to send via wiiload")
-            .add_filter("Homebrew app", WIILOAD_EXTS)
-            .pick_file()
-            .await
-            .map(PathBuf::from)
-    })
-    .and_then(|path| Task::done(Message::SendViaWiiload(path)))
+    Task::perform(
+        async move {
+            base.set_title("Select a file to send via wiiload")
+                .add_filter("Homebrew app", WIILOAD_EXTS)
+                .pick_file()
+                .await
+                .map(PathBuf::from)
+        },
+        |opt| match opt {
+            Some(path) => Message::SendViaWiiload(path),
+            None => Message::NoOp,
+        },
+    )
 }

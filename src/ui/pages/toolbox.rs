@@ -5,7 +5,8 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::components::{
-        drive_info::drive_info, my_button::my_button, my_group::my_group, wiiload::wiiload,
+        convert::convert, drive_info::drive_info, my_button::my_button, my_group::my_group,
+        wiiload::wiiload,
     },
 };
 use iced::{
@@ -41,7 +42,7 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
         .spacing(10);
 
     scrollable(
-        column![drive_info(state), wiiload(state), tool_groups]
+        column![drive_info(state), wiiload(state), convert(), tool_groups]
             .spacing(10)
             .padding(padding::all(10).right(20))
             .width(Length::Fill),

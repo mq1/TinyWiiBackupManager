@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub mod convert;
 pub mod drive_info;
 pub mod dual_toggle;
 pub mod filter_console;

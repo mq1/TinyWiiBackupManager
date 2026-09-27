@@ -73,6 +73,9 @@ pub enum Message {
     InstallOscApp(OscApp),
     OscAppInstalled(Result<String, String>),
     DownloadTxtCodes(Game),
+    PickGameToConvert,
+    SetConverting(ConversionState),
+    ConvertGame(PathBuf, PathBuf),
 
     // Settings
     SetWiiOutputFormat(WiiOutputFormat),

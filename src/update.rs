@@ -3,8 +3,8 @@
 
 use crate::{
     games::{
-        calc_sha1::calc_sha1, conversion_state::ConversionState, export::export_game,
-        games_state::GamesState, txtcodes::download_cheats,
+        calc_sha1::calc_sha1, conversion_state::ConversionState, convert::convert_game,
+        export::export_game, games_state::GamesState, txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     messages::Message,
@@ -415,6 +415,27 @@ impl AppState {
                     },
                 )
                 .map(Message::Notify)
+            }
+            Message::PickGameToConvert => self
+                .init_file_dialog_task()
+                .then(dialogs::make_pick_in_out_dialogs_task),
+            Message::SetConverting(converting) => {
+                self.converting = match converting {
+                    ConversionState::Finished(success) => {
+                        self.notifications.push(Notification::success(success));
+                        ConversionState::Idle
+                    }
+                    ConversionState::Errored(error) => {
+                        self.notifications.push(Notification::error(error));
+                        ConversionState::Idle
+                    }
+                    _ => converting,
+                };
+
+                Task::none()
+            }
+            Message::ConvertGame(disc_path, out_path) => {
+                Task::stream(convert_game(disc_path, out_path)).map(Message::SetConverting)
             }
         }
     }
