@@ -41,6 +41,17 @@ impl OscState {
                 }
             };
 
+            let should_refresh = refreshed
+                .elapsed()
+                .map_or(true, |d| d > Duration::from_hours(24));
+
+            if should_refresh {
+                let new_path = data_dir.join("osc-cache-new.json");
+                if download_file(CONTENTS_URL, &new_path).await.is_ok() {
+                    fs::rename(&new_path, &cache_path).await?;
+                }
+            }
+
             let contents = fs::read_to_string(&cache_path).await?;
             let apps = serde_json::from_str(&contents)?;
 
