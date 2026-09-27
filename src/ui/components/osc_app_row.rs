@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, osc::osc_app::OscApp, ui::components::row_button::row_button};
+use crate::{message::Message, osc::osc_app::OscApp, ui::components::row_button::row_button};
 use iced::{
     Element, Length, padding,
     widget::{row, rule, space, text},

@@ -171,8 +171,8 @@ pub const ALL: &[ToolboxGroup] = {
             run_fn: |ctx| {
                 Box::pin(async move {
                     stream::iter([
-                        ctx.config.mount_point.join("wbfs"),
-                        ctx.config.mount_point.join("games"),
+                        ctx.config.mount_point().join("wbfs"),
+                        ctx.config.mount_point().join("games"),
                     ])
                     .then(|path| async move {
                         if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {

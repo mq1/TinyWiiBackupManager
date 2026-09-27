@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::{
         import_queue_titlebar::import_queue_titlebar, my_card::my_card,

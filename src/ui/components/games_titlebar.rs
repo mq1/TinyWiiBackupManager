@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::{sort_by::sort_by, view_as::view_as},
     games::games_state::GameList,
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::{
         filter_console::filter_console,
@@ -11,8 +12,6 @@ use crate::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
-        sort_by::sort_by,
-        view_as::view_as,
     },
 };
 use iced::{
@@ -26,8 +25,8 @@ pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'
         game_search(games),
         space::horizontal(),
         filter_console(games),
-        sort_by(state),
-        view_as(state),
+        sort_by(&state.config).map(Message::Config),
+        view_as(&state.config).map(Message::Config),
         space().width(5),
         refresh_button(state),
         tooltip(

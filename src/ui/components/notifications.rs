@@ -3,7 +3,7 @@
 
 use crate::{
     games::conversion_state::ConversionState,
-    messages::Message,
+    message::Message,
     notifications::notification::{Notification, NotificationLevel},
     state::AppState,
     ui::components::my_card::my_card,

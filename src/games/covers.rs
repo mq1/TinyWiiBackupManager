@@ -109,7 +109,7 @@ async fn download_all_covers(
 
     stream::iter(it)
         .then(|(game_id, (dir, cover_type))| async move {
-            download_cover(game_id, *cover_type, dir, config.preferred_language)
+            download_cover(game_id, *cover_type, dir, config.preferred_language())
                 .await
                 .is_err()
                 .then_some(game_id)
@@ -124,7 +124,7 @@ pub async fn download_all_covers_for_usbloadergx(
     config: &Config,
 ) -> Vec<GameID> {
     let covers_dir = config
-        .mount_point
+        .mount_point()
         .join("apps")
         .join("usbloader_gx")
         .join("images");
@@ -143,7 +143,7 @@ pub async fn download_all_covers_for_wiiflow(
     ids: impl IntoIterator<Item = GameID>,
     config: &Config,
 ) -> Vec<GameID> {
-    let covers_dir = config.mount_point.join("wiiflow");
+    let covers_dir = config.mount_point().join("wiiflow");
 
     let pairs = [
         (covers_dir.join("boxcovers"), CoverType::CoverFull),

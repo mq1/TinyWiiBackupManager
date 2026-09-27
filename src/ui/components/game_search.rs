@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::games_state::GameList, messages::Message, ui::components::search_bar::search_bar,
+    games::games_state::GameList, message::Message, ui::components::search_bar::search_bar,
 };
 use iced::Element;
 

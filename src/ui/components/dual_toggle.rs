@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, ui::components::my_card::my_card};
+use crate::ui::components::my_card::my_card;
 use iced::{
     Background, Border, Element, Theme, border,
     widget::{Row, button, text, tooltip},
@@ -28,7 +28,10 @@ fn get_button_style(
     }
 }
 
-fn toggle((index, item): (usize, DualToggleItem<'_>)) -> Element<'_, Message> {
+fn toggle<'a, Msg>((index, item): (usize, DualToggleItem<'a, Msg>)) -> Element<'a, Msg>
+where
+    Msg: Clone + 'a,
+{
     tooltip(
         button(item.icon.widget())
             .style(get_button_style(item.active, index == 0))
@@ -40,21 +43,24 @@ fn toggle((index, item): (usize, DualToggleItem<'_>)) -> Element<'_, Message> {
     .into()
 }
 
-pub struct DualToggleItem<'a> {
+pub struct DualToggleItem<'a, Msg> {
     pub icon: Icon,
     pub desc: &'a str,
     pub active: bool,
-    pub on_press: Message,
+    pub on_press: Msg,
 }
 
-impl<'a> DualToggleItem<'a> {
+impl<'a, Msg> DualToggleItem<'a, Msg> {
     pub fn active(mut self, active: bool) -> Self {
         self.active = active;
         self
     }
 }
 
-pub fn dual_toggle(items: [DualToggleItem<'_>; 2]) -> Element<'_, Message> {
+pub fn dual_toggle<'a, Msg>(items: [DualToggleItem<'a, Msg>; 2]) -> Element<'a, Msg>
+where
+    Msg: Clone + 'a,
+{
     my_card(
         items
             .into_iter()

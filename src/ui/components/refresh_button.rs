@@ -4,7 +4,7 @@
 use crate::{
     games::games_state::GamesState,
     homebrew::homebrew_state::HomebrewState,
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::{
         my_button::{MyButtonKind, my_button},

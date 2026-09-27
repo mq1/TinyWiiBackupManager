@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::{
         convert::convert, drive_info::drive_info, my_button::my_button, my_group::my_group,
@@ -16,7 +16,7 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn toolbox(state: &AppState) -> Element<'_, Message> {
-    let has_drive = !state.config.mount_point.as_os_str().is_empty();
+    let has_drive = !state.config.mount_point().as_os_str().is_empty();
 
     let tool_groups = crate::toolbox::all()
         .map(|tool_group| {

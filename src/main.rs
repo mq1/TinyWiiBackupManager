@@ -11,7 +11,7 @@
 mod config;
 mod games;
 mod homebrew;
-mod messages;
+mod message;
 mod notifications;
 mod osc;
 mod state;

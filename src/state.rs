@@ -8,7 +8,7 @@ use crate::{
         games_state::GamesState, import::import_game,
     },
     homebrew::{self, homebrew_state::HomebrewState},
-    messages::Message,
+    message::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
@@ -109,19 +109,11 @@ impl AppState {
     }
 
     pub fn theme(&self) -> Option<Theme> {
-        match self.config.theme_preference {
+        match self.config.theme_preference() {
             ThemePreference::System => theme::system(),
             ThemePreference::Light => Some(theme::light()),
             ThemePreference::Dark => Some(theme::dark()),
         }
-    }
-
-    pub fn write_config_task(&self) -> Task<Message> {
-        let config = self.config.clone();
-        Task::perform(async move { config.write().await }, |res| match res {
-            Ok(()) => Message::NoOp,
-            Err(e) => Message::Notify(e.into()),
-        })
     }
 
     pub fn init_file_dialog_task(&self) -> Task<AsyncFileDialog> {
@@ -131,14 +123,14 @@ impl AppState {
 
     pub fn get_games_task(&mut self) -> Task<Message> {
         self.games = GamesState::Loading;
-        let mount_point = self.config.mount_point.clone();
+        let mount_point = self.config.mount_point().to_path_buf();
         Task::perform(GamesState::load(mount_point), Message::GotGames)
     }
 
     pub fn download_ui_covers_task(&mut self) -> Task<Message> {
         if let GamesState::Loaded(games) = &self.games {
             let ids = games.get_all_game_ids().collect::<Box<[_]>>();
-            let preferred_language = self.config.preferred_language;
+            let preferred_language = self.config.preferred_language();
 
             Task::stream(download_ui_covers(ids, self.data_dir, preferred_language))
                 .map(Message::ReloadCover)
@@ -158,18 +150,18 @@ impl AppState {
 
     pub fn get_homebrew_apps_task(&mut self) -> Task<Message> {
         self.homebrew = HomebrewState::Loading;
-        let mount_point = self.config.mount_point.clone();
+        let mount_point = self.config.mount_point().to_path_buf();
         Task::perform(HomebrewState::load(mount_point), Message::GotHomebrew)
     }
 
     pub fn get_drive_info_task(&mut self) -> Task<Message> {
-        let mount_point = &self.config.mount_point;
+        let mount_point = self.config.mount_point();
         if mount_point.as_os_str().is_empty() {
             return Task::none();
         }
 
         self.drive = DriveState::Loading;
-        let mount_point = mount_point.clone();
+        let mount_point = mount_point.to_path_buf();
         Task::perform(DriveState::load(mount_point), Message::GotDrive)
     }
 
@@ -197,10 +189,11 @@ impl AppState {
     }
 
     pub fn import_homebrew_apps_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
-        let mount_point = self.config.mount_point.clone();
+        let mount_point = self.config.mount_point().to_path_buf();
+        let remove_sources = self.config.remove_sources_apps();
 
         Task::perform(
-            homebrew::import(mount_point, paths, self.config.remove_sources_apps),
+            homebrew::import(mount_point, paths, remove_sources),
             |res| match res {
                 Ok(n) => Message::HomebrewAppsImported(n),
                 Err(e) => Message::Notify(e.into()),
@@ -270,7 +263,7 @@ impl AppState {
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip = self.config.wii_ip.to_string();
+        let wii_ip = self.config.wii_ip().to_string();
 
         Task::perform(
             async move {

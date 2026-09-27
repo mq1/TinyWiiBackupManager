@@ -1,22 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, ui::components::my_card::my_card};
+use crate::ui::components::my_card::my_card;
 use iced::{
     Element,
     widget::{column, row, rule, space},
 };
 use lucide_icons::Icon;
 
-pub struct MyGroup<'a> {
+pub struct MyGroup<'a, Msg> {
     pub title: &'a str,
     pub icon: Option<Icon>,
-    pub content: Element<'a, Message>,
-    pub top_right_content: Option<Element<'a, Message>>,
+    pub content: Element<'a, Msg>,
+    pub top_right_content: Option<Element<'a, Msg>>,
 }
 
-impl<'a> MyGroup<'a> {
-    pub fn new(title: &'a str, content: impl Into<Element<'a, Message>>) -> Self {
+impl<'a, Msg> MyGroup<'a, Msg> {
+    pub fn new(title: &'a str, content: impl Into<Element<'a, Msg>>) -> Self {
         Self {
             title,
             icon: None,
@@ -35,19 +35,22 @@ impl<'a> MyGroup<'a> {
         self
     }
 
-    pub fn top_right_content(mut self, content: impl Into<Element<'a, Message>>) -> Self {
+    pub fn top_right_content(mut self, content: impl Into<Element<'a, Msg>>) -> Self {
         self.top_right_content = Some(content.into());
         self
     }
 
-    pub fn content(mut self, content: impl Into<Element<'a, Message>>) -> Self {
+    pub fn content(mut self, content: impl Into<Element<'a, Msg>>) -> Self {
         self.content = content.into();
         self
     }
 }
 
-impl<'a> From<MyGroup<'a>> for Element<'a, Message> {
-    fn from(group: MyGroup<'a>) -> Element<'a, Message> {
+impl<'a, Msg> From<MyGroup<'a, Msg>> for Element<'a, Msg>
+where
+    Msg: Clone + 'a,
+{
+    fn from(group: MyGroup<'a, Msg>) -> Element<'a, Msg> {
         my_card(
             column![
                 row![
@@ -68,6 +71,6 @@ impl<'a> From<MyGroup<'a>> for Element<'a, Message> {
     }
 }
 
-pub fn my_group<'a>(title: &'a str, content: impl Into<Element<'a, Message>>) -> MyGroup<'a> {
+pub fn my_group<'a, Msg>(title: &'a str, content: impl Into<Element<'a, Msg>>) -> MyGroup<'a, Msg> {
     MyGroup::new(title, content)
 }

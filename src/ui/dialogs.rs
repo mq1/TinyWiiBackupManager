@@ -3,7 +3,7 @@
 
 use crate::{
     games::{game::Game, import::sanitize_title, keep_valid_games},
-    messages::Message,
+    message::Message,
     util::fs::recursive_file_scan,
 };
 use iced::Task;

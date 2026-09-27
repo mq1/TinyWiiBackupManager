@@ -30,7 +30,4 @@ pub mod refresh_osc_button;
 pub mod row_button;
 pub mod search_bar;
 pub mod sidebar;
-pub mod sort_by;
-pub mod view_as;
-pub mod wii_ip;
 pub mod wiiload;

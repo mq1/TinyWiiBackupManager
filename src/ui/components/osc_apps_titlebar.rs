@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    config::ui::{view_as::view_as, wii_ip::wii_ip},
+    message::Message,
     osc::osc_state::OscAppList,
     state::AppState,
-    ui::components::{
-        osc_app_search::osc_app_search, refresh_osc_button::refresh_osc_button, view_as::view_as,
-        wii_ip::wii_ip,
-    },
+    ui::components::{osc_app_search::osc_app_search, refresh_osc_button::refresh_osc_button},
 };
 use iced::{
     Alignment, Element,
@@ -19,9 +17,9 @@ pub fn osc_apps_titlebar<'a>(apps: &'a OscAppList, state: &'a AppState) -> Eleme
     row![
         osc_app_search(apps),
         space::horizontal(),
-        wii_ip(state),
+        wii_ip(&state.config).map(Message::Config),
         space().width(5),
-        view_as(state),
+        view_as(&state.config).map(Message::Config),
         space().width(5),
         refresh_osc_button(state),
     ]

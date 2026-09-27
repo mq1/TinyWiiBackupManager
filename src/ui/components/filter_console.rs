@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::games_state::GameList, messages::Message, ui::components::my_card::my_card};
+use crate::{games::games_state::GameList, message::Message, ui::components::my_card::my_card};
 use iced::{
     Element, Length,
     widget::{checkbox, container, row, rule, text, tooltip},

@@ -3,7 +3,7 @@
 
 use crate::{
     config::ViewAs,
-    messages::Message,
+    message::Message,
     osc::osc_state::OscState,
     state::AppState,
     ui::{
@@ -26,7 +26,7 @@ pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
         OscState::NotLoaded | OscState::Loading => loading(),
         OscState::Errored(e) => errored(e),
         OscState::Loaded(apps) => {
-            let content: Element<'_, Message> = match state.config.view_as {
+            let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => apps
                     .iter()
                     .map(osc_app_card)

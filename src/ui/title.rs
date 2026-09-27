@@ -12,7 +12,7 @@ pub fn title(state: &AppState) -> String {
 
     s.push_str(concat!(env!("CARGO_PKG_NAME"), "  ›  "));
 
-    let mount_point = &state.config.mount_point;
+    let mount_point = state.config.mount_point();
     if mount_point.as_os_str().is_empty() {
         s.push_str("No drive selected");
         return s;

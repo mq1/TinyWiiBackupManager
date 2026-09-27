@@ -3,7 +3,7 @@
 
 use crate::{
     games::conversion_state::ConversionState,
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::my_button::{MyButtonKind, my_button},
 };

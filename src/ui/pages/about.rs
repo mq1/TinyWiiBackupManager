@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::{my_card::my_card, my_link::my_link},
 };

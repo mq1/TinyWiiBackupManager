@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::message::ConfigMessage,
     games::{
         calc_sha1::calc_sha1, conversion_state::ConversionState, convert::convert_game,
         export::export_game, games_state::GamesState, txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
-    messages::Message,
+    message::Message,
     notifications::notification::Notification,
     osc::osc_state::OscState,
     state::AppState,
@@ -21,6 +22,13 @@ use tap::Pipe;
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::Config(message) => {
+                if let ConfigMessage::Written(Err(e)) = &message {
+                    self.notifications.push(Notification::error(e));
+                }
+
+                self.config.update(message).map(Message::Config)
+            }
             Message::NoOp => Task::none(),
             Message::Notify(notification) => {
                 self.notifications.push(notification);
@@ -39,18 +47,19 @@ impl AppState {
             Message::PickMountPoint => self
                 .init_file_dialog_task()
                 .then(dialogs::make_pick_mount_point_dialog_task),
-            Message::MountPointPicked(path) => {
-                self.config.mount_point = path;
-
-                Task::batch([self.write_config_task(), self.refresh_games_and_apps()])
-            }
+            Message::MountPointPicked(path) => Task::batch([
+                self.config
+                    .update(ConfigMessage::SetMountPoint(path))
+                    .map(Message::Config),
+                self.refresh_games_and_apps(),
+            ]),
             Message::CloseNotification(idx) => {
                 self.notifications.close(idx);
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
             Message::GotConfig(config) => {
-                let new_mount_point = config.mount_point != self.config.mount_point;
+                let new_mount_point = config.mount_point() != self.config.mount_point();
 
                 self.config = config;
 
@@ -110,18 +119,6 @@ impl AppState {
 
                 self.notifications.push(Notification::error(e));
                 Task::none()
-            }
-            Message::SetViewAs(view_as) => {
-                self.config.view_as = view_as;
-                self.write_config_task()
-            }
-            Message::SetSortBy(sort_by) => {
-                self.config.sort_by = sort_by;
-                self.write_config_task()
-            }
-            Message::SetWiiIp(ip) => {
-                self.config.wii_ip = ip;
-                Task::none() // we'll write the config when wiiloading
             }
             Message::AskDeleteDir(path) => {
                 self.current_modal = Some(Modal::DeleteDir(path));
@@ -252,42 +249,6 @@ impl AppState {
                 self.reload_osc_icon(idx);
                 Task::none()
             }
-            Message::SetWiiOutputFormat(format) => {
-                self.config.wii_output_format = format;
-                self.write_config_task()
-            }
-            Message::SetGcOutputFormat(format) => {
-                self.config.gc_output_format = format;
-                self.write_config_task()
-            }
-            Message::SetAlwaysSplit(always_split) => {
-                self.config.always_split = always_split;
-                self.write_config_task()
-            }
-            Message::SetScrubUpdatePartition(scrub) => {
-                self.config.scrub_update_partition = scrub;
-                self.write_config_task()
-            }
-            Message::SetRemoveSourcesGames(remove) => {
-                self.config.remove_sources_games = remove;
-                self.write_config_task()
-            }
-            Message::SetRemoveSourcesApps(remove) => {
-                self.config.remove_sources_apps = remove;
-                self.write_config_task()
-            }
-            Message::SetTxtCodesSource(source) => {
-                self.config.txt_codes_source = source;
-                self.write_config_task()
-            }
-            Message::SetThemePreference(pref) => {
-                self.config.theme_preference = pref;
-                self.write_config_task()
-            }
-            Message::SetPreferredLanguage(lang) => {
-                self.config.preferred_language = lang;
-                self.write_config_task()
-            }
             Message::SearchGames(search_term) => {
                 if let GamesState::Loaded(games) = &mut self.games {
                     games.set_search_term(search_term.to_lowercase());
@@ -342,9 +303,12 @@ impl AppState {
             Message::PickFileToSendViaWiiload => self
                 .init_file_dialog_task()
                 .then(dialogs::make_pick_file_to_wiiload_dialog_task),
-            Message::SendViaWiiload(path) => {
-                Task::batch([self.write_config_task(), self.send_via_wiiload(path)])
-            }
+            Message::SendViaWiiload(path) => Task::batch([
+                self.config
+                    .update(ConfigMessage::Write)
+                    .map(Message::Config),
+                self.send_via_wiiload(path),
+            ]),
             Message::RefreshOscContents => {
                 Task::perform(OscState::load(self.data_dir), Message::GotOscContents)
             }
@@ -372,7 +336,7 @@ impl AppState {
                     .push(Notification::info(format!("Installing {}", app.name())));
 
                 let app_name = app.name().to_string();
-                let mount_point = self.config.mount_point.clone();
+                let mount_point = self.config.mount_point().to_path_buf();
 
                 Task::perform(async move { app.install(&mount_point).await }, move |res| {
                     res.map(|_| app_name)
@@ -410,20 +374,25 @@ impl AppState {
             }
             Message::SendOscAppViaWiiload(app) => {
                 let app_name = app.name().to_string();
-                let wii_ip = self.config.wii_ip.clone();
+                let wii_ip = self.config.wii_ip().to_string();
 
                 self.notifications.push(Notification::info(format!(
                     "Sending {app_name} via wiiload"
                 )));
 
-                Task::perform(
-                    async move { app.wiiload(&wii_ip).await },
-                    move |res| match res {
-                        Ok(()) => Notification::success(format!("Sent {app_name} via wiiload")),
-                        Err(err) => Notification::error(err.to_string()),
-                    },
-                )
-                .map(Message::Notify)
+                Task::batch([
+                    self.config
+                        .update(ConfigMessage::Write)
+                        .map(Message::Config),
+                    Task::perform(
+                        async move { app.wiiload(&wii_ip).await },
+                        move |res| match res {
+                            Ok(()) => Notification::success(format!("Sent {app_name} via wiiload")),
+                            Err(err) => Notification::error(err.to_string()),
+                        },
+                    )
+                    .map(Message::Notify),
+                ])
             }
             Message::PickGameToConvert => self
                 .init_file_dialog_task()

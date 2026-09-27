@@ -4,7 +4,7 @@
 use crate::{
     config::ViewAs,
     games::{conversion_state::ConversionState, games_state::GamesState},
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::{
         components::{
@@ -22,7 +22,7 @@ use itertools::Itertools;
 use tap::Pipe;
 
 pub fn games(state: &AppState) -> Element<'_, Message> {
-    if state.config.mount_point.as_os_str().is_empty() {
+    if state.config.mount_point().as_os_str().is_empty() {
         return no_drive();
     }
 
@@ -32,9 +32,9 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
         GamesState::Loaded(games) => {
             let is_exporting = matches!(state.exporting, ConversionState::Progress(_));
 
-            let content: Element<'_, Message> = match state.config.view_as {
+            let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => games
-                    .iter_by(state.config.sort_by)
+                    .iter_by(state.config.sort_by())
                     .map(|game| game_card(game, is_exporting))
                     .collect::<Row<'_, _>>()
                     .spacing(10)
@@ -42,7 +42,7 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
                     .into(),
 
                 ViewAs::Table => games
-                    .iter_by(state.config.sort_by)
+                    .iter_by(state.config.sort_by())
                     .map(|game| game_row(game, is_exporting))
                     .intersperse_with(|| rule::horizontal(1).into())
                     .collect::<Column<'_, _>>()

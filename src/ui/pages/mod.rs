@@ -11,7 +11,6 @@ pub mod import_queue;
 pub mod loading;
 pub mod no_drive;
 pub mod osc_apps;
-pub mod settings;
 pub mod toolbox;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Display, IntoStaticStr)]

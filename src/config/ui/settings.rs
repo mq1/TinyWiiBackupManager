@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{GcOutputFormat, PreferredLanguage, ThemePreference, TxtCodesSource, WiiOutputFormat},
-    messages::Message,
-    state::AppState,
+    config::{
+        Config, GcOutputFormat, PreferredLanguage, ThemePreference, TxtCodesSource,
+        WiiOutputFormat, message::ConfigMessage,
+    },
     ui::components::my_group::my_group,
 };
 use iced::{
@@ -19,8 +20,8 @@ fn setting<T: Eq + Copy>(
     icon: Icon,
     items: impl IntoIterator<Item = (T, &'static str)>,
     active: T,
-    on_change: fn(T) -> Message,
-) -> Element<'static, Message> {
+    on_change: fn(T) -> ConfigMessage,
+) -> Element<'static, ConfigMessage> {
     let content = items
         .into_iter()
         .map(|(value, label)| radio(label, value, Some(active), on_change).into())
@@ -30,7 +31,7 @@ fn setting<T: Eq + Copy>(
     my_group(label, content).icon(icon).into()
 }
 
-pub fn settings(state: &AppState) -> Element<'_, Message> {
+pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
     scrollable(
         column![
             setting(
@@ -40,8 +41,8 @@ pub fn settings(state: &AppState) -> Element<'_, Message> {
                     (WiiOutputFormat::Wbfs, "WBFS (Recommended)"),
                     (WiiOutputFormat::Iso, "ISO (very large)"),
                 ],
-                state.config.wii_output_format,
-                Message::SetWiiOutputFormat
+                config.wii_output_format(),
+                ConfigMessage::SetWiiOutputFormat
             ),
             setting(
                 "GameCube output format",
@@ -53,8 +54,8 @@ pub fn settings(state: &AppState) -> Element<'_, Message> {
                         "CISO (much smaller, slightly slower, less metadata in game loaders)"
                     ),
                 ],
-                state.config.gc_output_format,
-                Message::SetGcOutputFormat
+                config.gc_output_format(),
+                ConfigMessage::SetGcOutputFormat
             ),
             setting(
                 "Split output",
@@ -63,8 +64,8 @@ pub fn settings(state: &AppState) -> Element<'_, Message> {
                     (false, "Only when needed (recommended)"),
                     (true, "Always 4GB-32KB"),
                 ],
-                state.config.always_split,
-                Message::SetAlwaysSplit
+                config.always_split(),
+                ConfigMessage::SetAlwaysSplit
             ),
             // setting(
             //     "Remove update partition on WBFS/CISO",
@@ -76,22 +77,22 @@ pub fn settings(state: &AppState) -> Element<'_, Message> {
             //             "Yes (saves some space; update partition is zeroed, but still there)"
             //         ),
             //     ],
-            //     state.config.scrub_update_partition,
-            //     Message::SetScrubUpdatePartition
+            //     config.scrub_update_partition(),
+            //     ConfigMessage::SetScrubUpdatePartition
             // ),
             setting(
                 "Delete sources when adding games",
                 Icon::Trash,
                 [(false, "No (recommended)"), (true, "Yes")],
-                state.config.remove_sources_games,
-                Message::SetRemoveSourcesGames
+                config.remove_sources_games(),
+                ConfigMessage::SetRemoveSourcesGames
             ),
             setting(
                 "Delete sources when adding apps",
                 Icon::Trash,
                 [(false, "No (recommended)"), (true, "Yes")],
-                state.config.remove_sources_apps,
-                Message::SetRemoveSourcesApps
+                config.remove_sources_apps(),
+                ConfigMessage::SetRemoveSourcesApps
             ),
             setting(
                 "Cheat codes source",
@@ -104,22 +105,22 @@ pub fn settings(state: &AppState) -> Element<'_, Message> {
                     (TxtCodesSource::GameHacking, "gamehacking.org (up to date)"),
                     (TxtCodesSource::Rc24, "codes.rc24.xyz"),
                 ],
-                state.config.txt_codes_source,
-                Message::SetTxtCodesSource
+                config.txt_codes_source(),
+                ConfigMessage::SetTxtCodesSource
             ),
             setting(
                 "Theme",
                 Icon::SunMoon,
                 ThemePreference::iter().map(|l| (l, l.into())),
-                state.config.theme_preference,
-                Message::SetThemePreference
+                config.theme_preference(),
+                ConfigMessage::SetThemePreference
             ),
             setting(
                 "Preferred language for PAL covers",
                 Icon::ImageDown,
                 PreferredLanguage::iter().map(|l| (l, l.into())),
-                state.config.preferred_language,
-                Message::SetPreferredLanguage
+                config.preferred_language(),
+                ConfigMessage::SetPreferredLanguage
             )
         ]
         .spacing(10)

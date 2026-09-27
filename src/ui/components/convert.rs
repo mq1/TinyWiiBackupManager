@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    message::Message,
     ui::components::{my_button::my_button, my_group::my_group, my_link::my_link},
 };
 use iced::{Alignment, Element, widget::row};

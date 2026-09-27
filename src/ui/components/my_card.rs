@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::messages::Message;
 use iced::{
     Background, Element, Theme, padding,
     widget::{Container, container},
@@ -15,7 +14,7 @@ fn style(theme: &Theme) -> container::Style {
     }
 }
 
-pub fn my_card<'a>(contents: impl Into<Element<'a, Message>>) -> Container<'a, Message> {
+pub fn my_card<'a, Msg>(contents: impl Into<Element<'a, Msg>>) -> Container<'a, Msg> {
     container(contents)
         .style(style)
         .padding(padding::horizontal(10).vertical(5))

@@ -4,7 +4,7 @@
 use crate::{
     config::ViewAs,
     homebrew::homebrew_state::HomebrewState,
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::{
         components::{
@@ -22,7 +22,7 @@ use itertools::Itertools;
 use tap::Pipe;
 
 pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
-    if state.config.mount_point.as_os_str().is_empty() {
+    if state.config.mount_point().as_os_str().is_empty() {
         return no_drive();
     }
 
@@ -30,9 +30,9 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
         HomebrewState::NotLoaded | HomebrewState::Loading => loading(),
         HomebrewState::Errored(e) => errored(e),
         HomebrewState::Loaded(apps) => {
-            let content: Element<'_, Message> = match state.config.view_as {
+            let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => apps
-                    .iter_by(state.config.sort_by)
+                    .iter_by(state.config.sort_by())
                     .map(homebrew_app_card)
                     .collect::<Row<'_, _>>()
                     .spacing(10)
@@ -40,7 +40,7 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
                     .into(),
 
                 ViewAs::Table => apps
-                    .iter_by(state.config.sort_by)
+                    .iter_by(state.config.sort_by())
                     .map(homebrew_app_row)
                     .intersperse_with(|| rule::horizontal(1).into())
                     .collect::<Column<'_, _>>()

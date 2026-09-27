@@ -51,11 +51,11 @@ fn perform_blocking(
         false
     };
 
-    let must_split = is_wii && (is_fat32 || config.always_split);
+    let must_split = is_wii && (is_fat32 || config.always_split());
     let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
 
     let parent_dir_name = if is_wii { "wbfs" } else { "games" };
-    let parent_dir = config.mount_point.join(parent_dir_name);
+    let parent_dir = config.mount_point().join(parent_dir_name);
     let game_dir = make_game_dir(&parent_dir, &game_id, &game_title)?;
 
     let out_writer = SplitWriter::create(
@@ -106,7 +106,7 @@ fn perform_blocking(
     drop(out_writer);
     drop(disc_writer);
 
-    if config.remove_sources_games {
+    if config.remove_sources_games() {
         let _ = std::fs::remove_file(&disc_path);
     }
 
@@ -141,7 +141,7 @@ fn get_filename(
     must_split: bool,
 ) -> String {
     if is_wii {
-        match config.wii_output_format {
+        match config.wii_output_format() {
             WiiOutputFormat::Iso => {
                 if must_split {
                     format!("{game_id}.part{part}.iso")
@@ -155,7 +155,7 @@ fn get_filename(
             },
         }
     } else {
-        match config.gc_output_format {
+        match config.gc_output_format() {
             GcOutputFormat::Iso => match disc_num {
                 0 => "game.iso".to_string(),
                 n => format!("disc{}.iso", n + 1),
@@ -170,7 +170,11 @@ fn get_filename(
 }
 
 fn get_out_format(is_wii: bool, config: &Config) -> Format {
-    match (is_wii, config.wii_output_format, config.gc_output_format) {
+    match (
+        is_wii,
+        config.wii_output_format(),
+        config.gc_output_format(),
+    ) {
         (true, WiiOutputFormat::Iso, _) | (false, _, GcOutputFormat::Iso) => Format::Iso,
         (true, WiiOutputFormat::Wbfs, _) => Format::Wbfs,
         (false, _, GcOutputFormat::Ciso) => Format::Ciso,

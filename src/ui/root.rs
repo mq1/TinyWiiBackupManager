@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::settings::settings,
     games::conversion_state::ConversionState,
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::{
         components::{notifications::notifications, sidebar::sidebar},
@@ -13,7 +14,7 @@ use crate::{
         },
         pages::{
             Page, about::about, games::games, homebrew_apps::homebrew_apps,
-            import_queue::import_queue, osc_apps::osc_apps, settings::settings, toolbox::toolbox,
+            import_queue::import_queue, osc_apps::osc_apps, toolbox::toolbox,
         },
     },
 };
@@ -30,7 +31,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 Page::Games => games(state),
                 Page::HomebrewApps => homebrew_apps(state),
                 Page::Osc => osc_apps(state),
-                Page::Settings => settings(state),
+                Page::Settings => settings(&state.config).map(Message::Config),
                 Page::Toolbox => toolbox(state),
                 Page::ImportQueue => import_queue(state),
                 Page::About => about(state),

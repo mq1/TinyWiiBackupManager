@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    homebrew::homebrew_state::HomebrewAppList, messages::Message,
+    homebrew::homebrew_state::HomebrewAppList, message::Message,
     ui::components::search_bar::search_bar,
 };
 use iced::Element;

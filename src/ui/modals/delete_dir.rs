@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    message::Message,
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,

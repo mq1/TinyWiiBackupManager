@@ -3,7 +3,7 @@
 
 use crate::{
     games::game::Game,
-    messages::Message,
+    message::Message,
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,

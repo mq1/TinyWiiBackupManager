@@ -36,7 +36,7 @@ pub const ALL: &[ToolboxGroup] = {
                 label: "Download banners for USB Loader GX (GameCube)",
                 run_fn: |ctx| {
                     Box::pin(async move {
-                        match download_all_banners(ctx.game_ids, &ctx.config.mount_point).await {
+                        match download_all_banners(ctx.game_ids, ctx.config.mount_point()).await {
                             errored if !errored.is_empty() => Err(anyhow!(
                                 "Finished downloading banners: Failed: {}",
                                 errored.iter().format(", ")
@@ -52,7 +52,7 @@ pub const ALL: &[ToolboxGroup] = {
                     Box::pin(async move {
                         download_and_extract_zip(
                             "https://www.gametdb.com/wiitdb.zip",
-                            &ctx.config.mount_point.join("apps").join("usbloader_gx"),
+                            &ctx.config.mount_point().join("apps").join("usbloader_gx"),
                         )
                         .await?;
 

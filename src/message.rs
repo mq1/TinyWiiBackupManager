@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{
-        Config, GcOutputFormat, PreferredLanguage, SortBy, ThemePreference, TxtCodesSource, ViewAs,
-        WiiOutputFormat,
-    },
+    config::{Config, message::ConfigMessage},
     games::{conversion_state::ConversionState, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     notifications::notification::Notification,
@@ -21,6 +18,8 @@ use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    Config(ConfigMessage),
+
     NoOp,
     NavigateTo(Page),
     PickMountPoint,
@@ -38,7 +37,6 @@ pub enum Message {
     CloseModal,
     GotDiscInfo(wii_disc_info::Meta),
     CouldNotGetDiscInfo(String),
-    SetViewAs(ViewAs),
     AskDeleteDir(PathBuf),
     DeleteDir(PathBuf),
     DirDeleted(Result<(), String>),
@@ -80,17 +78,4 @@ pub enum Message {
     GotUpdate(Version),
     TriggerImport,
     FileDropped(PathBuf),
-
-    // Settings
-    SetWiiOutputFormat(WiiOutputFormat),
-    SetGcOutputFormat(GcOutputFormat),
-    SetAlwaysSplit(bool),
-    SetScrubUpdatePartition(bool),
-    SetRemoveSourcesGames(bool),
-    SetRemoveSourcesApps(bool),
-    SetTxtCodesSource(TxtCodesSource),
-    SetThemePreference(ThemePreference),
-    SetPreferredLanguage(PreferredLanguage),
-    SetSortBy(SortBy),
-    SetWiiIp(String),
 }

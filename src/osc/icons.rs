@@ -22,10 +22,7 @@ pub fn download_all_icons(apps: OscAppList, data_dir: &'static Path) -> impl Str
                 if fs::metadata(&path).await.is_ok_and(|meta| meta.is_file()) {
                     None
                 } else {
-                    download_file(&app.icon_uri(), &path)
-                        .await
-                        .ok()
-                        .map(|_| idx)
+                    download_file(app.icon_uri(), &path).await.ok().map(|_| idx)
                 }
             }
         })

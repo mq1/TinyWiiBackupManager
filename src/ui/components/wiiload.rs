@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message,
+    config::ui::wii_ip::wii_ip,
+    message::Message,
     state::AppState,
-    ui::components::{my_button::my_button, my_group::my_group, wii_ip::wii_ip},
+    ui::components::{my_button::my_button, my_group::my_group},
 };
 use iced::{
     Element,
@@ -23,7 +24,7 @@ pub fn wiiload(state: &AppState) -> Element<'_, Message> {
                     .label("Choose a zip/dol/elf")
                     .on_press(Message::PickFileToSendViaWiiload),
                 space::horizontal(),
-                wii_ip(state),
+                wii_ip(&state.config).map(Message::Config),
             ]
         ]
         .spacing(10)

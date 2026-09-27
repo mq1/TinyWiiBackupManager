@@ -17,14 +17,17 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Run dot_clean (removes ._ files)",
             run_fn: |ctx| {
                 Box::pin(async move {
-                    Command::new("dot_clean")
+                    let status = Command::new("dot_clean")
                         .arg("-m")
-                        .arg(ctx.config.mount_point)
+                        .arg(ctx.config.mount_point())
                         .status()
-                        .await
-                        .map_err(anyhow::Error::from)
-                        .and_then(|status| status.success().ok_or(anyhow!("dot_clean failed")))
-                        .map(|_| "dot_clean ran successfully".to_string())
+                        .await?;
+
+                    if status.success() {
+                        Ok("dot_clean ran successfully".to_string())
+                    } else {
+                        Err(anyhow!("dot_clean failed"))
+                    }
                 })
             },
         }],

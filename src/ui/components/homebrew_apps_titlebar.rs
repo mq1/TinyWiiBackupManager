@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::{sort_by::sort_by, view_as::view_as},
     homebrew::homebrew_state::HomebrewAppList,
-    messages::Message,
+    message::Message,
     state::AppState,
     ui::components::{
         homebrew_app_search::homebrew_app_search,
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
         refresh_button::refresh_button,
-        sort_by::sort_by,
-        view_as::view_as,
     },
 };
 use iced::{
@@ -27,8 +26,8 @@ pub fn homebrew_apps_titlebar<'a>(
     row![
         homebrew_app_search(apps),
         space::horizontal(),
-        sort_by(state),
-        view_as(state),
+        sort_by(&state.config).map(Message::Config),
+        view_as(&state.config).map(Message::Config),
         space().width(5),
         refresh_button(state),
         tooltip(

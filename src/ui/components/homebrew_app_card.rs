@@ -3,7 +3,7 @@
 
 use crate::{
     homebrew::homebrew_app::HomebrewApp,
-    messages::Message,
+    message::Message,
     ui::components::{my_button::my_button, my_card::my_card},
 };
 use iced::{
