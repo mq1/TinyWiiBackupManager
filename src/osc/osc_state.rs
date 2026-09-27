@@ -76,6 +76,10 @@ impl OscAppList {
             .filter(|app| app.matches_search(&self.search_term))
     }
 
+    pub fn into_iter(self) -> impl Iterator<Item = OscApp> {
+        self.apps.into_iter()
+    }
+
     pub fn last_refresh(&self) -> Duration {
         self.refreshed
             .elapsed()

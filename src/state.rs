@@ -149,16 +149,8 @@ impl AppState {
 
     pub fn download_osc_icons_task(&mut self) -> Task<Message> {
         if let OscState::Loaded(apps) = &self.osc_contents {
-            let slugs_and_icon_uris = apps
-                .iter()
-                .map(|app| (app.icon_uri().to_string(), app.slug().to_string()))
-                .collect::<Box<[_]>>();
-
-            Task::stream(osc::icons::download_all_icons(
-                slugs_and_icon_uris,
-                self.data_dir,
-            ))
-            .map(Message::ReloadOscIcon)
+            Task::stream(osc::icons::download_all_icons(apps.clone(), self.data_dir))
+                .map(Message::ReloadOscIcon)
         } else {
             Task::none()
         }
