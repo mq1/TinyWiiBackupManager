@@ -309,4 +309,12 @@ impl AppState {
             apps.set_osc_apps(osc_apps);
         }
     }
+
+    pub fn refresh_games_and_apps(&mut self) -> Task<Message> {
+        Task::batch([
+            self.get_games_task(),
+            self.get_homebrew_apps_task(),
+            self.get_drive_info_task(),
+        ])
+    }
 }
