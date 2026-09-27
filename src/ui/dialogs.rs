@@ -9,7 +9,7 @@ use crate::{
 use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::stream::{self, StreamExt};
-use std::{path::PathBuf, sync::Arc};
+use std::{ffi::OsStr, path::PathBuf, sync::Arc};
 use tap::Pipe;
 use wii_disc_info::game_id::GameID;
 
@@ -53,7 +53,7 @@ pub fn make_pick_homebrew_apps_dialog_task(base: AsyncFileDialog) -> Task<Messag
 pub fn make_pick_in_out_dialogs_task(base: AsyncFileDialog) -> Task<Message> {
     Task::perform(
         async move {
-            let in_path = base
+            let in_path: PathBuf = base
                 .clone()
                 .set_title("Select Game to convert")
                 .add_filter("Wii/NGC rom", GAME_EXTS)
@@ -61,10 +61,13 @@ pub fn make_pick_in_out_dialogs_task(base: AsyncFileDialog) -> Task<Message> {
                 .await?
                 .into();
 
+            let file_stem = in_path.file_stem().and_then(OsStr::to_str)?;
+            let rvz_filename = format!("{file_stem}.rvz");
+
             let out_path = base
                 .set_title("Save converted game to")
-                .add_filter("Wii/NGC rom", GAME_EXTS)
-                .pick_file()
+                .set_file_name(rvz_filename)
+                .save_file()
                 .await?
                 .into();
 
