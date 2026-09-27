@@ -99,9 +99,8 @@ pub fn make_pick_games_dialog_task(
                     .pipe(|games| keep_valid_games(games, &existing_ids))
                     .collect::<Vec<_>>()
                     .await
-                    .into_boxed_slice()
             } else {
-                Box::new([])
+                Vec::new()
             }
         },
         Message::PickedGames,
@@ -124,9 +123,8 @@ pub fn make_pick_games_recursively_dialog_task(
                     .pipe(|games| keep_valid_games(games, &existing_ids))
                     .collect::<Vec<_>>()
                     .await
-                    .into_boxed_slice()
             } else {
-                Box::new([])
+                Vec::new()
             }
         },
         Message::PickedGames,

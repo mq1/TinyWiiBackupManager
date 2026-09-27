@@ -221,8 +221,8 @@ impl AppState {
         }
     }
 
-    pub fn add_to_import_queue(&mut self, paths: impl IntoIterator<Item = PathBuf>) {
-        self.import_queue.extend(paths);
+    pub fn add_to_import_queue(&mut self, mut paths: Vec<PathBuf>) {
+        self.import_queue.append(&mut paths);
     }
 
     pub fn reload_cover(&mut self, game_id: GameID) {

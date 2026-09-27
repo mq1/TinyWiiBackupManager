@@ -51,7 +51,7 @@ pub enum Message {
     SetHashing(ConversionState),
     PickGames,
     PickGamesRecursively,
-    PickedGames(Box<[PathBuf]>),
+    PickedGames(Vec<PathBuf>),
     CancelImport(usize),
     CancelAllImports,
     ToggleAnimationState,
