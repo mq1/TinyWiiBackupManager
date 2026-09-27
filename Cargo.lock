@@ -2258,6 +2258,7 @@ dependencies = [
  "libz-sys",
  "lru 0.18.5",
  "md-5",
+ "openssl",
  "polonius-the-crab",
  "sha1",
  "simple_moving_average",
