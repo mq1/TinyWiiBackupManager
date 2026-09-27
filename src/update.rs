@@ -185,10 +185,7 @@ impl AppState {
             }
             Message::PickGamesRecursively => {
                 if let GamesState::Loaded(games) = &self.games {
-                    let existing_ids = games
-                        .get_all_game_ids()
-                        .collect::<Box<[_]>>()
-                        .pipe(Arc::new);
+                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
 
                     self.init_file_dialog_task().then(move |base| {
                         dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())

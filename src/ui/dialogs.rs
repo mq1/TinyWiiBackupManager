@@ -109,7 +109,7 @@ pub fn make_pick_games_dialog_task(
 
 pub fn make_pick_games_recursively_dialog_task(
     base: AsyncFileDialog,
-    existing_ids: Arc<Box<[GameID]>>,
+    existing_ids: Box<[GameID]>,
 ) -> Task<Message> {
     Task::perform(
         async move {
