@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.0] - 2026-09-28
+
 ### Added
 
 - ✅ Re-added Redump hash verification (redump sha1 hashes are now embedded into the executable)
@@ -21,16 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⚡️ All IO operations are now executed on a thread pool, UI should be more responsive \
   may improve on <https://github.com/mq1/TinyWiiBackupManager/issues/468>
 - 🐧 Linux appimages now require at least glibc 2.35 (previously was 2.31)
-- 📦 All builds (excluding Flatpak) now statically link compression libraries
 - 🪶 Smaller binary size (without compromising performance)
 - 📝 Game directory names are now based on english titles
-- 💄 More compact UI + minor UI changes
+- 💄 More compact UI + minor UI improvements
 
 ### Removed
 
 - ⚠️ Update partition scrubbing (fixed by <https://github.com/wiidev/nod/commit/9a7a6b2ef0a1036ff687f8e8ce0d0238064d4aaf>
   however this nod branch is be related to <https://github.com/mq1/TinyWiiBackupManager/issues/664> and <https://github.com/mq1/TinyWiiBackupManager/issues/667>) \
-  This will probably be fixed in the next nod release
+  This might be fixed in the next nod release
 - 🖌️ System theme detection on macOS x86_64 for compatibility with macOS < 10.14
 - ✅ crc32 generation, now that sha1 hashes are embedded into the executable
 
@@ -471,7 +472,9 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.7...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.0...HEAD
+[v6.1.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.8...v6.1.0
+[v6.0.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.7...v6.0.8
 [v6.0.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.6...v6.0.7
 [v6.0.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.5...v6.0.6
 [v6.0.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.4...v6.0.5
