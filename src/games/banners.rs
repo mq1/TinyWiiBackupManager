@@ -21,7 +21,7 @@ pub async fn download_banner(game_id: GameID, root_dir: &Path) -> Result<()> {
 }
 
 fn is_ngc(game_id: &GameID) -> bool {
-    let system_code = game_id.to_bytes()[0];
+    let system_code = game_id.system_code();
     system_code == b'D' || system_code == b'G'
 }
 

@@ -8,6 +8,7 @@ use smol::{
 };
 use std::{
     convert::identity,
+    ffi::OsStr,
     path::{Path, PathBuf},
 };
 use wii_disc_info::game_id::GameID;
@@ -24,6 +25,58 @@ pub mod game;
 pub mod games_state;
 pub mod import;
 pub mod txtcodes;
+
+#[derive(Debug, Clone)]
+struct Entry {
+    path: PathBuf,
+    game_id: GameID,
+    fingerprint: [u8; 5],
+}
+
+impl Entry {
+    fn new(path: PathBuf, game_id: GameID) -> Self {
+        let mut fingerprint = [0u8; 5];
+
+        let id_compact = game_id.to_u32().to_be_bytes();
+        fingerprint[0..4].copy_from_slice(&id_compact);
+
+        let is_disc1 = is_x(&path, "(Disc 1)");
+        let is_disc2 = is_x(&path, "(Disc 2)");
+
+        let flags = (is_disc1 as u8) << 1 | (is_disc2 as u8);
+        fingerprint[4] = flags;
+
+        Self {
+            path,
+            game_id,
+            fingerprint,
+        }
+    }
+
+    fn is_discx(&self) -> bool {
+        self.fingerprint[4] != 0
+    }
+}
+
+impl PartialEq for Entry {
+    fn eq(&self, other: &Self) -> bool {
+        self.fingerprint == other.fingerprint
+    }
+}
+
+impl Eq for Entry {}
+
+impl PartialOrd for Entry {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Entry {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.fingerprint.cmp(&other.fingerprint)
+    }
+}
 
 async fn get_id(path: &Path) -> Result<GameID> {
     let is_zip = path
@@ -51,22 +104,38 @@ async fn get_id(path: &Path) -> Result<GameID> {
     .map(|meta| meta.game_id())
 }
 
-pub fn keep_valid_games(
+fn is_x(path: &Path, x: &str) -> bool {
+    path.file_name()
+        .and_then(OsStr::to_str)
+        .is_some_and(|s| s.contains(x))
+}
+
+pub async fn keep_valid_games(
     games: impl Stream<Item = PathBuf>,
     existing_ids: &[GameID],
-) -> impl Stream<Item = PathBuf> {
-    games
-        .then(|p| async {
-            match get_id(&p).await {
-                Ok(id) => {
-                    let exists = existing_ids.contains(&id);
-                    let filename = p.file_name().unwrap_or_default().to_string_lossy();
-
-                    (!exists || filename.contains("(Disc 1)") || filename.contains("(Disc 2)"))
-                        .then_some(p)
-                }
+) -> Vec<PathBuf> {
+    let mut entries = games
+        .then(|path| async {
+            match get_id(&path).await {
+                Ok(id) => Some(Entry::new(path, id)),
                 _ => None,
             }
         })
         .filter_map(identity)
+        .collect::<Vec<_>>()
+        .await;
+
+    // remove duplicates
+    entries.sort_unstable();
+    entries.dedup();
+
+    // filter out existing games
+    entries.retain(|entry| {
+        let exists = existing_ids.contains(&entry.game_id);
+
+        // if it's a dual disc, try anyways
+        !exists || entry.is_discx()
+    });
+
+    entries.into_iter().map(|entry| entry.path).collect()
 }

@@ -8,7 +8,7 @@ use crate::{
 };
 use iced::Task;
 use rfd::AsyncFileDialog;
-use smol::stream::{self, StreamExt};
+use smol::stream;
 use std::{ffi::OsStr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
@@ -96,9 +96,7 @@ pub fn make_pick_games_dialog_task(
             {
                 let it = paths.into_iter().map(PathBuf::from);
 
-                keep_valid_games(stream::iter(it), &existing_ids)
-                    .collect::<Vec<_>>()
-                    .await
+                keep_valid_games(stream::iter(it), &existing_ids).await
             } else {
                 Vec::new()
             }
@@ -121,9 +119,7 @@ pub fn make_pick_games_recursively_dialog_task(
             if let Some(path) = res {
                 let games = recursive_file_scan(path, GAME_EXTS);
 
-                keep_valid_games(games, &existing_ids)
-                    .collect::<Vec<_>>()
-                    .await
+                keep_valid_games(games, &existing_ids).await
             } else {
                 Vec::new()
             }

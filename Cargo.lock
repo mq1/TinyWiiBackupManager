@@ -4328,9 +4328,9 @@ dependencies = [
 
 [[package]]
 name = "wii-disc-info"
-version = "0.10.1"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6773a24b62a6bd1377f021a453759d8b74b3f568c2ed17177c87fb3a22f4fa90"
+checksum = "7459d038454a4b8b0c4f1480562f196f5e63dd3277c14b2530d1955dcc736b55"
 dependencies = [
  "futures-lite",
  "miniz_oxide 0.9.1",
