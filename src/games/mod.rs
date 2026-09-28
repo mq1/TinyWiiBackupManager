@@ -53,7 +53,7 @@ impl Entry {
         }
     }
 
-    fn is_discx(&self) -> bool {
+    fn is_multidisc(&self) -> bool {
         self.fingerprint[4] != 0
     }
 }
@@ -134,7 +134,7 @@ pub async fn keep_valid_games(
         let exists = existing_ids.contains(&entry.game_id);
 
         // if it's a dual disc, try anyways
-        !exists || entry.is_discx()
+        !exists || entry.is_multidisc()
     });
 
     entries.into_iter().map(|entry| entry.path).collect()
