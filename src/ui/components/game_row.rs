@@ -38,7 +38,7 @@ pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         row_button(
             Icon::HardDriveDownload,
             "Export game",
-            is_exporting.then_some(|| Message::PickExportDest(game.clone()))
+            (!is_exporting).then_some(|| Message::PickExportDest(game.clone()))
         ),
         row_button(
             Icon::Info,
