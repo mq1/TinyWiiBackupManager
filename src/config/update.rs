@@ -7,10 +7,7 @@ use iced::Task;
 impl Config {
     pub fn update(&mut self, message: ConfigMessage) -> Task<ConfigMessage> {
         match message {
-            ConfigMessage::SetMountPoint(path) => {
-                self.contents.mount_point = path;
-                self.write()
-            }
+            ConfigMessage::SetMountPoint(path) => self.set_mount_point(path),
             ConfigMessage::SetWiiIp(ip) => {
                 self.contents.wii_ip = ip;
                 Task::none()
@@ -69,6 +66,7 @@ impl Config {
             }
             ConfigMessage::Write => self.write(),
             ConfigMessage::Written(_) => Task::none(), // handled in State::update
+            ConfigMessage::NewMountPoint => Task::none(), // handled in State::update
         }
     }
 }

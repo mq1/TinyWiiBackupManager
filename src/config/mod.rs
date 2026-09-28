@@ -112,20 +112,27 @@ impl Config {
     }
 
     /// Returns true if the notification should be shown
-    pub fn check_mount_point(&mut self) -> (bool, Task<ConfigMessage>) {
-        let drive = &self.contents.mount_point;
+    pub fn set_mount_point(&mut self, path: PathBuf) -> Task<ConfigMessage> {
+        self.contents.mount_point = path;
 
-        if drive.as_os_str().is_empty() {
-            return (false, Task::none());
+        if self.contents.mount_point.as_os_str().is_empty() {
+            return self.write();
         }
 
-        let new = self.contents.known_drives.iter().all(|p| p != drive);
+        let new = self
+            .contents
+            .known_drives
+            .iter()
+            .all(|p| p != &self.contents.mount_point);
 
         if new {
-            self.contents.known_drives.push(drive.clone());
-            (true, self.write())
+            self.contents
+                .known_drives
+                .push(self.contents.mount_point.clone());
+
+            Task::batch([self.write(), Task::done(ConfigMessage::NewMountPoint)])
         } else {
-            (false, Task::none())
+            self.write()
         }
     }
 

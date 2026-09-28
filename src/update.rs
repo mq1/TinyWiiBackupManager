@@ -14,15 +14,22 @@ use crate::{
     state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
-
 use iced::Task;
+
+const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Config(message) => {
-                if let ConfigMessage::Written(Err(e)) = &message {
-                    self.notifications.push(Notification::error(e));
+                match &message {
+                    ConfigMessage::Written(Err(e)) => {
+                        self.notifications.push(Notification::error(e));
+                    }
+                    ConfigMessage::NewMountPoint => {
+                        self.notifications.push(Notification::info(NEW_DRIVE_TEXT));
+                    }
+                    _ => {}
                 }
 
                 self.config.update(message).map(Message::Config)
@@ -57,15 +64,8 @@ impl AppState {
             }
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
             Message::GotConfig(config) => {
-                let new_mount_point = config.mount_point() != self.config.mount_point();
-
                 self.config = config;
-
-                if new_mount_point {
-                    self.refresh_games_and_apps()
-                } else {
-                    Task::none()
-                }
+                self.refresh_games_and_apps()
             }
             Message::GotGames(games) => {
                 self.games = games;

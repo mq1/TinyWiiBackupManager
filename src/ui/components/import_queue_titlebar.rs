@@ -8,7 +8,7 @@ use crate::{
     ui::components::my_button::{MyButtonKind, my_button},
 };
 use iced::{
-    Element,
+    Alignment, Element,
     widget::{row, space},
 };
 use lucide_icons::Icon;
@@ -32,7 +32,14 @@ pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
         cancel_all_btn = cancel_all_btn.on_press(Message::CancelAllImports);
     }
 
-    row![space::horizontal(), cancel_all_btn, import_btn]
-        .padding(10)
-        .into()
+    row![
+        "  Detected games to import",
+        space::horizontal(),
+        cancel_all_btn,
+        import_btn
+    ]
+    .spacing(10)
+    .padding(10)
+    .align_y(Alignment::Center)
+    .into()
 }
