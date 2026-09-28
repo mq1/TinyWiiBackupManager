@@ -14,14 +14,25 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
-    let mut btn = my_button()
+    let mut import_btn = my_button()
         .label("Start importing")
         .icon(Icon::Play)
         .kind(MyButtonKind::Primary);
 
-    if matches!(state.importing, ConversionState::Idle) {
-        btn = btn.on_press(Message::TriggerImport);
+    if matches!(state.importing, ConversionState::Idle) && !state.import_queue.is_empty() {
+        import_btn = import_btn.on_press(Message::TriggerImport);
     }
 
-    row![space::horizontal(), btn].padding(10).into()
+    let mut cancel_all_btn = my_button()
+        .label("Cancel all")
+        .icon(Icon::X)
+        .kind(MyButtonKind::Secondary);
+
+    if !state.import_queue.is_empty() {
+        cancel_all_btn = cancel_all_btn.on_press(Message::CancelAllImports);
+    }
+
+    row![space::horizontal(), cancel_all_btn, import_btn]
+        .padding(10)
+        .into()
 }
