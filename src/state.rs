@@ -78,7 +78,7 @@ impl AppState {
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
-                    Task::perform(OscState::load(data_dir), Message::GotOscContents),
+                    Task::perform(OscState::load(data_dir, false), Message::GotOscContents),
                     Task::perform(updates::check(), |res| match res {
                         Ok(Some(version)) => Message::GotUpdate(version),
                         Ok(None) => Message::NoOp,

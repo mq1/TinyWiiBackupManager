@@ -10,7 +10,11 @@ use crate::{
         my_card::my_card,
     },
 };
-use iced::{Element, widget::tooltip};
+use humantime::format_duration;
+use iced::{
+    Element,
+    widget::{text, tooltip},
+};
 use lucide_icons::Icon;
 
 pub fn refresh_osc_button(state: &AppState) -> Element<'_, Message> {
@@ -20,9 +24,18 @@ pub fn refresh_osc_button(state: &AppState) -> Element<'_, Message> {
         refresh_btn = refresh_btn.on_press(Message::RefreshOscContents);
     }
 
+    let tooltip_text = if let OscState::Loaded(apps) = &state.osc_contents {
+        text!(
+            "Refresh OSC contents cache (refreshed {} ago)",
+            format_duration(apps.last_refresh())
+        )
+    } else {
+        text("Refresh OSC contents cache")
+    };
+
     tooltip(
         refresh_btn,
-        my_card("Refresh OSC contents cache"),
+        my_card(tooltip_text),
         tooltip::Position::Bottom,
     )
     .into()

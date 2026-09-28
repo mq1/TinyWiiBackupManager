@@ -26,24 +26,18 @@ pub enum OscState {
 }
 
 impl OscState {
-    pub async fn load(data_dir: &Path) -> Self {
+    pub async fn load(data_dir: &Path, force_refresh: bool) -> Self {
         let cache_path = data_dir.join("osc-cache.json");
 
         let res = async move {
-            let refreshed = match fs::metadata(&cache_path)
+            let is_old = fs::metadata(&cache_path)
                 .await
-                .and_then(|meta| meta.modified())
-            {
-                Ok(time) => time,
-                Err(_) => {
-                    download_file(CONTENTS_URL, &cache_path).await?;
-                    fs::metadata(&cache_path).await?.modified()?
-                }
-            };
-
-            let should_refresh = refreshed
-                .elapsed()
+                .ok()
+                .and_then(|meta| meta.modified().ok())
+                .and_then(|modified| modified.elapsed().ok())
                 .map_or(true, |d| d > Duration::from_hours(24));
+
+            let should_refresh = force_refresh || is_old;
 
             if should_refresh {
                 let new_path = data_dir.join("osc-cache-new.json");
@@ -52,6 +46,7 @@ impl OscState {
                 }
             }
 
+            let refreshed = fs::metadata(&cache_path).await?.modified()?;
             let contents = fs::read_to_string(&cache_path).await?;
             let apps = serde_json::from_str(&contents)?;
 

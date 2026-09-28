@@ -305,7 +305,7 @@ impl AppState {
                 self.send_via_wiiload(path),
             ]),
             Message::RefreshOscContents => {
-                Task::perform(OscState::load(self.data_dir), Message::GotOscContents)
+                Task::perform(OscState::load(self.data_dir, true), Message::GotOscContents)
             }
             Message::GotOscContents(contents) => {
                 self.set_osc_contents(contents);
@@ -313,7 +313,7 @@ impl AppState {
                 if self.current_page == Page::Osc
                     && matches!(self.osc_contents, OscState::Loaded(_))
                 {
-                    self.reload_all_covers();
+                    self.reload_all_osc_icons();
                     self.download_osc_icons_task()
                 } else {
                     Task::none()
