@@ -73,8 +73,25 @@ pub struct ConfigContents {
 impl Config {
     pub async fn load(data_dir: &'static Path) -> Self {
         let path = data_dir.join("config.json");
-        let s = fs::read_to_string(&path).await.unwrap_or_default();
-        let contents = serde_json::from_str(&s).unwrap_or_default();
+
+        let contents = fs::read_to_string(&path)
+            .await
+            .ok()
+            .and_then(|s| serde_json::from_str::<ConfigContents>(&s).ok())
+            .map(|mut contents| async move {
+                if !contents.mount_point.as_os_str().is_empty()
+                    && fs::read_dir(&contents.mount_point).await.is_err()
+                {
+                    contents.mount_point = PathBuf::new();
+                }
+
+                contents
+            });
+
+        let contents = match contents {
+            Some(contents) => contents.await,
+            None => ConfigContents::default(),
+        };
 
         Self { path, contents }
     }
