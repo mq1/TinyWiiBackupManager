@@ -9,7 +9,7 @@
     }
   },
   "format": "UDBZ",
-  "filesystem": "APFS",
+  "filesystem": "HFS+",
   "contents": [
     {
       "x": 180,
