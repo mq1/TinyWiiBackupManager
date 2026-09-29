@@ -67,19 +67,19 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
                 config.always_split(),
                 ConfigMessage::SetAlwaysSplit
             ),
-            // setting(
-            //     "Remove update partition on WBFS/CISO",
-            //     Icon::FileMinusCorner,
-            //     [
-            //         (false, "No (recommended)"),
-            //         (
-            //             true,
-            //             "Yes (saves some space; update partition is zeroed, but still there)"
-            //         ),
-            //     ],
-            //     config.scrub_update_partition(),
-            //     ConfigMessage::SetScrubUpdatePartition
-            // ),
+            setting(
+                "Remove update partition on WBFS/CISO",
+                Icon::FileMinusCorner,
+                [
+                    (false, "No (recommended)"),
+                    (
+                        true,
+                        "Yes (saves some space; update partition is zeroed, but still there)"
+                    ),
+                ],
+                config.scrub_update_partition(),
+                ConfigMessage::SetScrubUpdatePartition
+            ),
             setting(
                 "Delete sources when adding games",
                 Icon::Trash,

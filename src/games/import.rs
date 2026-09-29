@@ -68,6 +68,19 @@ fn perform_blocking(
     let out_format = get_out_format(is_wii, &config);
     let disc_writer = DiscWriter::new(disc_reader, &FormatOptions::new(out_format))?;
 
+    let options = ProcessOptions {
+        processor_threads: OPTIMAL_THREADS.processor,
+        scrub: if config.scrub_update_partition() {
+            ScrubLevel::UpdatePartition
+        } else {
+            ScrubLevel::None
+        },
+        digest_crc32: true,
+        digest_md5: false,
+        digest_sha1: true,
+        digest_xxh64: true,
+    };
+
     let mut prev_percentage = 100;
     let finalization = disc_writer.process(
         |data, progress, total| {
@@ -84,14 +97,7 @@ fn perform_blocking(
 
             Ok(())
         },
-        &ProcessOptions {
-            processor_threads: OPTIMAL_THREADS.processor,
-            scrub: ScrubLevel::None,
-            digest_crc32: true,
-            digest_md5: false,
-            digest_sha1: true,
-            digest_xxh64: true,
-        },
+        &options,
     )?;
 
     let mut out_writer = out_writer

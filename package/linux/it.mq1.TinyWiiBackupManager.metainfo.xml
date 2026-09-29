@@ -21,6 +21,7 @@
             <li>Games view: Manage your Wii and GameCube games</li>
             <li>Format Support: .iso, .rvz and major formats thanks to NOD</li>
             <li>Automatic Splitting: .wbfs file splitting when needed</li>
+            <li>Partition Stripping: Remove the update partition to save space</li>
             <li>Game Archiving: Archive games using RVZ+zstd-19</li>
             <li>Integrity Checks: Verify game data for corruption</li>
             <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB</li>

@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "6.1.0"
+version = "6.1.1"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -68,7 +68,7 @@ wiiload = { version = "0.5", features = ["async"] }
 anyhow = "1"
 time = { version = "0.3", features = ["local-offset"] }
 minreq = { version = "3", features = ["json-using-serde"] }
-nod = { git = "https://github.com/rom-weaver/nod.git", branch = "perf/preloader-read-ahead", default-features = false, features = [
+nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling", default-features = false, features = [
   "threading",
 ] }
 semver = "1"
