@@ -11,7 +11,7 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 [features]
 default = ["dist-appimage"] # all statically linked
 native-https = ["minreq/https-native-tls"]
-static-https = ["minreq/https-openssl-probe", "nod/openssl-vendored"]
+static-https = ["minreq/https-rustls-probe"]
 static-nod = [
   "nod/compress-lzma-static",
   "nod/compress-zlib-static",
