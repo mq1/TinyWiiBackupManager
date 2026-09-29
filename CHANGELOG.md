@@ -484,7 +484,7 @@ Open an issue if you need any of these (explaining why you think feature X is im
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
 [Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.1...HEAD
-[v6.1.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.0...v6.1.1
+[v6.1.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.0...v6.1.1
 [v6.1.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.8...v6.1.0
 [v6.0.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.7...v6.0.8
 [v6.0.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.6...v6.0.7
