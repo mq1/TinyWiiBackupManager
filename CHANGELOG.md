@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- 📦 UPX is not used anymore on windows builds (can trigger AV)
+
 ## [v6.1.1] - 2026-09-29
 
 ### Added

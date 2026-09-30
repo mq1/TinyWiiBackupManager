@@ -134,6 +134,12 @@ jobs:
         with:
           components: rust-src
 
+      - name: Download VC-LTL5
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
+          7z x VC-LTL-Binary.7z
+
       - name: Build binary
         shell: pwsh
         run: |
@@ -144,9 +150,9 @@ jobs:
           CC: clang-cl
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L VC-LTL-Binary/TargetPlatform/10.0.10240.0/lib/ARM64
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
