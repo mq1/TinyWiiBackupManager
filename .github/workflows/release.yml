@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - next
     tags:
       - "v*.*.*"
     paths:
@@ -135,11 +134,6 @@ jobs:
         with:
           components: rust-src
 
-      - name: Download UPX
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: choco install upx
-
       - name: Build binary
         shell: pwsh
         run: |
@@ -156,11 +150,6 @@ jobs:
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
-
-      - name: Compress binary (UPX)
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: upx --best --lzma "TinyWiiBackupManager.exe"
 
       - name: Rename binary
         shell: pwsh
