@@ -44,4 +44,6 @@ fn main() {
 
     let out_path = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("sha1_list.bin");
     fs::write(out_path, sha1_list.as_flattened()).unwrap();
+
+    static_vcruntime::metabuild();
 }

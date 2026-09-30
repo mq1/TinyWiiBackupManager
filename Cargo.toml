@@ -107,6 +107,7 @@ wgpu = { version = "27.0", default-features = false, features = [
 
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
+static_vcruntime = "3"
 
 # tiny and fast
 [profile.release]
