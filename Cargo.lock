@@ -36,6 +36,7 @@ dependencies = [
  "tempfile",
  "time",
  "twbm-idmap",
+ "vc-ltl",
  "wgpu",
  "which-fs",
  "wii-disc-info",
@@ -3936,6 +3937,12 @@ dependencies = [
  "serde_core",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "vc-ltl"
+version = "5.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53fe54ba3aacc582bc3a665a6f1ce0a36faf69faaf4f514e800ed5425b010a7b"
 
 [[package]]
 name = "vcpkg"

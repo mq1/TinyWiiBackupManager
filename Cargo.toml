@@ -108,6 +108,9 @@ wgpu = { version = "27.0", default-features = false, features = [
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
 
+[target.'cfg(all(windows, target_env = "msvc"))'.dependencies]
+vc-ltl = "5"
+
 # tiny and fast
 [profile.release]
 opt-level = 3
