@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🐛 Fixed regression from v6.0.x where wiiload isn't sending properly formed zips
+- 🐛 Normalize paths does not search and rename folders without an ID (<https://github.com/mq1/TinyWiiBackupManager/issues/680>)
 
 ## [v6.1.1] - 2026-09-29
 
