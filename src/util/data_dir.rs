@@ -12,13 +12,37 @@ pub fn get_data_dir() -> Option<PathBuf> {
 }
 
 fn is_portable() -> bool {
-    std::env::current_exe().is_ok_and(|exe_path| {
-        exe_path.file_name().is_some_and(|name| {
-            name.to_string_lossy()
-                .to_ascii_lowercase()
-                .contains("portable")
-        })
-    })
+    let Ok(current_exe) = std::env::current_exe() else {
+        return false;
+    };
+
+    let Some(stem) = current_exe.file_stem() else {
+        return false;
+    };
+    let mut stem = stem.to_string_lossy().into_owned();
+    stem.make_ascii_lowercase();
+
+    if ["not-portable", "notportable", "no-portable", "noportable"]
+        .into_iter()
+        .any(|s| stem.contains(s))
+    {
+        return false;
+    }
+
+    if stem.contains("portable") {
+        return true;
+    }
+
+    let Some(parent) = current_exe.parent() else {
+        return false;
+    };
+
+    // if parent is a windows drive
+    parent
+        .to_string_lossy()
+        .chars()
+        .next()
+        .map_or(false, |c| c.is_ascii_uppercase())
 }
 
 fn get_user_dir() -> Option<PathBuf> {

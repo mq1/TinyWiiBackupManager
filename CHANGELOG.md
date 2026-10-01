@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 📦 UPX is not used anymore on windows builds (can trigger windows defender)
 - ⬇️ When importing files that are already in the preferred format, they are just copied (and eventually extracted and/or splitted) instead of being re-created
+- 📦 Windows builds are now portable by default if executed from a drive root. Can be disabled by adding the string "not-portable" to the .exe filename
 
 ### Fixed
 
