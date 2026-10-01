@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - next
     tags:
       - "v*.*.*"
     paths:
@@ -77,9 +76,11 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           CC: clang-22
+          CXX: clang++-22
           AR: llvm-ar-22
           RANLIB: llvm-ranlib-22
           CFLAGS: -O3 -flto
+          CXXFLAGS: -O3 -flto
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
@@ -135,11 +136,6 @@ jobs:
         with:
           components: rust-src
 
-      - name: Download UPX
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: choco install upx
-
       - name: Build binary
         shell: pwsh
         run: |
@@ -148,19 +144,16 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           CC: clang-cl
+          CXX: clang-cl
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
-
-      - name: Compress binary (UPX)
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: upx --best --lzma "TinyWiiBackupManager.exe"
 
       - name: Rename binary
         shell: pwsh
@@ -209,8 +202,10 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           CC: /opt/homebrew/opt/llvm@22/bin/clang
+          CXX: /opt/homebrew/opt/llvm@22/bin/clang++
           AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
           CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
+          CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh

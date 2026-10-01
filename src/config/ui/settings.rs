@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{
-        Config, GcOutputFormat, PreferredLanguage, ThemePreference, TxtCodesSource,
-        WiiOutputFormat, message::ConfigMessage,
-    },
+    config::{Config, PreferredLanguage, ThemePreference, TxtCodesSource, message::ConfigMessage},
     ui::components::my_group::my_group,
 };
 use iced::{
@@ -13,6 +10,7 @@ use iced::{
     widget::{Column, column, radio, scrollable},
 };
 use lucide_icons::Icon;
+use nod::common::Format;
 use strum::IntoEnumIterator;
 
 fn setting<T: Eq + Copy>(
@@ -38,8 +36,8 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
                 "Wii output format",
                 Icon::Disc3,
                 [
-                    (WiiOutputFormat::Wbfs, "WBFS (Recommended)"),
-                    (WiiOutputFormat::Iso, "ISO (very large)"),
+                    (Format::Wbfs, "WBFS (Recommended)"),
+                    (Format::Iso, "ISO (very large)"),
                 ],
                 config.wii_output_format(),
                 ConfigMessage::SetWiiOutputFormat
@@ -48,9 +46,9 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
                 "GameCube output format",
                 Icon::Disc3,
                 [
-                    (GcOutputFormat::Iso, "ISO (Recommended)"),
+                    (Format::Iso, "ISO (Recommended)"),
                     (
-                        GcOutputFormat::Ciso,
+                        Format::Ciso,
                         "CISO (much smaller, slightly slower, less metadata in game loaders)"
                     ),
                 ],

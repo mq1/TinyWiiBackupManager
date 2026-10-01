@@ -13,9 +13,15 @@ use std::{ffi::OsStr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
 #[rustfmt::skip]
-const GAME_EXTS: &[&str] = &[
+const GAME_EXTS_WITH_ZIP: &[&str] = &[
     "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc", "zip",
     "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC", "ZIP",
+];
+
+#[rustfmt::skip]
+const GAME_EXTS: &[&str] = &[
+    "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc",
+    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC",
 ];
 
 #[rustfmt::skip]
@@ -87,7 +93,7 @@ pub fn make_pick_games_dialog_task(
         async move {
             let res = base
                 .set_title("Select Game(s) to import")
-                .add_filter("Wii/NGC rom", GAME_EXTS)
+                .add_filter("Wii/NGC rom", GAME_EXTS_WITH_ZIP)
                 .pick_files()
                 .await;
 
@@ -117,7 +123,7 @@ pub fn make_pick_games_recursively_dialog_task(
                 .await;
 
             if let Some(path) = res {
-                let games = recursive_file_scan(path, GAME_EXTS);
+                let games = recursive_file_scan(path, GAME_EXTS_WITH_ZIP);
 
                 keep_valid_games(games, &existing_ids).await
             } else {

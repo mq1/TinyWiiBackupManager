@@ -4,8 +4,9 @@
 use crate::{
     config::message::ConfigMessage,
     games::{
-        calc_sha1::calc_sha1, conversion_state::ConversionState, convert::convert_game,
-        export::export_game, games_state::GamesState, txtcodes::download_cheats,
+        ImportEntry, calc_sha1::calc_sha1, conversion_state::ConversionState,
+        convert::convert_game, export::export_game, games_state::GamesState, scrub::scrub_game,
+        txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     message::Message,
@@ -88,8 +89,12 @@ impl AppState {
                 Task::none()
             }
             Message::OpenGameInfo(game) => {
-                self.current_modal = Some(Modal::GameInfo((game.clone(), None)));
-                self.get_disc_info_task(game)
+                self.current_modal = Some(Modal::GameInfo((game.clone(), None, false)));
+
+                Task::batch([
+                    self.get_disc_info_task(game.clone()),
+                    self.check_if_has_update_partition_task(game),
+                ])
             }
             Message::OpenHomebrewAppInfo(app) => {
                 self.current_modal = Some(Modal::HomebrewAppInfo(app));
@@ -104,18 +109,17 @@ impl AppState {
                 Task::none()
             }
             Message::GotDiscInfo(new_meta) => {
-                if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
+                if let Some(Modal::GameInfo((_, meta, _))) = &mut self.current_modal {
                     *meta = Some(new_meta);
                 }
 
                 Task::none()
             }
-            Message::CouldNotGetDiscInfo(e) => {
-                if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
-                    *meta = None;
+            Message::GotUpdatePartitionCheckResult(has_update_partition) => {
+                if let Some(Modal::GameInfo((_, _, scrubbable))) = &mut self.current_modal {
+                    *scrubbable = has_update_partition;
                 }
 
-                self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::AskDeleteDir(path) => {
@@ -294,6 +298,21 @@ impl AppState {
 
                 Task::none()
             }
+            Message::SetScrubbing(scrubbing) => {
+                self.scrubbing = match scrubbing {
+                    ConversionState::Finished(success) => {
+                        self.notifications.push(Notification::success(success));
+                        ConversionState::Idle
+                    }
+                    ConversionState::Errored(error) => {
+                        self.notifications.push(Notification::error(error));
+                        ConversionState::Idle
+                    }
+                    _ => scrubbing,
+                };
+
+                Task::none()
+            }
             Message::RunTool(tool) => self.run_tool(tool),
             Message::PickFileToSendViaWiiload => self
                 .init_file_dialog_task()
@@ -370,8 +389,8 @@ impl AppState {
                 .map(Message::Notify)
             }
             Message::SendOscAppViaWiiload(app) => {
-                let app_name = app.name().to_string();
-                let wii_ip = self.config.wii_ip().to_string();
+                let app_name: Box<str> = app.name().into();
+                let wii_ip: Box<str> = self.config.wii_ip().into();
 
                 self.notifications.push(Notification::info(format!(
                     "Sending {app_name} via wiiload"
@@ -382,9 +401,18 @@ impl AppState {
                         .update(ConfigMessage::Write)
                         .map(Message::Config),
                     Task::perform(
-                        async move { app.wiiload(&wii_ip).await },
+                        {
+                            let wii_ip = wii_ip.clone();
+                            async move { app.wiiload(&wii_ip).await }
+                        },
                         move |res| match res {
-                            Ok(()) => Notification::success(format!("Sent {app_name} via wiiload")),
+                            Ok(excluded_files) if excluded_files.is_empty() => {
+                                Notification::success(format!("Sent {app_name} to {wii_ip}"))
+                            }
+                            Ok(excluded_files) => Notification::info(format!(
+                                "Sent {app_name} to {wii_ip} ({} excluded files)",
+                                excluded_files.len()
+                            )),
                             Err(err) => Notification::error(err.to_string()),
                         },
                     )
@@ -418,10 +446,23 @@ impl AppState {
             }
             Message::TriggerImport => self.trigger_import_task(),
             Message::FileDropped(path) => match self.current_page {
-                Page::Games => Task::done(Message::PickedGames(vec![path])),
+                Page::Games => Task::perform(ImportEntry::new(path), |res| match res {
+                    Ok(entry) => Message::PickedGames(vec![entry]),
+                    Err(e) => Message::Notify(e.into()),
+                }),
                 Page::HomebrewApps => Task::done(Message::ImportHomebrewApps(vec![path])),
                 _ => Task::none(),
             },
+            Message::AskConfirmScrub(game) => {
+                self.current_modal = Some(Modal::ConfirmScrub(game));
+                Task::none()
+            }
+            Message::Scrub(game) => {
+                self.current_modal = None;
+                Task::stream(scrub_game(game))
+                    .map(Message::SetScrubbing)
+                    .chain(Task::done(Message::RefreshGamesAndApps))
+            }
         }
     }
 }

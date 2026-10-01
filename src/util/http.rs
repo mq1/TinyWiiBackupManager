@@ -15,7 +15,9 @@ use std::{
 };
 use tempfile::tempfile;
 use wiiload::WIILOAD_PORT;
-use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
+use zip::ZipArchive;
+
+use crate::util;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
@@ -101,15 +103,14 @@ pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
     .await
 }
 
-// recompresses the archive with -9 before sending
-pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()> {
+pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Vec<String>> {
     let filename = uri
         .split('/')
         .next_back()
         .and_then(|s| s.strip_suffix(".zip"))
         .context("invalid filename")?;
 
-    let file = smol::unblock({
+    let (file, excluded_files) = smol::unblock({
         let uri = uri.to_string();
 
         move || {
@@ -124,28 +125,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()
 
             std::io::copy(&mut resp, &mut og_app)?;
 
-            og_app.rewind()?;
-            let mut og_app = ZipArchive::new(&mut og_app)?;
-
-            let mut recompressed_app = tempfile()?;
-            let mut writer = ZipWriter::new(&mut recompressed_app);
-
-            let opts = SimpleFileOptions::default()
-                .compression_method(CompressionMethod::Deflated)
-                .compression_level(Some(9));
-
-            for i in 0..og_app.len() {
-                let mut file = og_app.by_index(i)?;
-                if file.is_dir() {
-                    writer.add_directory(file.name(), opts)?;
-                } else {
-                    writer.start_file(file.name(), opts)?;
-                    std::io::copy(&mut file, &mut writer)?;
-                }
-            }
-            writer.finish()?;
-
-            Ok::<_, anyhow::Error>(recompressed_app)
+            util::wiiload::rebuild_zip(og_app)
         }
     })
     .await?;
@@ -158,7 +138,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<()
     let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).await?;
     wiiload::send_async(&mut conn, filename, &mut file, size).await?;
 
-    Ok(())
+    Ok(excluded_files)
 }
 
 pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Result<()> {

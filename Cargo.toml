@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "6.1.1"
+version = "6.1.2"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -58,7 +58,7 @@ twbm-idmap = { version = "0.5", features = ["ascii-titles", "gamehacking"] }
 itertools = "0.15"
 split-write = "0.2"
 tempfile = "3"
-arrayvec = "0.7"
+arrayvec = { version = "0.7", features = ["serde"] }
 zip = { version = "8", default-features = false, features = [
   "deflate-flate2-zlib",
 ] }
@@ -107,6 +107,9 @@ wgpu = { version = "27.0", default-features = false, features = [
 
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
+
+[target.'cfg(all(windows, target_env = "msvc"))'.dependencies]
+vc-ltl = "5"
 
 # tiny and fast
 [profile.release]

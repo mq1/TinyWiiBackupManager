@@ -3,7 +3,7 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    games::{conversion_state::ConversionState, game::Game, games_state::GamesState},
+    games::{ImportEntry, conversion_state::ConversionState, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     notifications::notification::Notification,
     osc::{osc_app::OscApp, osc_state::OscState},
@@ -36,7 +36,6 @@ pub enum Message {
     OpenHomebrewAppInfo(HomebrewApp),
     CloseModal,
     GotDiscInfo(wii_disc_info::Meta),
-    CouldNotGetDiscInfo(String),
     AskDeleteDir(PathBuf),
     DeleteDir(PathBuf),
     DirDeleted(Result<(), String>),
@@ -47,9 +46,10 @@ pub enum Message {
     SetExporting(ConversionState),
     CalcGameSha1(Game),
     SetHashing(ConversionState),
+    SetScrubbing(ConversionState),
     PickGames,
     PickGamesRecursively,
-    PickedGames(Vec<PathBuf>),
+    PickedGames(Vec<ImportEntry>),
     CancelImport(usize),
     CancelAllImports,
     ToggleAnimationState,
@@ -78,4 +78,7 @@ pub enum Message {
     GotUpdate(Version),
     TriggerImport,
     FileDropped(PathBuf),
+    GotUpdatePartitionCheckResult(bool),
+    AskConfirmScrub(Game),
+    Scrub(Game),
 }

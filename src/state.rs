@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, ThemePreference},
     games::{
-        conversion_state::ConversionState, covers::download_ui_covers, game::Game,
+        ImportEntry, conversion_state::ConversionState, covers::download_ui_covers, game::Game,
         games_state::GamesState, import::import_game,
     },
     homebrew::{self, homebrew_state::HomebrewState},
@@ -13,23 +13,29 @@ use crate::{
     osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
-    util::{drive_state::DriveState, updates},
+    util::{self, drive_state::DriveState, updates},
 };
-use anyhow::Context;
+use anyhow::{Context, Result};
 
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
 };
 use lucide_icons::LUCIDE_FONT_BYTES;
+use nod::{
+    common::PartitionKind,
+    read::{DiscOptions, DiscReader},
+};
 use rfd::AsyncFileDialog;
 use semver::Version;
 use smol::{
     fs::{self, File},
+    io::AsyncSeekExt,
     net::TcpStream,
 };
 use std::{
     ffi::OsStr,
+    io::SeekFrom,
     path::{Path, PathBuf},
 };
 use wii_disc_info::game_id::GameID;
@@ -48,7 +54,8 @@ pub struct AppState {
     pub exporting: ConversionState,
     pub hashing: ConversionState,
     pub converting: ConversionState,
-    pub import_queue: Vec<PathBuf>,
+    pub scrubbing: ConversionState,
+    pub import_queue: Vec<ImportEntry>,
     pub osc_contents: OscState,
     pub animation_state: bool,
     pub new_version: Option<Version>,
@@ -75,6 +82,7 @@ impl AppState {
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
+                    scrubbing: ConversionState::Idle,
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
@@ -175,7 +183,38 @@ impl AppState {
             },
             |res| match res {
                 Ok(meta) => Message::GotDiscInfo(meta),
-                Err(e) => Message::CouldNotGetDiscInfo(e.to_string()),
+                Err(e) => Message::Notify(Notification::error(e.to_string())),
+            },
+        )
+    }
+
+    pub fn check_if_has_update_partition_task(&mut self, game: Game) -> Task<Message> {
+        Task::perform(
+            async move {
+                smol::unblock(move || {
+                    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+                    let disc_reader = DiscReader::new(
+                        disc_path,
+                        &DiscOptions {
+                            preloader_threads: 0,
+                            ..Default::default()
+                        },
+                    )?;
+
+                    let has_update_partition = disc_reader
+                        .partitions()
+                        .iter()
+                        .any(|partition| partition.kind == PartitionKind::Update);
+
+                    Ok(has_update_partition)
+                })
+                .await
+            },
+            |res: Result<bool>| match res {
+                Ok(has_update_partition) => {
+                    Message::GotUpdatePartitionCheckResult(has_update_partition)
+                }
+                Err(e) => Message::Notify(Notification::error(e.to_string())),
             },
         )
     }
@@ -202,11 +241,11 @@ impl AppState {
     }
 
     pub fn trigger_import_task(&mut self) -> Task<Message> {
-        if let Some(path) = self.import_queue.pop()
-            && let Some(filename) = path.file_name().and_then(OsStr::to_str)
-        {
-            self.importing = ConversionState::Progress(format!("⤓  Importing {filename}"));
-            Task::stream(import_game(path, self.config.clone(), self.drive.clone()))
+        if let Some(entry) = self.import_queue.pop() {
+            self.importing =
+                ConversionState::Progress(format!("⤓  Importing {}", entry.meta().game_title()));
+
+            Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
                 .map(Message::SetImporting)
         } else {
             self.notifications
@@ -215,7 +254,7 @@ impl AppState {
         }
     }
 
-    pub fn add_to_import_queue(&mut self, mut paths: Vec<PathBuf>) {
+    pub fn add_to_import_queue(&mut self, mut paths: Vec<ImportEntry>) {
         self.import_queue.append(&mut paths);
     }
 
@@ -263,20 +302,45 @@ impl AppState {
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip = self.config.wii_ip().to_string();
+        let wii_ip: Box<str> = self.config.wii_ip().into();
 
         Task::perform(
             async move {
-                let mut conn = TcpStream::connect((wii_ip.as_str(), WIILOAD_PORT)).await?;
-                let filename = path
+                let filename: Box<str> = path
                     .file_name()
                     .and_then(OsStr::to_str)
-                    .context("invalid filename")?;
-                let mut file = File::open(&path).await?;
+                    .context("invalid filename")?
+                    .into();
 
-                wiiload::compress_then_send_async(&mut conn, filename, &mut file).await?;
+                let is_zip = path
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
 
-                let msg = format!("Sent {filename} to {wii_ip}");
+                let mut conn = TcpStream::connect((wii_ip.as_ref(), WIILOAD_PORT)).await?;
+
+                let msg = if is_zip {
+                    let (file, excluded_files) = smol::unblock(move || {
+                        let file = std::fs::File::open(path)?;
+                        util::wiiload::rebuild_zip(file)
+                    })
+                    .await?;
+
+                    let mut file = File::from(file);
+                    file.seek(SeekFrom::Start(0)).await?;
+                    let size = file.metadata().await?.len().try_into()?;
+                    wiiload::send_async(&mut conn, &filename, &mut file, size).await?;
+
+                    format!(
+                        "Sent {filename} to {wii_ip} ({} excluded files)",
+                        excluded_files.len()
+                    )
+                } else {
+                    let mut file = File::open(&path).await?;
+                    wiiload::compress_then_send_async(&mut conn, &filename, &mut file).await?;
+
+                    format!("Sent {filename} to {wii_ip}")
+                };
+
                 Ok::<_, anyhow::Error>(msg)
             },
             |res| Message::Notify(res.into()),

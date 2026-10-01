@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{
-        conversion_state::ConversionState, disc_reader::get_disc_reader, export::ext_to_format,
-    },
+    games::{conversion_state::ConversionState, export::ext_to_format},
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result};
-use nod::write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel};
+use nod::{
+    read::{DiscOptions, DiscReader},
+    write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
+};
 use smol::stream::Stream;
 use std::{
     ffi::OsStr,
@@ -35,7 +36,14 @@ fn perform_blocking(
 
     let format_opts = FormatOptions::new(ext);
 
-    let disc_reader = get_disc_reader(&disc_path)?;
+    let disc_reader = DiscReader::new(
+        &disc_path,
+        &DiscOptions {
+            preloader_threads: OPTIMAL_THREADS.preloader,
+            ..Default::default()
+        },
+    )?;
+
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
     let mut out_writer = {
         let file = File::create(&out_path)?;

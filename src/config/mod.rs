@@ -4,6 +4,7 @@
 use crate::config::message::ConfigMessage;
 use anyhow::Result;
 use iced::{Task, futures::TryFutureExt};
+use nod::common::Format;
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::path::{Path, PathBuf};
@@ -57,11 +58,11 @@ pub struct ConfigContents {
     #[serde(default)]
     theme_preference: ThemePreference,
 
-    #[serde(default)]
-    wii_output_format: WiiOutputFormat,
+    #[serde(with = "serde_format", default = "wbfs")]
+    wii_output_format: Format,
 
-    #[serde(default)]
-    gc_output_format: GcOutputFormat,
+    #[serde(with = "serde_format", default = "iso")]
+    gc_output_format: Format,
 
     #[serde(default)]
     known_drives: Vec<PathBuf>,
@@ -136,62 +137,92 @@ impl Config {
         }
     }
 
+    #[must_use]
+    #[inline]
     pub fn always_split(&self) -> bool {
         self.contents.always_split
     }
 
+    #[must_use]
+    #[inline]
     pub fn mount_point(&self) -> &Path {
         &self.contents.mount_point
     }
 
+    #[must_use]
+    #[inline]
     pub fn remove_sources_apps(&self) -> bool {
         self.contents.remove_sources_apps
     }
 
+    #[must_use]
+    #[inline]
     pub fn remove_sources_games(&self) -> bool {
         self.contents.remove_sources_games
     }
 
+    #[must_use]
+    #[inline]
     pub fn scrub_update_partition(&self) -> bool {
         self.contents.scrub_update_partition
     }
 
+    #[must_use]
+    #[inline]
     pub fn sort_by(&self) -> SortBy {
         self.contents.sort_by
     }
 
+    #[must_use]
+    #[inline]
     pub fn view_as(&self) -> ViewAs {
         self.contents.view_as
     }
 
+    #[must_use]
+    #[inline]
     pub fn show_wii(&self) -> bool {
         self.contents.show_wii
     }
 
+    #[must_use]
+    #[inline]
     pub fn show_gc(&self) -> bool {
         self.contents.show_gc
     }
 
+    #[must_use]
+    #[inline]
     pub fn wii_ip(&self) -> &str {
         &self.contents.wii_ip
     }
 
+    #[must_use]
+    #[inline]
     pub fn txt_codes_source(&self) -> TxtCodesSource {
         self.contents.txt_codes_source
     }
 
+    #[must_use]
+    #[inline]
     pub fn theme_preference(&self) -> ThemePreference {
         self.contents.theme_preference
     }
 
-    pub fn wii_output_format(&self) -> WiiOutputFormat {
+    #[must_use]
+    #[inline]
+    pub fn wii_output_format(&self) -> Format {
         self.contents.wii_output_format
     }
 
-    pub fn gc_output_format(&self) -> GcOutputFormat {
+    #[must_use]
+    #[inline]
+    pub fn gc_output_format(&self) -> Format {
         self.contents.gc_output_format
     }
 
+    #[must_use]
+    #[inline]
     pub fn preferred_language(&self) -> PreferredLanguage {
         self.contents.preferred_language
     }
@@ -210,8 +241,8 @@ impl Default for ConfigContents {
             wii_ip: default_wii_ip(),
             txt_codes_source: TxtCodesSource::WebArchive,
             theme_preference: ThemePreference::System,
-            wii_output_format: WiiOutputFormat::Wbfs,
-            gc_output_format: GcOutputFormat::Iso,
+            wii_output_format: Format::Wbfs,
+            gc_output_format: Format::Iso,
             show_wii: true,
             show_gc: true,
             known_drives: Vec::new(),
@@ -256,22 +287,6 @@ pub enum TxtCodesSource {
     WebArchive,
     GameHacking,
     Rc24,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum WiiOutputFormat {
-    #[default]
-    Wbfs,
-    Iso,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum GcOutputFormat {
-    #[default]
-    Iso,
-    Ciso,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, EnumIter, IntoStaticStr)]
@@ -331,4 +346,44 @@ fn default_wii_ip() -> String {
 #[inline]
 fn yes() -> bool {
     true
+}
+
+#[inline]
+fn wbfs() -> Format {
+    Format::Wbfs
+}
+
+#[inline]
+fn iso() -> Format {
+    Format::Iso
+}
+
+mod serde_format {
+    use arrayvec::ArrayString;
+    use nod::common::Format;
+    use serde::Deserialize;
+
+    pub fn serialize<S>(format: &Format, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match format {
+            Format::Wbfs => serializer.serialize_str("wbfs"),
+            Format::Ciso => serializer.serialize_str("ciso"),
+            _ => serializer.serialize_str("iso"),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Format, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = ArrayString::<4>::deserialize(deserializer)?;
+
+        match s.as_str() {
+            "wbfs" => Ok(Format::Wbfs),
+            "ciso" => Ok(Format::Ciso),
+            _ => Ok(Format::Iso),
+        }
+    }
 }
