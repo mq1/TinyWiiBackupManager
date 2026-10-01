@@ -371,8 +371,8 @@ impl AppState {
                 .map(Message::Notify)
             }
             Message::SendOscAppViaWiiload(app) => {
-                let app_name = app.name().to_string();
-                let wii_ip = self.config.wii_ip().to_string();
+                let app_name: Box<str> = app.name().into();
+                let wii_ip: Box<str> = self.config.wii_ip().into();
 
                 self.notifications.push(Notification::info(format!(
                     "Sending {app_name} via wiiload"
@@ -383,9 +383,18 @@ impl AppState {
                         .update(ConfigMessage::Write)
                         .map(Message::Config),
                     Task::perform(
-                        async move { app.wiiload(&wii_ip).await },
+                        {
+                            let wii_ip = wii_ip.clone();
+                            async move { app.wiiload(&wii_ip).await }
+                        },
                         move |res| match res {
-                            Ok(()) => Notification::success(format!("Sent {app_name} via wiiload")),
+                            Ok(excluded_files) if excluded_files.is_empty() => {
+                                Notification::success(format!("Sent {app_name} to {wii_ip}"))
+                            }
+                            Ok(excluded_files) => Notification::info(format!(
+                                "Sent {app_name} to {wii_ip} ({} excluded files)",
+                                excluded_files.len()
+                            )),
                             Err(err) => Notification::error(err.to_string()),
                         },
                     )

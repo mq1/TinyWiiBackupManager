@@ -120,7 +120,7 @@ impl OscApp {
         download_and_extract_zip(&self.meta.assets.archive.url, root_dir).await
     }
 
-    pub async fn wiiload(&self, wii_ip: &str) -> Result<()> {
+    pub async fn wiiload(&self, wii_ip: &str) -> Result<Vec<String>> {
         download_and_send_via_wiiload(&self.meta.assets.archive.url, wii_ip).await
     }
 

@@ -13,7 +13,7 @@ use crate::{
     osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
-    util::{drive_state::DriveState, updates},
+    util::{self, drive_state::DriveState, updates},
 };
 use anyhow::Context;
 
@@ -26,10 +26,12 @@ use rfd::AsyncFileDialog;
 use semver::Version;
 use smol::{
     fs::{self, File},
+    io::AsyncSeekExt,
     net::TcpStream,
 };
 use std::{
     ffi::OsStr,
+    io::SeekFrom,
     path::{Path, PathBuf},
 };
 use wii_disc_info::game_id::GameID;
@@ -263,20 +265,45 @@ impl AppState {
     }
 
     pub fn send_via_wiiload(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip = self.config.wii_ip().to_string();
+        let wii_ip: Box<str> = self.config.wii_ip().into();
 
         Task::perform(
             async move {
-                let mut conn = TcpStream::connect((wii_ip.as_str(), WIILOAD_PORT)).await?;
-                let filename = path
+                let filename: Box<str> = path
                     .file_name()
                     .and_then(OsStr::to_str)
-                    .context("invalid filename")?;
-                let mut file = File::open(&path).await?;
+                    .context("invalid filename")?
+                    .into();
 
-                wiiload::compress_then_send_async(&mut conn, filename, &mut file).await?;
+                let is_zip = path
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
 
-                let msg = format!("Sent {filename} to {wii_ip}");
+                let mut conn = TcpStream::connect((wii_ip.as_ref(), WIILOAD_PORT)).await?;
+
+                let msg = if is_zip {
+                    let (file, excluded_files) = smol::unblock(move || {
+                        let file = std::fs::File::open(path)?;
+                        util::wiiload::rebuild_zip(file)
+                    })
+                    .await?;
+
+                    let mut file = File::from(file);
+                    file.seek(SeekFrom::Start(0)).await?;
+                    let size = file.metadata().await?.len().try_into()?;
+                    wiiload::send_async(&mut conn, &filename, &mut file, size).await?;
+
+                    format!(
+                        "Sent {filename} to {wii_ip} ({} excluded files)",
+                        excluded_files.len()
+                    )
+                } else {
+                    let mut file = File::open(&path).await?;
+                    wiiload::compress_then_send_async(&mut conn, &filename, &mut file).await?;
+
+                    format!("Sent {filename} to {wii_ip}")
+                };
+
                 Ok::<_, anyhow::Error>(msg)
             },
             |res| Message::Notify(res.into()),
