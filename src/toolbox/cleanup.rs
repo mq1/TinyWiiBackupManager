@@ -150,12 +150,12 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
             match &discs[..] {
                 [(disc_path, meta)] => {
                     // rename disc
-                    let new_disc_filename = make_disc_filename(&disc_path, &meta);
+                    let new_disc_filename = make_disc_filename(disc_path, meta);
                     let new_disc_path = path.join(&new_disc_filename);
                     fs::rename(&disc_path, &new_disc_path).await?;
 
                     // rename eventual split files
-                    rename_split_files(&disc_path, &meta, &new_disc_filename, games_dir, &path)
+                    rename_split_files(disc_path, meta, &new_disc_filename, games_dir, &path)
                         .await?;
                 }
                 [(disc0_path, _), (disc1_path, _)] => {
@@ -171,7 +171,7 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
 
                     // rename discs
                     for (disc_path, meta) in &discs {
-                        let new_disc_filename = make_disc_filename(&disc_path, &meta);
+                        let new_disc_filename = make_disc_filename(disc_path, meta);
                         let new_disc_path = path.join(&new_disc_filename);
                         fs::rename(&disc_path, &new_disc_path).await?;
                     }

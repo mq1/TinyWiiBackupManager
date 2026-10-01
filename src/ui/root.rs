@@ -9,7 +9,7 @@ use crate::{
     ui::{
         components::{notifications::notifications, sidebar::sidebar},
         modals::{
-            Modal, delete_dir::delete_dir, game_info::game_info,
+            Modal, confirm_scub::confirm_scrub, delete_dir::delete_dir, game_info::game_info,
             homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
         },
         pages::{
@@ -46,10 +46,13 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         state.current_modal.as_ref().map(|modal| {
             opaque(
                 container(match modal {
-                    Modal::GameInfo((game, disc_info)) => game_info(game, disc_info.as_ref()),
+                    Modal::GameInfo((game, disc_info, scrubbable)) => {
+                        game_info(game, disc_info.as_ref(), *scrubbable)
+                    }
                     Modal::HomebrewAppInfo(app) => homebrew_app_info(app),
                     Modal::OscAppInfo(app) => osc_app_info(app),
                     Modal::DeleteDir(path) => delete_dir(path),
+                    Modal::ConfirmScrub(game) => confirm_scrub(game),
                 })
                 .center(Length::Fill)
                 .style(|theme: &Theme| container::Style {
@@ -59,9 +62,15 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             )
         }),
         (state.notifications.has_notifications()
-            || [&state.importing, &state.exporting, &state.hashing]
-                .into_iter()
-                .any(|conversion| matches!(conversion, ConversionState::Progress(_))))
+            || [
+                &state.importing,
+                &state.exporting,
+                &state.hashing,
+                &state.converting,
+                &state.scrubbing
+            ]
+            .into_iter()
+            .any(|conversion| matches!(conversion, ConversionState::Progress(_))))
         .then(|| {
             container(notifications(state))
                 .align_right(Length::Fill)

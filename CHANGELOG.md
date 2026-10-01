@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.2] - 2026-10-01
+
+### Added
+
+- ✂️ Re-added update partition scrubbing for existing games (more precise than previous versions thanks to <https://github.com/wiidev/nod/commit/9a7a6b2ef0a1036ff687f8e8ce0d0238064d4aaf>)
+
 ### Changed
 
 - 📦 UPX is not used anymore on windows builds (can trigger windows defender)
@@ -17,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🐛 Fixed regression from v6.0.x where wiiload isn't sending properly formed zips
 - 🐛 Normalize paths does not search and rename folders without an ID (<https://github.com/mq1/TinyWiiBackupManager/issues/680>)
+- 🐛 Conversion status not displaying
 
 ## [v6.1.1] - 2026-09-29
 
@@ -494,7 +501,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.1...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.2...HEAD
+[v6.1.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.1...v6.1.2
 [v6.1.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.0...v6.1.1
 [v6.1.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.8...v6.1.0
 [v6.0.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.7...v6.0.8

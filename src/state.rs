@@ -15,13 +15,17 @@ use crate::{
     ui::{modals::Modal, pages::Page, theme},
     util::{self, drive_state::DriveState, updates},
 };
-use anyhow::Context;
+use anyhow::{Context, Result};
 
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
 };
 use lucide_icons::LUCIDE_FONT_BYTES;
+use nod::{
+    common::PartitionKind,
+    read::{DiscOptions, DiscReader},
+};
 use rfd::AsyncFileDialog;
 use semver::Version;
 use smol::{
@@ -50,6 +54,7 @@ pub struct AppState {
     pub exporting: ConversionState,
     pub hashing: ConversionState,
     pub converting: ConversionState,
+    pub scrubbing: ConversionState,
     pub import_queue: Vec<ImportEntry>,
     pub osc_contents: OscState,
     pub animation_state: bool,
@@ -77,6 +82,7 @@ impl AppState {
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
+                    scrubbing: ConversionState::Idle,
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
@@ -177,7 +183,38 @@ impl AppState {
             },
             |res| match res {
                 Ok(meta) => Message::GotDiscInfo(meta),
-                Err(e) => Message::CouldNotGetDiscInfo(e.to_string()),
+                Err(e) => Message::Notify(Notification::error(e.to_string())),
+            },
+        )
+    }
+
+    pub fn check_if_has_update_partition_task(&mut self, game: Game) -> Task<Message> {
+        Task::perform(
+            async move {
+                smol::unblock(move || {
+                    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+                    let disc_reader = DiscReader::new(
+                        disc_path,
+                        &DiscOptions {
+                            preloader_threads: 0,
+                            ..Default::default()
+                        },
+                    )?;
+
+                    let has_update_partition = disc_reader
+                        .partitions()
+                        .iter()
+                        .any(|partition| partition.kind == PartitionKind::Update);
+
+                    Ok(has_update_partition)
+                })
+                .await
+            },
+            |res: Result<bool>| match res {
+                Ok(has_update_partition) => {
+                    Message::GotUpdatePartitionCheckResult(has_update_partition)
+                }
+                Err(e) => Message::Notify(Notification::error(e.to_string())),
             },
         )
     }

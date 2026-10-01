@@ -22,6 +22,7 @@ use lucide_icons::{
 pub fn game_info<'a>(
     game: &'a Game,
     disc_info: Option<&'a wii_disc_info::Meta>,
+    scrubbable: bool,
 ) -> Element<'a, Message> {
     let content: Element<'a, _> = if let Some(disc_info) = disc_info {
         row![
@@ -84,6 +85,15 @@ pub fn game_info<'a>(
                 space(),
                 my_link("GameTDB Page", game.gametdb_url()),
                 space::horizontal(),
+                scrubbable.then(|| tooltip(
+                    my_button()
+                        .label("Scrub")
+                        .icon(Icon::Shredder)
+                        .kind(MyButtonKind::Secondary)
+                        .on_press_with(|| Message::AskConfirmScrub(game.clone())),
+                    my_card("Remove the update partition"),
+                    tooltip::Position::Bottom
+                )),
                 tooltip(
                     my_button()
                         .label("Get cheats")

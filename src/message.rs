@@ -36,7 +36,6 @@ pub enum Message {
     OpenHomebrewAppInfo(HomebrewApp),
     CloseModal,
     GotDiscInfo(wii_disc_info::Meta),
-    CouldNotGetDiscInfo(String),
     AskDeleteDir(PathBuf),
     DeleteDir(PathBuf),
     DirDeleted(Result<(), String>),
@@ -47,6 +46,7 @@ pub enum Message {
     SetExporting(ConversionState),
     CalcGameSha1(Game),
     SetHashing(ConversionState),
+    SetScrubbing(ConversionState),
     PickGames,
     PickGamesRecursively,
     PickedGames(Vec<ImportEntry>),
@@ -78,4 +78,7 @@ pub enum Message {
     GotUpdate(Version),
     TriggerImport,
     FileDropped(PathBuf),
+    GotUpdatePartitionCheckResult(bool),
+    AskConfirmScrub(Game),
+    Scrub(Game),
 }

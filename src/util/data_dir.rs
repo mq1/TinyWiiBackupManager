@@ -42,7 +42,7 @@ fn is_portable() -> bool {
         .to_string_lossy()
         .chars()
         .next()
-        .map_or(false, |c| c.is_ascii_uppercase())
+        .is_some_and(|c| c.is_ascii_uppercase())
 }
 
 fn get_user_dir() -> Option<PathBuf> {

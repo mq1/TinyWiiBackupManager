@@ -27,7 +27,7 @@ use std::{
 use which_fs::FsKind;
 use wii_disc_info::game_id::GameID;
 
-const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
+pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 
 fn perform_blocking(
     entry: &ImportEntry,
@@ -52,7 +52,7 @@ fn perform_blocking(
     };
 
     let must_split = entry.meta().is_wii() && (is_fat32 || config.always_split());
-    let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
+    let split_size = must_split.then_some(SPLIT_SIZE);
 
     let parent_dir_name = if entry.meta().is_wii() {
         "wbfs"
@@ -75,7 +75,8 @@ fn perform_blocking(
                 entry.meta().is_wii(),
                 part,
                 entry.meta.disc_number(),
-                config,
+                config.wii_output_format(),
+                config.gc_output_format(),
                 must_split,
             )
         },
@@ -205,16 +206,17 @@ pub fn import_game(
     rx
 }
 
-fn get_filename(
+pub fn get_filename(
     game_id: GameID,
     is_wii: bool,
     part: usize,
     disc_num: u8,
-    config: &Config,
+    wii_output_format: Format,
+    gc_output_format: Format,
     must_split: bool,
 ) -> String {
     if is_wii {
-        match config.wii_output_format() {
+        match wii_output_format {
             Format::Iso => {
                 if must_split {
                     format!("{game_id}.part{part}.iso")
@@ -228,7 +230,7 @@ fn get_filename(
             },
         }
     } else {
-        match config.gc_output_format() {
+        match gc_output_format {
             Format::Ciso => match disc_num {
                 0 => "game.ciso".to_string(),
                 n => format!("disc{}.ciso", n + 1),

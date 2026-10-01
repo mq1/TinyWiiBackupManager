@@ -71,6 +71,7 @@ pub fn notifications(state: &AppState) -> Element<'_, Message> {
         .chain(progress(&state.exporting))
         .chain(progress(&state.hashing))
         .chain(progress(&state.converting))
+        .chain(progress(&state.scrubbing))
         .collect::<Column<'_, Message>>()
         .padding(10)
         .spacing(10)

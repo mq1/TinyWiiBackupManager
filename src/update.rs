@@ -5,7 +5,7 @@ use crate::{
     config::message::ConfigMessage,
     games::{
         ImportEntry, calc_sha1::calc_sha1, conversion_state::ConversionState,
-        convert::convert_game, export::export_game, games_state::GamesState,
+        convert::convert_game, export::export_game, games_state::GamesState, scrub::scrub_game,
         txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
@@ -89,8 +89,12 @@ impl AppState {
                 Task::none()
             }
             Message::OpenGameInfo(game) => {
-                self.current_modal = Some(Modal::GameInfo((game.clone(), None)));
-                self.get_disc_info_task(game)
+                self.current_modal = Some(Modal::GameInfo((game.clone(), None, false)));
+
+                Task::batch([
+                    self.get_disc_info_task(game.clone()),
+                    self.check_if_has_update_partition_task(game),
+                ])
             }
             Message::OpenHomebrewAppInfo(app) => {
                 self.current_modal = Some(Modal::HomebrewAppInfo(app));
@@ -105,18 +109,17 @@ impl AppState {
                 Task::none()
             }
             Message::GotDiscInfo(new_meta) => {
-                if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
+                if let Some(Modal::GameInfo((_, meta, _))) = &mut self.current_modal {
                     *meta = Some(new_meta);
                 }
 
                 Task::none()
             }
-            Message::CouldNotGetDiscInfo(e) => {
-                if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
-                    *meta = None;
+            Message::GotUpdatePartitionCheckResult(has_update_partition) => {
+                if let Some(Modal::GameInfo((_, _, scrubbable))) = &mut self.current_modal {
+                    *scrubbable = has_update_partition;
                 }
 
-                self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::AskDeleteDir(path) => {
@@ -295,6 +298,21 @@ impl AppState {
 
                 Task::none()
             }
+            Message::SetScrubbing(scrubbing) => {
+                self.scrubbing = match scrubbing {
+                    ConversionState::Finished(success) => {
+                        self.notifications.push(Notification::success(success));
+                        ConversionState::Idle
+                    }
+                    ConversionState::Errored(error) => {
+                        self.notifications.push(Notification::error(error));
+                        ConversionState::Idle
+                    }
+                    _ => scrubbing,
+                };
+
+                Task::none()
+            }
             Message::RunTool(tool) => self.run_tool(tool),
             Message::PickFileToSendViaWiiload => self
                 .init_file_dialog_task()
@@ -435,6 +453,16 @@ impl AppState {
                 Page::HomebrewApps => Task::done(Message::ImportHomebrewApps(vec![path])),
                 _ => Task::none(),
             },
+            Message::AskConfirmScrub(game) => {
+                self.current_modal = Some(Modal::ConfirmScrub(game));
+                Task::none()
+            }
+            Message::Scrub(game) => {
+                self.current_modal = None;
+                Task::stream(scrub_game(game))
+                    .map(Message::SetScrubbing)
+                    .chain(Task::done(Message::RefreshGamesAndApps))
+            }
         }
     }
 }
