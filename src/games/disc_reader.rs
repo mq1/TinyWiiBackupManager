@@ -26,7 +26,7 @@ trait ReadExactAt {
 }
 
 #[cfg(windows)]
-impl ReadAt for File {
+impl ReadExactAt for File {
     fn read_exact_at(&self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
         while !buf.is_empty() {
             match self.seek_read(buf, offset) {
