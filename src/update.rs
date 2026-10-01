@@ -4,8 +4,9 @@
 use crate::{
     config::message::ConfigMessage,
     games::{
-        calc_sha1::calc_sha1, conversion_state::ConversionState, convert::convert_game,
-        export::export_game, games_state::GamesState, txtcodes::download_cheats,
+        ImportEntry, calc_sha1::calc_sha1, conversion_state::ConversionState,
+        convert::convert_game, export::export_game, games_state::GamesState,
+        txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     message::Message,
@@ -418,7 +419,10 @@ impl AppState {
             }
             Message::TriggerImport => self.trigger_import_task(),
             Message::FileDropped(path) => match self.current_page {
-                Page::Games => Task::done(Message::PickedGames(vec![path])),
+                Page::Games => Task::perform(ImportEntry::new(path), |res| match res {
+                    Ok(entry) => Message::PickedGames(vec![entry]),
+                    Err(e) => Message::Notify(e.into()),
+                }),
                 Page::HomebrewApps => Task::done(Message::ImportHomebrewApps(vec![path])),
                 _ => Task::none(),
             },

@@ -35,7 +35,7 @@ impl OscState {
                 .ok()
                 .and_then(|meta| meta.modified().ok())
                 .and_then(|modified| modified.elapsed().ok())
-                .map_or(true, |d| d > Duration::from_hours(24));
+                .is_none_or(|d| d > Duration::from_hours(24));
 
             let should_refresh = force_refresh || is_old;
 

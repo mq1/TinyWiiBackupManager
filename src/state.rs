@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, ThemePreference},
     games::{
-        conversion_state::ConversionState, covers::download_ui_covers, game::Game,
+        ImportEntry, conversion_state::ConversionState, covers::download_ui_covers, game::Game,
         games_state::GamesState, import::import_game,
     },
     homebrew::{self, homebrew_state::HomebrewState},
@@ -48,7 +48,7 @@ pub struct AppState {
     pub exporting: ConversionState,
     pub hashing: ConversionState,
     pub converting: ConversionState,
-    pub import_queue: Vec<PathBuf>,
+    pub import_queue: Vec<ImportEntry>,
     pub osc_contents: OscState,
     pub animation_state: bool,
     pub new_version: Option<Version>,
@@ -202,11 +202,11 @@ impl AppState {
     }
 
     pub fn trigger_import_task(&mut self) -> Task<Message> {
-        if let Some(path) = self.import_queue.pop()
-            && let Some(filename) = path.file_name().and_then(OsStr::to_str)
-        {
-            self.importing = ConversionState::Progress(format!("⤓  Importing {filename}"));
-            Task::stream(import_game(path, self.config.clone(), self.drive.clone()))
+        if let Some(entry) = self.import_queue.pop() {
+            self.importing =
+                ConversionState::Progress(format!("⤓  Importing {}", entry.meta().game_title()));
+
+            Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
                 .map(Message::SetImporting)
         } else {
             self.notifications
@@ -215,7 +215,7 @@ impl AppState {
         }
     }
 
-    pub fn add_to_import_queue(&mut self, mut paths: Vec<PathBuf>) {
+    pub fn add_to_import_queue(&mut self, mut paths: Vec<ImportEntry>) {
         self.import_queue.append(&mut paths);
     }
 

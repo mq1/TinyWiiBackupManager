@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- 📦 UPX is not used anymore on windows builds (can trigger AV)
+- 📦 UPX is not used anymore on windows builds (can trigger windows defender)
+- ⬇️ When importing files that are already in the preferred format, they are just copied (and eventually extracted and/or splitted) instead of being re-created
 
 ## [v6.1.1] - 2026-09-29
 

@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::misc::OPTIMAL_THREADS;
 use anyhow::{Context, Result};
 use arrayvec::ArrayVec;
-use nod::read::{DiscOptions, DiscReader, DiscStream};
+use nod::read::DiscStream;
 use std::{
     ffi::OsStr,
     fs::File,
@@ -27,7 +26,7 @@ trait ReadExactAt {
 }
 
 #[cfg(windows)]
-impl ReadExactAt for File {
+impl ReadAt for File {
     fn read_exact_at(&self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
         while !buf.is_empty() {
             match self.seek_read(buf, offset) {
@@ -50,13 +49,13 @@ impl ReadExactAt for File {
 }
 
 #[derive(Debug, Clone)]
-struct SharedMultiFileReader {
+pub struct SharedMultiFileReader {
     inner: ArrayVec<(Arc<File>, u64), 4>,
     stream_len: u64,
 }
 
 impl SharedMultiFileReader {
-    pub fn new(files: impl IntoIterator<Item = File>) -> io::Result<Self> {
+    pub fn new(files: impl IntoIterator<Item = File>) -> Result<Self> {
         let mut inner = ArrayVec::new();
         let mut stream_len = 0;
 
@@ -104,18 +103,12 @@ impl DiscStream for SharedMultiFileReader {
     }
 }
 
-pub fn get_disc_reader(path: &Path) -> Result<DiscReader> {
-    let disc_opts = DiscOptions {
-        preloader_threads: OPTIMAL_THREADS.preloader,
-        ..Default::default()
-    };
+pub fn retrieve_multi_disc_files(path: &Path) -> Result<ArrayVec<File, 4>> {
+    let mut files = ArrayVec::new();
 
-    let ext = path
-        .extension()
-        .and_then(OsStr::to_str)
-        .context("invalid extension")?;
+    let ext = path.extension().context("invalid extension")?;
 
-    let reader = if ext == "zip" || ext == "ZIP" {
+    if ext.eq_ignore_ascii_case("zip") {
         let mut zip = ZipArchive::new(File::open(path)?)?;
         let mut entry = zip.by_index(0)?;
 
@@ -123,14 +116,13 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader> {
         io::copy(&mut entry, &mut tmp)?;
         tmp.flush()?;
 
-        SharedMultiFileReader::new([tmp])?
+        files.push(tmp);
     } else {
         let filename = path
             .file_name()
             .and_then(OsStr::to_str)
             .context("invalid filename")?;
 
-        let mut files = ArrayVec::<_, 4>::new();
         files.push(File::open(path)?);
 
         if let Some(filename) = filename.strip_suffix(".part0.iso") {
@@ -156,10 +148,7 @@ pub fn get_disc_reader(path: &Path) -> Result<DiscReader> {
                 files.push(File::open(&wbfx_path)?);
             }
         }
+    }
 
-        SharedMultiFileReader::new(files)?
-    };
-
-    let disc_reader = DiscReader::new_stream(Box::new(reader), &disc_opts)?;
-    Ok(disc_reader)
+    Ok(files)
 }

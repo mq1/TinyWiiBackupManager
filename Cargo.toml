@@ -58,7 +58,7 @@ twbm-idmap = { version = "0.5", features = ["ascii-titles", "gamehacking"] }
 itertools = "0.15"
 split-write = "0.2"
 tempfile = "3"
-arrayvec = "0.7"
+arrayvec = { version = "0.7", features = ["serde"] }
 zip = { version = "8", default-features = false, features = [
   "deflate-flate2-zlib",
 ] }

@@ -3,7 +3,7 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    games::{conversion_state::ConversionState, game::Game, games_state::GamesState},
+    games::{ImportEntry, conversion_state::ConversionState, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     notifications::notification::Notification,
     osc::{osc_app::OscApp, osc_state::OscState},
@@ -49,7 +49,7 @@ pub enum Message {
     SetHashing(ConversionState),
     PickGames,
     PickGamesRecursively,
-    PickedGames(Vec<PathBuf>),
+    PickedGames(Vec<ImportEntry>),
     CancelImport(usize),
     CancelAllImports,
     ToggleAnimationState,

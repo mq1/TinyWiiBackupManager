@@ -7,7 +7,6 @@ use smol::{
     stream::{Stream, StreamExt},
 };
 use std::{
-    convert::identity,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
@@ -27,17 +26,39 @@ pub mod import;
 pub mod txtcodes;
 
 #[derive(Debug, Clone)]
-struct Entry {
+pub struct ImportEntry {
     path: PathBuf,
-    game_id: GameID,
+    meta: wii_disc_info::Meta,
     fingerprint: [u8; 5],
 }
 
-impl Entry {
-    fn new(path: PathBuf, game_id: GameID) -> Self {
+impl ImportEntry {
+    pub async fn new(path: PathBuf) -> Result<Self> {
+        let is_zip = path
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
+
+        let meta = if is_zip {
+            smol::unblock({
+                let path = path.clone();
+
+                move || {
+                    let f = std::fs::File::open(path)?;
+                    let mut archive = ZipArchive::new(f)?;
+                    let mut first_entry = archive.by_index(0)?;
+                    let meta = wii_disc_info::Meta::read(&mut first_entry)?;
+                    Ok::<_, anyhow::Error>(meta)
+                }
+            })
+            .await?
+        } else {
+            let mut f = File::open(&path).await?;
+            wii_disc_info::Meta::read_async(&mut f).await?
+        };
+
         let mut fingerprint = [0u8; 5];
 
-        let id_compact = game_id.to_u32().to_be_bytes();
+        let id_compact = meta.game_id().to_u32().to_be_bytes();
         fingerprint[0..4].copy_from_slice(&id_compact);
 
         let is_disc1 = is_x(&path, "(Disc 1)");
@@ -46,62 +67,50 @@ impl Entry {
         let flags = (is_disc1 as u8) << 1 | (is_disc2 as u8);
         fingerprint[4] = flags;
 
-        Self {
+        Ok(Self {
             path,
-            game_id,
+            meta,
             fingerprint,
-        }
+        })
     }
 
+    #[must_use]
+    #[inline]
     fn is_multidisc(&self) -> bool {
         self.fingerprint[4] != 0
     }
+
+    #[must_use]
+    #[inline]
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn meta(&self) -> &wii_disc_info::Meta {
+        &self.meta
+    }
 }
 
-impl PartialEq for Entry {
+impl PartialEq for ImportEntry {
     fn eq(&self, other: &Self) -> bool {
         self.fingerprint == other.fingerprint
     }
 }
 
-impl Eq for Entry {}
+impl Eq for ImportEntry {}
 
-impl PartialOrd for Entry {
+impl PartialOrd for ImportEntry {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Entry {
+impl Ord for ImportEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.fingerprint.cmp(&other.fingerprint)
     }
-}
-
-async fn get_id(path: &Path) -> Result<GameID> {
-    let is_zip = path
-        .extension()
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
-
-    if is_zip {
-        smol::unblock({
-            let path = path.to_path_buf();
-
-            move || {
-                let f = std::fs::File::open(path)?;
-                let mut archive = ZipArchive::new(f)?;
-                let mut first_entry = archive.by_index(0)?;
-                let meta = wii_disc_info::Meta::read(&mut first_entry)?;
-                Ok(meta)
-            }
-        })
-        .await
-    } else {
-        let mut f = File::open(path).await?;
-        let meta = wii_disc_info::Meta::read_async(&mut f).await?;
-        Ok(meta)
-    }
-    .map(|meta| meta.game_id())
 }
 
 fn is_x(path: &Path, x: &str) -> bool {
@@ -113,15 +122,10 @@ fn is_x(path: &Path, x: &str) -> bool {
 pub async fn keep_valid_games(
     games: impl Stream<Item = PathBuf>,
     existing_ids: &[GameID],
-) -> Vec<PathBuf> {
+) -> Vec<ImportEntry> {
     let mut entries = games
-        .then(|path| async {
-            match get_id(&path).await {
-                Ok(id) => Some(Entry::new(path, id)),
-                _ => None,
-            }
-        })
-        .filter_map(identity)
+        .then(ImportEntry::new)
+        .filter_map(Result::ok)
         .collect::<Vec<_>>()
         .await;
 
@@ -131,11 +135,11 @@ pub async fn keep_valid_games(
 
     // filter out existing games
     entries.retain(|entry| {
-        let exists = existing_ids.contains(&entry.game_id);
+        let exists = existing_ids.contains(&entry.meta.game_id());
 
         // if it's a dual disc, try anyways
         !exists || entry.is_multidisc()
     });
 
-    entries.into_iter().map(|entry| entry.path).collect()
+    entries
 }
