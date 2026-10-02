@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::conversion_state::ConversionState,
+    long_operation::LongOperationKind,
     message::Message,
     state::AppState,
     ui::components::my_button::{MyButtonKind, my_button},
@@ -19,7 +19,7 @@ pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
         .icon(Icon::Play)
         .kind(MyButtonKind::Primary);
 
-    if matches!(state.importing, ConversionState::Idle) && !state.import_queue.is_empty() {
+    if state.long_operations.is_idle(LongOperationKind::Import) && !state.import_queue.is_empty() {
         import_btn = import_btn.on_press(Message::TriggerImport);
     }
 

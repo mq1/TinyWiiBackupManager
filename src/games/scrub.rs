@@ -1,10 +1,10 @@
 use crate::{
     games::{
-        conversion_state::ConversionState,
         disc_reader::{SharedMultiFileReader, retrieve_multi_disc_files},
         game::Game,
         import::{SPLIT_SIZE, get_filename},
     },
+    long_operation::LongOperationState,
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result, anyhow};
@@ -20,7 +20,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-fn perform_blocking(game: &Game, tx: &smol::channel::Sender<ConversionState>) -> Result<()> {
+fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let game_dir_name = game
@@ -84,7 +84,7 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<ConversionState>) ->
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(ConversionState::Progress(format!(
+                    let _ = tx.try_send(LongOperationState::Progress(format!(
                         "Scrubbing {}  {progress_percentage:02}%",
                         game.title()
                     )));
@@ -114,13 +114,13 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<ConversionState>) ->
     Ok(())
 }
 
-pub fn scrub_game(game: Game) -> impl Stream<Item = ConversionState> {
+pub fn scrub_game(game: Game) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
         let exit = match perform_blocking(&game, &tx) {
-            Ok(()) => ConversionState::Finished(format!("Scrubbed {}", game.title())),
-            Err(e) => ConversionState::Errored(e.to_string()),
+            Ok(()) => LongOperationState::Finished(format!("Scrubbed {}", game.title())),
+            Err(e) => LongOperationState::Errored(e.to_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");

@@ -3,7 +3,8 @@
 
 use crate::{
     config::ViewAs,
-    games::{conversion_state::ConversionState, games_state::GamesState},
+    games::games_state::GamesState,
+    long_operation::LongOperationKind,
     message::Message,
     state::AppState,
     ui::{
@@ -29,7 +30,7 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
         GamesState::NotLoaded | GamesState::Loading => loading(),
         GamesState::Errored(e) => errored(e),
         GamesState::Loaded(games) => {
-            let is_exporting = matches!(state.exporting, ConversionState::Progress(_));
+            let is_exporting = !state.long_operations.is_idle(LongOperationKind::Export);
 
             let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => games

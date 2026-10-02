@@ -5,9 +5,9 @@ use crate::{
     config::Config,
     games::{
         ImportEntry,
-        conversion_state::ConversionState,
         disc_reader::{SharedMultiFileReader, retrieve_multi_disc_files},
     },
+    long_operation::LongOperationState,
     util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
 use anyhow::{Context, Result, anyhow};
@@ -33,7 +33,7 @@ fn perform_blocking(
     entry: &ImportEntry,
     config: &Config,
     drive: &DriveState,
-    tx: &smol::channel::Sender<ConversionState>,
+    tx: &smol::channel::Sender<LongOperationState>,
 ) -> Result<()> {
     let filename = entry
         .path()
@@ -41,7 +41,9 @@ fn perform_blocking(
         .and_then(OsStr::to_str)
         .context("invalid filename")?;
 
-    tx.send_blocking(ConversionState::Progress(format!("›  Opening {filename}")))?;
+    tx.send_blocking(LongOperationState::Progress(format!(
+        "›  Opening {filename}"
+    )))?;
 
     let mut files = retrieve_multi_disc_files(entry.path())?;
 
@@ -113,7 +115,7 @@ fn perform_blocking(
 
                 let progress_percentage = written * 100 / to_write;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(ConversionState::Progress(format!(
+                    let _ = tx.try_send(LongOperationState::Progress(format!(
                         "⤓  Importing {}  {progress_percentage:02}%",
                         entry.meta().game_title()
                     )));
@@ -156,7 +158,7 @@ fn perform_blocking(
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(ConversionState::Progress(format!(
+                    let _ = tx.try_send(LongOperationState::Progress(format!(
                         "⤓  Importing {}  {progress_percentage:02}%",
                         entry.meta().game_title()
                     )));
@@ -191,13 +193,15 @@ pub fn import_game(
     entry: ImportEntry,
     config: Config,
     drive: DriveState,
-) -> impl Stream<Item = ConversionState> {
+) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
         let exit = match perform_blocking(&entry, &config, &drive, &tx) {
-            Ok(()) => ConversionState::Finished(format!("Imported {}", entry.meta().game_title())),
-            Err(e) => ConversionState::Errored(e.to_string()),
+            Ok(()) => {
+                LongOperationState::Finished(format!("Imported {}", entry.meta().game_title()))
+            }
+            Err(e) => LongOperationState::Errored(e.to_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");

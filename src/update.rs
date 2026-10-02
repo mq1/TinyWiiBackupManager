@@ -4,11 +4,11 @@
 use crate::{
     config::message::ConfigMessage,
     games::{
-        ImportEntry, calc_sha1::calc_sha1, conversion_state::ConversionState,
-        convert::convert_game, export::export_game, games_state::GamesState, scrub::scrub_game,
-        txtcodes::download_cheats,
+        ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
+        games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
+    long_operation::{LongOperationKind, LongOperationState},
     message::Message,
     notifications::notification::Notification,
     osc::osc_state::OscState,
@@ -147,23 +147,14 @@ impl AppState {
             }
             Message::HomebrewAppsImported(_) => Task::none(),
             Message::CalcGameSha1(game) => {
-                self.hashing = ConversionState::Progress(String::new());
-                Task::stream(calc_sha1(game)).map(Message::SetHashing)
-            }
-            Message::SetHashing(hashing) => {
-                self.hashing = match hashing {
-                    ConversionState::Finished(success) => {
-                        self.notifications.push(Notification::success(success));
-                        ConversionState::Idle
-                    }
-                    ConversionState::Errored(e) => {
-                        self.notifications.push(Notification::error(e));
-                        ConversionState::Idle
-                    }
-                    _ => hashing,
-                };
+                self.long_operations.set(
+                    LongOperationKind::Hash,
+                    LongOperationState::Progress(String::new()),
+                );
 
-                Task::none()
+                Task::stream(calc_sha1(game)).map(|op_state| {
+                    Message::SetLongOperationState(LongOperationKind::Hash, op_state)
+                })
             }
             Message::PickGames => {
                 if let GamesState::Loaded(games) = &self.games {
@@ -198,33 +189,6 @@ impl AppState {
                     Task::none()
                 }
             }
-            Message::SetImporting(importing) => {
-                let (importing, should_continue) = match importing {
-                    ConversionState::Finished(success) => {
-                        #[cfg(debug_assertions)]
-                        self.notifications.push(Notification::success(success));
-
-                        (ConversionState::Idle, true)
-                    }
-                    ConversionState::Errored(e) => {
-                        self.notifications.push(Notification::error(e));
-                        (ConversionState::Idle, true)
-                    }
-                    _ => (importing, false),
-                };
-
-                self.importing = importing;
-
-                if should_continue {
-                    Task::batch([
-                        self.trigger_import_task(),
-                        self.get_games_task(),
-                        self.get_drive_info_task(),
-                    ])
-                } else {
-                    Task::none()
-                }
-            }
             Message::CancelImport(i) => {
                 self.import_queue.remove(i);
                 Task::none()
@@ -234,7 +198,7 @@ impl AppState {
                 Task::none()
             }
             Message::ToggleAnimationState => {
-                if let ConversionState::Progress(_) = self.importing {
+                if !self.long_operations.is_idle(LongOperationKind::Import) {
                     self.animation_state = !self.animation_state;
                 }
 
@@ -280,38 +244,41 @@ impl AppState {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => {
-                self.exporting = ConversionState::Progress(String::new());
-                Task::stream(export_game(game, out_path)).map(Message::SetExporting)
-            }
-            Message::SetExporting(exporting) => {
-                self.exporting = match exporting {
-                    ConversionState::Finished(success) => {
-                        self.notifications.push(Notification::success(success));
-                        ConversionState::Idle
-                    }
-                    ConversionState::Errored(error) => {
-                        self.notifications.push(Notification::error(error));
-                        ConversionState::Idle
-                    }
-                    _ => exporting,
-                };
+                self.long_operations.set(
+                    LongOperationKind::Export,
+                    LongOperationState::Progress(String::new()),
+                );
 
-                Task::none()
+                Task::stream(export_game(game, out_path)).map(|op_state| {
+                    Message::SetLongOperationState(LongOperationKind::Export, op_state)
+                })
             }
-            Message::SetScrubbing(scrubbing) => {
-                self.scrubbing = match scrubbing {
-                    ConversionState::Finished(success) => {
-                        self.notifications.push(Notification::success(success));
-                        ConversionState::Idle
-                    }
-                    ConversionState::Errored(error) => {
-                        self.notifications.push(Notification::error(error));
-                        ConversionState::Idle
-                    }
-                    _ => scrubbing,
-                };
+            Message::SetLongOperationState(op_kind, mut op_state) => {
+                let should_continue = op_kind == LongOperationKind::Import
+                    && matches!(
+                        op_state,
+                        LongOperationState::Finished(_) | LongOperationState::Errored(_)
+                    );
 
-                Task::none()
+                if let LongOperationState::Finished(success) = op_state {
+                    self.notifications.push(Notification::success(success));
+                    op_state = LongOperationState::Idle;
+                } else if let LongOperationState::Errored(error) = op_state {
+                    self.notifications.push(Notification::error(error));
+                    op_state = LongOperationState::Idle;
+                }
+
+                self.long_operations.set(op_kind, op_state);
+
+                if should_continue {
+                    Task::batch([
+                        self.trigger_import_task(),
+                        self.get_games_task(),
+                        self.get_drive_info_task(),
+                    ])
+                } else {
+                    Task::none()
+                }
             }
             Message::RunTool(tool) => self.run_tool(tool),
             Message::PickFileToSendViaWiiload => self
@@ -422,23 +389,10 @@ impl AppState {
             Message::PickGameToConvert => self
                 .init_file_dialog_task()
                 .then(dialogs::make_pick_in_out_dialogs_task),
-            Message::SetConverting(converting) => {
-                self.converting = match converting {
-                    ConversionState::Finished(success) => {
-                        self.notifications.push(Notification::success(success));
-                        ConversionState::Idle
-                    }
-                    ConversionState::Errored(error) => {
-                        self.notifications.push(Notification::error(error));
-                        ConversionState::Idle
-                    }
-                    _ => converting,
-                };
-
-                Task::none()
-            }
             Message::ConvertGame(disc_path, out_path) => {
-                Task::stream(convert_game(disc_path, out_path)).map(Message::SetConverting)
+                Task::stream(convert_game(disc_path, out_path)).map(|op_state| {
+                    Message::SetLongOperationState(LongOperationKind::Convert, op_state)
+                })
             }
             Message::GotUpdate(new_version) => {
                 self.new_version = Some(new_version);
@@ -460,7 +414,9 @@ impl AppState {
             Message::Scrub(game) => {
                 self.current_modal = None;
                 Task::stream(scrub_game(game))
-                    .map(Message::SetScrubbing)
+                    .map(|op_state| {
+                        Message::SetLongOperationState(LongOperationKind::Scrub, op_state)
+                    })
                     .chain(Task::done(Message::RefreshGamesAndApps))
             }
         }

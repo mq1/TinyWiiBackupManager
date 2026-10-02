@@ -3,7 +3,6 @@
 
 use crate::{
     config::ui::settings::settings,
-    games::conversion_state::ConversionState,
     message::Message,
     state::AppState,
     ui::{
@@ -47,7 +46,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             opaque(
                 container(match modal {
                     Modal::GameInfo((game, disc_info, scrubbable)) => {
-                        game_info(game, disc_info.as_ref(), *scrubbable)
+                        game_info(game, disc_info.as_ref(), *scrubbable, state)
                     }
                     Modal::HomebrewAppInfo(app) => homebrew_app_info(app),
                     Modal::OscAppInfo(app) => osc_app_info(app),
@@ -61,21 +60,13 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 }),
             )
         }),
-        (state.notifications.has_notifications()
-            || [
-                &state.importing,
-                &state.exporting,
-                &state.hashing,
-                &state.converting,
-                &state.scrubbing
-            ]
-            .into_iter()
-            .any(|conversion| matches!(conversion, ConversionState::Progress(_))))
-        .then(|| {
-            container(notifications(state))
-                .align_right(Length::Fill)
-                .align_bottom(Length::Fill)
-        })
+        (state.notifications.has_notifications() || state.long_operations.is_any_running()).then(
+            || {
+                container(notifications(state))
+                    .align_right(Length::Fill)
+                    .align_bottom(Length::Fill)
+            }
+        )
     ];
 
     // fill title bar

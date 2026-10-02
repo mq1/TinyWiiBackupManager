@@ -11,6 +11,7 @@
 mod config;
 mod games;
 mod homebrew;
+mod long_operation;
 mod message;
 mod notifications;
 mod osc;

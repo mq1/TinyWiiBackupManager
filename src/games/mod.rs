@@ -15,7 +15,6 @@ use zip::ZipArchive;
 
 pub mod banners;
 pub mod calc_sha1;
-pub mod conversion_state;
 pub mod convert;
 pub mod covers;
 pub mod disc_reader;
