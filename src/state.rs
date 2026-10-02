@@ -4,10 +4,11 @@
 use crate::{
     config::{Config, ThemePreference},
     games::{
-        ImportEntry, conversion_state::ConversionState, covers::download_ui_covers, game::Game,
-        games_state::GamesState, import::import_game,
+        ImportEntry, covers::download_ui_covers, game::Game, games_state::GamesState,
+        import::import_game,
     },
     homebrew::{self, homebrew_state::HomebrewState},
+    long_operation::{LongOperationKind, LongOperationState, LongOperations},
     message::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     osc::{self, osc_state::OscState},
@@ -50,11 +51,7 @@ pub struct AppState {
     pub homebrew: HomebrewState,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
-    pub importing: ConversionState,
-    pub exporting: ConversionState,
-    pub hashing: ConversionState,
-    pub converting: ConversionState,
-    pub scrubbing: ConversionState,
+    pub long_operations: LongOperations,
     pub import_queue: Vec<ImportEntry>,
     pub osc_contents: OscState,
     pub animation_state: bool,
@@ -74,15 +71,11 @@ impl AppState {
                     homebrew: HomebrewState::NotLoaded,
                     current_page: Page::Games,
                     current_modal: None,
-                    importing: ConversionState::Idle,
-                    exporting: ConversionState::Idle,
-                    hashing: ConversionState::Idle,
-                    converting: ConversionState::Idle,
                     import_queue: Vec::new(),
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
-                    scrubbing: ConversionState::Idle,
+                    long_operations: LongOperations::new(),
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
@@ -242,11 +235,13 @@ impl AppState {
 
     pub fn trigger_import_task(&mut self) -> Task<Message> {
         if let Some(entry) = self.import_queue.pop() {
-            self.importing =
-                ConversionState::Progress(format!("⤓  Importing {}", entry.meta().game_title()));
+            self.long_operations.set(
+                LongOperationKind::Import,
+                LongOperationState::Progress(format!("⤓  Importing {}", entry.meta().game_title())),
+            );
 
             Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
-                .map(Message::SetImporting)
+                .map(|op_state| Message::SetLongOperationState(LongOperationKind::Import, op_state))
         } else {
             self.notifications
                 .push(Notification::info("Import queue is empty"));

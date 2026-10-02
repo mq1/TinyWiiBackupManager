@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{conversion_state::ConversionState, export::ext_to_format},
-    util::misc::OPTIMAL_THREADS,
+    games::export::ext_to_format, long_operation::LongOperationState, util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result};
 use nod::{
@@ -21,7 +20,7 @@ use std::{
 fn perform_blocking(
     disc_path: PathBuf,
     out_path: PathBuf,
-    tx: &smol::channel::Sender<ConversionState>,
+    tx: &smol::channel::Sender<LongOperationState>,
 ) -> Result<String> {
     let filename = out_path
         .file_name()
@@ -57,8 +56,8 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(ConversionState::Progress(format!(
-                    "Converting into {filename}  {progress_percentage:02}%",
+                let _ = tx.try_send(LongOperationState::Progress(format!(
+                    "LongOperationState into {filename}  {progress_percentage:02}%",
                 )));
 
                 prev_percentage = progress_percentage;
@@ -85,13 +84,16 @@ fn perform_blocking(
     Ok(filename.to_string())
 }
 
-pub fn convert_game(disc_path: PathBuf, out_path: PathBuf) -> impl Stream<Item = ConversionState> {
+pub fn convert_game(
+    disc_path: PathBuf,
+    out_path: PathBuf,
+) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
         let exit = match perform_blocking(disc_path, out_path, &tx) {
-            Ok(filename) => ConversionState::Finished(format!("Converted {filename}")),
-            Err(e) => ConversionState::Errored(e.to_string()),
+            Ok(filename) => LongOperationState::Finished(format!("Converted {filename}")),
+            Err(e) => LongOperationState::Errored(e.to_string()),
         };
 
         tx.send_blocking(exit).expect("Channel should be open");
