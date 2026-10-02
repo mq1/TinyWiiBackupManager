@@ -57,12 +57,6 @@ impl LongOperations {
             .any(|(op, op_kind)| *op_kind == kind && matches!(op, LongOperationState::Idle))
     }
 
-    pub fn is_running(&self, kind: LongOperationKind) -> bool {
-        self.operations
-            .iter()
-            .any(|(op, op_kind)| *op_kind == kind && matches!(op, LongOperationState::Progress(_)))
-    }
-
     pub fn is_any_running(&self) -> bool {
         self.operations
             .iter()

@@ -30,7 +30,7 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
         GamesState::NotLoaded | GamesState::Loading => loading(),
         GamesState::Errored(e) => errored(e),
         GamesState::Loaded(games) => {
-            let is_exporting = state.long_operations.is_running(LongOperationKind::Export);
+            let is_exporting = !state.long_operations.is_idle(LongOperationKind::Export);
 
             let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => games

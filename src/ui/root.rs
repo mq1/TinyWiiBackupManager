@@ -46,7 +46,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             opaque(
                 container(match modal {
                     Modal::GameInfo((game, disc_info, scrubbable)) => {
-                        game_info(game, disc_info.as_ref(), *scrubbable)
+                        game_info(game, disc_info.as_ref(), *scrubbable, state)
                     }
                     Modal::HomebrewAppInfo(app) => homebrew_app_info(app),
                     Modal::OscAppInfo(app) => osc_app_info(app),

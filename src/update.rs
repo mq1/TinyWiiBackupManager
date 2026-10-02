@@ -198,7 +198,7 @@ impl AppState {
                 Task::none()
             }
             Message::ToggleAnimationState => {
-                if self.long_operations.is_running(LongOperationKind::Import) {
+                if !self.long_operations.is_idle(LongOperationKind::Import) {
                     self.animation_state = !self.animation_state;
                 }
 
