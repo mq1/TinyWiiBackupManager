@@ -22,7 +22,6 @@ use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
 };
-use lucide_icons::LUCIDE_FONT_BYTES;
 use nod::{
     common::PartitionKind,
     read::{DiscOptions, DiscReader},
@@ -41,6 +40,32 @@ use std::{
 };
 use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
+
+#[cfg(not(feature = "compress-fonts"))]
+fn load_lucide() -> Task<Message> {
+    iced::font::load(lucide_icons::LUCIDE_FONT_BYTES).map(|res| match res {
+        Ok(()) => Message::NoOp,
+        Err(e) => Message::Notify(Notification::error(format!(
+            "Failed to load lucide icons: {e:?}"
+        ))),
+    })
+}
+
+#[cfg(feature = "compress-fonts")]
+fn load_lucide() -> Task<Message> {
+    Task::future(async {
+        let compressed = include_bytes!(concat!(env!("OUT_DIR"), "/lucide-compressed.bin"));
+        miniz_oxide::inflate::decompress_to_vec(compressed).unwrap()
+    })
+    .then(|decompressed| {
+        iced::font::load(decompressed).map(|res| match res {
+            Ok(()) => Message::NoOp,
+            Err(e) => Message::Notify(Notification::error(format!(
+                "Failed to load lucide icons: {e:?}"
+            ))),
+        })
+    })
+}
 
 pub struct AppState {
     pub data_dir: &'static Path,
@@ -85,12 +110,7 @@ impl AppState {
                         Ok(None) => Message::NoOp,
                         Err(e) => Message::Notify(e.into()),
                     }),
-                    iced::font::load(LUCIDE_FONT_BYTES).map(|res| match res {
-                        Ok(()) => Message::NoOp,
-                        Err(e) => Message::Notify(Notification::error(format!(
-                            "Failed to load lucide icons: {e:?}"
-                        ))),
-                    }),
+                    load_lucide(),
                 ]),
             )
         }

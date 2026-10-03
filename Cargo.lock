@@ -19,6 +19,7 @@ dependencies = [
  "image",
  "itertools 0.15.0",
  "lucide-icons",
+ "miniz_oxide 0.9.1",
  "minreq",
  "mundy",
  "nod",

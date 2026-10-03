@@ -44,4 +44,13 @@ fn main() {
 
     let out_path = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("sha1_list.bin");
     fs::write(out_path, sha1_list.as_flattened()).unwrap();
+
+    #[cfg(feature = "compress-fonts")]
+    {
+        let compressed = miniz_oxide::deflate::compress_to_vec(lucide_icons::LUCIDE_FONT_BYTES, 9);
+
+        let out_path =
+            PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("lucide-compressed.bin");
+        fs::write(out_path, compressed).unwrap();
+    }
 }

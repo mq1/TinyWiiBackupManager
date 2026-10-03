@@ -9,7 +9,7 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["dist-appimage"] # all statically linked
+default = ["dist-appimage", "compress-fonts"] # all statically linked
 native-https = ["minreq/https-native-tls"]
 static-https = ["minreq/https-openssl-probe", "nod/openssl-vendored"]
 static-nod = [
@@ -18,6 +18,7 @@ static-nod = [
   "nod/compress-zstd-static",
 ]
 static-nod-bzip2 = ["nod/compress-bzip2-static"]
+compress-fonts = ["dep:miniz_oxide", "dep:lucide-icons"]
 
 dist-appimage = ["static-https", "static-nod", "static-nod-bzip2"]
 dist-flatpak = ["native-https", "nod/default"]
@@ -26,12 +27,18 @@ dist-windows-x64 = [
   "static-nod",
   "static-nod-bzip2",
   "twbm-idmap/compress",
+  "compress-fonts",
 ]
 dist-windows-arm64 = ["dist-windows-x64"]
 dist-macos = ["native-https", "static-nod", "static-nod-bzip2"]
 
 # bzip2 doesn't compile
-dist-windows-x86 = ["native-https", "static-nod", "twbm-idmap/compress"]
+dist-windows-x86 = [
+  "native-https",
+  "static-nod",
+  "twbm-idmap/compress",
+  "compress-fonts",
+]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -80,6 +87,7 @@ nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling"
 ] }
 semver = "1"
 humantime = "2"
+miniz_oxide = { version = "0.9", optional = true }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
@@ -114,6 +122,8 @@ wgpu = { version = "27.0", default-features = false, features = [
 
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
+miniz_oxide = { version = "0.9", optional = true }
+lucide-icons = { version = "1", optional = true }
 
 [target.'cfg(all(windows, target_env = "msvc"))'.dependencies]
 vc-ltl = "5"
