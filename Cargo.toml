@@ -21,10 +21,17 @@ static-nod-bzip2 = ["nod/compress-bzip2-static"]
 
 dist-appimage = ["static-https", "static-nod", "static-nod-bzip2"]
 dist-flatpak = ["native-https", "nod/default"]
-dist-windows-x64 = ["native-https", "static-nod", "static-nod-bzip2"]
+dist-windows-x64 = [
+  "native-https",
+  "static-nod",
+  "static-nod-bzip2",
+  "twbm-idmap/compress",
+]
 dist-windows-arm64 = ["dist-windows-x64"]
-dist-windows-x86 = ["native-https", "static-nod"]                     # bzip2 doesn't compile
 dist-macos = ["native-https", "static-nod", "static-nod-bzip2"]
+
+# bzip2 doesn't compile
+dist-windows-x86 = ["native-https", "static-nod", "twbm-idmap/compress"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -54,7 +61,7 @@ fs4 = { version = "1", default-features = false }
 which-fs = "0.2"
 open = "5"
 wii-disc-info = { version = "0.10", features = ["async"] }
-twbm-idmap = { version = "0.5", features = ["ascii-titles", "gamehacking"] }
+twbm-idmap = { version = "0.6", features = ["ascii-titles", "gamehacking"] }
 itertools = "0.15"
 split-write = "0.2"
 tempfile = "3"
