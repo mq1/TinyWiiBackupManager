@@ -117,9 +117,9 @@ jobs:
           - arch: arm64
             target: aarch64-pc-windows-msvc
           - arch: x64
-            target: x86_64-win7-windows-msvc
+            target: x86_64-pc-windows-msvc
           - arch: x86
-            target: i686-win7-windows-msvc
+            target: i686-pc-windows-msvc
 
     steps:
       - name: Checkout
@@ -136,6 +136,20 @@ jobs:
         with:
           components: rust-src
 
+      - name: Download and extract VC-LTL5
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
+          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
+
+      - name: Dowload and extract YY-Thunks
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3-Beta.4/YY-Thunks-Lib.zip" -OutFile "YY-Thunks-Lib.zip"
+          7z x YY-Thunks-Lib.zip -oYY-Thunks-Lib
+
       - name: Build binary
         shell: pwsh
         run: |
@@ -148,12 +162,12 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -l dylib=ole32 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -L YY-Thunks-Lib/Lib/6.0.6000.0/x64
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -l dylib=ole32 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -L YY-Thunks-Lib/Lib/6.0.6000.0/x86
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Rename binary
         shell: pwsh
