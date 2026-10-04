@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.3] - 2026-10-05
+
 ### Added
 
 - 🪟 Re-added Windows Vista support
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🐛 Scrub operations could run concurrently sharing one status
+- 🐛 Incorrect file extension when splitting WBFS files (<https://github.com/mq1/TinyWiiBackupManager/issues/686>)
 
 ## [v6.1.2] - 2026-10-01
 
@@ -509,7 +512,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.2...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.3...HEAD
+[v6.1.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.2...v6.1.3
 [v6.1.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.1...v6.1.2
 [v6.1.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.0...v6.1.1
 [v6.1.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.8...v6.1.0

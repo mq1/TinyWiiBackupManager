@@ -58,24 +58,23 @@ fn make_disc_filename(path: &Path, meta: &wii_disc_info::Meta) -> String {
 async fn rename_split_files(
     disc_path: &Path,
     meta: &wii_disc_info::Meta,
-    new_disc_filename: &str,
+    new_disc_path: &Path,
     games_dir: &Path,
-    new_disc_parent: &Path,
 ) -> Result<()> {
     if meta.format() == wii_disc_info::Format::Wbfs {
         let wbf1_path = disc_path.with_extension("wbf1");
         if wbf1_path.exists() {
-            let new_wbf1_path = new_disc_parent.join(format!("{new_disc_filename}.wbf1"));
+            let new_wbf1_path = new_disc_path.with_extension("wbf1");
             fs::rename(wbf1_path, new_wbf1_path).await?;
         }
         let wbf2_path = disc_path.with_extension("wbf2");
         if wbf2_path.exists() {
-            let new_wbf2_path = new_disc_parent.join(format!("{new_disc_filename}.wbf2"));
+            let new_wbf2_path = new_disc_path.with_extension("wbf2");
             fs::rename(wbf2_path, new_wbf2_path).await?;
         }
         let wbf3_path = disc_path.with_extension("wbf3");
         if wbf3_path.exists() {
-            let new_wbf3_path = new_disc_parent.join(format!("{new_disc_filename}.wbf3"));
+            let new_wbf3_path = new_disc_path.with_extension("wbf3");
             fs::rename(wbf3_path, new_wbf3_path).await?;
         }
     } else if let Some(filename) = disc_path.file_name().and_then(OsStr::to_str).and_then(|s| {
@@ -83,9 +82,16 @@ async fn rename_split_files(
             .or_else(|| s.strip_suffix(".PART0.ISO"))
     }) {
         let part1_orig = games_dir.join(format!("{filename}.part1.iso"));
+        let part1_orig_uppercase = games_dir.join(format!("{filename}.PART1.ISO"));
+        let part1_new = new_disc_path
+            .with_extension("")
+            .with_extension("part1")
+            .with_added_extension("iso");
+
         if part1_orig.exists() {
-            let part1_new = new_disc_parent.join(format!("{new_disc_filename}.part1.iso"));
             fs::rename(part1_orig, part1_new).await?;
+        } else if part1_orig_uppercase.exists() {
+            fs::rename(part1_orig_uppercase, part1_new).await?;
         }
     }
 
@@ -107,14 +113,7 @@ async fn adopt_orphaned_discs(games_dir: &Path) -> Result<()> {
             fs::rename(&path, &new_path).await?;
 
             // handle split files
-            rename_split_files(
-                &path,
-                &meta,
-                &new_disc_filename,
-                games_dir,
-                &new_disc_parent,
-            )
-            .await
+            rename_split_files(&path, &meta, &new_path, games_dir).await
         })
         .collect::<Vec<_>>()
         .await;
@@ -155,8 +154,7 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
                     fs::rename(&disc_path, &new_disc_path).await?;
 
                     // rename eventual split files
-                    rename_split_files(disc_path, meta, &new_disc_filename, games_dir, &path)
-                        .await?;
+                    rename_split_files(disc_path, meta, &new_disc_path, games_dir).await?;
                 }
                 [(disc0_path, _), (disc1_path, _)] => {
                     let stem0 = disc0_path.file_stem().unwrap_or_default().to_string_lossy();
