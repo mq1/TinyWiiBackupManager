@@ -162,8 +162,8 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=YY-Thunks-Lib/Lib/6.0.6000.0/x64 -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -C link-arg=/SUBSYSTEM:WINDOWS,6.0
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=YY-Thunks-Lib/Lib/6.0.6000.0/x86 -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -C link-arg=/SUBSYSTEM:WINDOWS,6.0
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/verbose -L native=${{ github.workspace }}/YY-Thunks-Lib/Lib/6.0.6000.0/x64 -L native=${{ github.workspace }}/VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -C link-arg=/SUBSYSTEM:WINDOWS,6.0
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/verbose -L native=${{ github.workspace }}/YY-Thunks-Lib/Lib/6.0.6000.0/x86 -L native=${{ github.workspace }}/VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
