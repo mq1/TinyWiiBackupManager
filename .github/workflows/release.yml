@@ -162,8 +162,8 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -C link-arg=YY-Thunks-Objs/objs/x64/YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -C link-arg=YY-Thunks-Objs/objs/x86/YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x64\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x86\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
