@@ -117,9 +117,9 @@ jobs:
           - arch: arm64
             target: aarch64-pc-windows-msvc
           - arch: x64
-            target: x86_64-pc-windows-msvc
+            target: x86_64-win7-windows-msvc
           - arch: x86
-            target: i686-pc-windows-msvc
+            target: i686-win7-windows-msvc
 
     steps:
       - name: Checkout
@@ -162,12 +162,12 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -L YY-Thunks-Lib/Lib/6.0.6000.0/x64
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -L YY-Thunks-Lib/Lib/6.0.6000.0/x86
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -C link-arg=/verbose -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -L YY-Thunks-Lib/Lib/6.0.6000.0/x64
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -C link-arg=/verbose -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -L YY-Thunks-Lib/Lib/6.0.6000.0/x86
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Rename binary
         shell: pwsh
