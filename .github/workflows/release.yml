@@ -162,8 +162,8 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -l dylib=ole32 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -L YY-Thunks-Lib/Lib/6.0.6000.0/x64
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -l dylib=ole32 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -L YY-Thunks-Lib/Lib/6.0.6000.0/x86
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -L YY-Thunks-Lib/Lib/6.0.6000.0/x64
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -L VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -L YY-Thunks-Lib/Lib/6.0.6000.0/x86
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
