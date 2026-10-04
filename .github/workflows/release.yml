@@ -150,11 +150,6 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3-Beta.4/YY-Thunks-Lib.zip" -OutFile "YY-Thunks-Lib.zip"
           7z x YY-Thunks-Lib.zip -oYY-Thunks-Lib
 
-      - name: Fix for windows < 8
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: llvm-lib /def:package\windows\combase.def /machine:${{ matrix.arch }} /out:YY-Thunks-Lib\Lib\6.0.6000.0\${{ matrix.arch }}\combase.lib
-
       - name: Build binary
         shell: pwsh
         run: |
@@ -173,6 +168,11 @@ jobs:
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+
+      - name: Fix for windows < 8
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
+        shell: pwsh
+        run: python -c "p = 'TinyWiiBackupManager.exe'; data = open(p, 'rb').read(); open(p, 'wb').write(data.replace(b'combase.dll\x00', b'ole32.dll\x00\x00\x00'))"
 
       - name: Rename binary
         shell: pwsh
