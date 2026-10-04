@@ -136,19 +136,19 @@ jobs:
         with:
           components: rust-src
 
-      - name: Dowload and extract YY-Thunks
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3-Beta.4/YY-Thunks-Lib.zip" -OutFile "YY-Thunks-Lib.zip"
-          7z x YY-Thunks-Lib.zip -oYY-Thunks-Lib
-
       - name: Download and extract VC-LTL5
         if: matrix.arch == 'x64' || matrix.arch == 'x86'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
+
+      - name: Dowload and extract YY-Thunks
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3-Beta.4/YY-Thunks-Lib.zip" -OutFile "YY-Thunks-Objs.zip"
+          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
       - name: Build binary
         shell: pwsh
@@ -162,17 +162,12 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/verbose -L native=${{ github.workspace }}/YY-Thunks-Lib/Lib/6.0.6000.0/x64 -L native=${{ github.workspace }}/VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -C link-arg=/SUBSYSTEM:WINDOWS,6.0
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/verbose -L native=${{ github.workspace }}/YY-Thunks-Lib/Lib/6.0.6000.0/x86 -L native=${{ github.workspace }}/VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -C link-arg=/SUBSYSTEM:WINDOWS,6.0
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64 -C link-arg=YY-Thunks-Objs/objs/x64/YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/Win32 -C link-arg=YY-Thunks-Objs/objs/x86/YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-
-      - name: Fix for windows < 8 (CoTaskMemAlloc/CoTaskMemFree are also present in ole32.dll)
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        shell: pwsh
-        run: python -c "p = 'TinyWiiBackupManager.exe'; data = open(p, 'rb').read(); open(p, 'wb').write(data.replace(b'combase.dll\x00', b'ole32.dll\x00\x00\x00'))"
 
       - name: Rename binary
         shell: pwsh
