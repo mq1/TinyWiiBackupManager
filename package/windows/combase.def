@@ -1,0 +1,4 @@
+LIBRARY ole32.dll
+EXPORTS
+CoTaskMemAlloc
+CoTaskMemFree
