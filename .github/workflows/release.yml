@@ -53,7 +53,7 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 22
+          sudo ./llvm.sh 23
 
       - name: Install i686 dependencies
         if: matrix.arch == 'i686'
@@ -75,16 +75,16 @@ jobs:
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: clang-22
-          CXX: clang++-22
-          AR: llvm-ar-22
-          RANLIB: llvm-ranlib-22
+          CC: clang-23
+          CXX: clang++-23
+          AR: llvm-ar-23
+          RANLIB: llvm-ranlib-23
           CFLAGS: -O3 -flto
           CXXFLAGS: -O3 -flto
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-23
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-23
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-23
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-23
 
       - name: Package AppImage
         run: |
@@ -129,7 +129,7 @@ jobs:
 
       - name: Install LLVM
         shell: pwsh
-        run: choco install llvm --version=22.1.8 -y
+        run: curl.exe -sSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe x
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
@@ -156,17 +156,17 @@ jobs:
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CC: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\clang-cl.exe
+          CXX: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\clang-cl.exe
+          AR: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\llvm-lib.exe
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\x64 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x64\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\Win32 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x86\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\10.0.10240.0\lib\ARM64
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
 
       - name: Rename binary
         shell: pwsh
@@ -201,7 +201,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install LLVM and LLD
-        run: brew install llvm@22 lld@22
+        run: brew install llvm@23 lld@23
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
@@ -214,12 +214,12 @@ jobs:
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: /opt/homebrew/opt/llvm@22/bin/clang
-          CXX: /opt/homebrew/opt/llvm@22/bin/clang++
-          AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
+          CC: /opt/homebrew/opt/llvm@23/bin/clang
+          CXX: /opt/homebrew/opt/llvm@23/bin/clang++
+          AR: /opt/homebrew/opt/llvm@23/bin/llvm-ar
           CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
           CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@23/bin/ld64.lld
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
           CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
