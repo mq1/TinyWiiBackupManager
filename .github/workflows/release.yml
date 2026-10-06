@@ -176,7 +176,7 @@ jobs:
       - name: Compress binary with UPX
         if: matrix.arch == 'x64' || matrix.arch == 'x86'
         shell: pwsh
-        run: upx --best --strip-relocs=0 --compress-resources=0 --compress-icons=0 --compress-exports=0 "TinyWiiBackupManager.exe"
+        run: upx -9 --strip-relocs=0 --compress-resources=0 --compress-icons=0 --compress-exports=0 "TinyWiiBackupManager.exe"
 
       - name: Rename binary
         shell: pwsh
