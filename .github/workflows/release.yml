@@ -129,7 +129,9 @@ jobs:
 
       - name: Install LLVM
         shell: bash
-        run: curl.exe -sSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe -x --zstd
+        run: |
+          curl.exe -sSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe -x --zstd
+          mv clang+llvm-23.1.0-x86_64-pc-windows-msvc llvm
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
@@ -156,17 +158,17 @@ jobs:
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\clang-cl.exe
-          CXX: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\clang-cl.exe
-          AR: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\llvm-lib.exe
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
+          CC: ${{ github.workspace }}\llvm\bin\clang-cl.exe
+          CXX: ${{ github.workspace }}\llvm\bin\clang-cl.exe
+          AR: ${{ github.workspace }}\llvm\bin\llvm-lib.exe
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\llvm\bin\lld-link.exe
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\llvm\bin\lld-link.exe
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\x64 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x64\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\Win32 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x86\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\10.0.10240.0\lib\ARM64
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\clang+llvm-23.1.0-x86_64-pc-windows-msvc\bin\lld-link.exe
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\llvm\bin\lld-link.exe
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\llvm\bin\lld-link.exe
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: ${{ github.workspace }}\llvm\bin\lld-link.exe
 
       - name: Rename binary
         shell: pwsh
