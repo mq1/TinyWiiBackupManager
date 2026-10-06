@@ -16,11 +16,12 @@ fn is_portable() -> bool {
         return false;
     };
 
-    let Some(stem) = current_exe.file_stem() else {
+    let Some(stem) = current_exe
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_ascii_lowercase())
+    else {
         return false;
     };
-    let mut stem = stem.to_string_lossy().into_owned();
-    stem.make_ascii_lowercase();
 
     if ["not-portable", "notportable", "no-portable", "noportable"]
         .into_iter()

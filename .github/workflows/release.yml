@@ -60,7 +60,7 @@ jobs:
         run: sudo apt-get install -y gcc-multilib
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.98
+        uses: dtolnay/rust-toolchain@1.99
         with:
           components: rust-src
 
@@ -132,7 +132,7 @@ jobs:
         run: choco install llvm --version=22.1.8 -y
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.98
+        uses: dtolnay/rust-toolchain@1.99
         with:
           components: rust-src
 
@@ -204,7 +204,7 @@ jobs:
         run: brew install llvm@22 lld@22
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.98
+        uses: dtolnay/rust-toolchain@1.99
         with:
           components: rust-src
 
