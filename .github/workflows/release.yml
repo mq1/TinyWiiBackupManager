@@ -57,7 +57,7 @@ jobs:
 
       - name: Install i686 dependencies
         if: matrix.arch == 'i686'
-        run: sudo apt-get install -y gcc-multilib
+        run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
@@ -128,8 +128,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install LLVM
-        shell: pwsh
-        run: curl.exe -sSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe x
+        run: curl.exe -L "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe -x
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
