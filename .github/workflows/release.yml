@@ -128,7 +128,8 @@ jobs:
           fetch-depth: 1
 
       - name: Install LLVM
-        run: curl.exe -L "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe -x
+        shell: bash
+        run: curl.exe -sSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.0/clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst" | tar.exe -x
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
