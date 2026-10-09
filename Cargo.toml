@@ -77,7 +77,7 @@ nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling"
 semver = "1"
 humantime = "2"
 rfd = { version = "0.17", optional = true }
-tinyfiledialogs = { version = "3", optional = true }
+tinyfiledialogs = { version = "3", default-features = false, optional = true }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
