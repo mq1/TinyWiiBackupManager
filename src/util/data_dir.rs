@@ -34,16 +34,8 @@ fn is_portable() -> bool {
         return true;
     }
 
-    let Some(parent) = current_exe.parent() else {
-        return false;
-    };
-
-    // if parent is a windows drive
-    parent
-        .to_string_lossy()
-        .chars()
-        .next()
-        .is_some_and(|c| c.is_ascii_uppercase())
+    // if parent is a drive root
+    current_exe.parent().and_then(|p| p.parent()).is_some()
 }
 
 fn get_user_dir() -> Option<PathBuf> {

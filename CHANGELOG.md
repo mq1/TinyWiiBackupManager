@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.4] - 2026-10-09
+
+## Added
+
+- 🪟 Re-added Windows XP support
+
+## Fixed
+
+- 🐛 TinyWiiBackupManager-data directory being created unconditionally
+
 ## [v6.1.3] - 2026-10-05
 
 ### Added
@@ -512,7 +522,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.3...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.4...HEAD
+[v6.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.3...v6.1.4
 [v6.1.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.2...v6.1.3
 [v6.1.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.1...v6.1.2
 [v6.1.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.0...v6.1.1
