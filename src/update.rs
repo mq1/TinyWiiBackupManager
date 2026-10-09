@@ -50,9 +50,9 @@ impl AppState {
                     Task::none()
                 }
             }
-            Message::PickMountPoint => self
-                .init_file_dialog_task()
-                .then(dialogs::make_pick_mount_point_dialog_task),
+            Message::PickMountPoint => {
+                dialogs::init_file_dialog_task().then(dialogs::make_pick_mount_point_dialog_task)
+            }
             Message::MountPointPicked(path) => Task::batch([
                 self.config
                     .update(ConfigMessage::SetMountPoint(path))
@@ -134,9 +134,9 @@ impl AppState {
 
                 Task::done(Message::RefreshGamesAndApps)
             }
-            Message::PickHomebrewApps => self
-                .init_file_dialog_task()
-                .then(dialogs::make_pick_homebrew_apps_dialog_task),
+            Message::PickHomebrewApps => {
+                dialogs::init_file_dialog_task().then(dialogs::make_pick_homebrew_apps_dialog_task)
+            }
             Message::ImportHomebrewApps(paths) => self.import_homebrew_apps_task(paths),
             Message::HomebrewAppsImported(n) if n > 0 => {
                 self.notifications.push(Notification::success(format!(
@@ -160,7 +160,7 @@ impl AppState {
                 if let GamesState::Loaded(games) = &self.games {
                     let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
 
-                    self.init_file_dialog_task().then(move |base| {
+                    dialogs::init_file_dialog_task().then(move |base| {
                         dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
                     })
                 } else {
@@ -171,7 +171,7 @@ impl AppState {
                 if let GamesState::Loaded(games) = &self.games {
                     let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
 
-                    self.init_file_dialog_task().then(move |base| {
+                    dialogs::init_file_dialog_task().then(move |base| {
                         dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
                     })
                 } else {
@@ -240,7 +240,7 @@ impl AppState {
 
                 Task::none()
             }
-            Message::PickExportDest(game) => self.init_file_dialog_task().then(move |base| {
+            Message::PickExportDest(game) => dialogs::init_file_dialog_task().then(move |base| {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => {
@@ -281,8 +281,7 @@ impl AppState {
                 }
             }
             Message::RunTool(tool) => self.run_tool(tool),
-            Message::PickFileToSendViaWiiload => self
-                .init_file_dialog_task()
+            Message::PickFileToSendViaWiiload => dialogs::init_file_dialog_task()
                 .then(dialogs::make_pick_file_to_wiiload_dialog_task),
             Message::SendViaWiiload(path) => Task::batch([
                 self.config
@@ -386,9 +385,9 @@ impl AppState {
                     .map(Message::Notify),
                 ])
             }
-            Message::PickGameToConvert => self
-                .init_file_dialog_task()
-                .then(dialogs::make_pick_in_out_dialogs_task),
+            Message::PickGameToConvert => {
+                dialogs::init_file_dialog_task().then(dialogs::make_pick_in_out_dialogs_task)
+            }
             Message::ConvertGame(disc_path, out_path) => {
                 Task::stream(convert_game(disc_path, out_path)).map(|op_state| {
                     Message::SetLongOperationState(LongOperationKind::Convert, op_state)

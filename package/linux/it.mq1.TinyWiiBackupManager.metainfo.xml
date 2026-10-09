@@ -14,7 +14,7 @@
         <p>✨ Features</p>
         <ul>
             <li>Native app written in Rust and Iced, no Electron!</li>
-            <li>Cross-Platform: Windows Vista+, macOS 10.12+, Linux (glibc 2.35+)</li>
+            <li>Cross-Platform: Windows XP+, macOS 10.12+, Linux (glibc 2.35+)</li>
         </ul>
         <p>🎮 Game Management</p>
         <ul>

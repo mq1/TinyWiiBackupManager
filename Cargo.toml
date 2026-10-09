@@ -9,22 +9,26 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["dist-appimage"] # all statically linked
+default = ["native-https", "static-nod", "dialogs-rfd"]
 native-https = ["minreq/https-native-tls"]
 static-https = ["minreq/https-openssl-probe", "nod/openssl-vendored"]
-static-nod = [
+static-nod-without-bzip2 = [
   "nod/compress-lzma-static",
   "nod/compress-zlib-static",
   "nod/compress-zstd-static",
 ]
-static-nod-bzip2 = ["nod/compress-bzip2-static"]
+static-nod = ["static-nod-without-bzip2", "nod/compress-bzip2-static"]
+dialogs-rfd = ["dep:rfd"] # modern
+dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
 
-dist-appimage = ["static-https", "static-nod", "static-nod-bzip2"]
-dist-flatpak = ["native-https", "nod/default"]
-dist-windows-x64 = ["native-https", "static-nod", "static-nod-bzip2"]
-dist-windows-arm64 = ["dist-windows-x64"]
-dist-windows-x86 = ["native-https", "static-nod"]                     # bzip2 doesn't compile
-dist-macos = ["native-https", "static-nod", "static-nod-bzip2"]
+dist-appimage = ["static-https", "static-nod", "dialogs-rfd"]
+dist-flatpak = ["native-https", "nod/default", "dialogs-rfd"]
+dist-windows-x64 = ["native-https", "static-nod", "dialogs-tfd"]
+dist-windows-arm64 = ["native-https", "static-nod", "dialogs-rfd"]
+dist-macos = ["native-https", "static-nod", "dialogs-rfd"]
+
+# bzip2 doesn't compile on windows x86
+dist-windows-x86 = ["native-https", "static-nod", "dialogs-tfd"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -43,7 +47,6 @@ iced_palace = "0.14"
 iced_aw = { version = "0.14", default-features = false, features = ["spinner"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 lucide-icons = { version = "1", features = ["iced"] }
-rfd = "0.17"
 smol = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -73,6 +76,8 @@ nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling"
 ] }
 semver = "1"
 humantime = "2"
+rfd = { version = "0.17", optional = true }
+tinyfiledialogs = { version = "3", optional = true }
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
