@@ -17,7 +17,6 @@ use crate::{
     util::{self, drive_state::DriveState, updates},
 };
 use anyhow::{Context, Result};
-
 use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
@@ -27,7 +26,6 @@ use nod::{
     common::PartitionKind,
     read::{DiscOptions, DiscReader},
 };
-use rfd::AsyncFileDialog;
 use semver::Version;
 use smol::{
     fs::{self, File},
@@ -115,11 +113,6 @@ impl AppState {
             ThemePreference::Light => Some(theme::light()),
             ThemePreference::Dark => Some(theme::dark()),
         }
-    }
-
-    pub fn init_file_dialog_task(&self) -> Task<AsyncFileDialog> {
-        iced::window::oldest()
-            .and_then(|id| iced::window::run(id, |w| AsyncFileDialog::new().set_parent(w)))
     }
 
     pub fn get_games_task(&mut self) -> Task<Message> {
