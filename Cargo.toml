@@ -28,7 +28,7 @@ dist-windows-arm64 = ["native-https", "static-nod", "dialogs-rfd"]
 dist-macos = ["native-https", "static-nod", "dialogs-rfd"]
 
 # bzip2 doesn't compile on windows x86
-dist-windows-x86 = ["native-https", "static-nod", "dialogs-tfd"]
+dist-windows-x86 = ["native-https", "static-nod-without-bzip2", "dialogs-tfd"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
