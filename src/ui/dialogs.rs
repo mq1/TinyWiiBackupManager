@@ -24,6 +24,11 @@ const GAME_EXTS: &[&str] = &[
 ];
 
 #[rustfmt::skip]
+const LOWERCASE_GAME_EXTS: &[&str] = &[
+    "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc",
+];
+
+#[rustfmt::skip]
 const WIILOAD_EXTS: &[&str] = &[
     "zip", "dol", "elf",
     "ZIP", "DOL", "ELF",
@@ -113,19 +118,32 @@ async fn pick_files(
 }
 
 #[cfg(feature = "dialogs-rfd")]
-async fn save_file(base: Base, title: &'static str, filename: String) -> Option<PathBuf> {
+async fn save_file(
+    base: Base,
+    title: &'static str,
+    filename: String,
+    filter: (&'static [&str], &'static str),
+) -> Option<PathBuf> {
     base.set_title(title)
         .set_file_name(filename)
+        .add_filter(filter.1, filter.0)
         .save_file()
         .await
         .map(PathBuf::from)
 }
 
 #[cfg(feature = "dialogs-tfd")]
-async fn save_file(_base: Base, title: &'static str, filename: String) -> Option<PathBuf> {
-    smol::unblock(move || tinyfiledialogs::save_file_dialog(title, &filename))
-        .await
-        .map(PathBuf::from)
+async fn save_file(
+    _base: Base,
+    title: &'static str,
+    filename: String,
+    filter: (&'static [&str], &'static str),
+) -> Option<PathBuf> {
+    smol::unblock(move || {
+        tinyfiledialogs::save_file_dialog_with_filter(title, &filename, filter.0, filter.1)
+    })
+    .await
+    .map(PathBuf::from)
 }
 
 pub fn make_pick_mount_point_dialog_task(base: Base) -> Task<Message> {
@@ -165,7 +183,13 @@ pub fn make_pick_in_out_dialogs_task(base: Base) -> Task<Message> {
             let file_stem = in_path.file_stem().and_then(OsStr::to_str)?;
             let rvz_filename = format!("{file_stem}.rvz");
 
-            let out_path = save_file(base, "Save converted game to", rvz_filename).await?;
+            let out_path = save_file(
+                base,
+                "Save converted game to",
+                rvz_filename,
+                (LOWERCASE_GAME_EXTS, "Wii/NGC rom"),
+            )
+            .await?;
 
             Some((in_path, out_path))
         },
@@ -217,7 +241,12 @@ pub fn make_pick_export_game_dest_dialog_task(base: Base, game: Game) -> Task<Me
     let filename = sanitize_title(ascii_title) + ".rvz";
 
     Task::perform(
-        save_file(base, "Select where you want to export the game", filename),
+        save_file(
+            base,
+            "Select where you want to export the game",
+            filename,
+            (LOWERCASE_GAME_EXTS, "Wii/NGC rom"),
+        ),
         move |opt| match opt {
             Some(path) => Message::ExportGame(game, path),
             None => Message::NoOp,
