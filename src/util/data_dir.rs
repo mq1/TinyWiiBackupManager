@@ -35,7 +35,7 @@ fn is_portable() -> bool {
     }
 
     // if parent is a drive root
-    current_exe.parent().and_then(|p| p.parent()).is_some()
+    current_exe.parent().and_then(|p| p.parent()).is_none()
 }
 
 fn get_user_dir() -> Option<PathBuf> {
