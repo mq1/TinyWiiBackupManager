@@ -1,48 +1,48 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result};
 use tempfile::tempfile;
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
 fn get_app_files(
     archive: &mut ZipArchive<impl std::io::Read + std::io::Seek>,
 ) -> Result<(String, Vec<String>, Vec<String>)> {
-    let Some(app_filename) = archive
+    let app_filename = archive
         .file_names()
+        .filter_map(Result::ok)
         .find(|f| f.ends_with("boot.dol") || f.ends_with("boot.elf"))
-    else {
-        bail!("Failed to find app binary");
-    };
+        .context("Failed to find app binary")?;
 
     eprintln!("App filename: {app_filename}");
 
-    let parent_filename = app_filename[0..app_filename.len() - 8].to_string();
+    let parent_filename = &app_filename[0..app_filename.len() - 8];
     eprintln!("Parent filename: {parent_filename}");
 
-    let mut app_files = Vec::new();
-    let mut excluded_files = Vec::new();
+    let mut app_files = Vec::with_capacity(archive.len());
+    let mut excluded_files = Vec::with_capacity(archive.len());
     for filename in archive.file_names() {
-        if filename.starts_with(&parent_filename) {
-            app_files.push(filename.to_string());
+        let filename = filename?;
+
+        if filename.starts_with(parent_filename) {
+            app_files.push(filename.into_owned());
         } else {
-            excluded_files.push(filename.to_string());
+            excluded_files.push(filename.into_owned());
         }
     }
 
-    Ok((parent_filename, app_files, excluded_files))
+    Ok((parent_filename.to_string(), app_files, excluded_files))
 }
 
 pub fn rebuild_zip(in_file: std::fs::File) -> Result<(std::fs::File, Vec<String>)> {
     let mut archive = ZipArchive::new(in_file)?;
     let (parent_filename, app_files, excluded_files) = get_app_files(&mut archive)?;
 
-    let Some(app_name) = parent_filename[0..parent_filename.len() - 1]
+    let app_name = parent_filename[0..parent_filename.len() - 1]
         .split('/')
         .next_back()
-    else {
-        bail!("Failed to get app name")
-    };
+        .context("Failed to get app name")?;
+
     eprintln!("App name: {app_name}");
 
     let mut writer = ZipWriter::new(tempfile()?);
