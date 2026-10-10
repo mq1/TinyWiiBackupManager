@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+
+- 🐧 Linux AppImages are working again on Ubuntu 20.04
+
+## Changed
+
+- 📦 Linux AppImages are smaller
+
+## Fixed
+
+- 📦 Linux AppImage now should advertise the correct TWBM version
+
 ## [v6.1.4] - 2026-10-10
 
 ## Added

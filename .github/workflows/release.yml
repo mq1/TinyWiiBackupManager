@@ -29,6 +29,8 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
+    container:
+      image: ubuntu:20.04
     strategy:
       fail-fast: false
       matrix:
@@ -49,15 +51,20 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
+      - name: Install dependencies
         run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 23
+          apt-get update
+          apt-get install -y curl lsb-release software-properties-common gnupg
 
       - name: Install i686 dependencies
         if: matrix.arch == 'i686'
-        run: sudo apt-get install -y libc6-dev-i386
+        run: apt-get install -y libc6-dev-i386
+
+      - name: Install LLVM
+        run: |
+          curl -LO https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 23
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
@@ -66,7 +73,7 @@ jobs:
 
       - name: Download appimagetool
         run: |
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
+          curl -LO "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
           chmod +x appimagetool-${{ matrix.arch }}.AppImage
 
       - name: Build binary
@@ -92,7 +99,7 @@ jobs:
           install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
           cd dist
-          export VERSION=$(yq '.package.version' Cargo.toml)
+          export VERSION="$(./scripts/current-version.sh)"
           ../appimagetool-${{ matrix.arch }}.AppImage \
             --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
@@ -100,6 +107,7 @@ jobs:
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
           ARCH: ${{ matrix.arch }}
+          APPIMAGE_EXTRACT_AND_RUN: 1
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -252,7 +260,7 @@ jobs:
         run: |
           cp -r package/macos/App TinyWiiBackupManager.app
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-          VERSION=$(yq '.package.version' Cargo.toml)
+          VERSION="$(./scripts/current-version.sh)"
           /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
 
       - name: Build the fat binary
@@ -302,7 +310,7 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n $(yq '.package.version' Cargo.toml) > dist/version.txt # Write without line break
+        run: ./scripts/current-version.sh > dist/version.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
