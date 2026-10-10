@@ -120,6 +120,7 @@ jobs:
             target: x86_64-win7-windows-msvc
           - arch: x86
             target: i686-win7-windows-msvc
+            no-asm: 1
 
     steps:
       - name: Checkout
@@ -163,6 +164,7 @@ jobs:
           AR: ${{ github.workspace }}\llvm\bin\llvm-lib.exe
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\llvm\bin\lld-link.exe
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ github.workspace }}\llvm\bin\lld-link.exe
+          AWS_LC_SYS_NO_ASM: ${{ matrix.no-asm }}
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\5.2.3790.0\lib\x64 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x64\YY_Thunks_for_WinXP.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,5.2
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\5.1.2600.0\lib\Win32 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x86\YY_Thunks_for_WinXP.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,5.1
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\10.0.10240.0\lib\ARM64
