@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.5] - 2026-10-10
+
 ## Added
 
 - 🐧 Linux AppImages are working again on Ubuntu 20.04
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 - 📦 Linux AppImage now should advertise the correct TWBM version
+- 🐛 Update prompt being shown even when on latest version
 
 ## [v6.1.4] - 2026-10-10
 
@@ -534,7 +537,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.4...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.5...HEAD
+[v6.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.4...v6.1.5
 [v6.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.3...v6.1.4
 [v6.1.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.2...v6.1.3
 [v6.1.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.1...v6.1.2
