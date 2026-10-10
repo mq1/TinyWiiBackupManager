@@ -27,7 +27,7 @@ dist-macos = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
 
 # bzip2 doesn't compile on windows x86
 dist-windows-x86 = [
-  "minreq/https-rustls",
+  "minreq/https-native-tls",
   "static-nod-without-bzip2",
   "dialogs-tfd",
 ]
