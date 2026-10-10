@@ -53,7 +53,7 @@ jobs:
 
       - name: Install LLVM
         run: |
-          wget https://apt.llvm.org/llvm.sh
+          curl -LO https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 23
 
