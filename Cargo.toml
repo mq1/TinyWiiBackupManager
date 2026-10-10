@@ -62,7 +62,7 @@ itertools = "0.15"
 split-write = "0.2"
 tempfile = "3"
 arrayvec = { version = "0.7", features = ["serde"] }
-zip = { version = "8", default-features = false, features = [
+zip = { version = "9", default-features = false, features = [
   "deflate-flate2-zlib",
 ] }
 strum = "0.28"
