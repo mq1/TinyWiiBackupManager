@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y lsb-release wget software-properties-common gnupg
+          apt-get install -y curl lsb-release software-properties-common gnupg
 
       - name: Install i686 dependencies
         if: matrix.arch == 'i686'
@@ -62,7 +62,7 @@ jobs:
 
       - name: Install LLVM
         run: |
-          wget https://apt.llvm.org/llvm.sh
+          curl -LO https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           ./llvm.sh 23
 
@@ -73,7 +73,7 @@ jobs:
 
       - name: Download appimagetool
         run: |
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
+          curl -LO "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
           chmod +x appimagetool-${{ matrix.arch }}.AppImage
 
       - name: Build binary
