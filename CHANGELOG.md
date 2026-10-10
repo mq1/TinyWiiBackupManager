@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
-- 📦 Linux AppImage now advertises the correct TWBM version
+- 📦 Linux AppImage now should advertise the correct TWBM version
 
 ## [v6.1.4] - 2026-10-10
 

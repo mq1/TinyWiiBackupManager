@@ -99,7 +99,7 @@ jobs:
           install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
           cd dist
-          export VERSION="$(grep -oP 'version\s*=\s*"\K[^"]+' ../Cargo.toml)"
+          export VERSION="$(./scripts/current-version.sh)"
           ../appimagetool-${{ matrix.arch }}.AppImage \
             --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
@@ -260,7 +260,7 @@ jobs:
         run: |
           cp -r package/macos/App TinyWiiBackupManager.app
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-          VERSION=$(yq '.package.version' Cargo.toml)
+          VERSION="$(./scripts/current-version.sh)"
           /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
 
       - name: Build the fat binary
@@ -310,7 +310,7 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n $(yq '.package.version' Cargo.toml) > dist/version.txt # Write without line break
+        run: ./scripts/current-version.sh > dist/version.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
