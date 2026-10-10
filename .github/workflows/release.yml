@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y wget
+          apt-get install -y lsb-release wget software-properties-common gnupg
 
       - name: Install i686 dependencies
         if: matrix.arch == 'i686'
