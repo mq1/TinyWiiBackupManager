@@ -81,7 +81,6 @@ jobs:
           RANLIB: llvm-ranlib-23
           CFLAGS: -O3 -flto
           CXXFLAGS: -O3 -flto
-          AWS_LC_SYS_NO_JITTER_ENTROPY: 1
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-23
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-23
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-23
