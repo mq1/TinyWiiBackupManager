@@ -9,9 +9,9 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["native-https", "static-nod", "dialogs-rfd"]
+default = ["static-https", "static-nod", "dialogs-rfd"]
 native-https = ["minreq/https-native-tls"]
-static-https = ["minreq/https-openssl-probe", "nod/openssl-vendored"]
+static-https = ["minreq/https-rustls-probe"]
 static-nod-without-bzip2 = [
   "nod/compress-lzma-static",
   "nod/compress-zlib-static",
@@ -28,7 +28,7 @@ dist-windows-arm64 = ["native-https", "static-nod", "dialogs-rfd"]
 dist-macos = ["native-https", "static-nod", "dialogs-rfd"]
 
 # bzip2 doesn't compile on windows x86
-dist-windows-x86 = ["native-https", "static-nod-without-bzip2", "dialogs-tfd"]
+dist-windows-x86 = ["static-https", "static-nod-without-bzip2", "dialogs-tfd"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
