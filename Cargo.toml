@@ -9,9 +9,7 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["static-https", "static-nod", "dialogs-rfd"]
-native-https = ["minreq/https-native-tls"]
-static-https = ["minreq/https-rustls-probe"]
+default = ["minreq/https-rustls", "nod/default", "dialogs-rfd"]
 static-nod-without-bzip2 = [
   "nod/compress-lzma-static",
   "nod/compress-zlib-static",
@@ -21,14 +19,18 @@ static-nod = ["static-nod-without-bzip2", "nod/compress-bzip2-static"]
 dialogs-rfd = ["dep:rfd"] # modern
 dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
 
-dist-appimage = ["static-https", "static-nod", "dialogs-rfd"]
-dist-flatpak = ["native-https", "nod/default", "dialogs-rfd"]
-dist-windows-x64 = ["native-https", "static-nod", "dialogs-tfd"]
-dist-windows-arm64 = ["native-https", "static-nod", "dialogs-rfd"]
-dist-macos = ["native-https", "static-nod", "dialogs-rfd"]
+dist-appimage = ["minreq/https-rustls-probe", "static-nod", "dialogs-rfd"]
+dist-flatpak = ["minreq/https-native-tls", "nod/default", "dialogs-rfd"]
+dist-windows-x64 = ["minreq/https-native-tls", "static-nod", "dialogs-tfd"]
+dist-windows-arm64 = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
+dist-macos = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
 
 # bzip2 doesn't compile on windows x86
-dist-windows-x86 = ["static-https", "static-nod-without-bzip2", "dialogs-tfd"]
+dist-windows-x86 = [
+  "minreq/https-rustls",
+  "static-nod-without-bzip2",
+  "dialogs-tfd",
+]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
