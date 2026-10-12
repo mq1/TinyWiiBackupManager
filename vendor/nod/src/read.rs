@@ -1,7 +1,7 @@
 //! [`DiscReader`] and associated types.
 use std::{
     io::{self, BufRead, Read, Seek},
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
@@ -173,6 +173,12 @@ where T: Read + Seek + Send
 pub struct DiscReader(disc::reader::DiscReader);
 
 impl DiscReader {
+    /// Lists the component files of a single or split image using the same discovery
+    /// as [`Self::new`]. This does not open or decode their disc contents.
+    pub fn split_file_paths<P: AsRef<Path>>(path: P) -> Result<Vec<PathBuf>> {
+        Ok(crate::io::split::SplitFileReader::new(path.as_ref())?.into_paths().collect())
+    }
+
     /// Opens a disc image from a file path.
     pub fn new<P: AsRef<Path>>(path: P, options: &DiscOptions) -> Result<DiscReader> {
         let io = block::open(path.as_ref())?;

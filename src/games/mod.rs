@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Result;
+use anyhow::{Context, Result, bail};
 use smol::{
     fs::File,
     stream::{Stream, StreamExt},
 };
 use std::{
     ffi::OsStr,
+    io::{self, Read, Seek},
     path::{Path, PathBuf},
 };
 use wii_disc_info::game_id::GameID;
@@ -25,6 +26,46 @@ pub mod import;
 pub mod scrub;
 pub mod transfer;
 pub mod txtcodes;
+
+// Metadata discovery and extraction must select the same member. ZIP archives
+// commonly place a directory or README before their game image.
+pub(crate) fn zip_game_index<R: Read + Seek>(
+    archive: &mut ZipArchive<R>,
+    mut check: impl FnMut() -> io::Result<()>,
+) -> Result<usize> {
+    let mut first_file = None;
+    let mut image = None;
+    for index in 0..archive.len() {
+        check()?;
+        let entry = archive.by_index_data(index)?;
+        if !entry.is_file() {
+            continue;
+        }
+        first_file.get_or_insert(index);
+        let name = entry.name()?;
+        let extension = Path::new(name.as_ref())
+            .extension()
+            .and_then(OsStr::to_str)
+            .unwrap_or_default();
+        if ["wbf1", "wbf2", "wbf3"]
+            .iter()
+            .any(|supported| extension.eq_ignore_ascii_case(supported))
+        {
+            bail!("Extract split game images from the ZIP before importing them");
+        }
+        if ["iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc"]
+            .iter()
+            .any(|supported| extension.eq_ignore_ascii_case(supported))
+            && image.replace(index).is_some()
+        {
+            bail!("ZIP contains multiple game images; extract them before importing");
+        }
+    }
+    check()?;
+    // Preserve support for a single image whose member has no usual extension;
+    // ImportEntry validates the selected member's actual disc header below.
+    image.or(first_file).context("ZIP contains no game image")
+}
 
 #[derive(Debug, Clone)]
 pub struct ImportEntry {
@@ -46,8 +87,9 @@ impl ImportEntry {
                 move || {
                     let f = std::fs::File::open(path)?;
                     let mut archive = ZipArchive::new(f)?;
-                    let mut first_entry = archive.by_index(0)?;
-                    let meta = wii_disc_info::Meta::read(&mut first_entry)?;
+                    let index = zip_game_index(&mut archive, || Ok(()))?;
+                    let mut image = archive.by_index(index)?;
+                    let meta = wii_disc_info::Meta::read(&mut image)?;
                     Ok::<_, anyhow::Error>(meta)
                 }
             })
@@ -146,6 +188,16 @@ pub async fn keep_valid_games(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        config::Config,
+        games::{
+            games_state::GamesState,
+            import::{BatchImportEvent, ImportCancellation, import_games},
+        },
+        util::drive_state::DriveState,
+    };
+    use std::io::Write;
+    use zip::{ZipWriter, write::SimpleFileOptions};
 
     fn entry(dir: &Path, name: &str, disc: u8) -> ImportEntry {
         let path = dir.join(name);
@@ -179,5 +231,84 @@ mod tests {
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0].meta.disc_number(), 0);
         assert_eq!(entries[1].meta.disc_number(), 1);
+    }
+
+    fn import_zip_with_leading_entry(directory_first: bool) {
+        let temp = tempfile::tempdir().unwrap();
+        let original = entry(temp.path(), "original.iso", 0);
+        let image = std::fs::read(original.path()).unwrap();
+        let source = temp.path().join("source.zip");
+        let mut zip = ZipWriter::new(std::fs::File::create(&source).unwrap());
+        let options = SimpleFileOptions::default();
+        if directory_first {
+            zip.add_directory("images/", options).unwrap();
+        } else {
+            zip.start_file("README.txt", options).unwrap();
+            zip.write_all(b"This archive contains one game.").unwrap();
+        }
+        zip.start_file("images/actual.GCM", options).unwrap();
+        zip.write_all(&image).unwrap();
+        zip.finish().unwrap();
+        let source_before = std::fs::read(&source).unwrap();
+        let imported = smol::block_on(ImportEntry::new(source.clone())).unwrap();
+        assert_eq!(imported.meta().game_id(), original.meta().game_id());
+        let mount = temp.path().join("drive");
+        std::fs::create_dir(&mount).unwrap();
+        let mut config = Config::default();
+        drop(config.set_mount_point(mount.clone()));
+        let events = smol::block_on(
+            import_games(
+                vec![imported],
+                config,
+                DriveState::NotLoaded,
+                1,
+                ImportCancellation::default(),
+            )
+            .collect::<Vec<_>>(),
+        );
+        assert!(
+            matches!(events.last(), Some(BatchImportEvent::Finished(summary)) if summary.imported == 1 && summary.failed == 0 && summary.cancelled == 0),
+            "{events:?}"
+        );
+        let GamesState::Loaded(games) = smol::block_on(GamesState::load(mount)) else {
+            panic!("Game scan failed")
+        };
+        assert_eq!(games.count(), 1);
+        let output = games
+            .iter_all()
+            .next()
+            .unwrap()
+            .get_disc_path_blocking()
+            .unwrap();
+        assert_eq!(std::fs::read(output).unwrap(), image);
+        assert_eq!(std::fs::read(source).unwrap(), source_before);
+    }
+
+    #[test]
+    fn game_zip_with_leading_directory_imports_the_image_completely() {
+        import_zip_with_leading_entry(true);
+    }
+
+    #[test]
+    fn game_zip_with_leading_readme_imports_the_image_completely() {
+        import_zip_with_leading_entry(false);
+    }
+
+    #[test]
+    fn game_zip_with_multiple_images_is_rejected_without_changes() {
+        let temp = tempfile::tempdir().unwrap();
+        let original = entry(temp.path(), "original.iso", 0);
+        let image = std::fs::read(original.path()).unwrap();
+        let source = temp.path().join("multiple.zip");
+        let mut zip = ZipWriter::new(std::fs::File::create(&source).unwrap());
+        for filename in ["one.iso", "two.iso"] {
+            zip.start_file(filename, SimpleFileOptions::default())
+                .unwrap();
+            zip.write_all(&image).unwrap();
+        }
+        zip.finish().unwrap();
+        let before = std::fs::read(&source).unwrap();
+        assert!(smol::block_on(ImportEntry::new(source.clone())).is_err());
+        assert_eq!(std::fs::read(source).unwrap(), before);
     }
 }

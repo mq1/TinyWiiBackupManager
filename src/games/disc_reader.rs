@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games::export::ExportCancellation;
+use crate::games::{export::ExportCancellation, zip_game_index};
 use anyhow::{Context, Result};
 use arrayvec::ArrayVec;
 use nod::read::DiscStream;
@@ -225,7 +225,8 @@ fn retrieve_multi_disc_files_inner<C: DiscCancellation>(
     if ext.eq_ignore_ascii_case("zip") {
         let mut zip = ZipArchive::new(open(path)?)?;
         check()?;
-        let mut entry = zip.by_index(0)?;
+        let index = zip_game_index(&mut zip, check)?;
+        let mut entry = zip.by_index(index)?;
         check()?;
 
         let mut tmp = tempfile()?;

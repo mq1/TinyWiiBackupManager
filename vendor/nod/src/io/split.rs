@@ -102,6 +102,10 @@ impl SplitFileReader {
     }
 
     pub fn len(&self) -> u64 { self.files.last().map_or(0, |f| f.begin + f.size) }
+
+    pub fn into_paths(self) -> impl Iterator<Item = PathBuf> {
+        self.files.into_iter().map(|file| file.inner)
+    }
 }
 
 impl Clone for SplitFileReader {
@@ -207,5 +211,28 @@ mod tests {
 
         assert_eq!(reader.len(), 1);
         assert_eq!(reader.files.len(), 1);
+    }
+
+    #[test]
+    fn public_split_paths_match_the_files_read_for_each_naming_scheme() {
+        for names in [
+            ["game.iso", "game.iso.1", "game.iso.2"],
+            ["game.part0.iso", "game.part1.iso", "game.part2.iso"],
+            ["game.wbfs", "game.wbf1", "game.wbf2"],
+        ] {
+            let dir = TestDir::new();
+            let paths = names.map(|name| dir.path().join(name));
+            for (index, path) in paths.iter().enumerate() {
+                fs::write(path, [index as u8]).unwrap();
+            }
+
+            let discovered = crate::read::DiscReader::split_file_paths(&paths[0]).unwrap();
+            let mut reader = SplitFileReader::new(&paths[0]).unwrap();
+            let mut actual = [0; 3];
+            reader.read_exact_at(&mut actual, 0).unwrap();
+
+            assert_eq!(discovered, paths);
+            assert_eq!(actual, [0, 1, 2]);
+        }
     }
 }

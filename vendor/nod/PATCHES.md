@@ -49,6 +49,15 @@ These changes are kept in source control instead of modifying Cargo's shared
 cache. The vendored dependency can be removed after a suitable upstream fix is
 available and equivalent round-trip coverage passes against it.
 
+## Source protection for manual conversion
+
+- `src/read.rs`: Expose `DiscReader::split_file_paths()` using the existing
+  `SplitFileReader` discovery and file order. TinyWiiBackupManager checks every
+  component before replacing a confirmed conversion destination, preventing an
+  output such as `game.part1.iso` from replacing part of its own input.
+- A focused test checks that the accessor and reader use the same files for
+  `.iso.1`, `.partN.iso`, and `.wbfN` naming. Discovery and reading are unchanged.
+
 ## Cancellation cleanup and progress checkpoints
 
 - `src/disc/preloader.rs`: On drop, disconnect the original request and

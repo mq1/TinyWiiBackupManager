@@ -178,42 +178,58 @@ pub fn calc_sha1_games(games: Vec<Game>) -> impl Stream<Item = BatchHashEvent> {
     rx
 }
 
-fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>) -> Result<bool> {
-    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+fn perform_blocking(
+    game: &Game,
+    tx: &smol::channel::Sender<LongOperationState>,
+) -> Result<Vec<HashResult>> {
+    let discs = game.get_disc_paths_blocking()?;
+    let mut results = Vec::with_capacity(discs.len());
+    for (number, source) in discs {
+        let result = match hash_disc(&source, |percentage| {
+            let _ = tx.try_send(LongOperationState::Progress(format!(
+                "✓  Hashing {} (Disc {number})  {percentage:02}%",
+                game.title()
+            )));
+        }) {
+            Ok(digest) => HashResult::from_digest(game, number, digest),
+            Err(error) => HashResult::from_error(game, Some(number), error),
+        };
+        results.push(result);
+    }
+    Ok(results)
+}
 
-    let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
-
-    let process_opts = ProcessOptions {
-        digest_sha1: true,
-        ..Default::default()
-    };
-
-    let writer = DiscWriter::new(disc, &FormatOptions::default())?;
-
-    let mut prev_percentage = 100;
-    let finalization = writer.process(
-        |_, progress, total| {
-            let progress_percentage = progress * 100 / total;
-
-            if progress_percentage != prev_percentage {
-                let _ = tx.try_send(LongOperationState::Progress(format!(
-                    "✓  Hashing {}  {progress_percentage:02}%",
-                    game.title()
-                )));
-
-                prev_percentage = progress_percentage;
+fn single_game_outcome(game: &Game, results: &[HashResult]) -> LongOperationState {
+    let mut summary = HashSummary::default();
+    let details = results
+        .iter()
+        .map(|result| {
+            summary.record(result);
+            let disc = result.disc.unwrap_or(1);
+            match &result.outcome {
+                HashOutcome::Known => format!(
+                    "Disc {disc}: SHA1 matches Redump ({})",
+                    result.sha1.as_deref().unwrap_or_default()
+                ),
+                HashOutcome::Unknown => format!(
+                    "Disc {disc}: SHA1 not found in the bundled Redump database ({})",
+                    result.sha1.as_deref().unwrap_or_default()
+                ),
+                HashOutcome::Error(error) => format!("Disc {disc}: Could not check: {error}"),
             }
-
-            Ok(())
-        },
-        &process_opts,
-    )?;
-
-    let sha1 = finalization.sha1.context("Failed to calculate SHA1")?;
-
-    let known_sha1 = sha1_list::is_known(&sha1);
-
-    Ok::<_, anyhow::Error>(known_sha1)
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    if summary.errors > 0 {
+        LongOperationState::Errored(format!(
+            "Could not check all discs of {}\n{details}",
+            game.title()
+        ))
+    } else if summary.unknown > 0 {
+        LongOperationState::Errored(format!("Hash mismatch for {}\n{details}", game.title()))
+    } else {
+        LongOperationState::Finished(format!("Hash match for {}!\n{details}", game.title()))
+    }
 }
 
 pub fn calc_sha1(game: Game) -> impl Stream<Item = LongOperationState> {
@@ -221,15 +237,11 @@ pub fn calc_sha1(game: Game) -> impl Stream<Item = LongOperationState> {
 
     let _ = std::thread::spawn(move || {
         let exit = match perform_blocking(&game, &tx) {
-            Ok(true) => LongOperationState::Finished(format!(
-                "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
-                game.title()
-            )),
-            Ok(false) => LongOperationState::Errored(format!("Hash mismatch for {}", game.title())),
+            Ok(results) => single_game_outcome(&game, &results),
             Err(e) => LongOperationState::Errored(e.to_string()),
         };
 
-        tx.send_blocking(exit).expect("Channel should be open");
+        let _ = tx.send_blocking(exit);
     });
 
     rx
@@ -464,5 +476,82 @@ mod tests {
             events.last(),
             Some(BatchHashEvent::Finished(summary)) if summary == &HashSummary::default()
         ));
+    }
+
+    #[test]
+    fn single_game_reports_missing_iso_part_as_read_error() {
+        let temp = tempfile::tempdir().unwrap();
+        let game = game(temp.path(), "Missing ISO part", "GZZE01");
+        let primary = game.path().join("GZZE01.part0.iso");
+        let bytes = synthetic_disc();
+        std::fs::write(&primary, &bytes[..0x8000]).unwrap();
+        let events = smol::block_on(calc_sha1(game).collect::<Vec<_>>());
+        assert!(
+            matches!(events.last(), Some(LongOperationState::Errored(message))
+            if message.starts_with("Could not check all discs") && message.contains("Disc 1: Could not check: opening source disc"))
+        );
+        assert_eq!(std::fs::read(primary).unwrap(), bytes[..0x8000]);
+    }
+
+    #[test]
+    fn single_game_checks_every_disc_and_continues_after_a_damaged_disc() {
+        let temp = tempfile::tempdir().unwrap();
+        let game = game(temp.path(), "Three discs", "GZZE01");
+        let bytes = synthetic_disc();
+        let corrupt = vec![0; bytes.len()];
+        std::fs::write(game.path().join("game.iso"), &bytes).unwrap();
+        std::fs::write(game.path().join("disc2.iso"), &corrupt).unwrap();
+        std::fs::write(game.path().join("disc3.iso"), &bytes).unwrap();
+        let (tx, _) = smol::channel::unbounded();
+        let results = perform_blocking(&game, &tx).unwrap();
+        assert_eq!(results.len(), 3);
+        assert_eq!(results[0].sha1.as_deref(), Some(SYNTHETIC_SHA1));
+        assert_eq!(results[1].disc, Some(2));
+        assert!(matches!(results[1].outcome, HashOutcome::Error(_)));
+        assert_eq!(results[2].sha1.as_deref(), Some(SYNTHETIC_SHA1));
+        let LongOperationState::Errored(message) = single_game_outcome(&game, &results) else {
+            panic!("Damaged second disc must be reported");
+        };
+        assert!(message.starts_with("Could not check all discs"));
+        assert!(message.contains("Disc 1: SHA1 not found"));
+        assert!(message.contains("Disc 2: Could not check"));
+        assert!(message.contains("Disc 3: SHA1 not found"));
+        assert_eq!(std::fs::read(game.path().join("game.iso")).unwrap(), bytes);
+        assert_eq!(
+            std::fs::read(game.path().join("disc2.iso")).unwrap(),
+            corrupt
+        );
+        assert_eq!(std::fs::read(game.path().join("disc3.iso")).unwrap(), bytes);
+    }
+
+    #[test]
+    fn single_game_reports_unknown_hashes_for_both_valid_discs() {
+        let temp = tempfile::tempdir().unwrap();
+        let game = game(temp.path(), "Two discs", "GZZE01");
+        let bytes = synthetic_disc();
+        let mut second = bytes.clone();
+        second[6] = 1;
+        std::fs::write(game.path().join("game.iso"), &bytes).unwrap();
+        std::fs::write(game.path().join("disc2.iso"), &second).unwrap();
+        let events = smol::block_on(calc_sha1(game.clone()).collect::<Vec<_>>());
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| !matches!(event, LongOperationState::Progress(_)))
+                .count(),
+            1
+        );
+        let Some(LongOperationState::Errored(message)) = events.last() else {
+            panic!("Unknown synthetic hashes retain the existing error notification");
+        };
+        assert!(message.starts_with("Hash mismatch for "));
+        assert!(message.contains("Disc 1: SHA1 not found"));
+        assert!(message.contains("Disc 2: SHA1 not found"));
+        assert!(message.contains(SYNTHETIC_SHA1));
+        assert_eq!(std::fs::read(game.path().join("game.iso")).unwrap(), bytes);
+        assert_eq!(
+            std::fs::read(game.path().join("disc2.iso")).unwrap(),
+            second
+        );
     }
 }
