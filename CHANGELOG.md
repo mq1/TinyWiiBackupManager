@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 
 - 🪟 Windows x86 now bundles the tls library instead of using the system one (which may be outdated).
-- 🪟 Windows x64 builds use the modern Vista+ dialogs again; Windows XP can still use the x86 build.
+- 🪟 Windows x64 builds use the modern Vista+ dialogs again; Windows XP users (if there are any) can still use the x86 build.
 - 🐧 Smaller flatpak build
 
 ## Fixed
