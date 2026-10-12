@@ -333,6 +333,8 @@ fn perform_blocking(
         Ok(header) => header,
         Err(error) => return Err(writer.discard(error)),
     };
+    // transfer has drained/flushed the buffer; finish syncs and closes every
+    // part before publication, including same-format WBFS copies (upstream #694).
     let staged = writer
         .finish(&header)
         .context("Cannot finalize imported image")?;

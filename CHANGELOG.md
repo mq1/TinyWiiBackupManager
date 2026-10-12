@@ -26,6 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced the size of UI messages and modal state by boxing the Homebrew app details payload.
 - Removed redundant cloning of the empty legacy dialog context while preserving context reuse with modern file dialogs.
 
+## [v6.1.6] - 2026-10-12
+
+## Changed
+
+- 🪟 Windows x86 now bundles the tls library instead of using the system one (which may be outdated).
+- 🪟 Windows x64 builds use the modern Vista+ dialogs again; Windows XP users (if there are any) can still use the x86 build.
+- 🐧 Smaller flatpak build
+
+## Fixed
+
+- 🪟 bzip2 now works on windows x86
+- 🐛 Potential fix for: WBFS file deleting after adding game (<https://github.com/mq1/TinyWiiBackupManager/issues/694>) (needs testing)
+
 ## [v6.1.5] - 2026-10-10
 
 ## Added
@@ -556,7 +569,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.5...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.6...HEAD
+[v6.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.5...v6.1.6
 [v6.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.4...v6.1.5
 [v6.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.3...v6.1.4
 [v6.1.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.2...v6.1.3

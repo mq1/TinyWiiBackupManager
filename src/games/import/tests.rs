@@ -542,6 +542,84 @@ fn fast_pipeline_drains_before_split_header_rewrite_and_publication() {
 }
 
 #[test]
+fn same_format_wbfs_copy_flushes_and_closes_before_publication_and_source_removal() {
+    let reader =
+        DiscReader::new_from_cloneable_read(Cursor::new(wii_disc()), &DiscOptions::default())
+            .unwrap();
+    let writer = DiscWriter::new(reader, &FormatOptions::new(Format::Wbfs)).unwrap();
+    let mut output = Cursor::new(Vec::new());
+    let finalization = writer
+        .process(
+            |bytes, _, _| output.write_all(&bytes),
+            &ProcessOptions::default(),
+        )
+        .unwrap();
+    output.rewind().unwrap();
+    output.write_all(&finalization.header).unwrap();
+    let mut expected = output.into_inner();
+    // Same-format copying must preserve even a non-aligned container trailer.
+    // This leaves data buffered at EOF and detects publication before flush.
+    expected.extend_from_slice(b"WBFS copy trailer");
+
+    for fast in [false, true] {
+        for split_size in [None, NonZeroUsize::new(256 * 1024 + 17)] {
+            let temp = tempfile::tempdir().unwrap();
+            let target = temp.path().join("usb");
+            std::fs::create_dir(&target).unwrap();
+            let source = entry(&temp.path().join("source.wbfs"), &expected);
+            let mut config = config(&target);
+            for message in [
+                ConfigMessage::SetWiiOutputFormat(Format::Wbfs),
+                ConfigMessage::SetScrubUpdatePartition(false),
+                ConfigMessage::SetFastTransfer(fast),
+                ConfigMessage::SetRemoveSourcesGames(true),
+            ] {
+                drop(config.update(message));
+            }
+            let mut plan = ImportPlan::new(&source, &config, &DriveState::NotLoaded);
+            // Exercise physical splitting without allocating a 4 GiB fixture.
+            plan.split_size = split_size;
+            assert_eq!(
+                plan.format,
+                wii_disc_info_to_nod_format(source.meta().format())
+            );
+            let mut completed_callbacks = 0;
+            let warning = perform_blocking(
+                &source,
+                &config,
+                &plan,
+                ImportThreads::for_jobs(1),
+                &Mutex::new(()),
+                &ImportCancellation::default(),
+                |percentage| {
+                    assert!(source.path().exists());
+                    assert!(!plan.folder.exists());
+                    completed_callbacks += usize::from(percentage == 100);
+                    Ok(())
+                },
+            )
+            .unwrap();
+            assert!(warning.is_none(), "{warning:?}");
+            assert!(completed_callbacks > 0);
+            assert!(!source.path().exists());
+            let part_count = split_size.map_or(1, |size| expected.len().div_ceil(size.get()));
+            let actual: Vec<_> = (0..part_count)
+                .flat_map(|part| {
+                    std::fs::read(plan.folder.join(plan.filename(&source, &config, part))).unwrap()
+                })
+                .collect();
+            assert_eq!(actual, expected, "fast={fast}, split_size={split_size:?}");
+            assert_eq!(std::fs::read_dir(&plan.folder).unwrap().count(), part_count);
+            let published: Vec<_> = std::fs::read_dir(target.join("wbfs"))
+                .unwrap()
+                .map(|entry| entry.unwrap().path())
+                .collect();
+            assert_eq!(published, [plan.folder]);
+        }
+    }
+}
+
+#[test]
 fn fast_and_direct_import_match_for_all_supported_console_formats() {
     for (is_wii, format) in [
         (false, Format::Iso),
