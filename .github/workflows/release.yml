@@ -150,7 +150,7 @@ jobs:
           components: rust-src
 
       - name: Install NASM (for aws-lc-rs)
-        if: features == 'dist-windows-legacy' && matrix.arch != 'x64'
+        if: matrix.features == 'dist-windows-legacy' && matrix.arch != 'x64'
         run: |
           choco install nasm -y
           "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
