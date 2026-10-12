@@ -9,28 +9,21 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["minreq/https-rustls", "nod/default", "dialogs-rfd"]
-static-nod-without-bzip2 = [
-  "nod/compress-lzma-static",
-  "nod/compress-zlib-static",
-  "nod/compress-zstd-static",
+default = ["minreq/https-rustls", "static-nod", "dialogs-rfd"]
+static-nod = [
+  "compress-bzip2-static",
+  "compress-lzma-static",
+  "compress-zlib-static",
+  "compress-zstd-static",
 ]
-static-nod = ["static-nod-without-bzip2", "nod/compress-bzip2-static"]
 dialogs-rfd = ["dep:rfd"] # modern
 dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
 
 dist-appimage = ["minreq/https-rustls-probe", "static-nod", "dialogs-rfd"]
-dist-flatpak = ["minreq/https-native-tls", "nod/default", "dialogs-rfd"]
-dist-windows-x64 = ["minreq/https-native-tls", "static-nod", "dialogs-tfd"]
-dist-windows-arm64 = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
+dist-flatpak = ["minreq/https-native-tls", "dialogs-rfd"]
+dist-windows-modern = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
+dist-windows-legacy = ["minreq/https-rustls", "static-nod", "dialogs-tfd"]
 dist-macos = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
-
-# bzip2 doesn't compile on windows x86
-dist-windows-x86 = [
-  "minreq/https-native-tls",
-  "static-nod-without-bzip2",
-  "dialogs-tfd",
-]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -75,6 +68,10 @@ time = { version = "0.3", features = ["local-offset"] }
 minreq = { version = "3", features = ["json-using-serde"] }
 nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling", default-features = false, features = [
   "threading",
+  "compress-bzip2",
+  "compress-lzma",
+  "compress-zlib",
+  "compress-zstd",
 ] }
 semver = "1"
 humantime = "2"
