@@ -124,10 +124,13 @@ jobs:
         include:
           - arch: arm64
             target: aarch64-pc-windows-msvc
+            features: dist-windows-modern
           - arch: x64
             target: x86_64-win7-windows-msvc
+            features: dist-windows-modern
           - arch: x86
             target: i686-win7-windows-msvc
+            features: dist-windows-legacy
 
     steps:
       - name: Checkout
@@ -162,7 +165,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-windows-${{ matrix.arch }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
