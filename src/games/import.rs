@@ -69,7 +69,7 @@ fn perform_blocking(
         entry.meta().game_title(),
     )?;
 
-    let mut out_writer = SplitWriter::create(
+    let out_writer = SplitWriter::create(
         &game_dir,
         |part| {
             get_filename(
@@ -93,6 +93,9 @@ fn perform_blocking(
 
     if out_format == wii_disc_info_to_nod_format(entry.meta().format()) {
         // if the input is already in the right format, just copy it
+
+        // move here so it gets dropped
+        let mut out_writer = out_writer;
 
         let mut to_write = 0;
         for file in &files {
@@ -124,6 +127,8 @@ fn perform_blocking(
                 }
             }
         }
+
+        out_writer.flush()?;
     } else {
         let stream = SharedMultiFileReader::new(files)?;
 
