@@ -11,10 +11,10 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 [features]
 default = ["minreq/https-rustls", "static-nod", "dialogs-rfd"]
 static-nod = [
-  "compress-bzip2-static",
-  "compress-lzma-static",
-  "compress-zlib-static",
-  "compress-zstd-static",
+  "nod/compress-bzip2-static",
+  "nod/compress-lzma-static",
+  "nod/compress-zlib-static",
+  "nod/compress-zstd-static",
 ]
 dialogs-rfd = ["dep:rfd"] # modern
 dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
