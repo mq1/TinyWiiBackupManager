@@ -1,3 +1,2 @@
 [env]
 AWS_LC_SYS_NO_JITTER_ENTROPY = "1"
-AWS_LC_SYS_CFLAGS = "-fno-lto /clang:-fno-lto"
