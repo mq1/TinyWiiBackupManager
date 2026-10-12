@@ -149,6 +149,10 @@ jobs:
         with:
           components: rust-src
 
+      - name: Install NASM (for aws-lc-rs)
+        if: matrix.arch == 'x86'
+        run: choco install nasm -y
+
       - name: Download and extract VC-LTL5
         shell: pwsh
         run: |
