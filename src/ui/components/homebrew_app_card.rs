@@ -74,7 +74,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
                     .label("Info")
                     .icon(Icon::Info)
                     .expand_width()
-                    .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone())),
+                    .on_press_with(|| Message::OpenHomebrewAppInfo(Box::new(app.clone()))),
                 update_button,
                 my_button()
                     .icon(Icon::Trash)

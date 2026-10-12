@@ -9,8 +9,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+#[cfg(test)]
+mod export_tests;
 mod games;
+#[cfg(test)]
+mod hash_tests;
 mod homebrew;
+#[cfg(test)]
+mod import_tests;
 mod long_operation;
 mod message;
 mod notifications;

@@ -14,6 +14,7 @@ pub enum ConfigMessage {
     SetSortBy(SortBy),
     SetViewAs(ViewAs),
     SetAlwaysSplit(bool),
+    SetFastTransfer(bool),
     SetRemoveSourcesGames(bool),
     SetRemoveSourcesApps(bool),
     SetScrubUpdatePartition(bool),

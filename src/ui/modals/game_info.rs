@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::fast_transfer::fast_transfer,
     games::game::Game,
     long_operation::LongOperationKind,
     message::Message,
@@ -89,6 +90,21 @@ pub fn game_info<'a>(
         )
     });
 
+    let mut hash_btn = my_button()
+        .label("SHA1")
+        .icon(Icon::SearchCheck)
+        .kind(MyButtonKind::Secondary);
+    if !state.is_hash_busy() {
+        hash_btn = hash_btn.on_press_with(|| Message::CalcGameSha1(game.clone()));
+    }
+    let mut export_btn = my_button()
+        .label("Export...")
+        .icon(Icon::HardDriveDownload)
+        .kind(MyButtonKind::Primary);
+    if !state.is_export_busy() {
+        export_btn = export_btn.on_press_with(|| Message::PickExportDest(game.clone()));
+    }
+
     my_card(
         column![
             column![
@@ -100,6 +116,18 @@ pub fn game_info<'a>(
             space::vertical(),
             content,
             space::vertical(),
+            rule::horizontal(1),
+            row![
+                fast_transfer(
+                    state.config.fast_transfer(),
+                    state.can_change_fast_transfer()
+                )
+                .map(Message::Config),
+                export_btn,
+            ]
+            .spacing(10)
+            .padding(10)
+            .align_y(Alignment::Center),
             rule::horizontal(1),
             row![
                 space(),
@@ -116,11 +144,7 @@ pub fn game_info<'a>(
                     tooltip::Position::Bottom
                 ),
                 tooltip(
-                    my_button()
-                        .label("SHA1")
-                        .icon(Icon::SearchCheck)
-                        .kind(MyButtonKind::Secondary)
-                        .on_press_with(|| Message::CalcGameSha1(game.clone())),
+                    hash_btn,
                     my_card("Check if your dump is 100% byte identical to the Redump one"),
                     tooltip::Position::Bottom
                 ),
@@ -133,8 +157,8 @@ pub fn game_info<'a>(
             .padding(10)
             .align_y(Alignment::Center)
         ]
-        .width(600)
-        .height(400),
+        .width(680)
+        .height(490),
     )
     .padding(0)
     .into()

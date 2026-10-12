@@ -20,8 +20,13 @@ pub fn import_queue(state: &AppState) -> Element<'_, Message> {
         state
             .import_queue
             .iter()
-            .enumerate()
-            .map(queued_import_row)
+            .map(|row| {
+                let in_current_batch = state
+                    .active_import
+                    .as_ref()
+                    .is_some_and(|run| run.pending.contains(&row.id));
+                queued_import_row(row, state.is_import_busy(), in_current_batch)
+            })
             .intersperse_with(|| rule::horizontal(1).into())
             .collect::<Column<'_, _>>(),
     )

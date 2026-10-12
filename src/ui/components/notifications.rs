@@ -52,12 +52,40 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     .into()
 }
 
-fn progress(
-    (op_state, _): &(LongOperationState, LongOperationKind),
-) -> impl Iterator<Item = Element<'_, Message>> {
+fn progress<'a>(
+    (op_state, kind): &'a (LongOperationState, LongOperationKind),
+    state: &AppState,
+) -> impl Iterator<Item = Element<'a, Message>> {
     match op_state {
         LongOperationState::Progress(progress) => {
-            Either::Left(once(Element::from(my_card(text(progress.as_str())))))
+            let mut content = row![text(progress.as_str())]
+                .align_y(Alignment::Center)
+                .spacing(10);
+            if *kind == LongOperationKind::Export && state.active_export.is_some() {
+                content = content.push(
+                    button("Cancel export")
+                        .on_press_maybe(
+                            (!state.is_export_cancelling()).then_some(Message::CancelExport),
+                        )
+                        .style(button::danger),
+                );
+            }
+            if *kind == LongOperationKind::Import
+                && let Some(run) = &state.active_import
+            {
+                content = content.push(
+                    button(if state.is_import_cancelling() {
+                        "Cancelling..."
+                    } else {
+                        "Cancel import"
+                    })
+                    .on_press_maybe(
+                        (!state.is_import_cancelling()).then_some(Message::CancelImportRun(run.id)),
+                    )
+                    .style(button::danger),
+                );
+            }
+            Either::Left(once(Element::from(my_card(content))))
         }
         _ => Either::Right(empty()),
     }
@@ -69,7 +97,12 @@ pub fn notifications(state: &AppState) -> Element<'_, Message> {
         .iter()
         .enumerate()
         .map(item)
-        .chain(state.long_operations.iter().flat_map(progress))
+        .chain(
+            state
+                .long_operations
+                .iter()
+                .flat_map(|operation| progress(operation, state)),
+        )
         .collect::<Column<'_, Message>>()
         .padding(10)
         .spacing(10)

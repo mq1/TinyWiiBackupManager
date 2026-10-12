@@ -4,8 +4,12 @@
 use crate::{
     config::{Config, ThemePreference},
     games::{
-        ImportEntry, covers::download_ui_covers, game::Game, games_state::GamesState,
-        import::import_game,
+        ImportEntry,
+        covers::download_ui_covers,
+        export::ExportCancellation,
+        game::Game,
+        games_state::GamesState,
+        import::{DEFAULT_PARALLEL_IMPORTS, ImportCancellation, import_games},
     },
     homebrew::{self, homebrew_state::HomebrewState},
     long_operation::{LongOperationKind, LongOperationState, LongOperations},
@@ -13,7 +17,11 @@ use crate::{
     notifications::{notification::Notification, notification_list::NotificationList},
     osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
-    ui::{modals::Modal, pages::Page, theme},
+    ui::{
+        modals::{Modal, check_games::HashSelection},
+        pages::Page,
+        theme,
+    },
     util::{self, drive_state::DriveState, updates},
 };
 use anyhow::{Context, Result};
@@ -40,6 +48,30 @@ use std::{
 use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
 
+#[derive(Debug, Clone)]
+pub struct ExportRun {
+    pub id: u64,
+    pub fast_transfer: bool,
+    pub cancellation: ExportCancellation,
+}
+
+#[derive(Debug, Clone)]
+pub struct QueuedImport {
+    pub id: u64,
+    pub entry: ImportEntry,
+    pub selected: bool,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImportRun {
+    pub id: u64,
+    pub cancellation: ImportCancellation,
+    pub mount_point: PathBuf,
+    pub entries: Vec<QueuedImport>,
+    pub pending: Vec<u64>,
+}
+
 pub struct AppState {
     pub data_dir: &'static Path,
     pub config: Config,
@@ -50,10 +82,20 @@ pub struct AppState {
     pub current_page: Page,
     pub current_modal: Option<Modal>,
     pub long_operations: LongOperations,
-    pub import_queue: Vec<ImportEntry>,
+    pub import_queue: Vec<QueuedImport>,
+    pub import_parallel_jobs: usize,
+    pub active_import: Option<ImportRun>,
+    import_queue_sequence: u64,
+    import_run_sequence: u64,
     pub osc_contents: OscState,
     pub animation_state: bool,
     pub new_version: Option<Version>,
+    pub export_picker: Option<u64>,
+    export_picker_sequence: u64,
+    pub active_export: Option<ExportRun>,
+    export_run_sequence: u64,
+    pub hash_batch: Option<HashSelection>,
+    hash_run_sequence: u64,
 }
 
 impl AppState {
@@ -70,9 +112,19 @@ impl AppState {
                     current_page: Page::Games,
                     current_modal: None,
                     import_queue: Vec::new(),
+                    import_parallel_jobs: DEFAULT_PARALLEL_IMPORTS,
+                    active_import: None,
+                    import_queue_sequence: 0,
+                    import_run_sequence: 0,
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
+                    export_picker: None,
+                    export_picker_sequence: 0,
+                    active_export: None,
+                    export_run_sequence: 0,
+                    hash_batch: None,
+                    hash_run_sequence: 0,
                     long_operations: LongOperations::new(),
                 },
                 Task::batch([
@@ -92,6 +144,95 @@ impl AppState {
                 ]),
             )
         }
+    }
+
+    pub fn is_export_busy(&self) -> bool {
+        self.export_picker.is_some()
+            || self.active_export.is_some()
+            || !self.long_operations.is_idle(LongOperationKind::Export)
+    }
+
+    pub fn can_change_fast_transfer(&self) -> bool {
+        !self.is_import_busy() && !self.is_export_busy()
+    }
+
+    pub fn is_export_cancelling(&self) -> bool {
+        self.active_export
+            .as_ref()
+            .is_some_and(|run| run.cancellation.is_cancelled())
+    }
+
+    pub fn begin_export_run(&mut self) -> ExportRun {
+        self.export_run_sequence = self.export_run_sequence.wrapping_add(1);
+        let run = ExportRun {
+            id: self.export_run_sequence,
+            fast_transfer: self.config.fast_transfer(),
+            cancellation: ExportCancellation::default(),
+        };
+        self.active_export = Some(run.clone());
+        run
+    }
+
+    pub fn is_hash_busy(&self) -> bool {
+        !self.long_operations.is_idle(LongOperationKind::Hash)
+    }
+
+    pub fn next_hash_run(&mut self) -> u64 {
+        self.hash_run_sequence = self.hash_run_sequence.wrapping_add(1);
+        self.hash_run_sequence
+    }
+
+    pub fn new_hash_selection(&mut self) {
+        if !self.is_hash_busy()
+            && !self.config.mount_point().as_os_str().is_empty()
+            && let GamesState::Loaded(games) = &self.games
+            && games.count() > 0
+        {
+            self.hash_batch = Some(HashSelection::new(
+                games.iter_all().cloned().collect(),
+                self.config.mount_point().to_path_buf(),
+            ));
+            self.current_modal = Some(Modal::CheckGames);
+        }
+    }
+
+    pub fn dismiss_hash_selection(&mut self) {
+        if matches!(self.current_modal, Some(Modal::CheckGames)) {
+            self.current_modal = None;
+        }
+        if self
+            .hash_batch
+            .as_ref()
+            .is_some_and(|batch| batch.run_id == 0)
+        {
+            self.hash_batch = None;
+        }
+    }
+
+    pub fn dismiss_export_selection(&mut self) {
+        self.export_picker = None;
+        if matches!(self.current_modal, Some(Modal::ExportGames(_))) {
+            self.current_modal = None;
+        }
+    }
+
+    pub fn begin_export_picker(&mut self) -> Option<u64> {
+        if self.is_export_busy() {
+            return None;
+        }
+
+        self.export_picker_sequence = self.export_picker_sequence.wrapping_add(1);
+        self.export_picker = Some(self.export_picker_sequence);
+        self.export_picker
+    }
+
+    pub fn finish_export_picker(&mut self, request: u64) -> bool {
+        if self.export_picker != Some(request) {
+            return false;
+        }
+
+        self.export_picker = None;
+        true
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
@@ -226,24 +367,97 @@ impl AppState {
         )
     }
 
-    pub fn trigger_import_task(&mut self) -> Task<Message> {
-        if let Some(entry) = self.import_queue.pop() {
-            self.long_operations.set(
-                LongOperationKind::Import,
-                LongOperationState::Progress(format!("⤓  Importing {}", entry.meta().game_title())),
-            );
-
-            Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
-                .map(|op_state| Message::SetLongOperationState(LongOperationKind::Import, op_state))
-        } else {
-            self.notifications
-                .push(Notification::info("Import queue is empty"));
-            Task::none()
-        }
+    pub fn is_import_busy(&self) -> bool {
+        self.active_import.is_some() || !self.long_operations.is_idle(LongOperationKind::Import)
     }
 
-    pub fn add_to_import_queue(&mut self, mut paths: Vec<ImportEntry>) {
-        self.import_queue.append(&mut paths);
+    pub fn selected_import_count(&self) -> usize {
+        self.import_queue.iter().filter(|row| row.selected).count()
+    }
+
+    pub fn is_import_cancelling(&self) -> bool {
+        self.active_import
+            .as_ref()
+            .is_some_and(|run| run.cancellation.is_cancelled())
+    }
+
+    pub fn begin_import_run(&mut self) -> Option<(u64, Vec<ImportEntry>)> {
+        if self.is_import_busy()
+            || self.config.mount_point().as_os_str().is_empty()
+            || !matches!(self.drive, DriveState::Loaded(_))
+        {
+            return None;
+        }
+        let entries: Vec<_> = self
+            .import_queue
+            .iter()
+            .filter(|row| row.selected)
+            .cloned()
+            .collect();
+        if entries.is_empty() {
+            return None;
+        }
+        self.import_run_sequence = self.import_run_sequence.wrapping_add(1);
+        let id = self.import_run_sequence;
+        let imports = entries.iter().map(|row| row.entry.clone()).collect();
+        let pending = entries.iter().map(|row| row.id).collect();
+        self.active_import = Some(ImportRun {
+            id,
+            cancellation: ImportCancellation::default(),
+            mount_point: self.config.mount_point().to_path_buf(),
+            entries,
+            pending,
+        });
+        for row in &mut self.import_queue {
+            if row.selected {
+                row.error = None;
+            }
+        }
+        self.long_operations.set(
+            LongOperationKind::Import,
+            LongOperationState::Progress("Preparing selected games for import...".into()),
+        );
+        Some((id, imports))
+    }
+
+    pub fn trigger_import_task(&mut self) -> Task<Message> {
+        let Some((run_id, entries)) = self.begin_import_run() else {
+            return Task::none();
+        };
+        let cancellation = self
+            .active_import
+            .as_ref()
+            .expect("begin_import_run creates the active run")
+            .cancellation
+            .clone();
+        Task::stream(import_games(
+            entries,
+            self.config.clone(),
+            self.drive.clone(),
+            self.import_parallel_jobs,
+            cancellation,
+        ))
+        .map(move |event| Message::ImportBatchUpdated(run_id, event))
+    }
+
+    pub fn add_to_import_queue(&mut self, entries: Vec<ImportEntry>) {
+        for entry in entries {
+            if self.import_queue.iter().any(|row| row.entry == entry)
+                || self
+                    .active_import
+                    .as_ref()
+                    .is_some_and(|run| run.entries.iter().any(|row| row.entry == entry))
+            {
+                continue;
+            }
+            self.import_queue_sequence = self.import_queue_sequence.wrapping_add(1);
+            self.import_queue.push(QueuedImport {
+                id: self.import_queue_sequence,
+                entry,
+                selected: true,
+                error: None,
+            });
+        }
     }
 
     pub fn reload_cover(&mut self, game_id: GameID) {

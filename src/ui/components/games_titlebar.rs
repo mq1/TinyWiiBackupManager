@@ -21,14 +21,27 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'a, Message> {
-    row![
-        game_search(games),
-        space::horizontal(),
+    let mut export = my_button()
+        .icon(Icon::HardDriveDownload)
+        .kind(MyButtonKind::Toolbar);
+    if games.count() > 0 && !state.is_export_busy() {
+        export = export.on_press(Message::OpenExportGames);
+    }
+    let mut hash = my_button()
+        .icon(Icon::SearchCheck)
+        .kind(MyButtonKind::Toolbar);
+    if state.hash_batch.is_some() || (games.count() > 0 && !state.is_hash_busy()) {
+        hash = hash.on_press(Message::OpenHashGames);
+    }
+
+    let controls = row![
         filter_console(games),
         sort_by(&state.config).map(Message::Config),
         view_as(&state.config).map(Message::Config),
         space().width(5),
         refresh_button(state),
+        tooltip(export, my_card("Export games"), tooltip::Position::Bottom),
+        tooltip(hash, my_card("Check SHA1"), tooltip::Position::Bottom),
         tooltip(
             my_button()
                 .icon(Icon::Plus)
@@ -47,7 +60,12 @@ pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'
         )
     ]
     .spacing(5)
-    .padding(10)
     .align_y(Alignment::Center)
-    .into()
+    .wrap();
+
+    row![game_search(games), space::horizontal(), controls]
+        .spacing(5)
+        .padding(10)
+        .align_y(Alignment::Center)
+        .into()
 }
