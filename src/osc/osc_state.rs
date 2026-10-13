@@ -42,7 +42,18 @@ impl OscState {
             if should_refresh {
                 let new_path = data_dir.join("osc-cache-new.json");
                 if download_file(CONTENTS_URL, &new_path).await.is_ok() {
-                    fs::rename(&new_path, &cache_path).await?;
+                    let valid = fs::read_to_string(&new_path)
+                        .await
+                        .ok()
+                        .and_then(|contents| serde_json::from_str::<Box<[OscApp]>>(&contents).ok())
+                        .is_some();
+                    if valid {
+                        fs::rename(&new_path, &cache_path).await?;
+                    } else {
+                        // Keep the last usable catalog, and allow a later refresh
+                        // to download again instead of reusing the invalid file.
+                        let _ = fs::remove_file(&new_path).await;
+                    }
                 }
             }
 
@@ -109,5 +120,46 @@ impl std::ops::Index<usize> for OscAppList {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.apps[index]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn invalid_pending_catalog_does_not_replace_a_usable_cache() {
+        for invalid in [
+            "<html>service unavailable</html>",
+            "{invalid JSON",
+            r#"[{"slug":"missing-required-fields"}]"#,
+        ] {
+            let dir = tempfile::tempdir().unwrap();
+            let cache = dir.path().join("osc-cache.json");
+            let pending = dir.path().join("osc-cache-new.json");
+            std::fs::write(&cache, "[]").unwrap();
+            std::fs::write(&pending, invalid).unwrap();
+
+            // An existing pending file avoids the network and exercises the
+            // same validation used after a completed download.
+            let state = smol::block_on(OscState::load(dir.path(), true));
+            assert!(matches!(state, OscState::Loaded(_)));
+            assert_eq!(std::fs::read_to_string(cache).unwrap(), "[]");
+            assert!(!pending.exists());
+        }
+    }
+
+    #[test]
+    fn valid_pending_catalog_can_replace_an_invalid_old_catalog() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = dir.path().join("osc-cache.json");
+        let pending = dir.path().join("osc-cache-new.json");
+        std::fs::write(&cache, "invalid old catalog").unwrap();
+        std::fs::write(&pending, "[]").unwrap();
+
+        let state = smol::block_on(OscState::load(dir.path(), true));
+        assert!(matches!(state, OscState::Loaded(_)));
+        assert_eq!(std::fs::read_to_string(cache).unwrap(), "[]");
+        assert!(!pending.exists());
     }
 }
