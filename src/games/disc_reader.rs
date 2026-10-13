@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::games::zip_game_index;
 use anyhow::{Context, Result};
 use arrayvec::ArrayVec;
 use nod::read::DiscStream;
 use std::{
     ffi::OsStr,
     fs::File,
-    io::{self, Write},
+    io::{self, Seek, Write},
     path::Path,
     sync::Arc,
 };
@@ -110,11 +111,13 @@ pub fn retrieve_multi_disc_files(path: &Path) -> Result<ArrayVec<File, 4>> {
 
     if ext.eq_ignore_ascii_case("zip") {
         let mut zip = ZipArchive::new(File::open(path)?)?;
-        let mut entry = zip.by_index(0)?;
+        let index = zip_game_index(&mut zip)?;
+        let mut entry = zip.by_index(index)?;
 
         let mut tmp = tempfile()?;
         io::copy(&mut entry, &mut tmp)?;
         tmp.flush()?;
+        tmp.rewind()?;
 
         files.push(tmp);
     } else {
