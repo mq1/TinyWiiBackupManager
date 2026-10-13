@@ -506,10 +506,12 @@ impl AppState {
             }
             Message::TriggerImport => self.trigger_import_task(),
             Message::FileDropped(path) => match self.current_page {
-                Page::Games => Task::perform(ImportEntry::new(path), |res| match res {
-                    Ok(entry) => Message::PickedGames(vec![entry]),
-                    Err(e) => Message::Notify(e.into()),
-                }),
+                Page::Games | Page::ImportQueue => {
+                    Task::perform(ImportEntry::new(path), |res| match res {
+                        Ok(entry) => Message::PickedGames(vec![entry]),
+                        Err(e) => Message::Notify(e.into()),
+                    })
+                }
                 Page::HomebrewApps => Task::done(Message::ImportHomebrewApps(vec![path])),
                 _ => Task::none(),
             },
