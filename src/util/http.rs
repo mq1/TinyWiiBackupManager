@@ -5,14 +5,9 @@ use anyhow::{Context, Result, bail};
 use serde::de::DeserializeOwned;
 use smol::{
     fs::{self, File},
-    io::AsyncSeekExt,
     net::TcpStream,
 };
-use std::{
-    ffi::OsStr,
-    io::{Seek, SeekFrom},
-    path::Path,
-};
+use std::{ffi::OsStr, io::Seek, path::Path};
 use tempfile::tempfile;
 use wiiload::WIILOAD_PORT;
 use zip::ZipArchive;
@@ -130,10 +125,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
     })
     .await?;
 
-    // make it async
-    let mut file = File::from(file);
-    file.seek(SeekFrom::Start(0)).await?;
-
+    let mut file = File::from(file); // make it async
     let size = file.metadata().await?.len() as usize;
     let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).await?;
     wiiload::send_async(&mut conn, filename, &mut file, size).await?;
