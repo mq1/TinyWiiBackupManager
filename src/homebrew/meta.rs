@@ -26,7 +26,11 @@ macro_rules! get_property {
 }
 
 fn parse_release_date(raw: Box<str>) -> Box<str> {
-    if raw.len() >= 8 {
+    if raw
+        .as_bytes()
+        .get(..8)
+        .is_some_and(|date| date.iter().all(u8::is_ascii_digit))
+    {
         let mut s = String::with_capacity(10);
 
         s.push_str(&raw[0..4]);
@@ -38,6 +42,31 @@ fn parse_release_date(raw: Box<str>) -> Box<str> {
         s.into_boxed_str()
     } else {
         raw
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_release_date;
+
+    #[test]
+    fn release_dates_format_ascii_dates_and_timestamps() {
+        for raw in ["20261013", "20261013143000"] {
+            assert_eq!(&*parse_release_date(raw.into()), "2026-10-13");
+        }
+    }
+
+    #[test]
+    fn release_dates_preserve_non_date_text_without_panicking() {
+        for raw in [
+            "",
+            "2026",
+            "unknown release",
+            "2026年10月13日",
+            "💿 release unknown",
+        ] {
+            assert_eq!(&*parse_release_date(raw.into()), raw);
+        }
     }
 }
 
