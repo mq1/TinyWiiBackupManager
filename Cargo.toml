@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "6.1.6"
+version = "6.1.7"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -58,7 +58,7 @@ split-write = "0.2"
 tempfile = "3"
 arrayvec = { version = "0.7", features = ["serde"] }
 zip = { version = "9", default-features = false, features = [
-  "deflate-flate2-zlib",
+  "deflate-flate2-zlib-rs",
 ] }
 strum = "0.28"
 strum_macros = "0.28"
