@@ -12,6 +12,7 @@ use size::Size;
 use smol::fs;
 use std::fmt::Write;
 use std::{
+    collections::BTreeMap,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
@@ -129,6 +130,41 @@ impl Game {
     pub fn get_disc_path_blocking(&self) -> Option<PathBuf> {
         self.get_possible_disc_paths()
             .find(|path| std::fs::metadata(path).is_ok_and(|meta| meta.is_file()))
+    }
+
+    pub fn get_disc_paths_blocking(&self) -> Result<Vec<(u16, PathBuf)>> {
+        let primary = self.get_disc_path_blocking().context("disc not found")?;
+        let mut discs = BTreeMap::from([(1, primary)]);
+
+        if self.is_ngc() {
+            for entry in std::fs::read_dir(self.path())? {
+                let entry = entry?;
+                let path = entry.path();
+                let Some(name) = path.file_name().and_then(OsStr::to_str) else {
+                    continue;
+                };
+                let name = name.to_ascii_lowercase();
+                let Some(number) = name
+                    .strip_prefix("disc")
+                    .and_then(|name| {
+                        name.strip_suffix(".iso")
+                            .or_else(|| name.strip_suffix(".ciso"))
+                    })
+                    .and_then(|number| number.parse::<u16>().ok())
+                    .filter(|&number| number > 1)
+                else {
+                    continue;
+                };
+                if !entry.metadata()?.is_file() {
+                    continue;
+                }
+                if discs.insert(number, path).is_some() {
+                    bail!("multiple files found for disc {number}");
+                }
+            }
+        }
+
+        Ok(discs.into_iter().collect())
     }
 
     pub fn load_cover_blocking(&mut self, data_dir: &Path) {
