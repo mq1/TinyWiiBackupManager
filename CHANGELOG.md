@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Cancellation for single, sequential and parallel game exports, with worker cleanup before another export can start and preservation of completed files.
+- Parallel game export with 1–4 simultaneous games (2 by default), independent temporary files, and protection for existing output files.
+- Batch game export with individual selection, Select all, a shared output format and destination folder, and progress reporting.
+
 ## [v6.1.6] - 2026-10-12
 
 ## Changed
