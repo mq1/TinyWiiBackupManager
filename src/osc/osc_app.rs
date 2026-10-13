@@ -76,7 +76,7 @@ impl<'de> serde::Deserialize<'de> for OscApp {
                 &mut release_date_str,
                 "{:04}-{:02}-{:02}",
                 dt.year(),
-                dt.month(),
+                u8::from(dt.month()),
                 dt.day()
             );
         }
@@ -174,5 +174,31 @@ impl OscApp {
 
     pub fn osc_url(&self) -> &str {
         &self.osc_url
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::OscApp;
+    use serde_json::json;
+    use time::{Date, Month};
+
+    #[test]
+    fn catalog_release_dates_use_numeric_months() {
+        for month in 1_u8..=12 {
+            let timestamp = Date::from_calendar_date(2026, Month::try_from(month).unwrap(), 13)
+                .unwrap()
+                .midnight()
+                .assume_utc()
+                .unix_timestamp();
+            let app: OscApp = serde_json::from_value(json!({
+                "slug": "date-test", "name": "Date test", "author": "Test", "version": "1",
+                "assets": {"icon": {"url": ""}, "archive": {"url": ""}},
+                "uncompressed_size": 0, "release_date": timestamp,
+                "description": {"short": "", "long": ""}
+            }))
+            .unwrap();
+            assert_eq!(app.release_date_str(), format!("2026-{month:02}-13"));
+        }
     }
 }
