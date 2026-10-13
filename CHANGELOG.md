@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced the size of UI messages and modal state by boxing the Homebrew app details payload.
 - Removed redundant cloning of the empty legacy dialog context while preserving context reuse with modern file dialogs.
 
+## [v6.1.7] - 2026-10-13
+
+## Fixed
+
+- 🐛 Problem when installing apps using Wiiload (both OSC and toolbox) (<https://github.com/mq1/TinyWiiBackupManager/issues/697>)
+
 ## [v6.1.6] - 2026-10-12
 
 ## Changed
@@ -569,7 +575,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.6...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.7...HEAD
+[v6.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.6...v6.1.7
 [v6.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.5...v6.1.6
 [v6.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.4...v6.1.5
 [v6.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.3...v6.1.4
