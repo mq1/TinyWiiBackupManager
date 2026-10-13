@@ -14,13 +14,13 @@ use wii_disc_info::game_id::GameID;
 #[rustfmt::skip]
 const GAME_EXTS_WITH_ZIP: &[&str] = &[
     "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc", "zip",
-    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC", "ZIP",
+    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GCZ", "TGC", "ZIP",
 ];
 
 #[rustfmt::skip]
 const GAME_EXTS: &[&str] = &[
     "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc",
-    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC",
+    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GCZ", "TGC",
 ];
 
 #[rustfmt::skip]
