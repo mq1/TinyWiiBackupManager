@@ -30,6 +30,7 @@ fn options(format: ExportFormat, destination: DestinationMode) -> DiscExportOpti
             processor: 0,
         },
         destination,
+        fast_transfer: false,
     }
 }
 
@@ -87,6 +88,7 @@ fn pre_cancelled_single_and_batch_exports_create_no_files() {
             export_game(
                 games[0].clone(),
                 destination.join("single.rvz"),
+                false,
                 cancel.clone(),
             )
             .collect::<Vec<_>>(),
@@ -99,6 +101,7 @@ fn pre_cancelled_single_and_batch_exports_create_no_files() {
                     destination.clone(),
                     ExportFormat::Rvz,
                     jobs,
+                    false,
                     cancel.clone(),
                 )
                 .collect::<Vec<_>>(),
@@ -373,6 +376,7 @@ fn cancellation_with_multiple_processor_and_preloader_threads_does_not_deadlock(
                     processor: 2,
                 },
                 destination: DestinationMode::KeepExisting,
+                fast_transfer: false,
             },
             &cancel,
             |percentage| {

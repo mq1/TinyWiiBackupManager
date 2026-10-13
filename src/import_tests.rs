@@ -454,3 +454,31 @@ fn a_real_import_failure_is_still_reported_after_a_cancellation_request() {
     finish(&mut state, run, 0, 1);
     assert!(!state.is_import_busy());
 }
+
+#[test]
+fn fast_transfer_is_frozen_during_import_and_cancellation_without_changing_job_count() {
+    let (dir, mut state) = app();
+    state.add_to_import_queue(vec![entry(dir.path(), "a.iso", b"GAAE01", 0)]);
+    assert!(state.can_change_fast_transfer());
+    drop(state.update(Message::SetImportParallelJobs(4)));
+    drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(true))));
+    assert!(state.config.fast_transfer());
+    assert_eq!(state.import_parallel_jobs, 4);
+    let (run, _) = state.begin_import_run().unwrap();
+    assert!(!state.can_change_fast_transfer());
+    drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+    assert!(state.config.fast_transfer());
+    let mut delayed_config = state.config.clone();
+    drop(delayed_config.update(ConfigMessage::SetFastTransfer(false)));
+    drop(state.update(Message::GotConfig(delayed_config)));
+    assert!(state.config.fast_transfer());
+    drop(state.update(Message::CancelImportRun(run)));
+    drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+    assert!(state.config.fast_transfer());
+    assert!(!state.can_change_fast_transfer());
+    finish_cancelled(&mut state, run, 0, 1);
+    assert!(state.can_change_fast_transfer());
+    drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+    assert!(!state.config.fast_transfer());
+    assert_eq!(state.import_parallel_jobs, 4);
+}

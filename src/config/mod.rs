@@ -23,6 +23,9 @@ pub struct Config {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigContents {
     #[serde(default)]
+    fast_transfer: bool,
+
+    #[serde(default)]
     always_split: bool,
 
     #[serde(default)]
@@ -145,6 +148,12 @@ impl Config {
 
     #[must_use]
     #[inline]
+    pub fn fast_transfer(&self) -> bool {
+        self.contents.fast_transfer
+    }
+
+    #[must_use]
+    #[inline]
     pub fn mount_point(&self) -> &Path {
         &self.contents.mount_point
     }
@@ -231,6 +240,7 @@ impl Config {
 impl Default for ConfigContents {
     fn default() -> Self {
         Self {
+            fast_transfer: false,
             always_split: false,
             mount_point: PathBuf::new(),
             remove_sources_apps: false,
@@ -384,6 +394,41 @@ mod serde_format {
             "wbfs" => Ok(Format::Wbfs),
             "ciso" => Ok(Format::Ciso),
             _ => Ok(Format::Iso),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fast_transfer_is_opt_in_for_new_and_existing_configurations() {
+        assert!(!Config::default().fast_transfer());
+        let old: ConfigContents = serde_json::from_str(
+            r#"{"always_split":true,"wii_output_format":"iso","gc_output_format":"ciso"}"#,
+        )
+        .unwrap();
+        assert!(!old.fast_transfer);
+        assert!(old.always_split);
+        assert_eq!(old.wii_output_format, Format::Iso);
+        assert_eq!(old.gc_output_format, Format::Ciso);
+    }
+
+    #[test]
+    fn fast_transfer_persists_without_changing_other_import_settings() {
+        let directory = tempfile::tempdir().unwrap();
+        let data_dir: &'static Path = Box::leak(directory.path().to_path_buf().into_boxed_path());
+        let mut config = smol::block_on(Config::load(data_dir));
+        drop(config.update(ConfigMessage::SetAlwaysSplit(true)));
+        for enabled in [true, false] {
+            drop(config.update(ConfigMessage::SetFastTransfer(enabled)));
+            smol::block_on(config.write_inner()).unwrap();
+            config = smol::block_on(Config::load(data_dir));
+            assert_eq!(config.fast_transfer(), enabled);
+            assert!(config.always_split());
+            assert_eq!(config.wii_output_format(), Format::Wbfs);
+            assert_eq!(config.gc_output_format(), Format::Iso);
         }
     }
 }

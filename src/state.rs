@@ -47,6 +47,7 @@ use wiiload::WIILOAD_PORT;
 #[derive(Debug, Clone)]
 pub struct ExportRun {
     pub id: u64,
+    pub fast_transfer: bool,
     pub cancellation: ExportCancellation,
 }
 
@@ -144,6 +145,10 @@ impl AppState {
             || !self.long_operations.is_idle(LongOperationKind::Export)
     }
 
+    pub fn can_change_fast_transfer(&self) -> bool {
+        !self.is_import_busy() && !self.is_export_busy()
+    }
+
     pub fn is_export_cancelling(&self) -> bool {
         self.active_export
             .as_ref()
@@ -154,6 +159,7 @@ impl AppState {
         self.export_run_sequence = self.export_run_sequence.wrapping_add(1);
         let run = ExportRun {
             id: self.export_run_sequence,
+            fast_transfer: self.config.fast_transfer(),
             cancellation: ExportCancellation::default(),
         };
         self.active_export = Some(run.clone());

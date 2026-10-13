@@ -153,11 +153,19 @@ fn scheduler_stops_claiming_work_when_observer_closes() {
 
 #[test]
 fn sequential_and_parallel_imports_preserve_distinct_disc_contents() {
-    for jobs in [1, 2, 4] {
+    for (jobs, fast) in [
+        (1, false),
+        (2, false),
+        (4, false),
+        (1, true),
+        (2, true),
+        (4, true),
+    ] {
         let temp = tempfile::tempdir().unwrap();
         let target = temp.path().join("usb");
         std::fs::create_dir(&target).unwrap();
-        let config = config(&target);
+        let mut config = config(&target);
+        drop(config.update(ConfigMessage::SetFastTransfer(fast)));
         let entries: Vec<_> = (0..6)
             .map(|index| {
                 let bytes = disc(index, 0);
@@ -502,6 +510,38 @@ fn unavailable_mount_and_invalid_formats_fail_before_writing() {
 }
 
 #[test]
+fn fast_pipeline_drains_before_split_header_rewrite_and_publication() {
+    let temp = tempfile::tempdir().unwrap();
+    let cancel = ImportCancellation::default();
+    let writer = StagedWriter::new(
+        temp.path(),
+        |part| format!("part{part}"),
+        NonZeroUsize::new(64 * 1024),
+        cancel.clone(),
+    )
+    .unwrap();
+    let mut expected: Vec<_> = (0..3 * 1024 * 1024 + 17).map(|i| (i % 251) as u8).collect();
+    let (writer, result) = transfer(writer, true, &cancel, |writer| {
+        writer.write_all(&expected)?;
+        Ok(())
+    });
+    result.unwrap();
+    let header = vec![0x42; 96 * 1024];
+    expected[..header.len()].copy_from_slice(&header);
+    let target = temp.path().join("game");
+    writer
+        .finish(&header)
+        .unwrap()
+        .publish(&target, &cancel)
+        .unwrap();
+    let actual: Vec<_> = (0..expected.len().div_ceil(64 * 1024))
+        .flat_map(|part| std::fs::read(target.join(format!("part{part}"))).unwrap())
+        .collect();
+    assert_eq!(actual, expected);
+    assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 1);
+}
+
+#[test]
 fn same_format_wbfs_copy_flushes_and_closes_before_publication_and_source_removal() {
     let reader =
         DiscReader::new_from_cloneable_read(Cursor::new(wii_disc()), &DiscOptions::default())
@@ -521,7 +561,7 @@ fn same_format_wbfs_copy_flushes_and_closes_before_publication_and_source_remova
     // This leaves data buffered at EOF and detects publication before flush.
     expected.extend_from_slice(b"WBFS copy trailer");
 
-    {
+    for fast in [false, true] {
         for split_size in [None, NonZeroUsize::new(256 * 1024 + 17)] {
             let temp = tempfile::tempdir().unwrap();
             let target = temp.path().join("usb");
@@ -531,6 +571,7 @@ fn same_format_wbfs_copy_flushes_and_closes_before_publication_and_source_remova
             for message in [
                 ConfigMessage::SetWiiOutputFormat(Format::Wbfs),
                 ConfigMessage::SetScrubUpdatePartition(false),
+                ConfigMessage::SetFastTransfer(fast),
                 ConfigMessage::SetRemoveSourcesGames(true),
             ] {
                 drop(config.update(message));
@@ -567,7 +608,7 @@ fn same_format_wbfs_copy_flushes_and_closes_before_publication_and_source_remova
                     std::fs::read(plan.folder.join(plan.filename(&source, &config, part))).unwrap()
                 })
                 .collect();
-            assert_eq!(actual, expected, "split_size={split_size:?}");
+            assert_eq!(actual, expected, "fast={fast}, split_size={split_size:?}");
             assert_eq!(std::fs::read_dir(&plan.folder).unwrap().count(), part_count);
             let published: Vec<_> = std::fs::read_dir(target.join("wbfs"))
                 .unwrap()
@@ -575,5 +616,61 @@ fn same_format_wbfs_copy_flushes_and_closes_before_publication_and_source_remova
                 .collect();
             assert_eq!(published, [plan.folder]);
         }
+    }
+}
+
+#[test]
+fn fast_and_direct_import_match_for_all_supported_console_formats() {
+    for (is_wii, format) in [
+        (false, Format::Iso),
+        (false, Format::Ciso),
+        (true, Format::Iso),
+        (true, Format::Wbfs),
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let original = if is_wii { wii_disc() } else { disc(0, 0) };
+        let source = entry(&temp.path().join("source.rvz"), &rvz(original.clone()));
+        let mut outputs = Vec::new();
+        for fast in [false, true] {
+            let target = temp.path().join(format!("out-{fast}"));
+            std::fs::create_dir(&target).unwrap();
+            let mut config = config(&target);
+            drop(config.update(ConfigMessage::SetFastTransfer(fast)));
+            drop(config.update(if is_wii {
+                ConfigMessage::SetWiiOutputFormat(format)
+            } else {
+                ConfigMessage::SetGcOutputFormat(format)
+            }));
+            let events = smol::block_on(
+                import_games(
+                    vec![source.clone()],
+                    config.clone(),
+                    DriveState::NotLoaded,
+                    2,
+                    ImportCancellation::default(),
+                )
+                .collect::<Vec<_>>(),
+            );
+            assert_eq!(
+                summary(&events),
+                &ImportSummary {
+                    imported: 1,
+                    failed: 0,
+                    cancelled: 0
+                },
+                "{format}: {events:?}"
+            );
+            let output = destination(&source, &config);
+            let bytes = std::fs::read(&output).unwrap();
+            let reader = DiscReader::new(output, &DiscOptions::default()).unwrap();
+            let mut decoded = Vec::new();
+            reader
+                .take(original.len() as u64)
+                .read_to_end(&mut decoded)
+                .unwrap();
+            assert_eq!(decoded, original);
+            outputs.push(bytes);
+        }
+        assert_eq!(outputs[0], outputs[1], "{format}");
     }
 }

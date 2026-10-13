@@ -32,6 +32,10 @@ impl Config {
                 self.contents.always_split = split;
                 self.write()
             }
+            ConfigMessage::SetFastTransfer(enabled) => {
+                self.contents.fast_transfer = enabled;
+                self.write()
+            }
             ConfigMessage::SetRemoveSourcesGames(remove) => {
                 self.contents.remove_sources_games = remove;
                 self.write()

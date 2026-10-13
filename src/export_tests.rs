@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::SortBy,
+    config::{SortBy, message::ConfigMessage},
     games::{
         export::{DEFAULT_PARALLEL_EXPORTS, ExportFormat, MAX_PARALLEL_EXPORTS},
         game::Game,
@@ -457,5 +457,85 @@ fn actual_terminal_result_wins_when_cancellation_races_with_completion() {
         assert!(!state.is_export_busy());
         assert_eq!(state.notifications.iter().count(), 1);
         assert_eq!(state.notifications.iter().next().unwrap().level(), level);
+    }
+}
+
+#[test]
+fn single_and_batch_destination_pickers_freeze_the_shared_fast_transfer_setting() {
+    for batch in [false, true] {
+        let (_dir, mut state) = app_with_games();
+        let game = all_games(&state).remove(0);
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(true))));
+        if batch {
+            open_and_select_all(&mut state);
+            drop(state.update(Message::SetExportParallelJobs(3)));
+            drop(state.update(Message::PickBatchExportDestination));
+        } else {
+            drop(state.update(Message::PickExportDest(game.clone())));
+        }
+        let request = state.export_picker.unwrap();
+        assert!(!state.can_change_fast_transfer());
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+        let mut delayed_config = state.config.clone();
+        drop(delayed_config.update(ConfigMessage::SetFastTransfer(false)));
+        drop(state.update(Message::GotConfig(delayed_config)));
+        assert!(state.config.fast_transfer());
+        assert_eq!(state.export_picker, Some(request));
+        if batch {
+            assert_eq!(selection(&state).parallel_jobs, 3);
+            drop(state.update(Message::BatchExportDestinationPicked(request, None)));
+        } else {
+            drop(state.update(Message::NavigateTo(crate::ui::pages::Page::Settings)));
+            drop(state.update(Message::CloseModal));
+            assert!(!state.can_change_fast_transfer());
+            drop(state.update(Message::ExportGame(request, game, None)));
+        }
+        assert!(state.can_change_fast_transfer());
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+        assert!(!state.config.fast_transfer());
+    }
+}
+
+#[test]
+fn active_single_and_batch_exports_keep_the_fast_transfer_value_selected_at_start() {
+    for batch in [false, true] {
+        let (dir, mut state) = app_with_games();
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(true))));
+        if batch {
+            open_and_select_all(&mut state);
+            drop(state.update(Message::SetExportParallelJobs(3)));
+            drop(state.update(Message::PickBatchExportDestination));
+            let request = state.export_picker.unwrap();
+            drop(state.update(Message::BatchExportDestinationPicked(
+                request,
+                Some(dir.path().to_path_buf()),
+            )));
+        } else {
+            let game = all_games(&state).remove(0);
+            drop(state.update(Message::PickExportDest(game.clone())));
+            let request = state.export_picker.unwrap();
+            drop(state.update(Message::ExportGame(
+                request,
+                game,
+                Some(dir.path().join("export.iso")),
+            )));
+        }
+        let run = state.active_export.clone().unwrap();
+        assert!(run.fast_transfer);
+        assert!(!state.can_change_fast_transfer());
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+        assert!(state.config.fast_transfer());
+        drop(state.update(Message::CancelExport));
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+        assert!(!state.can_change_fast_transfer());
+        assert!(state.config.fast_transfer());
+        drop(state.update(Message::ExportProgress(
+            run.id,
+            LongOperationState::Cancelled("Cancelled".into()),
+        )));
+        assert!(state.can_change_fast_transfer());
+        drop(state.update(Message::Config(ConfigMessage::SetFastTransfer(false))));
+        assert!(!state.config.fast_transfer());
+        assert!(run.fast_transfer);
     }
 }

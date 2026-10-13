@@ -9,6 +9,7 @@ use crate::{
         },
         game::Game,
         import::make_game_dir_name,
+        transfer::{copy_stream, transfer},
     },
     long_operation::LongOperationState,
     util::misc::OPTIMAL_THREADS,
@@ -37,6 +38,9 @@ pub const DEFAULT_PARALLEL_EXPORTS: usize = 2;
 
 #[cfg(test)]
 mod cancel_tests;
+
+#[cfg(test)]
+mod fast_tests;
 
 #[derive(Debug, Clone, Default)]
 pub struct ExportCancellation {
@@ -116,14 +120,16 @@ struct DiscExportOptions {
     format: Format,
     threads: ExportThreads,
     destination: DestinationMode,
+    fast_transfer: bool,
 }
 
 impl DiscExportOptions {
-    fn batch(format: ExportFormat, threads: ExportThreads) -> Self {
+    fn batch(format: ExportFormat, threads: ExportThreads, fast_transfer: bool) -> Self {
         Self {
             format: format.format(),
             threads,
             destination: DestinationMode::KeepExisting,
+            fast_transfer,
         }
     }
 }
@@ -219,6 +225,7 @@ pub fn ext_to_format(ext: &str) -> Option<Format> {
 fn perform_blocking(
     game: &Game,
     out_path: &Path,
+    fast_transfer: bool,
     cancel: &ExportCancellation,
     tx: &smol::channel::Sender<LongOperationState>,
 ) -> Result<()> {
@@ -243,6 +250,7 @@ fn perform_blocking(
             format,
             threads: ExportThreads::for_jobs(1),
             destination: DestinationMode::ReplaceConfirmed,
+            fast_transfer,
         },
         cancel,
         |percentage| {
@@ -261,6 +269,7 @@ fn perform_blocking(
 pub fn export_game(
     game: Game,
     out_path: PathBuf,
+    fast_transfer: bool,
     cancel: ExportCancellation,
 ) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
@@ -268,7 +277,7 @@ pub fn export_game(
         let cancel = cancel.observed_by(&tx);
         let result =
             std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                match perform_blocking(&game, &out_path, &cancel, &tx) {
+                match perform_blocking(&game, &out_path, fast_transfer, &cancel, &tx) {
                     Ok(()) => LongOperationState::Finished(format!("Exported {}", game.title())),
                     Err(error) if error_contains::<DiscCancelled>(error.as_ref()) => {
                         LongOperationState::Cancelled(format!(
@@ -386,7 +395,8 @@ fn export_disc(
         report_progress(0)?;
         let files =
             retrieve_multi_disc_files_cancellable(source, cancel).context("opening source disc")?;
-        let stream = CancellableDiscStream::new(SharedMultiFileReader::new(files)?, cancel.clone());
+        let mut stream =
+            CancellableDiscStream::new(SharedMultiFileReader::new(files)?, cancel.clone());
         let reader = DiscReader::new_stream(
             Box::new(stream.clone()),
             &DiscOptions {
@@ -395,33 +405,50 @@ fn export_disc(
             },
         )?;
         cancel.check()?;
+        // Validate with the real reader before choosing the byte-copy path;
+        // extensions/magic alone do not validate split sizes or WBFS disc count.
+        if options.fast_transfer
+            && reader.meta().format == options.format
+            && matches!(options.format, Format::Iso | Format::Wbfs | Format::Ciso)
+        {
+            drop(reader);
+            let (_, copied) = transfer(&mut *output, true, cancel, |writer| {
+                copy_stream(&mut stream, writer, cancel, &mut report_progress)
+            });
+            copied?;
+            cancel.check()?;
+            return Ok(());
+        }
         let writer = DiscWriter::new(reader, &FormatOptions::new(options.format))?;
         cancel.check()?;
-        let finalization = writer.process(
-            |data, progress, total| {
-                let percentage = progress.saturating_mul(100).checked_div(total).unwrap_or(0);
-                // Check cancellation before every write, including chunks that
-                // do not change the displayed percentage.
-                cancel.check()?;
-                report_progress(percentage).map_err(|error| {
-                    if error_contains::<DiscCancelled>(error.as_ref()) {
-                        io::Error::other(DiscCancelled("Export"))
-                    } else {
-                        io::Error::other(error)
-                    }
-                })?;
-                output.write_all(&data)?;
-                Ok(())
-            },
-            &ProcessOptions {
-                processor_threads: options.threads.processor,
-                scrub: ScrubLevel::None,
-                digest_crc32: true,
-                digest_md5: false,
-                digest_sha1: true,
-                digest_xxh64: true,
-            },
-        )?;
+        let (_, processed) = transfer(&mut *output, options.fast_transfer, cancel, |output| {
+            Ok(writer.process(
+                |data, progress, total| {
+                    let percentage = progress.saturating_mul(100).checked_div(total).unwrap_or(0);
+                    // Check cancellation before every write, including chunks that
+                    // do not change the displayed percentage.
+                    cancel.check()?;
+                    report_progress(percentage).map_err(|error| {
+                        if error_contains::<DiscCancelled>(error.as_ref()) {
+                            io::Error::other(DiscCancelled("Export"))
+                        } else {
+                            io::Error::other(error)
+                        }
+                    })?;
+                    output.write_all(&data)?;
+                    Ok(())
+                },
+                &ProcessOptions {
+                    processor_threads: options.threads.processor,
+                    scrub: ScrubLevel::None,
+                    digest_crc32: true,
+                    digest_md5: false,
+                    digest_sha1: true,
+                    digest_xxh64: true,
+                },
+            )?)
+        });
+        let finalization = processed?;
         cancel.check()?;
         if !finalization.header.is_empty() {
             output.rewind()?;
@@ -510,6 +537,7 @@ fn perform_batch_blocking(
     destination: &Path,
     format: ExportFormat,
     parallel_jobs: usize,
+    fast_transfer: bool,
     cancel: &ExportCancellation,
     tx: &smol::channel::Sender<LongOperationState>,
 ) -> LongOperationState {
@@ -584,7 +612,7 @@ fn perform_batch_blocking(
             match export_disc(
                 &source,
                 &destination.join(&filename),
-                DiscExportOptions::batch(format, threads),
+                DiscExportOptions::batch(format, threads, fast_transfer),
                 cancel,
                 report,
             ) {
@@ -667,13 +695,22 @@ pub fn export_games(
     destination: PathBuf,
     format: ExportFormat,
     parallel_jobs: usize,
+    fast_transfer: bool,
     cancel: ExportCancellation,
 ) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
     let _ = std::thread::spawn(move || {
         let cancel = cancel.observed_by(&tx);
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            perform_batch_blocking(&games, &destination, format, parallel_jobs, &cancel, &tx)
+            perform_batch_blocking(
+                &games,
+                &destination,
+                format,
+                parallel_jobs,
+                fast_transfer,
+                &cancel,
+                &tx,
+            )
         }))
         .unwrap_or_else(|_| {
             LongOperationState::Errored(
@@ -788,6 +825,7 @@ mod tests {
                 destination.clone(),
                 ExportFormat::Iso,
                 DEFAULT_PARALLEL_EXPORTS,
+                false,
                 ExportCancellation::default(),
             )
             .collect::<Vec<_>>(),
@@ -849,6 +887,7 @@ mod tests {
                 destination.clone(),
                 format,
                 DEFAULT_PARALLEL_EXPORTS,
+                false,
                 ExportCancellation::default(),
             )
             .collect::<Vec<_>>(),
@@ -884,6 +923,7 @@ mod tests {
                 &destination,
                 ExportFormat::Iso,
                 DEFAULT_PARALLEL_EXPORTS,
+                false,
                 &ExportCancellation::default(),
                 &tx
             ),
@@ -896,6 +936,7 @@ mod tests {
             &destination,
             ExportFormat::Iso,
             DEFAULT_PARALLEL_EXPORTS,
+            false,
             &ExportCancellation::default(),
             &tx,
         ) {
@@ -979,7 +1020,7 @@ mod tests {
         let error = export_disc(
             &source,
             &destination,
-            DiscExportOptions::batch(ExportFormat::Rvz, ExportThreads::for_jobs(2)),
+            DiscExportOptions::batch(ExportFormat::Rvz, ExportThreads::for_jobs(2), false),
             &ExportCancellation::default(),
             |percentage| {
                 if percentage > 0 {
@@ -1009,6 +1050,7 @@ mod tests {
             &destination,
             ExportFormat::Rvz,
             2,
+            false,
             &ExportCancellation::default(),
             &tx,
         );
@@ -1041,6 +1083,7 @@ mod tests {
                     destination.clone(),
                     format,
                     4,
+                    false,
                     ExportCancellation::default(),
                 )
                 .collect::<Vec<_>>(),

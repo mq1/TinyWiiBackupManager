@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::fast_transfer::fast_transfer,
     games::{
         export::{DEFAULT_PARALLEL_EXPORTS, ExportFormat},
         game::Game,
@@ -150,6 +151,11 @@ pub fn export_games<'a>(selection: &'a ExportSelection, state: &AppState) -> Ele
                     .spacing(10)
                     .align_y(Alignment::Center),
                 text("More simultaneous games may be slower on a USB drive.").size(12),
+                fast_transfer(
+                    state.config.fast_transfer(),
+                    state.can_change_fast_transfer()
+                )
+                .map(Message::Config),
                 text("Existing files are kept. Any failures are reported after the export.")
                     .size(12),
                 row![

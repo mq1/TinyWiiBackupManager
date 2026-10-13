@@ -30,7 +30,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 Page::Games => games(state),
                 Page::HomebrewApps => homebrew_apps(state),
                 Page::Osc => osc_apps(state),
-                Page::Settings => settings(&state.config).map(Message::Config),
+                Page::Settings =>
+                    settings(&state.config, state.can_change_fast_transfer()).map(Message::Config),
                 Page::Toolbox => toolbox(state),
                 Page::ImportQueue => import_queue(state),
                 Page::About => about(state),

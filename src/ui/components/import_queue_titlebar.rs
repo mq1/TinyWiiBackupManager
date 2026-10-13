@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::fast_transfer::fast_transfer,
     message::Message,
     state::AppState,
     ui::components::my_button::{MyButtonKind, my_button},
@@ -87,6 +88,7 @@ pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
             jobs,
         ].spacing(10).align_y(Alignment::Center),
         text(format!("Destination: {}", destination.display())).size(12),
+        fast_transfer(state.config.fast_transfer(), state.can_change_fast_transfer()).map(Message::Config),
         text(if cancelling {
             "Stopping imports and cleaning up incomplete files. Completed games are kept."
         } else if busy {

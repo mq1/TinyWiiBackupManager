@@ -23,6 +23,7 @@ pub mod game;
 pub mod games_state;
 pub mod import;
 pub mod scrub;
+pub mod transfer;
 pub mod txtcodes;
 
 #[derive(Debug, Clone)]

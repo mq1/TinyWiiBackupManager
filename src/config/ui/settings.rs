@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use super::fast_transfer::fast_transfer;
 use crate::{
     config::{Config, PreferredLanguage, ThemePreference, TxtCodesSource, message::ConfigMessage},
     ui::components::my_group::my_group,
@@ -29,9 +30,10 @@ fn setting<T: Eq + Copy>(
     my_group(label, content).icon(icon).into()
 }
 
-pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
+pub fn settings(config: &Config, can_change_fast_transfer: bool) -> Element<'_, ConfigMessage> {
     scrollable(
         column![
+            fast_transfer(config.fast_transfer(), can_change_fast_transfer),
             setting(
                 "Wii output format",
                 Icon::Disc3,

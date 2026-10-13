@@ -9,6 +9,7 @@ use crate::{
             CancellableDiscStream, DiscCancellation, DiscCancelled, SharedMultiFileReader,
             error_contains, retrieve_multi_disc_files_cancellable,
         },
+        transfer::{copy_files, transfer},
     },
     util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
@@ -21,8 +22,7 @@ use nod::{
 use smol::stream::Stream;
 use std::{
     collections::BTreeMap,
-    fs::File,
-    io::{self, BufWriter, Read, Seek, Write},
+    io::{self, BufWriter},
     num::NonZeroUsize,
     path::PathBuf,
     sync::{
@@ -247,59 +247,6 @@ impl ImportPlan {
     }
 }
 
-fn write_output<W: Write, T>(
-    mut writer: W,
-    cancel: &ImportCancellation,
-    produce: impl FnOnce(&mut dyn Write) -> Result<T>,
-) -> (W, Result<T>) {
-    let result = (|| {
-        cancel.check()?;
-        let value = produce(&mut writer)?;
-        cancel.check()?;
-        writer.flush()?;
-        cancel.check()?;
-        Ok(value)
-    })();
-    (writer, result)
-}
-
-fn copy_files<C: DiscCancellation>(
-    files: &mut [File],
-    output: &mut (impl Write + ?Sized),
-    cancel: &C,
-    mut report: impl FnMut(u64) -> Result<()>,
-) -> Result<()> {
-    let total = files
-        .iter()
-        .try_fold(0u64, |total, file| -> io::Result<u64> {
-            cancel.check()?;
-            total
-                .checked_add(file.metadata()?.len())
-                .ok_or_else(|| io::Error::other("Input size overflow"))
-        })?;
-    let mut written = 0u64;
-    let mut buffer = vec![0; 1024 * 1024];
-    for file in files {
-        cancel.check()?;
-        file.rewind()?;
-        loop {
-            report(written.saturating_mul(100).checked_div(total).unwrap_or(0))?;
-            cancel.check()?;
-            let count = file.read(&mut buffer)?;
-            cancel.check()?;
-            if count == 0 {
-                break;
-            }
-            output.write_all(&buffer[..count])?;
-            written += count as u64;
-        }
-    }
-    if written != total {
-        anyhow::bail!("Source image changed size while copying");
-    }
-    report(100)
-}
-
 fn perform_blocking(
     entry: &ImportEntry,
     config: &Config,
@@ -329,59 +276,64 @@ fn perform_blocking(
         cancel.clone(),
     )?;
     let output = BufWriter::with_capacity(1024 * 1024, staged);
-    let (output, converted) = write_output(output, cancel, |output| -> Result<Vec<u8>> {
-        let header = if plan.format == wii_disc_info_to_nod_format(entry.meta().format())
-            && !(entry.meta().is_wii() && config.scrub_update_partition())
-        {
-            copy_files(&mut files, output, cancel, &mut report)?;
-            Vec::new()
-        } else {
-            let stream =
-                CancellableDiscStream::new(SharedMultiFileReader::new(files)?, cancel.clone());
-            cancel.check()?;
-            let reader = DiscReader::new_stream(
-                Box::new(stream),
-                &DiscOptions {
-                    preloader_threads: threads.preloader,
-                    ..Default::default()
-                },
-            )?;
-            cancel.check()?;
-            let writer = DiscWriter::new(reader, &FormatOptions::new(plan.format))?;
-            cancel.check()?;
-            let finalization = writer.process(
-                |data, progress, total| {
-                    report(progress.saturating_mul(100).checked_div(total).unwrap_or(0))
-                        .map_err(callback_io_error)?;
-                    output.write_all(&data)?;
-                    Ok(())
-                },
-                &ProcessOptions {
-                    processor_threads: threads.processor,
-                    scrub: if config.scrub_update_partition() {
-                        ScrubLevel::UpdatePartition
-                    } else {
-                        ScrubLevel::None
+    let (output, converted) = transfer(
+        output,
+        config.fast_transfer(),
+        cancel,
+        |output| -> Result<Vec<u8>> {
+            let header = if plan.format == wii_disc_info_to_nod_format(entry.meta().format())
+                && !(entry.meta().is_wii() && config.scrub_update_partition())
+            {
+                copy_files(&mut files, output, cancel, &mut report)?;
+                Vec::new()
+            } else {
+                let stream =
+                    CancellableDiscStream::new(SharedMultiFileReader::new(files)?, cancel.clone());
+                cancel.check()?;
+                let reader = DiscReader::new_stream(
+                    Box::new(stream),
+                    &DiscOptions {
+                        preloader_threads: threads.preloader,
+                        ..Default::default()
                     },
-                    digest_crc32: true,
-                    digest_md5: false,
-                    digest_sha1: true,
-                    digest_xxh64: true,
-                },
-            )?;
+                )?;
+                cancel.check()?;
+                let writer = DiscWriter::new(reader, &FormatOptions::new(plan.format))?;
+                cancel.check()?;
+                let finalization = writer.process(
+                    |data, progress, total| {
+                        report(progress.saturating_mul(100).checked_div(total).unwrap_or(0))
+                            .map_err(callback_io_error)?;
+                        output.write_all(&data)?;
+                        Ok(())
+                    },
+                    &ProcessOptions {
+                        processor_threads: threads.processor,
+                        scrub: if config.scrub_update_partition() {
+                            ScrubLevel::UpdatePartition
+                        } else {
+                            ScrubLevel::None
+                        },
+                        digest_crc32: true,
+                        digest_md5: false,
+                        digest_sha1: true,
+                        digest_xxh64: true,
+                    },
+                )?;
+                cancel.check()?;
+                finalization.header.to_vec()
+            };
             cancel.check()?;
-            finalization.header.to_vec()
-        };
-        cancel.check()?;
-        Ok(header)
-    });
+            Ok(header)
+        },
+    );
     // Discard buffered bytes on error; never flush more data while cancelling.
     let (writer, _) = output.into_parts();
     let header = match converted {
         Ok(header) => header,
         Err(error) => return Err(writer.discard(error)),
     };
-    // The output buffer is flushed; finish syncs and closes every
+    // transfer has drained/flushed the buffer; finish syncs and closes every
     // part before publication, including same-format WBFS copies (upstream #694).
     let staged = writer
         .finish(&header)

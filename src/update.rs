@@ -33,6 +33,11 @@ impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Config(message) => {
+                if matches!(message, ConfigMessage::SetFastTransfer(_))
+                    && !self.can_change_fast_transfer()
+                {
+                    return Task::none();
+                }
                 match &message {
                     ConfigMessage::SetMountPoint(_) => self.dismiss_export_selection(),
                     ConfigMessage::Written(Err(e)) => {
@@ -78,7 +83,14 @@ impl AppState {
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
-            Message::GotConfig(config) => {
+            Message::GotConfig(mut config) => {
+                if !self.can_change_fast_transfer() {
+                    // A delayed configuration load cannot change the setting shown
+                    // for a running transfer or a pending native destination dialog.
+                    drop(
+                        config.update(ConfigMessage::SetFastTransfer(self.config.fast_transfer())),
+                    );
+                }
                 if self.config.mount_point() != config.mount_point() {
                     self.dismiss_export_selection();
                 }
@@ -391,8 +403,13 @@ impl AppState {
                     LongOperationState::Progress(format!("Preparing to export {}", game.title())),
                 );
 
-                Task::stream(export_game(game, out_path, run.cancellation))
-                    .map(move |op_state| Message::ExportProgress(run.id, op_state))
+                Task::stream(export_game(
+                    game,
+                    out_path,
+                    run.fast_transfer,
+                    run.cancellation,
+                ))
+                .map(move |op_state| Message::ExportProgress(run.id, op_state))
             }
             Message::CancelExport => {
                 if let Some(run) = &self.active_export {
@@ -523,6 +540,7 @@ impl AppState {
                     destination,
                     format,
                     parallel_jobs,
+                    run.fast_transfer,
                     run.cancellation,
                 ))
                 .map(move |op_state| Message::ExportProgress(run.id, op_state))

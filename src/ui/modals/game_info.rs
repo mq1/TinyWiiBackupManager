@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ui::fast_transfer::fast_transfer,
     games::game::Game,
     long_operation::LongOperationKind,
     message::Message,
@@ -109,10 +110,17 @@ pub fn game_info<'a>(
             content,
             space::vertical(),
             rule::horizontal(1),
-            row![space::horizontal(), export_btn]
-                .spacing(10)
-                .padding(10)
-                .align_y(Alignment::Center),
+            row![
+                fast_transfer(
+                    state.config.fast_transfer(),
+                    state.can_change_fast_transfer()
+                )
+                .map(Message::Config),
+                export_btn,
+            ]
+            .spacing(10)
+            .padding(10)
+            .align_y(Alignment::Center),
             rule::horizontal(1),
             row![
                 space(),
