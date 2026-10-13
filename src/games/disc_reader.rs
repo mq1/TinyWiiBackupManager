@@ -322,6 +322,32 @@ mod tests {
     use zip::{ZipWriter, write::SimpleFileOptions};
 
     #[test]
+    fn large_part_lengths_do_not_truncate_small_reads() {
+        let mut first = tempfile().unwrap();
+        let mut second = tempfile().unwrap();
+        first.write_all(b"first123").unwrap();
+        second.write_all(b"second45").unwrap();
+        for first_length in [1u64 << 32, (1u64 << 32) + 1] {
+            let mut reader = SharedMultiFileReader::new([
+                first.try_clone().unwrap(),
+                second.try_clone().unwrap(),
+            ])
+            .unwrap();
+            // Model a large recorded extent without allocating a 4 GiB fixture.
+            // Only the real prefixes of each backing file are read below.
+            reader.inner[0].1 = first_length;
+            reader.stream_len = first_length + 8;
+            assert_eq!(reader.stream_len().unwrap(), first_length + 8);
+
+            let mut actual = [0u8; 8];
+            reader.read_exact_at(&mut actual, 0).unwrap();
+            assert_eq!(&actual, b"first123", "first part length {first_length}");
+            reader.read_exact_at(&mut actual, first_length).unwrap();
+            assert_eq!(&actual, b"second45");
+        }
+    }
+
+    #[test]
     fn split_iso_reads_two_and_three_parts() {
         for uppercase in [false, true] {
             for parts in 2..=3 {
