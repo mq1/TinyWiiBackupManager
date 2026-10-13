@@ -4,8 +4,13 @@
 use crate::{
     config::message::ConfigMessage,
     games::{
-        ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
-        games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
+        ImportEntry,
+        calc_sha1::{BatchHashEvent, calc_sha1, calc_sha1_games},
+        convert::convert_game,
+        export::export_game,
+        games_state::GamesState,
+        scrub::scrub_game,
+        txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     long_operation::{LongOperationKind, LongOperationState},
@@ -24,6 +29,7 @@ impl AppState {
         match message {
             Message::Config(message) => {
                 match &message {
+                    ConfigMessage::SetMountPoint(_) => self.dismiss_hash_selection(),
                     ConfigMessage::Written(Err(e)) => {
                         self.notifications.push(Notification::error(e));
                     }
@@ -53,18 +59,24 @@ impl AppState {
             Message::PickMountPoint => {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_mount_point_dialog_task)
             }
-            Message::MountPointPicked(path) => Task::batch([
-                self.config
-                    .update(ConfigMessage::SetMountPoint(path))
-                    .map(Message::Config),
-                self.refresh_games_and_apps(),
-            ]),
+            Message::MountPointPicked(path) => {
+                self.dismiss_hash_selection();
+                Task::batch([
+                    self.config
+                        .update(ConfigMessage::SetMountPoint(path))
+                        .map(Message::Config),
+                    self.refresh_games_and_apps(),
+                ])
+            }
             Message::CloseNotification(idx) => {
                 self.notifications.close(idx);
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
             Message::GotConfig(config) => {
+                if self.config.mount_point() != config.mount_point() {
+                    self.dismiss_hash_selection();
+                }
                 self.config = config;
                 self.refresh_games_and_apps()
             }
@@ -147,6 +159,9 @@ impl AppState {
             }
             Message::HomebrewAppsImported(_) => Task::none(),
             Message::CalcGameSha1(game) => {
+                if self.is_hash_busy() {
+                    return Task::none();
+                }
                 self.long_operations.set(
                     LongOperationKind::Hash,
                     LongOperationState::Progress(String::new()),
@@ -155,6 +170,90 @@ impl AppState {
                 Task::stream(calc_sha1(game)).map(|op_state| {
                     Message::SetLongOperationState(LongOperationKind::Hash, op_state)
                 })
+            }
+            Message::OpenHashGames => {
+                if self.hash_batch.is_some() {
+                    self.current_modal = Some(Modal::CheckGames);
+                } else {
+                    self.new_hash_selection();
+                }
+                Task::none()
+            }
+            Message::NewHashSelection => {
+                self.new_hash_selection();
+                Task::none()
+            }
+            Message::ToggleHashGame(index, checked) => {
+                if !self.is_hash_busy()
+                    && let Some(selection) = &mut self.hash_batch
+                {
+                    selection.set_selected(index, checked);
+                }
+                Task::none()
+            }
+            Message::SelectAllHashGames(checked) => {
+                if !self.is_hash_busy()
+                    && let Some(selection) = &mut self.hash_batch
+                {
+                    selection.select_all(checked);
+                }
+                Task::none()
+            }
+            Message::CheckSelectedGames => {
+                if self.is_hash_busy() {
+                    return Task::none();
+                }
+                let Some(selection) = &self.hash_batch else {
+                    return Task::none();
+                };
+                let games = selection.selected_games();
+                if games.is_empty() {
+                    return Task::none();
+                }
+                let run_id = self.next_hash_run();
+                if let Some(selection) = &mut self.hash_batch {
+                    selection.start(run_id);
+                    self.long_operations.set(
+                        LongOperationKind::Hash,
+                        LongOperationState::Progress(selection.progress.clone()),
+                    );
+                }
+                Task::stream(calc_sha1_games(games))
+                    .map(move |event| Message::HashBatchUpdated(run_id, event))
+            }
+            Message::HashBatchUpdated(run_id, event) => {
+                let Some(selection) = &mut self.hash_batch else {
+                    return Task::none();
+                };
+                if !selection.running || selection.run_id != run_id {
+                    return Task::none();
+                }
+                match event {
+                    BatchHashEvent::Progress(progress) => {
+                        selection.progress = progress.clone();
+                        self.long_operations.set(
+                            LongOperationKind::Hash,
+                            LongOperationState::Progress(progress),
+                        );
+                    }
+                    BatchHashEvent::Result(result) => selection.results.push(result),
+                    BatchHashEvent::Finished(summary) => {
+                        let notification = if summary.errors > 0 {
+                            Notification::error(&summary)
+                        } else if summary.unknown > 0 {
+                            Notification::warning(&summary)
+                        } else {
+                            Notification::success(&summary)
+                        };
+                        selection.running = false;
+                        selection.progress.clear();
+                        selection.summary = Some(summary);
+                        self.long_operations
+                            .set(LongOperationKind::Hash, LongOperationState::Idle);
+                        self.notifications.push(notification);
+                    }
+                }
+                Task::none()
             }
             Message::PickGames => {
                 if let GamesState::Loaded(games) = &self.games {

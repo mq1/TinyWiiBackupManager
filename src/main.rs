@@ -10,6 +10,8 @@
 
 mod config;
 mod games;
+#[cfg(test)]
+mod hash_tests;
 mod homebrew;
 mod long_operation;
 mod message;

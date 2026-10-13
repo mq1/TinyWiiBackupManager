@@ -3,7 +3,7 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    games::{ImportEntry, game::Game, games_state::GamesState},
+    games::{ImportEntry, calc_sha1::BatchHashEvent, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     long_operation::{LongOperationKind, LongOperationState},
     notifications::notification::Notification,
@@ -45,6 +45,12 @@ pub enum Message {
     HomebrewAppsImported(usize),
     SetLongOperationState(LongOperationKind, LongOperationState),
     CalcGameSha1(Game),
+    OpenHashGames,
+    NewHashSelection,
+    ToggleHashGame(usize, bool),
+    SelectAllHashGames(bool),
+    CheckSelectedGames,
+    HashBatchUpdated(u64, BatchHashEvent),
     PickGames,
     PickGamesRecursively,
     PickedGames(Vec<ImportEntry>),

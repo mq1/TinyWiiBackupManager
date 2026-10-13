@@ -13,7 +13,11 @@ use crate::{
     notifications::{notification::Notification, notification_list::NotificationList},
     osc::{self, osc_state::OscState},
     toolbox::{ToolContext, ToolboxItem},
-    ui::{modals::Modal, pages::Page, theme},
+    ui::{
+        modals::{Modal, check_games::HashSelection},
+        pages::Page,
+        theme,
+    },
     util::{self, drive_state::DriveState, updates},
 };
 use anyhow::{Context, Result};
@@ -54,6 +58,8 @@ pub struct AppState {
     pub osc_contents: OscState,
     pub animation_state: bool,
     pub new_version: Option<Version>,
+    pub hash_batch: Option<HashSelection>,
+    hash_run_sequence: u64,
 }
 
 impl AppState {
@@ -73,6 +79,8 @@ impl AppState {
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
+                    hash_batch: None,
+                    hash_run_sequence: 0,
                     long_operations: LongOperations::new(),
                 },
                 Task::batch([
@@ -91,6 +99,42 @@ impl AppState {
                     }),
                 ]),
             )
+        }
+    }
+
+    pub fn is_hash_busy(&self) -> bool {
+        !self.long_operations.is_idle(LongOperationKind::Hash)
+    }
+
+    pub fn next_hash_run(&mut self) -> u64 {
+        self.hash_run_sequence = self.hash_run_sequence.wrapping_add(1);
+        self.hash_run_sequence
+    }
+
+    pub fn new_hash_selection(&mut self) {
+        if !self.is_hash_busy()
+            && !self.config.mount_point().as_os_str().is_empty()
+            && let GamesState::Loaded(games) = &self.games
+            && games.count() > 0
+        {
+            self.hash_batch = Some(HashSelection::new(
+                games.iter_all().cloned().collect(),
+                self.config.mount_point().to_path_buf(),
+            ));
+            self.current_modal = Some(Modal::CheckGames);
+        }
+    }
+
+    pub fn dismiss_hash_selection(&mut self) {
+        if matches!(self.current_modal, Some(Modal::CheckGames)) {
+            self.current_modal = None;
+        }
+        if self
+            .hash_batch
+            .as_ref()
+            .is_some_and(|batch| batch.run_id == 0)
+        {
+            self.hash_batch = None;
         }
     }
 

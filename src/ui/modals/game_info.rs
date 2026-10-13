@@ -89,6 +89,14 @@ pub fn game_info<'a>(
         )
     });
 
+    let mut hash_btn = my_button()
+        .label("SHA1")
+        .icon(Icon::SearchCheck)
+        .kind(MyButtonKind::Secondary);
+    if !state.is_hash_busy() {
+        hash_btn = hash_btn.on_press_with(|| Message::CalcGameSha1(game.clone()));
+    }
+
     my_card(
         column![
             column![
@@ -116,11 +124,7 @@ pub fn game_info<'a>(
                     tooltip::Position::Bottom
                 ),
                 tooltip(
-                    my_button()
-                        .label("SHA1")
-                        .icon(Icon::SearchCheck)
-                        .kind(MyButtonKind::Secondary)
-                        .on_press_with(|| Message::CalcGameSha1(game.clone())),
+                    hash_btn,
                     my_card("Check if your dump is 100% byte identical to the Redump one"),
                     tooltip::Position::Bottom
                 ),

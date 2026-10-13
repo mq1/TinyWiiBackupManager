@@ -4,6 +4,7 @@
 use crate::{games::game::Game, homebrew::homebrew_app::HomebrewApp, osc::osc_app::OscApp};
 use std::path::PathBuf;
 
+pub mod check_games;
 pub mod confirm_scub;
 pub mod delete_dir;
 pub mod game_info;
@@ -17,4 +18,5 @@ pub enum Modal {
     OscAppInfo(OscApp),
     DeleteDir(PathBuf),
     ConfirmScrub(Game),
+    CheckGames,
 }
