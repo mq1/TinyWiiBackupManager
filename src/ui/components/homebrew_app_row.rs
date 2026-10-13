@@ -58,7 +58,7 @@ pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
         row_button(
             Icon::Info,
             "App info",
-            Some(|| Message::OpenHomebrewAppInfo(app.clone()))
+            Some(|| Message::OpenHomebrewAppInfo(Box::new(app.clone())))
         ),
     ]
     .spacing(5)

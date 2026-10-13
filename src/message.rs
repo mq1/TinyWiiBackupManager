@@ -34,7 +34,7 @@ pub enum Message {
     GotDrive(DriveState),
     Open(OsString),
     OpenGameInfo(Game),
-    OpenHomebrewAppInfo(HomebrewApp),
+    OpenHomebrewAppInfo(Box<HomebrewApp>),
     CloseModal,
     GotDiscInfo(wii_disc_info::Meta),
     AskDeleteDir(PathBuf),

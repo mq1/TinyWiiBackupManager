@@ -174,7 +174,10 @@ pub fn make_pick_in_out_dialogs_task(base: Base) -> Task<Message> {
     Task::perform(
         async move {
             let in_path = pick_file(
+                #[cfg(feature = "dialogs-rfd")]
                 base.clone(),
+                #[cfg(feature = "dialogs-tfd")]
+                (),
                 "Select Game to convert",
                 (GAME_EXTS, "Wii/NGC rom"),
             )
