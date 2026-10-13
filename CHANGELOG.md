@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Optional Fast transfer setting shared by imports and exports, saved between launches and frozen while a transfer or destination picker is active. It preserves the chosen format and simultaneous-game count.
+- Cancellation for single, sequential and parallel game imports, available in the import queue and progress notification, with cleanup before restarting and cancelled entries retained for retry.
+- Batch game import with individual selection, Select all, and 1–4 simultaneous games (2 by default), progress across active jobs, and failed entries retained for retry.
+- Cancellation for single, sequential and parallel game exports, with worker cleanup before another export can start and preservation of completed files.
+- Parallel game export with 1–4 simultaneous games (2 by default), independent temporary files, and protection for existing output files.
+- Separate RVZ, ISO, WBFS, CISO, GCZ and WIA file types in the Windows save dialog for individual game export and conversion, with automatic extensions.
+- Batch game export with individual selection, Select all, a shared output format and destination folder, and progress reporting.
+- Batch SHA1 checks with individual selection, Select all, and per-disc results for matches, unknown hashes, and read errors. Checks include split images and additional GameCube discs, continue after errors, and keep results available after closing the window.
+
+### Fixed
+
+- Import batches keep their original destination and settings, reject stale progress events, and leave newly added games for the next batch. Queue actions use stable IDs so delayed clicks cannot remove another game.
+- Prevented the default single-game export filename from gaining an extra `.iso` extension, and accepted mixed-case output extensions.
+- WIA/RVZ exports now preserve original Wii sector hashes and padding, including nonstandard dumps, instead of silently replacing them with reconstructed values.
+- Reduced the size of UI messages and modal state by boxing the Homebrew app details payload.
+- Removed redundant cloning of the empty legacy dialog context while preserving context reuse with modern file dialogs.
+
 ## [v6.1.6] - 2026-10-12
 
 ## Changed
