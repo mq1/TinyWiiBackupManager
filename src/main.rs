@@ -126,3 +126,6 @@ pub fn main() -> iced::Result {
         .theme(AppState::theme)
         .run()
 }
+
+#[cfg(test)]
+mod import_tests;

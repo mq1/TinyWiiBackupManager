@@ -4,8 +4,11 @@
 use crate::{
     config::{Config, ThemePreference},
     games::{
-        ImportEntry, covers::download_ui_covers, game::Game, games_state::GamesState,
-        import::import_game,
+        ImportEntry,
+        covers::download_ui_covers,
+        game::Game,
+        games_state::GamesState,
+        import::{DEFAULT_PARALLEL_IMPORTS, ImportCancellation, import_games},
     },
     homebrew::{self, homebrew_state::HomebrewState},
     long_operation::{LongOperationKind, LongOperationState, LongOperations},
@@ -40,6 +43,23 @@ use std::{
 use wii_disc_info::game_id::GameID;
 use wiiload::WIILOAD_PORT;
 
+#[derive(Debug, Clone)]
+pub struct QueuedImport {
+    pub id: u64,
+    pub entry: ImportEntry,
+    pub selected: bool,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImportRun {
+    pub id: u64,
+    pub cancellation: ImportCancellation,
+    pub mount_point: PathBuf,
+    pub entries: Vec<QueuedImport>,
+    pub pending: Vec<u64>,
+}
+
 pub struct AppState {
     pub data_dir: &'static Path,
     pub config: Config,
@@ -50,7 +70,12 @@ pub struct AppState {
     pub current_page: Page,
     pub current_modal: Option<Modal>,
     pub long_operations: LongOperations,
-    pub import_queue: Vec<ImportEntry>,
+    pub import_queue: Vec<QueuedImport>,
+    pub import_parallel_jobs: usize,
+    pub active_import: Option<ImportRun>,
+    import_queue_sequence: u64,
+    import_run_sequence: u64,
+
     pub osc_contents: OscState,
     pub animation_state: bool,
     pub new_version: Option<Version>,
@@ -70,6 +95,10 @@ impl AppState {
                     current_page: Page::Games,
                     current_modal: None,
                     import_queue: Vec::new(),
+                    import_parallel_jobs: DEFAULT_PARALLEL_IMPORTS,
+                    active_import: None,
+                    import_queue_sequence: 0,
+                    import_run_sequence: 0,
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
@@ -226,24 +255,97 @@ impl AppState {
         )
     }
 
-    pub fn trigger_import_task(&mut self) -> Task<Message> {
-        if let Some(entry) = self.import_queue.pop() {
-            self.long_operations.set(
-                LongOperationKind::Import,
-                LongOperationState::Progress(format!("⤓  Importing {}", entry.meta().game_title())),
-            );
-
-            Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
-                .map(|op_state| Message::SetLongOperationState(LongOperationKind::Import, op_state))
-        } else {
-            self.notifications
-                .push(Notification::info("Import queue is empty"));
-            Task::none()
-        }
+    pub fn is_import_busy(&self) -> bool {
+        self.active_import.is_some() || !self.long_operations.is_idle(LongOperationKind::Import)
     }
 
-    pub fn add_to_import_queue(&mut self, mut paths: Vec<ImportEntry>) {
-        self.import_queue.append(&mut paths);
+    pub fn selected_import_count(&self) -> usize {
+        self.import_queue.iter().filter(|row| row.selected).count()
+    }
+
+    pub fn is_import_cancelling(&self) -> bool {
+        self.active_import
+            .as_ref()
+            .is_some_and(|run| run.cancellation.is_cancelled())
+    }
+
+    pub fn begin_import_run(&mut self) -> Option<(u64, Vec<ImportEntry>)> {
+        if self.is_import_busy()
+            || self.config.mount_point().as_os_str().is_empty()
+            || !matches!(self.drive, DriveState::Loaded(_))
+        {
+            return None;
+        }
+        let entries: Vec<_> = self
+            .import_queue
+            .iter()
+            .filter(|row| row.selected)
+            .cloned()
+            .collect();
+        if entries.is_empty() {
+            return None;
+        }
+        self.import_run_sequence = self.import_run_sequence.wrapping_add(1);
+        let id = self.import_run_sequence;
+        let imports = entries.iter().map(|row| row.entry.clone()).collect();
+        let pending = entries.iter().map(|row| row.id).collect();
+        self.active_import = Some(ImportRun {
+            id,
+            cancellation: ImportCancellation::default(),
+            mount_point: self.config.mount_point().to_path_buf(),
+            entries,
+            pending,
+        });
+        for row in &mut self.import_queue {
+            if row.selected {
+                row.error = None;
+            }
+        }
+        self.long_operations.set(
+            LongOperationKind::Import,
+            LongOperationState::Progress("Preparing selected games for import...".into()),
+        );
+        Some((id, imports))
+    }
+
+    pub fn trigger_import_task(&mut self) -> Task<Message> {
+        let Some((run_id, entries)) = self.begin_import_run() else {
+            return Task::none();
+        };
+        let cancellation = self
+            .active_import
+            .as_ref()
+            .expect("begin_import_run creates the active run")
+            .cancellation
+            .clone();
+        Task::stream(import_games(
+            entries,
+            self.config.clone(),
+            self.drive.clone(),
+            self.import_parallel_jobs,
+            cancellation,
+        ))
+        .map(move |event| Message::ImportBatchUpdated(run_id, event))
+    }
+
+    pub fn add_to_import_queue(&mut self, entries: Vec<ImportEntry>) {
+        for entry in entries {
+            if self.import_queue.iter().any(|row| row.entry == entry)
+                || self
+                    .active_import
+                    .as_ref()
+                    .is_some_and(|run| run.entries.iter().any(|row| row.entry == entry))
+            {
+                continue;
+            }
+            self.import_queue_sequence = self.import_queue_sequence.wrapping_add(1);
+            self.import_queue.push(QueuedImport {
+                id: self.import_queue_sequence,
+                entry,
+                selected: true,
+                error: None,
+            });
+        }
     }
 
     pub fn reload_cover(&mut self, game_id: GameID) {

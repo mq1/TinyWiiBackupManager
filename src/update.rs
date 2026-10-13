@@ -4,8 +4,14 @@
 use crate::{
     config::message::ConfigMessage,
     games::{
-        ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
-        games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
+        ImportEntry,
+        calc_sha1::calc_sha1,
+        convert::convert_game,
+        export::export_game,
+        games_state::GamesState,
+        import::{BatchImportEvent, MAX_PARALLEL_IMPORTS},
+        scrub::scrub_game,
+        txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     long_operation::{LongOperationKind, LongOperationState},
@@ -189,12 +195,122 @@ impl AppState {
                     Task::none()
                 }
             }
-            Message::CancelImport(i) => {
-                self.import_queue.remove(i);
+            Message::CancelImport(id) => {
+                if !self.is_import_busy() {
+                    self.import_queue.retain(|row| row.id != id);
+                }
                 Task::none()
             }
             Message::CancelAllImports => {
-                self.import_queue.clear();
+                if !self.is_import_busy() {
+                    self.import_queue.clear();
+                }
+                Task::none()
+            }
+            Message::CancelImportRun(run_id) => {
+                if let Some(run) = &self.active_import
+                    && run.id == run_id
+                {
+                    run.cancellation.cancel();
+                    self.long_operations.set(
+                        LongOperationKind::Import,
+                        LongOperationState::Progress("Cancelling import...".into()),
+                    );
+                }
+                Task::none()
+            }
+            Message::ToggleImportGame(id, selected) => {
+                if !self.is_import_busy()
+                    && let Some(row) = self.import_queue.iter_mut().find(|row| row.id == id)
+                {
+                    row.selected = selected;
+                }
+                Task::none()
+            }
+            Message::SelectAllImportGames(selected) => {
+                if !self.is_import_busy() {
+                    for row in &mut self.import_queue {
+                        row.selected = selected;
+                    }
+                }
+                Task::none()
+            }
+            Message::SetImportParallelJobs(jobs) => {
+                if !self.is_import_busy() {
+                    self.import_parallel_jobs = jobs.clamp(1, MAX_PARALLEL_IMPORTS);
+                }
+                Task::none()
+            }
+            Message::ImportBatchUpdated(run_id, event) => {
+                let Some(run) = &mut self.active_import else {
+                    return Task::none();
+                };
+                if run.id != run_id {
+                    return Task::none();
+                }
+                match event {
+                    BatchImportEvent::Progress(progress) => {
+                        if !run.cancellation.is_cancelled() {
+                            self.long_operations.set(
+                                LongOperationKind::Import,
+                                LongOperationState::Progress(progress),
+                            );
+                        }
+                    }
+                    BatchImportEvent::Result(result) => {
+                        let Some(row) = run.entries.iter().find(|row| {
+                            row.entry == result.entry && row.entry.path() == result.entry.path()
+                        }) else {
+                            return Task::none();
+                        };
+                        let row_id = row.id;
+                        let Some(index) = run.pending.iter().position(|id| *id == row_id) else {
+                            return Task::none();
+                        };
+                        run.pending.swap_remove(index);
+                        if let Some(error) = result.error {
+                            if let Some(row) =
+                                self.import_queue.iter_mut().find(|row| row.id == row_id)
+                            {
+                                row.error = Some(error.clone());
+                            }
+                            self.notifications.push(Notification::error(format!(
+                                "{}: {error}",
+                                result.entry.meta().game_title()
+                            )));
+                        } else if result.cancelled {
+                            if let Some(row) =
+                                self.import_queue.iter_mut().find(|row| row.id == row_id)
+                            {
+                                row.selected = true;
+                                row.error = None;
+                            }
+                        } else {
+                            self.import_queue.retain(|row| row.id != row_id);
+                        }
+                        if let Some(warning) = result.warning {
+                            self.notifications.push(Notification::warning(format!(
+                                "{}: {warning}",
+                                result.entry.meta().game_title()
+                            )));
+                        }
+                    }
+                    BatchImportEvent::Finished(summary) => {
+                        self.active_import = None;
+                        self.long_operations
+                            .set(LongOperationKind::Import, LongOperationState::Idle);
+                        self.notifications.push(if summary.failed > 0 {
+                            Notification::error(&summary)
+                        } else if summary.cancelled > 0 {
+                            Notification::info(&summary)
+                        } else {
+                            Notification::success(&summary)
+                        });
+                        // Refresh whichever drive is currently selected. The worker used
+                        // the configuration and drive snapshot captured at start.
+                        return Task::batch([self.get_games_task(), self.get_drive_info_task()]);
+                    }
+                }
                 Task::none()
             }
             Message::ToggleAnimationState => {
@@ -254,11 +370,10 @@ impl AppState {
                 })
             }
             Message::SetLongOperationState(op_kind, mut op_state) => {
-                let should_continue = op_kind == LongOperationKind::Import
-                    && matches!(
-                        op_state,
-                        LongOperationState::Finished(_) | LongOperationState::Errored(_)
-                    );
+                if op_kind == LongOperationKind::Import {
+                    // Batch events require the run ID so an old task cannot unlock a new run.
+                    return Task::none();
+                }
 
                 if let LongOperationState::Finished(success) = op_state {
                     self.notifications.push(Notification::success(success));
@@ -270,15 +385,7 @@ impl AppState {
 
                 self.long_operations.set(op_kind, op_state);
 
-                if should_continue {
-                    Task::batch([
-                        self.trigger_import_task(),
-                        self.get_games_task(),
-                        self.get_drive_info_task(),
-                    ])
-                } else {
-                    Task::none()
-                }
+                Task::none()
             }
             Message::RunTool(tool) => self.run_tool(tool),
             Message::PickFileToSendViaWiiload => dialogs::init_file_dialog_task()

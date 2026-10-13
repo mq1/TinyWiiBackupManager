@@ -3,7 +3,7 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    games::{ImportEntry, game::Game, games_state::GamesState},
+    games::{ImportEntry, game::Game, games_state::GamesState, import::BatchImportEvent},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     long_operation::{LongOperationKind, LongOperationState},
     notifications::notification::Notification,
@@ -48,8 +48,13 @@ pub enum Message {
     PickGames,
     PickGamesRecursively,
     PickedGames(Vec<ImportEntry>),
-    CancelImport(usize),
+    CancelImport(u64),
     CancelAllImports,
+    CancelImportRun(u64),
+    ToggleImportGame(u64, bool),
+    SelectAllImportGames(bool),
+    SetImportParallelJobs(usize),
+    ImportBatchUpdated(u64, BatchImportEvent),
     ToggleAnimationState,
     ReloadCover(GameID),
     ReloadOscIcon(usize),
