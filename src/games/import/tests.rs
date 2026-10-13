@@ -668,7 +668,10 @@ fn fast_and_direct_import_match_for_all_supported_console_formats() {
                 .take(original.len() as u64)
                 .read_to_end(&mut decoded)
                 .unwrap();
-            assert_eq!(decoded, original);
+            assert!(
+                decoded == original,
+                "Decoded {format} output changed (is_wii={is_wii}, fast={fast})"
+            );
             outputs.push(bytes);
         }
         assert_eq!(outputs[0], outputs[1], "{format}");
