@@ -24,6 +24,8 @@
 #### :video_game: Game Management
 
 - **Games view**: Manage your Wii and GameCube games
+- **Parallel export**: Use the Games toolbar's **Export games** button to select individual games or **Select all**, choose an output format, and export to one folder. Choose 1–4 **Simultaneous games** (2 by default); more jobs may be slower on a USB drive. Each export writes to its own temporary file before publishing the completed result. Existing files are kept; failures are reported without stopping the remaining exports.
+- **Cancel export**: Cancel a single, sequential or parallel export from its progress notification. Cancellation stops new jobs and waits for running work and temporary-file cleanup before allowing another export. Completed files are kept; unfinished files are removed. A current disk operation or compression block may need to finish first.
 - **Format Support**: .iso, .rvz and major formats thanks to [NOD](https://github.com/encounter/nod)
 - **Automatic Splitting**: .wbfs file splitting when needed
 - **Partition Stripping**: Remove the update partition to save space
