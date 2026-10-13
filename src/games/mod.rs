@@ -61,11 +61,9 @@ impl ImportEntry {
         let id_compact = meta.game_id().to_u32().to_be_bytes();
         fingerprint[0..4].copy_from_slice(&id_compact);
 
-        let is_disc1 = is_x(&path, "(Disc 1)");
-        let is_disc2 = is_x(&path, "(Disc 2)");
-
-        let flags = (is_disc1 as u8) << 1 | (is_disc2 as u8);
-        fingerprint[4] = flags;
+        // Identify the actual destination disc, independently of its filename.
+        // Wii images share one destination per ID; GameCube discs use game/disc2.
+        fingerprint[4] = if meta.is_wii() { 0 } else { meta.disc_number() };
 
         Ok(Self {
             path,
@@ -77,7 +75,7 @@ impl ImportEntry {
     #[must_use]
     #[inline]
     fn is_multidisc(&self) -> bool {
-        self.fingerprint[4] != 0
+        self.meta.disc_number() != 0 || is_x(&self.path, "(Disc 1)") || is_x(&self.path, "(Disc 2)")
     }
 
     #[must_use]
@@ -142,4 +140,43 @@ pub async fn keep_valid_games(
     });
 
     entries
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(dir: &Path, name: &str, disc: u8) -> ImportEntry {
+        let path = dir.join(name);
+        let mut data = vec![0; 0x8000];
+        data[..6].copy_from_slice(b"GZZE01");
+        data[6] = disc;
+        data[0x1c..0x20].copy_from_slice(&[0xc2, 0x33, 0x9f, 0x3d]);
+        data[0x20..0x24].copy_from_slice(b"Test");
+        std::fs::write(&path, data).unwrap();
+        smol::block_on(ImportEntry::new(path)).unwrap()
+    }
+
+    #[test]
+    fn import_identity_uses_disc_metadata_instead_of_filename() {
+        let dir = tempfile::tempdir().unwrap();
+        let disc1 = entry(dir.path(), "first.iso", 0);
+        let disc2 = entry(dir.path(), "second.iso", 1);
+        let renamed_disc1 = entry(dir.path(), "misleading (Disc 2).iso", 0);
+        assert_ne!(disc1, disc2);
+        assert_eq!(disc1, renamed_disc1);
+    }
+
+    #[test]
+    fn picker_keeps_both_discs_without_disc_labels_and_deduplicates_copies() {
+        let dir = tempfile::tempdir().unwrap();
+        let first = entry(dir.path(), "first.iso", 0);
+        let second = entry(dir.path(), "second.iso", 1);
+        let duplicate = entry(dir.path(), "copy (Disc 2).iso", 0);
+        let paths = [first.path, second.path, duplicate.path];
+        let entries = smol::block_on(keep_valid_games(smol::stream::iter(paths), &[]));
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].meta.disc_number(), 0);
+        assert_eq!(entries[1].meta.disc_number(), 1);
+    }
 }
