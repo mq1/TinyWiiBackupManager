@@ -386,7 +386,9 @@ impl AppState {
                     )
                 } else {
                     let mut file = File::open(&path).await?;
-                    wiiload::compress_then_send_async(&mut conn, &filename, &mut file).await?;
+                    let mut buf = smol::fs::File::from(tempfile::tempfile()?);
+                    wiiload::compress_then_send_async(&mut conn, &filename, &mut file, &mut buf)
+                        .await?;
 
                     format!("Sent {filename} to {wii_ip}")
                 };

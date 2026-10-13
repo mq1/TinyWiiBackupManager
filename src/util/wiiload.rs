@@ -2,65 +2,65 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result};
+use std::{
+    borrow::Cow,
+    io::{Seek, Write},
+};
 use tempfile::tempfile;
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
-fn get_app_files(
+fn is_app_main_file(filename: &Cow<'_, str>) -> bool {
+    filename.ends_with("boot.dol") || filename.ends_with("boot.elf")
+}
+
+fn find_app_main_file(
     archive: &mut ZipArchive<impl std::io::Read + std::io::Seek>,
-) -> Result<(String, Vec<String>, Vec<String>)> {
-    let app_filename = archive
+) -> Option<String> {
+    archive
         .file_names()
         .filter_map(Result::ok)
-        .find(|f| f.ends_with("boot.dol") || f.ends_with("boot.elf"))
-        .context("Failed to find app binary")?;
-
-    eprintln!("App filename: {app_filename}");
-
-    let parent_filename = &app_filename[0..app_filename.len() - 8];
-    eprintln!("Parent filename: {parent_filename}");
-
-    let mut app_files = Vec::with_capacity(archive.len());
-    let mut excluded_files = Vec::with_capacity(archive.len());
-    for filename in archive.file_names() {
-        let filename = filename?;
-
-        if filename.starts_with(parent_filename) {
-            app_files.push(filename.into_owned());
-        } else {
-            excluded_files.push(filename.into_owned());
-        }
-    }
-
-    Ok((parent_filename.to_string(), app_files, excluded_files))
+        .find(is_app_main_file)
+        .map(Cow::into_owned)
 }
 
 pub fn rebuild_zip(in_file: std::fs::File) -> Result<(std::fs::File, Vec<String>)> {
     let mut archive = ZipArchive::new(in_file)?;
-    let (parent_filename, app_files, excluded_files) = get_app_files(&mut archive)?;
-
-    let app_name = parent_filename[0..parent_filename.len() - 1]
-        .split('/')
-        .next_back()
-        .context("Failed to get app name")?;
-
-    eprintln!("App name: {app_name}");
-
-    let mut writer = ZipWriter::new(tempfile()?);
 
     let options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::Deflated)
         .compression_level(Some(9));
 
-    let new_parent_filename = format!("{app_name}/");
-    for filename in &app_files {
-        let new_filename = filename.replace(&parent_filename, &new_parent_filename);
-        writer.start_file(&new_filename, options)?;
-        let mut file = archive.by_name(filename)?;
-        std::io::copy(&mut file, &mut writer)?;
-        eprintln!("Copied {filename} to {new_filename}");
+    let app_main_file = find_app_main_file(&mut archive).context("Failed to find app main file")?;
+    let (app_dir, _) = app_main_file
+        .rsplit_once('/')
+        .context("Failed to get app dir")?;
+
+    let (_, app_name) = app_dir.rsplit_once('/').context("Failed to get app name")?;
+
+    let mut writer = ZipWriter::new(tempfile()?);
+    let mut excluded_files = Vec::with_capacity(archive.len());
+
+    for i in 0..archive.len() {
+        let mut f = archive.by_index(i)?;
+        let filename = f.name()?;
+
+        if let Some(stripped_filename) = filename.strip_prefix(&app_dir) {
+            let new_filename = format!("{app_name}{stripped_filename}");
+
+            if f.is_file() {
+                writer.start_file(new_filename, options.clone())?;
+                std::io::copy(&mut f, &mut writer)?;
+            } else if f.is_dir() {
+                writer.add_directory(new_filename, options.clone())?;
+            }
+        } else {
+            excluded_files.push(filename.into_owned());
+        }
     }
 
-    let out_file = writer.finish()?;
+    let mut out_file = writer.finish()?;
+    out_file.flush()?;
+    out_file.rewind()?;
 
     Ok((out_file, excluded_files))
 }
