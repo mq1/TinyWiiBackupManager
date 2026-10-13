@@ -16,6 +16,56 @@ use std::{
     path::PathBuf,
 };
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum ExportFormat {
+    #[default]
+    Rvz,
+    Iso,
+    Wbfs,
+    Ciso,
+    Gcz,
+    Wia,
+}
+
+impl ExportFormat {
+    pub const ALL: [Self; 6] = [
+        Self::Rvz,
+        Self::Iso,
+        Self::Wbfs,
+        Self::Ciso,
+        Self::Gcz,
+        Self::Wia,
+    ];
+
+    pub fn extension(self) -> &'static str {
+        match self {
+            Self::Rvz => "rvz",
+            Self::Iso => "iso",
+            Self::Wbfs => "wbfs",
+            Self::Ciso => "ciso",
+            Self::Gcz => "gcz",
+            Self::Wia => "wia",
+        }
+    }
+
+    fn format(self) -> Format {
+        match self {
+            Self::Rvz => Format::Rvz,
+            Self::Iso => Format::Iso,
+            Self::Wbfs => Format::Wbfs,
+            Self::Ciso => Format::Ciso,
+            Self::Gcz => Format::Gcz,
+            Self::Wia => Format::Wia,
+        }
+    }
+}
+
+impl std::fmt::Display for ExportFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.format().fmt(f)
+    }
+}
+
 pub fn ext_to_format(ext: &str) -> Option<Format> {
     match ext {
         "iso" | "ISO" => Some(Format::Iso),

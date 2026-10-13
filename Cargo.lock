@@ -41,6 +41,7 @@ dependencies = [
  "which-fs",
  "wii-disc-info",
  "wiiload",
+ "windows-sys 0.61.2",
  "winsafe",
  "zip",
 ]

@@ -17,7 +17,7 @@ static-nod = [
   "nod/compress-zstd-static",
 ]
 dialogs-rfd = ["dep:rfd"] # modern
-dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
+dialogs-tfd = ["dep:tinyfiledialogs", "dep:windows-sys"] # legacy
 
 dist-appimage = ["minreq/https-rustls-probe", "static-nod", "dialogs-rfd"]
 dist-flatpak = ["minreq/https-native-tls", "dialogs-rfd"]
@@ -94,6 +94,10 @@ wgpu = { version = "27.0", default-features = false, features = [
   "dx12",
 ] }
 winsafe = { version = "0.0.29", features = ["dwm"] }
+windows-sys = { version = "0.61", optional = true, features = [
+  "Win32_UI_Controls_Dialogs",
+  "Win32_UI_WindowsAndMessaging",
+] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
