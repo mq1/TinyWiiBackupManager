@@ -111,7 +111,7 @@ pub fn retrieve_multi_disc_files(path: &Path) -> Result<ArrayVec<File, 4>> {
 
     if ext.eq_ignore_ascii_case("zip") {
         let mut zip = ZipArchive::new(File::open(path)?)?;
-        let index = zip_game_index(&mut zip)?;
+        let index = zip_game_index(&mut zip, || Ok(()))?;
         let mut entry = zip.by_index(index)?;
 
         let mut tmp = tempfile()?;

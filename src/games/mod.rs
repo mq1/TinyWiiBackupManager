@@ -8,7 +8,7 @@ use smol::{
 };
 use std::{
     ffi::OsStr,
-    io::{Read, Seek},
+    io::{self, Read, Seek},
     path::{Path, PathBuf},
 };
 use wii_disc_info::game_id::GameID;
@@ -28,10 +28,14 @@ pub mod txtcodes;
 
 // Metadata discovery and extraction must select the same member. ZIP archives
 // commonly place a directory or README before their game image.
-pub(crate) fn zip_game_index<R: Read + Seek>(archive: &mut ZipArchive<R>) -> Result<usize> {
+pub(crate) fn zip_game_index<R: Read + Seek>(
+    archive: &mut ZipArchive<R>,
+    mut check: impl FnMut() -> io::Result<()>,
+) -> Result<usize> {
     let mut first_file = None;
     let mut image = None;
     for index in 0..archive.len() {
+        check()?;
         let entry = archive.by_index_data(index)?;
         if !entry.is_file() {
             continue;
@@ -56,6 +60,7 @@ pub(crate) fn zip_game_index<R: Read + Seek>(archive: &mut ZipArchive<R>) -> Res
             bail!("ZIP contains multiple game images; extract them before importing");
         }
     }
+    check()?;
     // Preserve support for a single image whose member has no usual extension;
     // ImportEntry validates the selected member's actual disc header below.
     image.or(first_file).context("ZIP contains no game image")
@@ -81,7 +86,7 @@ impl ImportEntry {
                 move || {
                     let f = std::fs::File::open(path)?;
                     let mut archive = ZipArchive::new(f)?;
-                    let index = zip_game_index(&mut archive)?;
+                    let index = zip_game_index(&mut archive, || Ok(()))?;
                     let mut image = archive.by_index(index)?;
                     let meta = wii_disc_info::Meta::read(&mut image)?;
                     Ok::<_, anyhow::Error>(meta)
@@ -190,7 +195,7 @@ mod tests {
         long_operation::LongOperationState,
         util::drive_state::DriveState,
     };
-    use std::io::Write;
+    use std::io::{Cursor, Write};
     use zip::{ZipWriter, write::SimpleFileOptions};
 
     fn entry(dir: &Path, name: &str, disc: u8) -> ImportEntry {
@@ -271,5 +276,51 @@ mod tests {
         let before = std::fs::read(&source).unwrap();
         assert!(smol::block_on(ImportEntry::new(source.clone())).is_err());
         assert_eq!(std::fs::read(source).unwrap(), before);
+    }
+
+    #[test]
+    fn zip_selection_checks_cancellation_before_each_entry_and_after_scanning() {
+        let mut zip = ZipWriter::new(Cursor::new(Vec::new()));
+        let options = SimpleFileOptions::default();
+        zip.add_directory("images/", options).unwrap();
+        zip.start_file("README.txt", options).unwrap();
+        zip.write_all(b"One game follows").unwrap();
+        zip.start_file("images/game.iso", options).unwrap();
+        zip.write_all(b"selection does not extract the image")
+            .unwrap();
+        let archive_bytes = zip.finish().unwrap().into_inner();
+
+        // Checkpoints cover directories, non-image entries, the image itself,
+        // and cancellation arriving immediately after the last entry.
+        for cancel_at in 0..=3 {
+            let mut archive = ZipArchive::new(Cursor::new(&archive_bytes)).unwrap();
+            let mut calls = 0;
+            let error = zip_game_index(&mut archive, || {
+                let cancelled = calls == cancel_at;
+                calls += 1;
+                if cancelled {
+                    Err(io::Error::other("selection cancelled"))
+                } else {
+                    Ok(())
+                }
+            })
+            .unwrap_err();
+            assert_eq!(calls, cancel_at + 1);
+            assert_eq!(
+                error.downcast_ref::<io::Error>().unwrap().kind(),
+                io::ErrorKind::Other
+            );
+            assert_eq!(error.to_string(), "selection cancelled");
+        }
+
+        let mut archive = ZipArchive::new(Cursor::new(&archive_bytes)).unwrap();
+        let mut calls = 0;
+        let index = zip_game_index(&mut archive, || {
+            calls += 1;
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(index, 2);
+        assert_eq!(calls, 4);
     }
 }
