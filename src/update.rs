@@ -4,8 +4,13 @@
 use crate::{
     config::message::ConfigMessage,
     games::{
-        ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
-        games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
+        ImportEntry,
+        calc_sha1::calc_sha1,
+        convert::convert_game,
+        export::{MAX_PARALLEL_EXPORTS, export_game, export_games},
+        games_state::GamesState,
+        scrub::scrub_game,
+        txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
     long_operation::{LongOperationKind, LongOperationState},
@@ -13,7 +18,11 @@ use crate::{
     notifications::notification::Notification,
     osc::osc_state::OscState,
     state::AppState,
-    ui::{dialogs, modals::Modal, pages::Page},
+    ui::{
+        dialogs,
+        modals::{Modal, export_games::ExportSelection},
+        pages::Page,
+    },
 };
 use iced::Task;
 
@@ -24,6 +33,7 @@ impl AppState {
         match message {
             Message::Config(message) => {
                 match &message {
+                    ConfigMessage::SetMountPoint(_) => self.dismiss_export_selection(),
                     ConfigMessage::Written(Err(e)) => {
                         self.notifications.push(Notification::error(e));
                     }
@@ -53,18 +63,24 @@ impl AppState {
             Message::PickMountPoint => {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_mount_point_dialog_task)
             }
-            Message::MountPointPicked(path) => Task::batch([
-                self.config
-                    .update(ConfigMessage::SetMountPoint(path))
-                    .map(Message::Config),
-                self.refresh_games_and_apps(),
-            ]),
+            Message::MountPointPicked(path) => {
+                self.dismiss_export_selection();
+                Task::batch([
+                    self.config
+                        .update(ConfigMessage::SetMountPoint(path))
+                        .map(Message::Config),
+                    self.refresh_games_and_apps(),
+                ])
+            }
             Message::CloseNotification(idx) => {
                 self.notifications.close(idx);
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
             Message::GotConfig(config) => {
+                if self.config.mount_point() != config.mount_point() {
+                    self.dismiss_export_selection();
+                }
                 self.config = config;
                 self.refresh_games_and_apps()
             }
@@ -105,6 +121,9 @@ impl AppState {
                 Task::none()
             }
             Message::CloseModal => {
+                if matches!(self.current_modal, Some(Modal::ExportGames(_))) {
+                    self.export_picker = None;
+                }
                 self.current_modal = None;
                 Task::none()
             }
@@ -240,20 +259,168 @@ impl AppState {
 
                 Task::none()
             }
-            Message::PickExportDest(game) => dialogs::init_file_dialog_task().then(move |base| {
-                dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
-            }),
-            Message::ExportGame(game, out_path) => {
-                self.long_operations.set(
-                    LongOperationKind::Export,
-                    LongOperationState::Progress(String::new()),
-                );
-
-                Task::stream(export_game(game, out_path)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Export, op_state)
+            Message::PickExportDest(game) => {
+                let Some(request) = self.begin_export_picker() else {
+                    return Task::none();
+                };
+                dialogs::init_file_dialog_task().then(move |base| {
+                    dialogs::make_pick_export_game_dest_dialog_task(base, game.clone(), request)
                 })
             }
+            Message::ExportGame(request, game, out_path) => {
+                if !self.finish_export_picker(request) || self.is_export_busy() {
+                    return Task::none();
+                }
+                let Some(out_path) = out_path else {
+                    return Task::none();
+                };
+                let run = self.begin_export_run();
+                self.long_operations.set(
+                    LongOperationKind::Export,
+                    LongOperationState::Progress(format!("Preparing to export {}", game.title())),
+                );
+
+                Task::stream(export_game(game, out_path, run.cancellation))
+                    .map(move |op_state| Message::ExportProgress(run.id, op_state))
+            }
+            Message::CancelExport => {
+                if let Some(run) = &self.active_export {
+                    run.cancellation.cancel();
+                    self.long_operations.set(
+                        LongOperationKind::Export,
+                        LongOperationState::Progress("Cancelling export...".into()),
+                    );
+                } else if self.export_picker.take().is_some() {
+                    // A native dialog can still finish later; its request is now stale.
+                    self.notifications
+                        .push(Notification::info("Export cancelled"));
+                }
+                Task::none()
+            }
+            Message::ExportProgress(run_id, op_state) => {
+                let Some(run) = &self.active_export else {
+                    return Task::none();
+                };
+                if run.id != run_id {
+                    return Task::none();
+                }
+                let notification = match op_state {
+                    LongOperationState::Progress(progress) => {
+                        if !run.cancellation.is_cancelled() {
+                            self.long_operations.set(
+                                LongOperationKind::Export,
+                                LongOperationState::Progress(progress),
+                            );
+                        }
+                        return Task::none();
+                    }
+                    LongOperationState::Finished(summary) => Notification::success(summary),
+                    LongOperationState::Cancelled(summary) => Notification::info(summary),
+                    LongOperationState::Errored(error) => Notification::error(error),
+                    LongOperationState::Idle => return Task::none(),
+                };
+                // The backend only sends a terminal event after joining workers and cleanup.
+                self.active_export = None;
+                self.long_operations
+                    .set(LongOperationKind::Export, LongOperationState::Idle);
+                self.notifications.push(notification);
+                Task::none()
+            }
+            Message::OpenExportGames => {
+                if !self.is_export_busy()
+                    && !self.config.mount_point().as_os_str().is_empty()
+                    && let GamesState::Loaded(games) = &self.games
+                    && games.count() > 0
+                {
+                    self.current_modal = Some(Modal::ExportGames(ExportSelection::new(
+                        games.iter_all().cloned().collect(),
+                    )));
+                }
+                Task::none()
+            }
+            Message::ToggleExportGame(index, checked) => {
+                if self.export_picker.is_none()
+                    && let Some(Modal::ExportGames(selection)) = &mut self.current_modal
+                {
+                    selection.set_selected(index, checked);
+                }
+                Task::none()
+            }
+            Message::SelectAllExportGames(checked) => {
+                if self.export_picker.is_none()
+                    && let Some(Modal::ExportGames(selection)) = &mut self.current_modal
+                {
+                    selection.select_all(checked);
+                }
+                Task::none()
+            }
+            Message::SetExportFormat(format) => {
+                if self.export_picker.is_none()
+                    && let Some(Modal::ExportGames(selection)) = &mut self.current_modal
+                {
+                    selection.format = format;
+                }
+                Task::none()
+            }
+            Message::SetExportParallelJobs(parallel_jobs) => {
+                if self.export_picker.is_none()
+                    && let Some(Modal::ExportGames(selection)) = &mut self.current_modal
+                {
+                    selection.parallel_jobs = parallel_jobs.clamp(1, MAX_PARALLEL_EXPORTS);
+                }
+                Task::none()
+            }
+            Message::PickBatchExportDestination => {
+                if !matches!(&self.current_modal, Some(Modal::ExportGames(selection)) if selection.selected_count() > 0)
+                {
+                    return Task::none();
+                }
+                let Some(request) = self.begin_export_picker() else {
+                    return Task::none();
+                };
+                dialogs::init_file_dialog_task().then(move |base| {
+                    dialogs::make_pick_batch_export_dest_dialog_task(base, request)
+                })
+            }
+            Message::BatchExportDestinationPicked(request, destination) => {
+                if !self.finish_export_picker(request) || self.is_export_busy() {
+                    return Task::none();
+                }
+                let Some(destination) = destination else {
+                    return Task::none();
+                };
+                let Some(Modal::ExportGames(selection)) = &self.current_modal else {
+                    return Task::none();
+                };
+                let games = selection.selected_games();
+                let format = selection.format;
+                let parallel_jobs = selection.parallel_jobs;
+                if games.is_empty() {
+                    return Task::none();
+                }
+                self.current_modal = None;
+                let run = self.begin_export_run();
+                self.long_operations.set(
+                    LongOperationKind::Export,
+                    LongOperationState::Progress(format!(
+                        "Exporting {} selected games",
+                        games.len()
+                    )),
+                );
+                Task::stream(export_games(
+                    games,
+                    destination,
+                    format,
+                    parallel_jobs,
+                    run.cancellation,
+                ))
+                .map(move |op_state| Message::ExportProgress(run.id, op_state))
+            }
             Message::SetLongOperationState(op_kind, mut op_state) => {
+                if op_kind == LongOperationKind::Export {
+                    // Export events require the run ID to reject stale tasks.
+                    return Task::none();
+                }
                 let should_continue = op_kind == LongOperationKind::Import
                     && matches!(
                         op_state,
@@ -265,6 +432,11 @@ impl AppState {
                     op_state = LongOperationState::Idle;
                 } else if let LongOperationState::Errored(error) = op_state {
                     self.notifications.push(Notification::error(error));
+                    op_state = LongOperationState::Idle;
+                }
+
+                if let LongOperationState::Cancelled(summary) = op_state {
+                    self.notifications.push(Notification::info(summary));
                     op_state = LongOperationState::Idle;
                 }
 

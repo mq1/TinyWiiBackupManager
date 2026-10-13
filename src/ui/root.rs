@@ -8,8 +8,8 @@ use crate::{
     ui::{
         components::{notifications::notifications, sidebar::sidebar},
         modals::{
-            Modal, confirm_scub::confirm_scrub, delete_dir::delete_dir, game_info::game_info,
-            homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
+            Modal, confirm_scub::confirm_scrub, delete_dir::delete_dir, export_games::export_games,
+            game_info::game_info, homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
         },
         pages::{
             Page, about::about, games::games, homebrew_apps::homebrew_apps,
@@ -52,6 +52,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     Modal::OscAppInfo(app) => osc_app_info(app),
                     Modal::DeleteDir(path) => delete_dir(path),
                     Modal::ConfirmScrub(game) => confirm_scrub(game),
+                    Modal::ExportGames(selection) => export_games(selection, state),
                 })
                 .center(Length::Fill)
                 .style(|theme: &Theme| container::Style {

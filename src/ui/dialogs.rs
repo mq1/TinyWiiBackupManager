@@ -236,7 +236,11 @@ pub fn make_pick_games_recursively_dialog_task(
     )
 }
 
-pub fn make_pick_export_game_dest_dialog_task(base: Base, game: Game) -> Task<Message> {
+pub fn make_pick_export_game_dest_dialog_task(
+    base: Base,
+    game: Game,
+    request: u64,
+) -> Task<Message> {
     let ascii_title = twbm_idmap::get_ascii_title(game.id()).unwrap_or(game.title());
     let filename = sanitize_title(ascii_title) + ".rvz";
 
@@ -247,10 +251,14 @@ pub fn make_pick_export_game_dest_dialog_task(base: Base, game: Game) -> Task<Me
             filename,
             (LOWERCASE_GAME_EXTS, "Wii/NGC rom"),
         ),
-        move |opt| match opt {
-            Some(path) => Message::ExportGame(game, path),
-            None => Message::NoOp,
-        },
+        move |path| Message::ExportGame(request, game, path),
+    )
+}
+
+pub fn make_pick_batch_export_dest_dialog_task(base: Base, request: u64) -> Task<Message> {
+    Task::perform(
+        pick_folder(base, "Select a folder for the exported games"),
+        move |path| Message::BatchExportDestinationPicked(request, path),
     )
 }
 

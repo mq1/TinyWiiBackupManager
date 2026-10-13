@@ -78,6 +78,10 @@ impl GamesState {
 }
 
 impl GameList {
+    pub fn iter_all(&self) -> impl Iterator<Item = &Game> {
+        self.order_by_name.iter().map(|&i| &self.games[i])
+    }
+
     pub fn iter_by(&self, sort_by: SortBy) -> impl Iterator<Item = &Game> {
         let (order, reversed) = match sort_by {
             SortBy::NameAscending => (&self.order_by_name, false),

@@ -89,6 +89,14 @@ pub fn game_info<'a>(
         )
     });
 
+    let mut export_btn = my_button()
+        .label("Export...")
+        .icon(Icon::HardDriveDownload)
+        .kind(MyButtonKind::Primary);
+    if !state.is_export_busy() {
+        export_btn = export_btn.on_press_with(|| Message::PickExportDest(game.clone()));
+    }
+
     my_card(
         column![
             column![
@@ -100,6 +108,11 @@ pub fn game_info<'a>(
             space::vertical(),
             content,
             space::vertical(),
+            rule::horizontal(1),
+            row![space::horizontal(), export_btn]
+                .spacing(10)
+                .padding(10)
+                .align_y(Alignment::Center),
             rule::horizontal(1),
             row![
                 space(),
@@ -133,8 +146,8 @@ pub fn game_info<'a>(
             .padding(10)
             .align_y(Alignment::Center)
         ]
-        .width(600)
-        .height(400),
+        .width(680)
+        .height(490),
     )
     .padding(0)
     .into()

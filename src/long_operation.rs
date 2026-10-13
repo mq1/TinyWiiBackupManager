@@ -9,6 +9,7 @@ pub enum LongOperationState {
     Idle,
     Progress(String),
     Finished(String),
+    Cancelled(String),
     Errored(String),
 }
 
