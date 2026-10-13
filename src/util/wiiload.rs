@@ -9,7 +9,7 @@ use std::{
 use tempfile::tempfile;
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
-fn is_app_main_file(filename: &str) -> bool {
+fn is_app_main_file(filename: &Cow<'_, str>) -> bool {
     filename.ends_with("boot.dol") || filename.ends_with("boot.elf")
 }
 
@@ -19,7 +19,7 @@ fn find_app_main_file(
     archive
         .file_names()
         .filter_map(Result::ok)
-        .find(|filename| is_app_main_file(filename))
+        .find(is_app_main_file)
         .map(Cow::into_owned)
 }
 
@@ -44,14 +44,14 @@ pub fn rebuild_zip(in_file: std::fs::File) -> Result<(std::fs::File, Vec<String>
         let mut f = archive.by_index(i)?;
         let filename = f.name()?;
 
-        if let Some(stripped_filename) = filename.strip_prefix(app_dir) {
+        if let Some(stripped_filename) = filename.strip_prefix(&app_dir) {
             let new_filename = format!("{app_name}{stripped_filename}");
 
             if f.is_file() {
-                writer.start_file(new_filename, options)?;
+                writer.start_file(new_filename, options.clone())?;
                 std::io::copy(&mut f, &mut writer)?;
             } else if f.is_dir() {
-                writer.add_directory(new_filename, options)?;
+                writer.add_directory(new_filename, options.clone())?;
             }
         } else {
             excluded_files.push(filename.into_owned());
