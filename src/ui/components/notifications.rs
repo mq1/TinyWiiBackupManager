@@ -61,6 +61,15 @@ fn progress<'a>(
             let mut content = row![text(progress.as_str())]
                 .align_y(Alignment::Center)
                 .spacing(10);
+            if *kind == LongOperationKind::Export && state.active_export.is_some() {
+                content = content.push(
+                    button("Cancel export")
+                        .on_press_maybe(
+                            (!state.is_export_cancelling()).then_some(Message::CancelExport),
+                        )
+                        .style(button::danger),
+                );
+            }
             if *kind == LongOperationKind::Import
                 && let Some(run) = &state.active_import
             {
