@@ -15,7 +15,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element, Length,
-    widget::{column, image, row, rule, space, text},
+    widget::{column, image, row, rule, scrollable, space, text},
 };
 use lucide_icons::{
     Icon,
@@ -38,7 +38,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
             ]
             .spacing(5),
             rule::horizontal(1),
-            text(app.long_description()).height(100).width(Length::Fill)
+            text(app.long_description()).width(Length::Fill)
         ]
         .spacing(5),
         app.icon().map(|icon| image(icon).height(200)),
@@ -49,15 +49,16 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
 
     my_card(
         column![
-            column![
-                text(app.name()).size(18),
-                my_link(app.path().to_string_lossy(), app.path()).icon(Icon::Folder)
-            ]
-            .spacing(10)
-            .padding(20),
-            space::vertical(),
-            content,
-            space::vertical(),
+            scrollable(column![
+                column![
+                    text(app.name()).size(18),
+                    my_link(app.path().to_string_lossy(), app.path()).icon(Icon::Folder)
+                ]
+                .spacing(10)
+                .padding(20),
+                content,
+            ])
+            .height(Length::Fill),
             rule::horizontal(1),
             row![
                 space(),
