@@ -62,7 +62,7 @@ zip = { version = "9", default-features = false, features = [
 ] }
 strum = "0.28"
 strum_macros = "0.28"
-wiiload = { version = "0.6", features = ["async", "compression-async"] }
+wiiload = { version = "0.7", features = ["async", "compression-async"] }
 anyhow = "1"
 time = { version = "0.3", features = ["local-offset"] }
 minreq = { version = "3", features = ["json-using-serde"] }
