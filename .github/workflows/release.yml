@@ -144,17 +144,6 @@ jobs:
           choco install nasm -y
           "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Download and extract VC-LTL5
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
-          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
-
-      - name: Dowload and extract YY-Thunks
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
-          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
-
       - name: Build binary
         run: |
           cargo --config .cargo/dist.toml build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
