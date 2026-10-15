@@ -6,13 +6,16 @@ use iced::{
     Element, Length,
     widget::{container, row},
 };
-use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive};
+use lucide_iced::{
+    bytes::{ARROW_DOWN_LEFT, HARD_DRIVE},
+    themed_icon,
+};
 
 pub fn no_drive() -> Element<'static, Message> {
     container(row![
-        icon_arrow_down_left(),
+        themed_icon(ARROW_DOWN_LEFT, 14.),
         "  Click on  ",
-        icon_hard_drive(),
+        themed_icon(HARD_DRIVE, 14.),
         "  to select a Drive/Mount Point"
     ])
     .center(Length::Fill)

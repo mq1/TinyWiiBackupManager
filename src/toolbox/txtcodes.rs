@@ -6,12 +6,12 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use itertools::Itertools;
-use lucide_icons::Icon;
+use lucide_iced::bytes::SKULL;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
         label: "Cheats",
-        icon: Icon::Skull,
+        icon_bytes: SKULL,
         items: &[ToolboxItem {
             label: "Download cheats for all games (source configurable in settings)",
             run_fn: |ctx| {

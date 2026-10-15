@@ -9,13 +9,15 @@ use iced::{
     Element, Length, padding,
     widget::{Column, column, radio, scrollable},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::{
+    DISC_3, FILE_MINUS_CORNER, IMAGE_DOWN, SKULL, SQUARE_SPLIT_HORIZONTAL, SUN_MOON, TRASH,
+};
 use nod::common::Format;
 use strum::IntoEnumIterator;
 
 fn setting<T: Eq + Copy>(
     label: &'static str,
-    icon: Icon,
+    icon_bytes: &'static [u8],
     items: impl IntoIterator<Item = (T, &'static str)>,
     active: T,
     on_change: fn(T) -> ConfigMessage,
@@ -26,7 +28,7 @@ fn setting<T: Eq + Copy>(
         .collect::<Column<'_, _>>()
         .spacing(5);
 
-    my_group(label, content).icon(icon).into()
+    my_group(label, content).icon(icon_bytes).into()
 }
 
 pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
@@ -34,7 +36,7 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
         column![
             setting(
                 "Wii output format",
-                Icon::Disc3,
+                DISC_3,
                 [
                     (Format::Wbfs, "WBFS (Recommended)"),
                     (Format::Iso, "ISO (very large)"),
@@ -44,7 +46,7 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
             ),
             setting(
                 "GameCube output format",
-                Icon::Disc3,
+                DISC_3,
                 [
                     (Format::Iso, "ISO (Recommended)"),
                     (
@@ -57,7 +59,7 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
             ),
             setting(
                 "Split output",
-                Icon::SquareSplitHorizontal,
+                SQUARE_SPLIT_HORIZONTAL,
                 [
                     (false, "Only when needed (recommended)"),
                     (true, "Always 4GB-32KB"),
@@ -67,7 +69,7 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
             ),
             setting(
                 "Remove update partition on WBFS/CISO",
-                Icon::FileMinusCorner,
+                FILE_MINUS_CORNER,
                 [
                     (false, "No (recommended)"),
                     (
@@ -80,21 +82,21 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
             ),
             setting(
                 "Delete sources when adding games",
-                Icon::Trash,
+                TRASH,
                 [(false, "No (recommended)"), (true, "Yes")],
                 config.remove_sources_games(),
                 ConfigMessage::SetRemoveSourcesGames
             ),
             setting(
                 "Delete sources when adding apps",
-                Icon::Trash,
+                TRASH,
                 [(false, "No (recommended)"), (true, "Yes")],
                 config.remove_sources_apps(),
                 ConfigMessage::SetRemoveSourcesApps
             ),
             setting(
                 "Cheat codes source",
-                Icon::Skull,
+                SKULL,
                 [
                     (
                         TxtCodesSource::WebArchive,
@@ -108,14 +110,14 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
             ),
             setting(
                 "Theme",
-                Icon::SunMoon,
+                SUN_MOON,
                 ThemePreference::iter().map(|l| (l, l.into())),
                 config.theme_preference(),
                 ConfigMessage::SetThemePreference
             ),
             setting(
                 "Preferred language for PAL covers",
-                Icon::ImageDown,
+                IMAGE_DOWN,
                 PreferredLanguage::iter().map(|l| (l, l.into())),
                 config.preferred_language(),
                 ConfigMessage::SetPreferredLanguage

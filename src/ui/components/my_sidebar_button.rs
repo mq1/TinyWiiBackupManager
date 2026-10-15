@@ -3,20 +3,20 @@
 
 use crate::message::Message;
 use iced::{
-    Background, Element,
-    widget::{button, stack},
+    Background, Element, Length,
+    widget::{button, container, stack, svg},
 };
-use lucide_icons::Icon;
+use iced_aw::style::colors::WHITE;
 
 pub struct MySidebarButton<'a> {
-    icons: &'a [Icon],
+    icons: &'a [&'static [u8]],
     active: bool,
     on_press: Option<Message>,
     on_press_with: Option<fn() -> Message>,
 }
 
 impl<'a> MySidebarButton<'a> {
-    pub fn new(icons: &'a [Icon]) -> Self {
+    pub fn new(icons: &'a [&'static [u8]]) -> Self {
         Self {
             icons,
             active: false,
@@ -43,14 +43,15 @@ impl<'a> MySidebarButton<'a> {
 
 impl<'a> From<MySidebarButton<'a>> for Element<'_, Message> {
     fn from(mut value: MySidebarButton<'a>) -> Self {
-        let content = stack(
-            value
-                .icons
-                .iter()
-                .map(|i| i.widget().size(24).center().into()),
-        );
+        let content = stack(value.icons.iter().map(|&icon| {
+            svg(svg::Handle::from_memory(icon))
+                .width(24.)
+                .height(24.)
+                .style(|_, _| svg::Style { color: Some(WHITE) })
+                .into()
+        }));
 
-        let mut btn = button(content)
+        let mut btn = button(container(content).center(Length::Fill))
             .width(42)
             .height(42)
             .style(move |theme, status| {
@@ -77,6 +78,6 @@ impl<'a> From<MySidebarButton<'a>> for Element<'_, Message> {
     }
 }
 
-pub fn my_sidebar_button(icons: &[Icon]) -> MySidebarButton<'_> {
+pub fn my_sidebar_button<'a>(icons: &'a [&'static [u8]]) -> MySidebarButton<'a> {
     MySidebarButton::new(icons)
 }

@@ -6,17 +6,17 @@ use crate::{
     ui::components::dual_toggle::{DualToggleItem, dual_toggle},
 };
 use iced::Element;
-use lucide_icons::Icon;
+use lucide_iced::bytes::{GRID_3X3, ROWS_3};
 
 const VIEW_AS_GRID: DualToggleItem<'static, ConfigMessage> = DualToggleItem {
-    icon: Icon::Grid,
+    icon_bytes: GRID_3X3,
     desc: "View as grid",
     active: false,
     on_press: ConfigMessage::SetViewAs(ViewAs::Grid),
 };
 
 const VIEW_AS_TABLE: DualToggleItem<'static, ConfigMessage> = DualToggleItem {
-    icon: Icon::Rows3,
+    icon_bytes: ROWS_3,
     desc: "View as table",
     active: false,
     on_press: ConfigMessage::SetViewAs(ViewAs::Table),

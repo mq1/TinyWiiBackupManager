@@ -14,35 +14,38 @@ use iced::{
     Element,
     widget::{column, row, text},
 };
-use lucide_icons::Icon;
+use lucide_iced::{
+    bytes::{CHECK, HARD_DRIVE, TRIANGLE_ALERT},
+    themed_icon,
+};
 use which_fs::FsKind;
 
-fn fs_info(info: &DriveInfo) -> (bool, Icon, &'static str) {
+fn fs_info(info: &DriveInfo) -> (bool, &'static [u8], &'static str) {
     match info.fs_kind() {
         FsKind::Fat32 => (
             true,
-            Icon::Check,
+            CHECK,
             "optimal choice for game backups and homebrew apps",
         ),
         FsKind::Ntfs | FsKind::ExFat => (
             false,
-            Icon::TriangleAlert,
+            TRIANGLE_ALERT,
             "limited support for game backups and homebrew apps",
         ),
-        FsKind::Unknown => (false, Icon::TriangleAlert, "unknown support"),
+        FsKind::Unknown => (false, TRIANGLE_ALERT, "unknown support"),
         _ => (
             false,
-            Icon::TriangleAlert,
+            TRIANGLE_ALERT,
             "won't work for game backups and homebrew apps",
         ),
     }
 }
 
-fn allocation_granularity(info: &DriveInfo) -> (bool, Icon, &'static str) {
+fn allocation_granularity(info: &DriveInfo) -> (bool, &'static [u8], &'static str) {
     if info.has_optimal_allocation_granularity() {
-        (true, Icon::Check, "optimal")
+        (true, CHECK, "optimal")
     } else {
-        (false, Icon::TriangleAlert, "not optimal, but should work")
+        (false, TRIANGLE_ALERT, "not optimal, but should work")
     }
 }
 
@@ -78,12 +81,12 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
 
                 let content = column![
                     row![
-                        fs_info_icon.widget(),
+                        themed_icon(fs_info_icon, 14.),
                         text!("Filesystem: {}  ({})", info.fs_kind(), fs_info_comment)
                     ]
                     .spacing(5),
                     row![
-                        allocation_granularity_icon.widget(),
+                        themed_icon(allocation_granularity_icon, 14.),
                         text!(
                             "Allocation granularity: {}  ({})",
                             info.allocation_granularity_str(),
@@ -100,7 +103,7 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
         };
 
     my_group("Drive info", content)
-        .icon(Icon::HardDrive)
+        .icon(HARD_DRIVE)
         .top_right_content(top_right_content)
         .into()
 }

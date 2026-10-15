@@ -10,18 +10,18 @@ use iced::{
     Element, Length, padding,
     widget::{row, rule, space, text, tooltip},
 };
-use lucide_icons::{
-    Icon,
-    iced::{icon_box, icon_pointer},
+use lucide_iced::{
+    bytes::{BOX, HARD_DRIVE_DOWNLOAD, INFO, POINTER, TRASH},
+    themed_icon,
 };
 
 pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![
         tooltip(
             if game.is_wii() {
-                icon_pointer()
+                themed_icon(POINTER, 14.)
             } else {
-                icon_box()
+                themed_icon(BOX, 14.)
             },
             my_card(if game.is_wii() { "Wii" } else { "GameCube" }),
             tooltip::Position::Top
@@ -31,17 +31,17 @@ pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         text(game.size_str()),
         rule::vertical(1),
         row_button(
-            Icon::Trash,
+            TRASH,
             "Delete game",
             Some(|| Message::AskDeleteDir(game.path().to_path_buf()))
         ),
         row_button(
-            Icon::HardDriveDownload,
+            HARD_DRIVE_DOWNLOAD,
             "Export game",
             (!is_exporting).then_some(|| Message::PickExportDest(game.clone()))
         ),
         row_button(
-            Icon::Info,
+            INFO,
             "Game info",
             Some(|| Message::OpenGameInfo(game.clone()))
         ),

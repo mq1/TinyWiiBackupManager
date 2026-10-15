@@ -11,12 +11,12 @@ use crate::{
 };
 use anyhow::anyhow;
 use itertools::Itertools;
-use lucide_icons::Icon;
+use lucide_iced::bytes::LOADER;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
         label: "Game Backup Loaders",
-        icon: Icon::Loader,
+        icon_bytes: LOADER,
         items: &[
             ToolboxItem {
                 label: "Download covers for USB Loader GX",

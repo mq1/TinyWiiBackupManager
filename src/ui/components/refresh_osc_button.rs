@@ -15,10 +15,10 @@ use iced::{
     Element,
     widget::{text, tooltip},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::ROTATE_CW;
 
 pub fn refresh_osc_button(state: &AppState) -> Element<'_, Message> {
-    let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
+    let mut refresh_btn = my_button().icon(ROTATE_CW).kind(MyButtonKind::Toolbar);
 
     if !matches!(state.osc_contents, OscState::Loading) {
         refresh_btn = refresh_btn.on_press(Message::RefreshOscContents);

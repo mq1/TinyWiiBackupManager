@@ -3,14 +3,17 @@
 
 use crate::message::Message;
 use iced::Element;
-use lucide_icons::Icon;
+use lucide_iced::{
+    bytes::{METRONOME, USER_STAR, WAND_SPARKLES},
+    themed_icon,
+};
 
 pub fn get_dev_icon(name: &str) -> Element<'_, Message> {
-    let icon = match name {
-        "blackb0x" | "USB Loader GX Team" => Icon::Wand2,
-        "Aep" => Icon::Metronome,
-        _ => Icon::UserStar,
+    let icon_bytes = match name {
+        "blackb0x" | "USB Loader GX Team" => WAND_SPARKLES,
+        "Aep" => METRONOME,
+        _ => USER_STAR,
     };
 
-    icon.widget().into()
+    themed_icon(icon_bytes, 14.)
 }

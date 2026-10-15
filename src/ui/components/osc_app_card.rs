@@ -11,7 +11,10 @@ use iced::{
     widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
-use lucide_icons::{Icon, iced::icon_tag};
+use lucide_iced::{
+    bytes::{CLOUD_DOWNLOAD, INFO, MONITOR_UP, TAG},
+    themed_icon,
+};
 
 pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
     let icon: Element<'_, Message> = match app.icon() {
@@ -22,7 +25,7 @@ pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
     my_card(
         column![
             row![
-                icon_tag(),
+                themed_icon(TAG, 14.),
                 ellipsized_text(app.version())
                     .wrapping(text::Wrapping::None)
                     .width(60),
@@ -35,19 +38,19 @@ pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
             row![
                 my_button()
                     .label("Info")
-                    .icon(Icon::Info)
+                    .icon(INFO)
                     .expand_width()
                     .on_press_with(|| Message::OpenOscAppInfo(app.clone())),
                 tooltip(
                     my_button()
-                        .icon(Icon::CloudDownload)
+                        .icon(CLOUD_DOWNLOAD)
                         .on_press_with(|| Message::InstallOscApp(app.clone())),
                     my_card("Install"),
                     tooltip::Position::Bottom
                 ),
                 tooltip(
                     my_button()
-                        .icon(Icon::MonitorUp)
+                        .icon(MONITOR_UP)
                         .on_press_with(|| Message::SendOscAppViaWiiload(app.clone())),
                     my_card("Send via Wiiload"),
                     tooltip::Position::Bottom

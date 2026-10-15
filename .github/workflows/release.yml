@@ -21,6 +21,7 @@ permissions:
 
 env:
   VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+  RUSTC_BOOTSTRAP: 1
 
 jobs:
   # ==================================================================================
@@ -65,6 +66,8 @@ jobs:
           curl -LO https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           ./llvm.sh 23
+          ln -sf $(which clang-23) /usr/bin/cc
+          ln -sf $(which lld-23) /usr/bin/ld
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
@@ -78,20 +81,8 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-appimage
+          cargo --config .cargo/dist.toml build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-appimage
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-23
-          CXX: clang++-23
-          AR: llvm-ar-23
-          RANLIB: llvm-ranlib-23
-          CFLAGS: -O3 -flto
-          CXXFLAGS: -O3 -flto
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-23
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-23
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-23
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-23
 
       - name: Package AppImage
         run: |
@@ -125,15 +116,12 @@ jobs:
           - arch: arm64
             target: aarch64-pc-windows-msvc
             features: dist-windows-modern
-            cflags: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           - arch: x64
             target: x86_64-win7-windows-msvc
             features: dist-windows-modern
-            cflags: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           - arch: x86
             target: i686-win7-windows-msvc
             features: dist-windows-legacy
-            cflags: /clang:-O3
 
     steps:
       - name: Checkout
@@ -158,33 +146,10 @@ jobs:
           choco install nasm -y
           "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Download and extract VC-LTL5
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
-          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
-
-      - name: Dowload and extract YY-Thunks
-        if: matrix.arch == 'x64' || matrix.arch == 'x86'
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
-          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
-
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
+          cargo --config .cargo/dist.toml build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
           Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cflags }}
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\x64 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x64\YY_Thunks_for_Vista.obj -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,6.0
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\5.1.2600.0\lib\Win32 -C link-arg=${{ github.workspace }}\YY-Thunks-Objs\objs\x86\YY_Thunks_for_WinXP.obj -l dylib=ole32 -C link-arg=/SUBSYSTEM:WINDOWS,5.1
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -L native=${{ github.workspace }}\VC-LTL-Binary\TargetPlatform\10.0.10240.0\lib\ARM64
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Rename binary
         run: |
@@ -206,10 +171,8 @@ jobs:
         include:
           - arch: arm64
             target: aarch64-apple-darwin
-            deployment_target: 11
           - arch: x86_64
             target: x86_64-apple-darwin
-            deployment_target: 10.12
 
     steps:
       - name: Checkout
@@ -227,19 +190,8 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-macos
+          cargo --config .cargo/dist.toml build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-macos
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: /opt/homebrew/opt/llvm@23/bin/clang
-          CXX: /opt/homebrew/opt/llvm@23/bin/clang++
-          AR: /opt/homebrew/opt/llvm@23/bin/llvm-ar
-          CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-          CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@23/bin/ld64.lld
-          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
-          CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
-          CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7

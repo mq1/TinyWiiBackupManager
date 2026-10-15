@@ -18,7 +18,6 @@ mod update;
 mod util;
 
 use crate::{state::AppState, ui::title::title, util::data_dir::get_data_dir};
-use lucide_icons::LUCIDE_FONT_BYTES;
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
@@ -69,7 +68,6 @@ pub fn main() -> iced::Result {
     let settings = iced::Settings {
         default_text_size: 14.into(),
         id: Some("it.mq1.TinyWiiBackupManager".into()),
-        fonts: vec![LUCIDE_FONT_BYTES.into()],
         ..Default::default()
     };
 

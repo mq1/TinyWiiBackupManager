@@ -3,7 +3,6 @@
 
 use crate::config::Config;
 use anyhow::Result;
-use lucide_icons::Icon;
 use std::pin::Pin;
 use wii_disc_info::game_id::GameID;
 
@@ -38,7 +37,7 @@ impl ToolboxItem {
 
 pub struct ToolboxGroup {
     label: &'static str,
-    icon: Icon,
+    icon_bytes: &'static [u8],
     items: &'static [ToolboxItem],
 }
 
@@ -47,8 +46,8 @@ impl ToolboxGroup {
         self.label
     }
 
-    pub fn icon(&self) -> Icon {
-        self.icon
+    pub fn icon(&self) -> &'static [u8] {
+        self.icon_bytes
     }
 
     pub fn items(&self) -> impl Iterator<Item = &'static ToolboxItem> {

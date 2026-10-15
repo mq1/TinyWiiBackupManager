@@ -17,23 +17,23 @@ use iced::{
     Alignment, Element, Length,
     widget::{column, image, row, rule, space, text},
 };
-use lucide_icons::{
-    Icon,
-    iced::{icon_calendar, icon_notepad_text, icon_tag},
+use lucide_iced::{
+    bytes::{CALENDAR, FOLDER, NOTEPAD_TEXT, TAG},
+    themed_icon,
 };
 
 pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
     let content = row![
         column![
-            row![icon_tag(), text!("Version: {}", app.version())].spacing(5),
+            row![themed_icon(TAG, 14.), text!("Version: {}", app.version())].spacing(5),
             row![
-                icon_calendar(),
+                themed_icon(CALENDAR, 14.),
                 text!("Release date: {}", app.release_date())
             ]
             .spacing(5),
             row![get_dev_icon(app.coder()), text!("Coder: {}", app.coder())].spacing(5),
             row![
-                icon_notepad_text(),
+                themed_icon(NOTEPAD_TEXT, 14.),
                 text!("Description: {}", app.short_description())
             ]
             .spacing(5),
@@ -51,7 +51,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
         column![
             column![
                 text(app.name()).size(18),
-                my_link(app.path().to_string_lossy(), app.path()).icon(Icon::Folder)
+                my_link(app.path().to_string_lossy(), app.path()).icon(FOLDER)
             ]
             .spacing(10)
             .padding(20),

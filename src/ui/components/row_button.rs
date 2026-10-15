@@ -6,14 +6,14 @@ use iced::{
     Element,
     widget::{button, tooltip},
 };
-use lucide_icons::Icon;
+use lucide_iced::themed_icon;
 
 pub fn row_button<'a>(
-    icon: Icon,
+    icon_bytes: &'static [u8],
     hint: &'static str,
     on_press: Option<impl Fn() -> Message + 'a>,
 ) -> Element<'a, Message> {
-    let mut btn = button(icon.widget().center())
+    let mut btn = button(themed_icon(icon_bytes, 14.))
         .padding(0)
         .style(button::text)
         .width(20)

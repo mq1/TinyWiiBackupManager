@@ -6,7 +6,7 @@ use iced::{
     Alignment, Border, Element, Theme,
     widget::{row, text_input},
 };
-use lucide_icons::iced::icon_search;
+use lucide_iced::{bytes::SEARCH, themed_icon};
 
 fn text_input_style(theme: &Theme, status: text_input::Status) -> text_input::Style {
     text_input::Style {
@@ -22,7 +22,7 @@ pub fn search_bar<'a>(
 ) -> Element<'a, Message> {
     my_card(
         row![
-            icon_search(),
+            themed_icon(SEARCH, 14.),
             text_input(hint, text)
                 .width(200)
                 .on_input(on_input)

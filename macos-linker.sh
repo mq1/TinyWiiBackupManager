@@ -28,4 +28,4 @@ do
 done
 
 # use clang to call ld64
-exec ${CC} -v "${args[@]}"
+exec "/opt/homebrew/opt/llvm@23/bin/clang" -v "${args[@]}"

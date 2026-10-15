@@ -18,7 +18,7 @@ use iced::{
     Alignment, Element,
     widget::{row, space, tooltip},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::{FOLDER_PLUS, PLUS};
 
 pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'a, Message> {
     row![
@@ -31,7 +31,7 @@ pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'
         refresh_button(state),
         tooltip(
             my_button()
-                .icon(Icon::Plus)
+                .icon(PLUS)
                 .kind(MyButtonKind::Toolbar)
                 .on_press(Message::PickGames),
             my_card("Import game(s)"),
@@ -39,7 +39,7 @@ pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'
         ),
         tooltip(
             my_button()
-                .icon(Icon::FolderPlus)
+                .icon(FOLDER_PLUS)
                 .kind(MyButtonKind::Toolbar)
                 .on_press(Message::PickGamesRecursively),
             my_card("Import game(s) recursively"),
