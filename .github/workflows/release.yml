@@ -59,7 +59,10 @@ jobs:
           apt-get install -y curl lsb-release software-properties-common gnupg ${{ matrix.packages }}
 
       - name: Install LLVM
-        run: curl -sSL https://apt.llvm.org/llvm.sh | bash -s -- 23
+        run: |
+          curl -sSL https://apt.llvm.org/llvm.sh | bash -s -- 23
+          ln -sf $(which clang-23) /usr/bin/cc
+          ln -sf $(which lld-23) /usr/bin/ld
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
