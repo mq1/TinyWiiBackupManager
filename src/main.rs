@@ -1,10 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-// lints
-#![warn(clippy::all, rust_2018_idioms)]
-#![allow(unstable_name_collisions)]
-//
 // hide console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -22,6 +18,7 @@ mod update;
 mod util;
 
 use crate::{state::AppState, ui::title::title, util::data_dir::get_data_dir};
+use lucide_icons::LUCIDE_FONT_BYTES;
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
@@ -65,17 +62,13 @@ async fn f16_gpu_fix() {
 pub fn main() -> iced::Result {
     let data_dir = get_data_dir().expect("Unable to get data directory").leak();
 
-    unsafe {
-        std::env::set_var("SMOL_THREADS", "1");
-        std::env::set_var("BLOCKING_MAX_THREADS", "10");
-    }
-
     #[cfg(target_os = "linux")]
     smol::block_on(f16_gpu_fix());
 
     let settings = iced::Settings {
         default_text_size: 14.into(),
         id: Some("it.mq1.TinyWiiBackupManager".into()),
+        fonts: vec![LUCIDE_FONT_BYTES.into()],
         ..Default::default()
     };
 

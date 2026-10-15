@@ -8,7 +8,6 @@ use crate::{
 };
 use iced::{
     Alignment, Element, Length,
-    advanced::image::{Allocation, allocate},
     widget::{column, image, row, rule, space, text},
 };
 use lucide_icons::{
@@ -17,13 +16,10 @@ use lucide_icons::{
 };
 use std::sync::LazyLock;
 
+const ICON_BYTES: &[u8] = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
 const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"));
 
-static ICON: LazyLock<Allocation> = LazyLock::new(|| {
-    let bytes = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
-    let handle = image::Handle::from_bytes(&bytes[..]);
-    unsafe { allocate(&handle, (128, 128).into()) }
-});
+static ICON: LazyLock<image::Handle> = LazyLock::new(|| image::Handle::from_bytes(ICON_BYTES));
 
 pub fn about(state: &AppState) -> Element<'_, Message> {
     let mq1_link = my_link("mq1", "https://github.com/mq1");
@@ -41,7 +37,7 @@ pub fn about(state: &AppState) -> Element<'_, Message> {
         my_card(
             column![
                 row![
-                    image(ICON.handle()).width(128).height(128),
+                    image(&*ICON).width(128).height(128),
                     column![
                         space().height(20),
                         text(TITLE).size(20),

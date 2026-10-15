@@ -4,10 +4,7 @@
 use crate::util::fs::get_dir_size;
 use anyhow::{Context, Result, bail};
 use arrayvec::ArrayString;
-use iced::{
-    advanced::image::{Allocation, allocate},
-    widget::image,
-};
+use iced::widget::image;
 use size::Size;
 use smol::fs;
 use std::fmt::Write;
@@ -40,19 +37,21 @@ impl std::fmt::Display for GameTitle {
 
 #[derive(Debug, Clone)]
 pub struct Game {
-    path: PathBuf,
+    path: Box<Path>,
     id: GameID,
     title: GameTitle,
     size: u64,
     size_str: ArrayString<10>,
     is_wii: bool,
-    cover: Option<Allocation>,
+    cover: Option<image::Handle>,
     search_term_lowercase: Box<str>,
     gametdb_url: Box<str>,
 }
 
 impl Game {
-    pub async fn try_from_path(path: PathBuf, is_wii: bool) -> Result<Self> {
+    pub async fn try_from_path(path: impl Into<Box<Path>>, is_wii: bool) -> Result<Self> {
+        let path = path.into();
+
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
             bail!("{} is not a directory", path.display());
@@ -138,9 +137,8 @@ impl Game {
             .with_extension("png");
 
         self.cover = std::fs::read(cover_path)
-            .ok()
             .map(image::Handle::from_bytes)
-            .map(|handle| unsafe { allocate(&handle, (176, 248).into()) })
+            .ok();
     }
 
     pub fn matches_search(&self, search_term: &str) -> bool {
@@ -180,7 +178,7 @@ impl Game {
     }
 
     pub fn cover(&self) -> Option<&image::Handle> {
-        self.cover.as_ref().map(|cover| cover.handle())
+        self.cover.as_ref()
     }
 
     pub fn gametdb_url(&self) -> &str {

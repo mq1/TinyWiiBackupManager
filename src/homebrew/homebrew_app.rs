@@ -8,16 +8,13 @@ use crate::{
 };
 use anyhow::{Context, Result, bail};
 use arrayvec::ArrayString;
-use iced::{
-    advanced::image::{Allocation, allocate},
-    widget::image,
-};
+use iced::widget::image;
 use size::Size;
 use smol::fs;
 use std::fmt::Write;
 use std::{
     ffi::{OsStr, OsString},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 pub fn make_osc_url(path: &Path) -> OsString {
@@ -32,18 +29,20 @@ pub fn make_osc_url(path: &Path) -> OsString {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewApp {
-    path: PathBuf,
+    path: Box<Path>,
     meta: HomebrewAppMeta,
     size: u64,
     size_str: ArrayString<10>,
-    icon: Option<Allocation>,
+    icon: Option<image::Handle>,
     osc_url: OsString,
     osc_app: Option<OscApp>,
     search_term_lowercase: Box<str>,
 }
 
 impl HomebrewApp {
-    pub async fn try_from_path(path: PathBuf) -> Result<Self> {
+    pub async fn try_from_path(path: impl Into<Box<Path>>) -> Result<Self> {
+        let path = path.into();
+
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
             bail!("{} is not a directory", path.display());
@@ -69,9 +68,8 @@ impl HomebrewApp {
         let icon_path = path.join("icon.png");
         let icon = fs::read(icon_path)
             .await
-            .ok()
             .map(image::Handle::from_bytes)
-            .map(|handle| unsafe { allocate(&handle, (128, 48).into()) });
+            .ok();
 
         let osc_url = make_osc_url(&path);
 
@@ -128,7 +126,7 @@ impl HomebrewApp {
     }
 
     pub fn icon(&self) -> Option<&image::Handle> {
-        self.icon.as_ref().map(|icon| icon.handle())
+        self.icon.as_ref()
     }
 
     pub fn path(&self) -> &Path {

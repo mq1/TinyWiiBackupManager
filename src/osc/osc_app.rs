@@ -4,10 +4,7 @@
 use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 use anyhow::Result;
 use arrayvec::ArrayString;
-use iced::{
-    advanced::image::{Allocation, allocate},
-    widget::image::{self, Handle},
-};
+use iced::widget::image;
 use serde::Deserialize;
 use size::Size;
 use std::{fmt::Write, path::Path};
@@ -45,7 +42,7 @@ pub struct OscAppMeta {
 #[derive(Debug, Clone)]
 pub struct OscApp {
     meta: OscAppMeta,
-    icon: Option<Allocation>,
+    icon: Option<image::Handle>,
     uncompressed_size_str: ArrayString<10>,
     search_term_lowercase: Box<str>,
     release_date_str: ArrayString<10>,
@@ -110,10 +107,7 @@ impl OscApp {
             .join(&*self.meta.slug)
             .with_added_extension("png");
 
-        self.icon = std::fs::read(icon_path)
-            .ok()
-            .map(image::Handle::from_bytes)
-            .map(|handle| unsafe { allocate(&handle, (128, 48).into()) });
+        self.icon = std::fs::read(icon_path).map(image::Handle::from_bytes).ok();
     }
 
     pub async fn install(&self, root_dir: &Path) -> Result<()> {
@@ -148,8 +142,8 @@ impl OscApp {
         &self.meta.assets.icon.url
     }
 
-    pub fn icon(&self) -> Option<&Handle> {
-        self.icon.as_ref().map(|icon| icon.handle())
+    pub fn icon(&self) -> Option<&image::Handle> {
+        self.icon.as_ref()
     }
 
     pub fn slug(&self) -> &str {

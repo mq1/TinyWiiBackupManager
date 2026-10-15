@@ -104,7 +104,7 @@ fn perform_blocking(
 
         let mut written = 0;
         let mut prev_percentage = 100;
-        let mut buf = unsafe { Box::new_uninit_slice(0x8000).assume_init() };
+        let mut buf = vec![0; 0x8000].into_boxed_slice();
 
         for file in &mut files {
             loop {

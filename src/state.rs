@@ -21,7 +21,6 @@ use iced::{
     Subscription, Task, Theme,
     time::{self, milliseconds},
 };
-use lucide_icons::LUCIDE_FONT_BYTES;
 use nod::{
     common::PartitionKind,
     read::{DiscOptions, DiscReader},
@@ -82,12 +81,6 @@ impl AppState {
                         Ok(Some(version)) => Message::GotUpdate(version),
                         Ok(None) => Message::NoOp,
                         Err(e) => Message::Notify(e.into()),
-                    }),
-                    iced::font::load(LUCIDE_FONT_BYTES).map(|res| match res {
-                        Ok(()) => Message::NoOp,
-                        Err(e) => Message::Notify(Notification::error(format!(
-                            "Failed to load lucide icons: {e:?}"
-                        ))),
                     }),
                 ]),
             )
