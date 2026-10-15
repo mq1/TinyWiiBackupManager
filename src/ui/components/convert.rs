@@ -6,7 +6,7 @@ use crate::{
     ui::components::{my_button::my_button, my_group::my_group, my_link::my_link},
 };
 use iced::{Alignment, Element, widget::row};
-use lucide_icons::Icon;
+use lucide_iced::bytes::{PLAY, SHUFFLE};
 
 const NOD_URL: &str = "https://github.com/encounter/nod";
 
@@ -14,15 +14,13 @@ pub fn convert() -> Element<'static, Message> {
     my_group(
         "Manual conversion (using nod)",
         row![
-            my_button()
-                .icon(Icon::Play)
-                .on_press(Message::PickGameToConvert),
+            my_button().icon(PLAY).on_press(Message::PickGameToConvert),
             "Select in-path and out-path and run the conversion"
         ]
         .spacing(10)
         .align_y(Alignment::Center),
     )
-    .icon(Icon::Shuffle)
+    .icon(SHUFFLE)
     .top_right_content(my_link(NOD_URL, NOD_URL))
     .into()
 }

@@ -7,12 +7,12 @@ use crate::toolbox::ToolboxGroup;
 pub const ALL: &[ToolboxGroup] = {
     use crate::toolbox::ToolboxItem;
     use anyhow::anyhow;
-    use lucide_icons::Icon;
+    use lucide_iced::bytes::APPLE;
     use smol::process::Command;
 
     &[ToolboxGroup {
         label: "macOS",
-        icon: Icon::Apple,
+        icon_bytes: APPLE,
         items: &[ToolboxItem {
             label: "Run dot_clean (removes ._ files)",
             run_fn: |ctx| {

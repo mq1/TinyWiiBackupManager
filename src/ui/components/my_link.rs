@@ -6,7 +6,7 @@ use iced::{
     Element, Length, Theme,
     widget::{button, column, row, rule, text, text::IntoFragment, tooltip},
 };
-use lucide_icons::Icon;
+use lucide_iced::{bytes::GLOBE, themed_icon};
 use std::ffi::{OsStr, OsString};
 
 pub fn make_preview(url: &str) -> String {
@@ -32,7 +32,7 @@ where
     label: L,
     url: U,
     url_preview: String,
-    icon: Icon,
+    icon_bytes: &'static [u8],
 }
 
 impl<'a, L, U> MyLink<L, U>
@@ -45,12 +45,12 @@ where
             label,
             url_preview: make_preview(&url.as_ref().to_string_lossy()),
             url,
-            icon: Icon::Globe,
+            icon_bytes: GLOBE,
         }
     }
 
-    pub fn icon(mut self, icon: Icon) -> Self {
-        self.icon = icon;
+    pub fn icon(mut self, icon_bytes: &'static [u8]) -> Self {
+        self.icon_bytes = icon_bytes;
         self
     }
 }
@@ -82,7 +82,7 @@ where
         tooltip(
             button(
                 column![
-                    row![link.icon.widget(), text(link.label)].spacing(5),
+                    row![themed_icon(link.icon_bytes, 14.), text(link.label)].spacing(5),
                     underline()
                 ]
                 .width(Length::Shrink),

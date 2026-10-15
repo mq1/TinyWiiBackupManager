@@ -13,7 +13,7 @@ use iced::{
     Alignment, Element, Length, padding,
     widget::{Column, column, row, scrollable, text},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::PLAY;
 
 pub fn toolbox(state: &AppState) -> Element<'_, Message> {
     let has_drive = !state.config.mount_point().as_os_str().is_empty();
@@ -24,9 +24,7 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
                 .items()
                 .map(|tool| {
                     row![
-                        my_button()
-                            .icon(Icon::Play)
-                            .on_press(Message::RunTool(tool)),
+                        my_button().icon(PLAY).on_press(Message::RunTool(tool)),
                         text(tool.label())
                     ]
                     .spacing(10)

@@ -13,10 +13,10 @@ use crate::{
     util::drive_state::DriveState,
 };
 use iced::{Element, widget::tooltip};
-use lucide_icons::Icon;
+use lucide_iced::bytes::ROTATE_CW;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
-    let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
+    let mut refresh_btn = my_button().icon(ROTATE_CW).kind(MyButtonKind::Toolbar);
 
     if !matches!(state.games, GamesState::Loading)
         && !matches!(state.homebrew, HomebrewState::Loading)

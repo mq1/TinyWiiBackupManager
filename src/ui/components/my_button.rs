@@ -6,7 +6,7 @@ use iced::{
     Element, Length, Theme, border,
     widget::{Button, button, container, row, text},
 };
-use lucide_icons::Icon;
+use lucide_iced::themed_icon;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MyButtonKind {
@@ -43,7 +43,7 @@ impl MyButtonKind {
 
 pub struct MyButton<'a, T> {
     label: Option<&'a str>,
-    icon: Option<Icon>,
+    icon_bytes: Option<&'static [u8]>,
     kind: MyButtonKind,
     press: Option<T>,
     expand_width: bool,
@@ -55,8 +55,8 @@ impl<'a, T> MyButton<'a, T> {
         self
     }
 
-    pub fn icon(mut self, icon: Icon) -> Self {
-        self.icon = Some(icon);
+    pub fn icon(mut self, icon_bytes: &'static [u8]) -> Self {
+        self.icon_bytes = Some(icon_bytes);
         self
     }
 
@@ -74,9 +74,9 @@ impl<'a, T> MyButton<'a, T> {
         let mut btn = button(
             container(
                 row![
-                    self.icon.map(Icon::widget).map(|icon| match self.kind {
-                        MyButtonKind::Toolbar => icon.size(18),
-                        _ => icon,
+                    self.icon_bytes.map(|icon| match self.kind {
+                        MyButtonKind::Toolbar => themed_icon(icon, 18.),
+                        _ => themed_icon(icon, 14.),
                     }),
                     self.label.map(text).map(|label| match self.kind {
                         MyButtonKind::Toolbar => label.size(18),
@@ -138,7 +138,7 @@ impl<'a, T: Fn() -> Message + 'a> From<MyButton<'a, T>> for Element<'a, Message>
 pub fn my_button<'a, T>() -> MyButton<'a, T> {
     MyButton {
         label: None,
-        icon: None,
+        icon_bytes: None,
         kind: MyButtonKind::Secondary,
         press: None,
         expand_width: false,

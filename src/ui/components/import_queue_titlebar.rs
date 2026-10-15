@@ -11,12 +11,12 @@ use iced::{
     Alignment, Element,
     widget::{row, space},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::{PLAY, X};
 
 pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
     let mut import_btn = my_button()
         .label("Start importing")
-        .icon(Icon::Play)
+        .icon(PLAY)
         .kind(MyButtonKind::Primary);
 
     if state.long_operations.is_idle(LongOperationKind::Import) && !state.import_queue.is_empty() {
@@ -25,7 +25,7 @@ pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
 
     let mut cancel_all_btn = my_button()
         .label("Cancel all")
-        .icon(Icon::X)
+        .icon(X)
         .kind(MyButtonKind::Secondary);
 
     if !state.import_queue.is_empty() {

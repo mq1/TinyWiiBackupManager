@@ -6,11 +6,11 @@ use iced::{
     Element,
     widget::{column, row, rule, space},
 };
-use lucide_icons::Icon;
+use lucide_iced::themed_icon;
 
 pub struct MyGroup<'a, Msg> {
     pub title: &'a str,
-    pub icon: Option<Icon>,
+    pub icon_bytes: Option<&'static [u8]>,
     pub content: Element<'a, Msg>,
     pub top_right_content: Option<Element<'a, Msg>>,
 }
@@ -19,7 +19,7 @@ impl<'a, Msg> MyGroup<'a, Msg> {
     pub fn new(title: &'a str, content: impl Into<Element<'a, Msg>>) -> Self {
         Self {
             title,
-            icon: None,
+            icon_bytes: None,
             top_right_content: None,
             content: content.into(),
         }
@@ -30,8 +30,8 @@ impl<'a, Msg> MyGroup<'a, Msg> {
         self
     }
 
-    pub fn icon(mut self, icon: Icon) -> Self {
-        self.icon = Some(icon);
+    pub fn icon(mut self, icon_bytes: &'static [u8]) -> Self {
+        self.icon_bytes = Some(icon_bytes);
         self
     }
 
@@ -54,7 +54,7 @@ where
         my_card(
             column![
                 row![
-                    group.icon.map(|icon| icon.widget()),
+                    group.icon_bytes.map(|icon| themed_icon(icon, 14.)),
                     group.title,
                     space::horizontal(),
                     group.top_right_content

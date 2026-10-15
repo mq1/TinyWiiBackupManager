@@ -6,14 +6,14 @@ use crate::{
     ui::components::dual_toggle::{DualToggleItem, dual_toggle},
 };
 use iced::Element;
-use lucide_icons::Icon;
+use lucide_iced::bytes::{ARROW_DOWN_0_1, ARROW_DOWN_A_Z, ARROW_UP_0_1, ARROW_UP_A_Z};
 
 fn sort_by_name(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
     let current_sort_by = config.sort_by();
 
-    let icon = match current_sort_by {
-        SortBy::NameDescending => Icon::ArrowUpAZ,
-        _ => Icon::ArrowDownAZ,
+    let icon_bytes = match current_sort_by {
+        SortBy::NameDescending => ARROW_UP_A_Z,
+        _ => ARROW_DOWN_A_Z,
     };
 
     let on_press = match current_sort_by {
@@ -27,7 +27,7 @@ fn sort_by_name(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
     );
 
     DualToggleItem {
-        icon,
+        icon_bytes,
         desc: "Sort by name",
         active,
         on_press,
@@ -37,9 +37,9 @@ fn sort_by_name(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
 fn sort_by_size(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
     let current_sort_by = config.sort_by();
 
-    let icon = match current_sort_by {
-        SortBy::SizeDescending => Icon::ArrowUp01,
-        _ => Icon::ArrowDown01,
+    let icon_bytes = match current_sort_by {
+        SortBy::SizeDescending => ARROW_UP_0_1,
+        _ => ARROW_DOWN_0_1,
     };
 
     let on_press = match current_sort_by {
@@ -53,7 +53,7 @@ fn sort_by_size(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
     );
 
     DualToggleItem {
-        icon,
+        icon_bytes,
         desc: "Sort by size",
         active,
         on_press,

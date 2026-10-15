@@ -10,25 +10,30 @@ use iced::{
     Element, Length, padding,
     widget::{row, rule, space, text, tooltip},
 };
-use lucide_icons::{
-    Icon,
-    iced::{icon_check, icon_message_circle_warning, icon_tag},
+use lucide_iced::{
+    bytes::{CHECK, CLOUD_DOWNLOAD, INFO, MESSAGE_CIRCLE_WARNING, TAG, TRASH},
+    themed_icon,
 };
 
 pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
     let version_icon: Element<'_, Message> = if let Some(osc_app) = app.osc_app() {
         if osc_app.version() == app.version() {
-            tooltip(icon_check(), my_card("Up to date"), tooltip::Position::Top).into()
+            tooltip(
+                themed_icon(CHECK, 14.),
+                my_card("Up to date"),
+                tooltip::Position::Top,
+            )
+            .into()
         } else {
             tooltip(
-                icon_message_circle_warning(),
+                themed_icon(MESSAGE_CIRCLE_WARNING, 14.),
                 my_card(text!("Update available ({})", osc_app.version())),
                 tooltip::Position::Top,
             )
             .into()
         }
     } else {
-        icon_tag().into()
+        themed_icon(TAG, 14.)
     };
 
     let update_button = app
@@ -37,7 +42,7 @@ pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
         .filter(|osc_app| osc_app.version() != app.version())
         .map(|osc_app| {
             row_button(
-                Icon::CloudDownload,
+                CLOUD_DOWNLOAD,
                 "Update (from oscwii.org)",
                 Some(|| Message::InstallOscApp(osc_app.clone())),
             )
@@ -50,13 +55,13 @@ pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
         text(app.size_str()),
         rule::vertical(1),
         row_button(
-            Icon::Trash,
+            TRASH,
             "Delete app",
             Some(|| Message::AskDeleteDir(app.path().to_path_buf()))
         ),
         update_button,
         row_button(
-            Icon::Info,
+            INFO,
             "App info",
             Some(|| Message::OpenHomebrewAppInfo(app.clone()))
         ),

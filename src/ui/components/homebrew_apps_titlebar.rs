@@ -17,7 +17,7 @@ use iced::{
     Alignment, Element,
     widget::{row, space, tooltip},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::PLUS;
 
 pub fn homebrew_apps_titlebar<'a>(
     apps: &'a HomebrewAppList,
@@ -32,7 +32,7 @@ pub fn homebrew_apps_titlebar<'a>(
         refresh_button(state),
         tooltip(
             my_button()
-                .icon(Icon::Plus)
+                .icon(PLUS)
                 .kind(MyButtonKind::Toolbar)
                 .on_press(Message::PickHomebrewApps),
             my_card("Import app(s)"),

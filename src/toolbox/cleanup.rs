@@ -6,7 +6,7 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
 };
 use anyhow::{Result, bail};
-use lucide_icons::Icon;
+use lucide_iced::bytes::BRUSH_CLEANING;
 use smol::{
     fs::{self, DirEntry, File},
     stream::{self, Stream, StreamExt},
@@ -207,7 +207,7 @@ async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
         label: "Cleanup",
-        icon: Icon::BrushCleaning,
+        icon_bytes: BRUSH_CLEANING,
         items: &[ToolboxItem {
             label: "Normalize paths (makes the game directories' layouts consistent)",
             run_fn: |ctx| {

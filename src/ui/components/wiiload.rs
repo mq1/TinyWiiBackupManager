@@ -11,7 +11,7 @@ use iced::{
     Element,
     widget::{column, row, space},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::{FILE_UP, MONITOR_UP};
 
 pub fn wiiload(state: &AppState) -> Element<'_, Message> {
     my_group(
@@ -20,7 +20,7 @@ pub fn wiiload(state: &AppState) -> Element<'_, Message> {
             "Wiiload is a method of loading .dol and .elf files over the network.\nAlso, you can use Wiiload to install homebrew applications directly onto your SD card.\nIf the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.\nPressing the home button in the Homebrew Channel will reveal your Wii's IP.",
             row![
                 my_button()
-                    .icon(Icon::FileUp)
+                    .icon(FILE_UP)
                     .label("Choose a zip/dol/elf")
                     .on_press(Message::PickFileToSendViaWiiload),
                 space::horizontal(),
@@ -29,6 +29,6 @@ pub fn wiiload(state: &AppState) -> Element<'_, Message> {
         ]
         .spacing(10)
     )
-    .icon(Icon::MonitorUp)
+    .icon(MONITOR_UP)
     .into()
 }

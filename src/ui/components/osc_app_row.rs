@@ -6,7 +6,7 @@ use iced::{
     Element, Length, padding,
     widget::{row, rule, space, text},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::{CLOUD_DOWNLOAD, INFO, MONITOR_UP};
 
 pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
     row![
@@ -15,17 +15,17 @@ pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
         text(app.size_str()),
         rule::vertical(1),
         row_button(
-            Icon::CloudDownload,
+            CLOUD_DOWNLOAD,
             "Install",
             Some(|| Message::InstallOscApp(app.clone()))
         ),
         row_button(
-            Icon::Info,
+            INFO,
             "App info",
             Some(|| Message::OpenOscAppInfo(app.clone()))
         ),
         row_button(
-            Icon::MonitorUp,
+            MONITOR_UP,
             "Send via Wiiload",
             Some(|| Message::SendOscAppViaWiiload(app.clone()))
         ),

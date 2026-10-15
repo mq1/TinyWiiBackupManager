@@ -6,13 +6,13 @@ use iced::{
     Element, Length, padding,
     widget::{row, space, text},
 };
-use lucide_icons::Icon;
+use lucide_iced::bytes::X;
 
 pub fn queued_import_row((i, entry): (usize, &ImportEntry)) -> Element<'_, Message> {
     row![
         text(entry.path().to_string_lossy()),
         space::horizontal(),
-        row_button(Icon::X, "Cancel", Some(move || Message::CancelImport(i)))
+        row_button(X, "Cancel", Some(move || Message::CancelImport(i)))
     ]
     .spacing(5)
     .height(Length::Shrink)

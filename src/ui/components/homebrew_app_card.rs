@@ -11,9 +11,9 @@ use iced::{
     widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
-use lucide_icons::{
-    Icon,
-    iced::{icon_check, icon_message_circle_warning, icon_tag},
+use lucide_iced::{
+    bytes::{CHECK, CLOUD_DOWNLOAD, INFO, MESSAGE_CIRCLE_WARNING, TAG, TRASH},
+    themed_icon,
 };
 
 pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
@@ -25,21 +25,21 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
     let version_icon: Element<'_, Message> = if let Some(osc_app) = app.osc_app() {
         if osc_app.version() == app.version() {
             tooltip(
-                icon_check(),
+                themed_icon(CHECK, 14.),
                 my_card("Up to date"),
                 tooltip::Position::Bottom,
             )
             .into()
         } else {
             tooltip(
-                icon_message_circle_warning(),
+                themed_icon(MESSAGE_CIRCLE_WARNING, 14.),
                 my_card(text!("Update available ({})", osc_app.version())),
                 tooltip::Position::Bottom,
             )
             .into()
         }
     } else {
-        icon_tag().into()
+        themed_icon(TAG, 14.)
     };
 
     let update_button = app
@@ -49,7 +49,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
         .map(|osc_app| {
             tooltip(
                 my_button()
-                    .icon(Icon::CloudDownload)
+                    .icon(CLOUD_DOWNLOAD)
                     .on_press_with(|| Message::InstallOscApp(osc_app.clone())),
                 my_card("Update (from oscwii.org)"),
                 tooltip::Position::Bottom,
@@ -72,12 +72,12 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
             row![
                 my_button()
                     .label("Info")
-                    .icon(Icon::Info)
+                    .icon(INFO)
                     .expand_width()
                     .on_press_with(|| Message::OpenHomebrewAppInfo(app.clone())),
                 update_button,
                 my_button()
-                    .icon(Icon::Trash)
+                    .icon(TRASH)
                     .on_press_with(|| Message::AskDeleteDir(app.path().to_path_buf()))
             ]
             .spacing(5)

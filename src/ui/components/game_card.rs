@@ -11,7 +11,10 @@ use iced::{
     widget::{column, image, row, space, text, tooltip},
 };
 use iced_palace::widget::ellipsized_text;
-use lucide_icons::{Icon, iced::icon_tag};
+use lucide_iced::{
+    bytes::{HARD_DRIVE_DOWNLOAD, INFO, TAG, TRASH},
+    themed_icon,
+};
 
 pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     let cover: Element<'_, Message> = match game.cover() {
@@ -19,7 +22,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         None => space().height(96).into(),
     };
 
-    let mut export_btn = my_button().icon(Icon::HardDriveDownload);
+    let mut export_btn = my_button().icon(HARD_DRIVE_DOWNLOAD);
 
     if !is_exporting {
         export_btn = export_btn.on_press_with(|| Message::PickExportDest(game.clone()));
@@ -28,7 +31,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     my_card(
         column![
             row![
-                icon_tag(),
+                themed_icon(TAG, 14.),
                 text(game.id_str()),
                 space::horizontal(),
                 text(game.size_str())
@@ -39,7 +42,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
             row![
                 my_button()
                     .label("Info")
-                    .icon(Icon::Info)
+                    .icon(INFO)
                     .on_press_with(|| Message::OpenGameInfo(game.clone()))
                     .expand_width(),
                 tooltip(
@@ -49,7 +52,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
                 ),
                 tooltip(
                     my_button()
-                        .icon(Icon::Trash)
+                        .icon(TRASH)
                         .on_press_with(|| Message::AskDeleteDir(game.path().to_path_buf())),
                     my_card("Delete game"),
                     tooltip::Position::Bottom

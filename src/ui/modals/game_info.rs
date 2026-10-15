@@ -16,9 +16,12 @@ use iced::{
     Alignment, Element,
     widget::{column, image, row, rule, space, text, tooltip},
 };
-use lucide_icons::{
-    Icon,
-    iced::{icon_file_question, icon_gamepad, icon_globe, icon_notebook_pen, icon_pin, icon_tag},
+use lucide_iced::{
+    bytes::{
+        FILE_QUESTION_MARK, FOLDER, GAMEPAD, GLOBE, NOTEBOOK_PEN, PIN, SEARCH_CHECK, SHREDDER,
+        SKULL, TAG,
+    },
+    themed_icon,
 };
 
 pub fn game_info<'a>(
@@ -31,23 +34,27 @@ pub fn game_info<'a>(
         row![
             column![
                 row![
-                    icon_file_question(),
+                    themed_icon(FILE_QUESTION_MARK, 14.),
                     text!("Format: {}", disc_info.format())
                 ]
                 .spacing(5),
-                row![icon_tag(), text!("Game ID: {}", disc_info.game_id())].spacing(5),
                 row![
-                    icon_notebook_pen(),
+                    themed_icon(TAG, 14.),
+                    text!("Game ID: {}", disc_info.game_id())
+                ]
+                .spacing(5),
+                row![
+                    themed_icon(NOTEBOOK_PEN, 14.),
                     text!("Game Title: {}", disc_info.game_title())
                 ]
                 .spacing(5),
                 row![
-                    icon_globe(),
+                    themed_icon(GLOBE, 14.),
                     text!("Region: {}", disc_info.game_id().region())
                 ]
                 .spacing(5),
                 row![
-                    icon_gamepad(),
+                    themed_icon(GAMEPAD, 14.),
                     if disc_info.is_wii() {
                         text("System: Wii")
                     } else {
@@ -56,7 +63,7 @@ pub fn game_info<'a>(
                 ]
                 .spacing(5),
                 row![
-                    icon_pin(),
+                    themed_icon(PIN, 14.),
                     text!("Disc Version: {}", disc_info.disc_version())
                 ]
                 .spacing(5),
@@ -75,7 +82,7 @@ pub fn game_info<'a>(
     let scrub_btn = scrubbable.then(|| {
         let mut btn = my_button()
             .label("Scrub")
-            .icon(Icon::Shredder)
+            .icon(SHREDDER)
             .kind(MyButtonKind::Secondary);
 
         if state.long_operations.is_idle(LongOperationKind::Scrub) {
@@ -93,7 +100,7 @@ pub fn game_info<'a>(
         column![
             column![
                 text(game.title()).size(18),
-                my_link(game.path().to_string_lossy(), game.path()).icon(Icon::Folder)
+                my_link(game.path().to_string_lossy(), game.path()).icon(FOLDER)
             ]
             .spacing(10)
             .padding(20),
@@ -109,7 +116,7 @@ pub fn game_info<'a>(
                 tooltip(
                     my_button()
                         .label("Get cheats")
-                        .icon(Icon::Skull)
+                        .icon(SKULL)
                         .kind(MyButtonKind::Secondary)
                         .on_press_with(|| Message::DownloadTxtCodes(game.clone())),
                     my_card("Download txtcodes (source configurable in settings)"),
@@ -118,7 +125,7 @@ pub fn game_info<'a>(
                 tooltip(
                     my_button()
                         .label("SHA1")
-                        .icon(Icon::SearchCheck)
+                        .icon(SEARCH_CHECK)
                         .kind(MyButtonKind::Secondary)
                         .on_press_with(|| Message::CalcGameSha1(game.clone())),
                     my_card("Check if your dump is 100% byte identical to the Redump one"),

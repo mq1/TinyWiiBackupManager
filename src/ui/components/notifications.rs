@@ -10,33 +10,42 @@ use crate::{
 };
 use iced::{
     Alignment, Element, Theme, border,
-    widget::{Column, button, row, text},
+    widget::{Column, button, row, svg, text},
 };
 use itertools::Either;
-use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
+use lucide_iced::{
+    bytes::{CHECK, INFO, TRIANGLE_ALERT, X},
+    themed_icon,
+};
 use std::iter::{empty, once};
 
 fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
-    let icon = match notification.level() {
-        NotificationLevel::Info => icon_info().style(|theme: &Theme| text::Style {
-            color: Some(theme.palette().primary),
-        }),
-        NotificationLevel::Warning => icon_alert_triangle().style(|theme: &Theme| text::Style {
-            color: Some(theme.palette().warning),
-        }),
-        NotificationLevel::Error => icon_x().style(|theme: &Theme| text::Style {
-            color: Some(theme.palette().danger),
-        }),
-        NotificationLevel::Success => icon_check().style(|theme: &Theme| text::Style {
-            color: Some(theme.palette().success),
-        }),
+    let icon_bytes = match notification.level() {
+        NotificationLevel::Info => INFO,
+        NotificationLevel::Warning => TRIANGLE_ALERT,
+        NotificationLevel::Error => X,
+        NotificationLevel::Success => CHECK,
     };
+
+    let color = |theme: &Theme| match notification.level() {
+        NotificationLevel::Info => theme.palette().primary,
+        NotificationLevel::Warning => theme.palette().warning,
+        NotificationLevel::Error => theme.palette().danger,
+        NotificationLevel::Success => theme.palette().success,
+    };
+
+    let icon = svg(svg::Handle::from_memory(icon_bytes))
+        .width(14.)
+        .height(14.)
+        .style(move |theme, _status| svg::Style {
+            color: Some(color(theme)),
+        });
 
     my_card(
         row![
             icon,
             text(notification.label()),
-            button(icon_x().center())
+            button(themed_icon(X, 14.))
                 .on_press(Message::CloseNotification(i))
                 .padding(0)
                 .width(22)

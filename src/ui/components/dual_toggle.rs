@@ -6,7 +6,7 @@ use iced::{
     Background, Border, Element, Theme, border,
     widget::{Row, button, text, tooltip},
 };
-use lucide_icons::Icon;
+use lucide_iced::themed_icon;
 
 fn get_border(is_left: bool) -> Border {
     border::rounded(match is_left {
@@ -33,7 +33,7 @@ where
     Msg: Clone + 'a,
 {
     tooltip(
-        button(item.icon.widget())
+        button(themed_icon(item.icon_bytes, 14.))
             .style(get_button_style(item.active, index == 0))
             .on_press(item.on_press)
             .padding(8),
@@ -44,7 +44,7 @@ where
 }
 
 pub struct DualToggleItem<'a, Msg> {
-    pub icon: Icon,
+    pub icon_bytes: &'static [u8],
     pub desc: &'a str,
     pub active: bool,
     pub on_press: Msg,

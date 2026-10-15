@@ -10,9 +10,9 @@ use iced::{
     Alignment, Element, Length,
     widget::{column, image, row, rule, space, text},
 };
-use lucide_icons::{
-    Icon,
-    iced::{icon_alert_triangle, icon_heart},
+use lucide_iced::{
+    bytes::{FOLDER, HEART, SCALE, TRIANGLE, TRIANGLE_ALERT, WAND_SPARKLES},
+    themed_icon,
 };
 use std::sync::LazyLock;
 
@@ -24,11 +24,10 @@ static ICON: LazyLock<image::Handle> = LazyLock::new(|| image::Handle::from_byte
 pub fn about(state: &AppState) -> Element<'_, Message> {
     let mq1_link = my_link("mq1", "https://github.com/mq1");
     let license_link =
-        my_link("GPL-3.0-only", "https://www.gnu.org/licenses/gpl-3.0.html").icon(Icon::Scale);
-    let encounter_link =
-        my_link("Luke Street", "https://github.com/encounter").icon(Icon::Triangle);
-    let blackb0x_link = my_link("blackb0x", "https://github.com/wiidev").icon(Icon::Wand2);
-    let data_dir_link = my_link("Data directory", &state.data_dir).icon(Icon::Folder);
+        my_link("GPL-3.0-only", "https://www.gnu.org/licenses/gpl-3.0.html").icon(SCALE);
+    let encounter_link = my_link("Luke Street", "https://github.com/encounter").icon(TRIANGLE);
+    let blackb0x_link = my_link("blackb0x", "https://github.com/wiidev").icon(WAND_SPARKLES);
+    let data_dir_link = my_link("Data directory", &state.data_dir).icon(FOLDER);
     let source_code_link = my_link("Source code", "https://github.com/mq1/TinyWiiBackupManager");
     let wiki_link = my_link("Wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki");
 
@@ -52,14 +51,14 @@ pub fn about(state: &AppState) -> Element<'_, Message> {
                 ]
                 .spacing(20),
                 row![
-                    icon_alert_triangle().size(20),
+                    themed_icon(TRIANGLE_ALERT, 20.),
                     "TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited."
                 ]
                 .spacing(20)
                 .align_y(Alignment::Center),
                 rule::horizontal(1),
                 row![
-                    icon_heart().size(16),
+                    themed_icon(HEART, 16.),
                     text("Special thanks to").size(16)
                 ]
                 .spacing(5),
