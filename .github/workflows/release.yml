@@ -75,14 +75,12 @@ jobs:
           chmod +x appimagetool-${{ matrix.arch }}.AppImage
 
       - name: Build binary
-        run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-appimage
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+        run: cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-appimage
 
       - name: Package AppImage
         run: |
           cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
-          install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
+          install -Dm0755 target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
           cd dist
           export VERSION="$(./scripts/current-version.sh)"
@@ -142,14 +140,12 @@ jobs:
           "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build binary
-        run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
-          Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
+        run: cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
 
       - name: Rename binary
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          Copy-Item "TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
@@ -184,15 +180,13 @@ jobs:
           components: rust-src
 
       - name: Build binary
-        run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-macos
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+        run: cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-macos
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7
         with:
           name: build-macos-${{ matrix.arch }}
-          path: TinyWiiBackupManager
+          path: target/${{ matrix.target }}/release/TinyWiiBackupManager
 
   build-macos-universal:
     name: Build for macOS (Universal)
