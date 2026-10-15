@@ -180,10 +180,8 @@ jobs:
         include:
           - arch: arm64
             target: aarch64-apple-darwin
-            deployment_target: 11
           - arch: x86_64
             target: x86_64-apple-darwin
-            deployment_target: 10.12
 
     steps:
       - name: Checkout
@@ -203,8 +201,6 @@ jobs:
         run: |
           cargo --config .cargo/dist.toml build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-macos
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
-        env:
-          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7
