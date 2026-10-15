@@ -53,6 +53,7 @@ async fn f16_gpu_fix() {
     };
 
     if !adapter.features().contains(wgpu::Features::SHADER_F16) {
+        #[allow(unsafe_code)]
         unsafe {
             std::env::set_var("ICED_BACKEND", "tiny-skia");
         }

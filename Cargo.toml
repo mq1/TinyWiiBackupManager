@@ -131,7 +131,7 @@ split-debuginfo = "unpacked"
 opt-level = 3
 
 [lints.rust]
-unsafe_code = "forbid"
+unsafe_code = "deny"
 rust_2018_idioms = "deny"
 unstable_name_collisions = { level = "allow", priority = 100 }
 
