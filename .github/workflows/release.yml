@@ -66,6 +66,8 @@ jobs:
           curl -LO https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           ./llvm.sh 23
+          ln -sf $(which clang-23) /usr/bin/cc
+          ln -sf $(which lld-23) /usr/bin/ld
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.99
