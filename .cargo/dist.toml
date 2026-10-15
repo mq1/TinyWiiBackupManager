@@ -1,5 +1,4 @@
 [env]
-RUSTC_BOOTSTRAP = "1"              # enable building rust-src on stable
 AWS_LC_SYS_NO_JITTER_ENTROPY = "1" # we don't need this
 AWS_LC_SYS_CFLAGS = "-fno-lto"     # otherwise it won't compile
 
