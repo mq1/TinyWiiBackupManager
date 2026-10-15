@@ -3,18 +3,18 @@ AWS_LC_SYS_NO_JITTER_ENTROPY = "1" # we don't need this
 AWS_LC_SYS_CFLAGS = "-fno-lto"     # otherwise it won't compile
 
 # cc - linux specific
-CC_x86_64-unknown-linux-gnu = "clang"
-CC_aarch64-unknown-linux-gnu = "clang"
-CC_i686-unknown-linux-gnu = "clang"
-CXX_x86_64-unknown-linux-gnu = "clang++"
-CXX_aarch64-unknown-linux-gnu = "clang++"
-CXX_i686-unknown-linux-gnu = "clang++"
-AR_x86_64-unknown-linux-gnu = "llvm-ar"
-AR_aarch64-unknown-linux-gnu = "llvm-ar"
-AR_i686-unknown-linux-gnu = "llvm-ar"
-RANLIB_x86_64-unknown-linux-gnu = "llvm-ranlib"
-RANLIB_aarch64-unknown-linux-gnu = "llvm-ranlib"
-RANLIB_i686-unknown-linux-gnu = "llvm-ranlib"
+CC_x86_64-unknown-linux-gnu = "clang-23"
+CC_aarch64-unknown-linux-gnu = "clang-23"
+CC_i686-unknown-linux-gnu = "clang-23"
+CXX_x86_64-unknown-linux-gnu = "clang++-23"
+CXX_aarch64-unknown-linux-gnu = "clang++-23"
+CXX_i686-unknown-linux-gnu = "clang++-23"
+AR_x86_64-unknown-linux-gnu = "llvm-ar-23"
+AR_aarch64-unknown-linux-gnu = "llvm-ar-23"
+AR_i686-unknown-linux-gnu = "llvm-ar-23"
+RANLIB_x86_64-unknown-linux-gnu = "llvm-ranlib-23"
+RANLIB_aarch64-unknown-linux-gnu = "llvm-ranlib-23"
+RANLIB_i686-unknown-linux-gnu = "llvm-ranlib-23"
 CFLAGS_x86_64-unknown-linux-gnu = "-O3 -flto"
 CFLAGS_aarch64-unknown-linux-gnu = "-O3 -flto"
 CFLAGS_i686-unknown-linux-gnu = "-O3 -flto"
@@ -37,12 +37,12 @@ CFLAGS_aarch64-pc-windows-msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-li
 CFLAGS_i686-win7-windows-msvc = "/clang:-O3"
 
 # cc - macos specific
-CC_x86_64-apple-darwin = "clang"
-CC_aarch64-apple-darwin = "clang"
-CXX_x86_64-apple-darwin = "clang++"
-CXX_aarch64-apple-darwin = "clang++"
-AR_x86_64-apple-darwin = "llvm-ar"
-AR_aarch64-apple-darwin = "llvm-ar"
+CC_x86_64-apple-darwin = "/opt/homebrew/opt/llvm@23/bin/clang"
+CC_aarch64-apple-darwin = "/opt/homebrew/opt/llvm@23/bin/clang"
+CXX_x86_64-apple-darwin = "/opt/homebrew/opt/llvm@23/bin/clang++"
+CXX_aarch64-apple-darwin = "/opt/homebrew/opt/llvm@23/bin/clang++"
+AR_x86_64-apple-darwin = "/opt/homebrew/opt/llvm@23/bin/llvm-ar"
+AR_aarch64-apple-darwin = "/opt/homebrew/opt/llvm@23/bin/llvm-ar"
 CFLAGS_x86_64-apple-darwin = "-O3 -flto -mmacosx-version-min=10.12"
 CFLAGS_aarch64-apple-darwin = "-O3 -flto -mmacosx-version-min=11"
 CXXFLAGS_x86_64-apple-darwin = "-O3 -flto -mmacosx-version-min=10.12"
@@ -115,7 +115,7 @@ rustflags = [
   "-C",
   "linker-plugin-lto",
   "-C",
-  "link-arg=-fuse-ld=/opt/homebrew/opt/lld/bin/ld64.lld",
+  "link-arg=-fuse-ld=/opt/homebrew/opt/lld@23/bin/ld64.lld",
 ]
 
 [target.aarch64-apple-darwin]
@@ -124,5 +124,5 @@ rustflags = [
   "-C",
   "linker-plugin-lto",
   "-C",
-  "link-arg=-fuse-ld=/opt/homebrew/opt/lld/bin/ld64.lld",
+  "link-arg=-fuse-ld=/opt/homebrew/opt/lld@23/bin/ld64.lld",
 ]
