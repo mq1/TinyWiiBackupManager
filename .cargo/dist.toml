@@ -1,6 +1,7 @@
 [env]
 AWS_LC_SYS_NO_JITTER_ENTROPY = "1" # we don't need this
 AWS_LC_SYS_CFLAGS = "-fno-lto"     # otherwise it won't compile
+HOST_CFLAGS = "-fno-lto"           # otherwise lucide-iced won't compile
 
 # cc - linux specific
 CC_x86_64-unknown-linux-gnu = "clang-23"
@@ -69,9 +70,9 @@ rustflags = [
   "-C",
   "linker-plugin-lto",
   "-L",
-  "native=.\\VC-LTL-Binary\\TargetPlatform\\6.0.6000.0\\lib\\x64",
+  "native=VC-LTL-Binary/TargetPlatform/6.0.6000.0/lib/x64",
   "-C",
-  "link-arg=.\\YY-Thunks-Objs\\objs\\x64\\YY_Thunks_for_Vista.obj",
+  "link-arg=YY-Thunks-Objs/objs/x64/YY_Thunks_for_Vista.obj",
   "-l",
   "dylib=ole32",
   "-C",
@@ -89,7 +90,7 @@ rustflags = [
   "-C",
   "linker-plugin-lto",
   "-L",
-  "native=.\\VC-LTL-Binary\\TargetPlatform\\10.0.10240.0\\lib\\ARM64",
+  "native=VC-LTL-Binary/TargetPlatform/10.0.10240.0/lib/ARM64",
   "-C",
   "link-arg=/FORCE:MULTIPLE",
 ]
@@ -100,9 +101,9 @@ rustflags = [
   "-C",
   "target-feature=+crt-static",
   "-L",
-  "native=.\\VC-LTL-Binary\\TargetPlatform\\5.1.2600.0\\lib\\Win32",
+  "native=VC-LTL-Binary/TargetPlatform/5.1.2600.0/lib/Win32",
   "-C",
-  "link-arg=.\\YY-Thunks-Objs\\objs\\x86\\YY_Thunks_for_WinXP.obj",
+  "link-arg=/YY-Thunks-Objs/objs/x86/YY_Thunks_for_WinXP.obj",
   "-l",
   "dylib=ole32",
   "-C",
