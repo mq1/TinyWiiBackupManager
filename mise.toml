@@ -51,9 +51,6 @@ appimagetool.AppImage \
     "dist/TinyWiiBackupManager-{{ env.VERSION_NAME }}-linux-{{ vars.arch }}.AppImage"
 '''
 
-[task_templates.package-linux.env]
-APPIMAGE_EXTRACT_AND_RUN = "1"
-
 [tasks.package-linux-x86_64]
 extends = "package-linux"
 vars = { arch = "x86_64" }
