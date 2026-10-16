@@ -1,0 +1,151 @@
+[tools]
+rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
+"conda:clang" = "23"
+
+[env]
+RUSTC_BOOTSTRAP = "1" # needed for build-std
+
+[tasks.build-linux-x86_64]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target x86_64-unknown-linux-gnu --no-default-features --features dist-appimage
+mkdir dist
+cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-x86_64
+'''
+
+[tasks.build-linux-x86_64.tools]
+"conda:lld" = "23"
+
+[tasks.build-linux-x86_64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+RANLIB = "llvm-ranlib"
+CFLAGS = "-O3 -flto"
+CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
+
+[tasks.build-linux-aarch64]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target aarch64-unknown-linux-gnu --no-default-features --features dist-appimage
+mkdir dist
+cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-aarch64
+'''
+
+[tasks.build-linux-aarch64.tools]
+"conda:lld" = "23"
+
+[tasks.build-linux-aarch64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+RANLIB = "llvm-ranlib"
+CFLAGS = "-O3 -flto"
+CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
+
+[tasks.build-linux-i686]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target i686-unknown-linux-gnu --no-default-features --features dist-appimage
+mkdir dist
+cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-i686
+'''
+
+[tasks.build-linux-i686.tools]
+"conda:lld" = "23"
+
+[tasks.build-linux-i686.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+RANLIB = "llvm-ranlib"
+CFLAGS = "-O3 -flto"
+CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
+
+[tasks.build-windows-x64]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target x86_64-win7-windows-msvc --no-default-features --features dist-windows-modern
+mkdir dist
+copy target\x86_64-win7-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-x64.exe
+'''
+
+[tasks.build-windows-x64.tools]
+"conda:lld" = "23"
+
+[tasks.build-windows-x64.env]
+CC = "clang-cl"
+CXX = "clang-cl"
+AR = "llvm-lib"
+CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=lld-link"
+
+[tasks.build-windows-arm64]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target aarch64-pc-windows-msvc --no-default-features --features dist-windows-modern
+mkdir dist
+copy target\aarch64-pc-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-arm64.exe
+'''
+
+[tasks.build-windows-arm64.tools]
+"conda:lld" = "23"
+
+[tasks.build-windows-arm64.env]
+CC = "clang-cl"
+CXX = "clang-cl"
+AR = "llvm-lib"
+CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=lld-link"
+
+[tasks.build-windows-i686]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target i686-win7-windows-msvc --no-default-features --features dist-windows-legacy
+mkdir dist
+copy target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-i686.exe
+'''
+
+[tasks.build-windows-i686.tools]
+"conda:nasm" = "latest" # needed for aws-lc
+
+[tasks.build-windows-i686.env]
+CC = "clang-cl"
+CXX = "clang-cl"
+CFLAGS = "/clang:-O3"
+CXXFLAGS = "/clang:-O3"
+
+[tasks.build-macos-x86_64]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target x86_64-apple-darwin --no-default-features --features dist-macos
+mkdir dist
+cp target/x86_64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupManager-macos-x86_64
+'''
+
+[tasks.build-macos-x86_64.tools]
+"conda:lld" = "23"
+
+[tasks.build-macos-x86_64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+CFLAGS = "-O3 -flto"
+CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=./macos-linker.sh -C link-arg=-fuse-ld=ld64.lld"
+
+[tasks.build-macos-aarch64]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target aarch64-apple-darwin --no-default-features --features dist-macos
+mkdir dist
+cp target/aarch64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupManager-macos-aarch64
+'''
+
+[tasks.build-macos-aarch64.tools]
+"conda:lld" = "23"
+
+[tasks.build-macos-aarch64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+CFLAGS = "-O3 -flto"
+CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=./macos-linker.sh -C link-arg=-fuse-ld=ld64.lld"
