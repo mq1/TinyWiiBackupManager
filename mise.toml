@@ -58,6 +58,12 @@ RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
 [tasks.build-windows-x64]
 run = '''
 #!/usr/bin/env pwsh
+
+$clangPath = (mise where conda:clang@23)
+$lldPath = (mise where conda:lld@23)
+
+$env:PATH = "$clangPath\bin;$lldPath\bin;$env:PATH"
+
 cargo build -Z build-std=std,panic_abort --release --target x86_64-win7-windows-msvc --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path dist
 Copy-Item -Path target\x86_64-win7-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-x64.exe
@@ -74,6 +80,12 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 [tasks.build-windows-arm64]
 run = '''
 #!/usr/bin/env pwsh
+
+$clangPath = (mise where conda:clang@23)
+$lldPath = (mise where conda:lld@23)
+
+$env:PATH = "$clangPath\bin;$lldPath\bin;$env:PATH"
+
 cargo build -Z build-std=std,panic_abort --release --target aarch64-pc-windows-msvc --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path dist
 Copy-Item -Path target\aarch64-pc-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-arm64.exe
@@ -90,6 +102,12 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 [tasks.build-windows-x86]
 run = '''
 #!/usr/bin/env pwsh
+
+$clangPath = (mise where conda:clang@23)
+$lldPath = (mise where conda:lld@23)
+
+$env:PATH = "$clangPath\bin;$lldPath\bin;$env:PATH"
+
 cargo build -Z build-std=std,panic_abort --release --target i686-win7-windows-msvc --no-default-features --features dist-windows-legacy
 New-Item -ItemType Directory -Path dist
 Copy-Item -Path target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-x86.exe
