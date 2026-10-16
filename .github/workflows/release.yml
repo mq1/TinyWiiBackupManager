@@ -31,29 +31,26 @@ jobs:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
     container:
-      image: ubuntu:20.04
+      image: ${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - runner: ubuntu-22.04
             arch: x86_64
+            image: quay.io/pypa/manylinux2014_x86_64
           - runner: ubuntu-22.04-arm
             arch: aarch64
+            image: quay.io/pypa/manylinux2014_aarch64
           - runner: ubuntu-22.04
             arch: i686
-            packages: gcc-multilib
+            image: quay.io/pypa/manylinux2014_x86_64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
-
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y file curl build-essential ${{ matrix.packages }}
 
       - name: Install mise and dependencies
         uses: jdx/mise-action@v4
