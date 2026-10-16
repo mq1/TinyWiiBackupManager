@@ -7,14 +7,14 @@ rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
 
-[tasks.build-linux-x86_64]
+[task_templates.build-linux]
 run = '''
-cargo build -Z build-std=std,panic_abort --release --target x86_64-unknown-linux-gnu --no-default-features --features dist-appimage
-mkdir dist
-cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-x86_64
+cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-appimage
+mkdir out
+cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-linux-{{ vars.arch }}
 '''
 
-[tasks.build-linux-x86_64.env]
+[task_templates.build-linux.env]
 CC = "clang"
 CXX = "clang++"
 AR = "llvm-ar"
@@ -22,50 +22,29 @@ RANLIB = "llvm-ranlib"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
+
+[tasks.build-linux-x86_64]
+extends = "build-linux"
+vars = { target = "x86_64-unknown-linux-gnu", arch = "x86_64" }
 
 [tasks.build-linux-aarch64]
-run = '''
-cargo build -Z build-std=std,panic_abort --release --target aarch64-unknown-linux-gnu --no-default-features --features dist-appimage
-mkdir dist
-cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-aarch64
-'''
-
-[tasks.build-linux-aarch64.env]
-CC = "clang"
-CXX = "clang++"
-AR = "llvm-ar"
-RANLIB = "llvm-ranlib"
-CFLAGS = "-O3 -flto"
-CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
+extends = "build-linux"
+vars = { target = "aarch64-unknown-linux-gnu", arch = "aarch64" }
 
 [tasks.build-linux-i686]
-run = '''
-cargo build -Z build-std=std,panic_abort --release --target i686-unknown-linux-gnu --no-default-features --features dist-appimage
-mkdir dist
-cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-i686
-'''
+extends = "build-linux"
+vars = { target = "i686-unknown-linux-gnu", arch = "i686" }
 
-[tasks.build-linux-i686.env]
-CC = "clang"
-CXX = "clang++"
-AR = "llvm-ar"
-RANLIB = "llvm-ranlib"
-CFLAGS = "-O3 -flto"
-CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
-
-[tasks.build-windows-x64]
+[task_templates.build-windows-modern]
 shell = "pwsh -Command"
 run = '''
 $env:PATH = "$(mise where conda:lld@23)\Library\bin;$env:PATH"
-
-cargo build -Z build-std=std,panic_abort --release --target x86_64-win7-windows-msvc --no-default-features --features dist-windows-modern
-New-Item -ItemType Directory -Path dist
-Copy-Item -Path target\x86_64-win7-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-x64.exe
+cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-windows-modern
+New-Item -ItemType Directory -Path out
+Copy-Item -Path target\{{ vars.target }}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{ vars.arch }}.exe
 '''
 
-[tasks.build-windows-x64.env]
+[task_templates.build-windows-modern.env]
 CC = "clang-cl"
 CXX = "clang-cl"
 AR = "llvm-lib"
@@ -73,68 +52,97 @@ CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
 
-[tasks.build-windows-arm64]
+[task_templates.build-windows-legacy]
 shell = "pwsh -Command"
 run = '''
-$env:PATH = "$(mise where conda:lld@23)\Library\bin;$env:PATH"
-
-cargo build -Z build-std=std,panic_abort --release --target aarch64-pc-windows-msvc --no-default-features --features dist-windows-modern
-New-Item -ItemType Directory -Path dist
-Copy-Item -Path target\aarch64-pc-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-arm64.exe
+cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-windows-legacy
+New-Item -ItemType Directory -Path out
+Copy-Item -Path target\{{ vars.target }}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{ vars.arch }}.exe
 '''
 
-[tasks.build-windows-arm64.env]
-CC = "clang-cl"
-CXX = "clang-cl"
-AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
-
-[tasks.build-windows-x86]
-shell = "pwsh -Command"
-run = '''
-cargo build -Z build-std=std,panic_abort --release --target i686-win7-windows-msvc --no-default-features --features dist-windows-legacy
-New-Item -ItemType Directory -Path dist
-Copy-Item -Path target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-x86.exe
-'''
-
-[tasks.build-windows-x86.tools]
-"conda:nasm" = "latest" # needed for aws-lc
-
-[tasks.build-windows-x86.env]
+[task_templates.build-windows-legacy.env]
 CC = "clang-cl"
 CXX = "clang-cl"
 CFLAGS = "/clang:-O3"
 CXXFLAGS = "/clang:-O3"
 RUSTFLAGS = "-C target-feature=+crt-static"
 
-[tasks.build-macos-x86_64]
+[tasks.build-windows-x64]
+extends = "build-windows-modern"
+vars = { target = "x86_64-win7-windows-msvc", arch = "x64" }
+
+[tasks.build-windows-arm64]
+extends = "build-windows-modern"
+vars = { target = "aarch64-pc-windows-msvc", arch = "arm64" }
+
+[tasks.build-windows-x86]
+extends = "build-windows-legacy"
+vars = { target = "i686-win7-windows-msvc", arch = "x86" }
+
+[tasks.build-windows-x86.tools]
+"conda:nasm" = "latest" # needed for aws-lc
+
+# just a copy
+[task_templates.package-windows]
+shell = "pwsh -Command"
 run = '''
-cargo build -Z build-std=std,panic_abort --release --target x86_64-apple-darwin --no-default-features --features dist-macos
-mkdir dist
-cp target/x86_64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupManager-macos-x86_64
+New-Item -ItemType Directory -Path dist
+Copy-Item -Path "out\TinyWiiBackupManager-windows-{{ vars.arch }}.exe" -Destination "dist\TinyWiiBackupManager-{{ env.VERSION_NAME }}-windows-{{ vars.arch }}.exe"
 '''
 
-[tasks.build-macos-x86_64.env]
+[tasks.package-windows-x64]
+extends = "package-windows"
+vars = { arch = "x64" }
+
+[tasks.package-windows-arm64]
+extends = "package-windows"
+vars = { arch = "arm64" }
+
+[tasks.package-windows-x86]
+extends = "package-windows"
+vars = { arch = "x86" }
+
+[task_templates.build-macos]
+run = '''
+cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-macos
+mkdir out
+cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{ vars.arch }}
+'''
+
+[task_templates.build-macos.env]
 CC = "clang"
 CXX = "clang++"
 AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
+
+[tasks.build-macos-x86_64]
+extends = "build-macos"
+vars = { target = "x86_64-apple-darwin", arch = "x86_64" }
 
 [tasks.build-macos-arm64]
+extends = "build-macos"
+vars = { target = "aarch64-apple-darwin", arch = "arm64" }
+
+[tasks.package-macos-universal]
 run = '''
-cargo build -Z build-std=std,panic_abort --release --target aarch64-apple-darwin --no-default-features --features dist-macos
+# Create the .app bundle
+cp -r package/macos/App TinyWiiBackupManager.app
+mkdir -p TinyWiiBackupManager.app/Contents/MacOS
+VERSION="$(./scripts/current-version.sh)"
+/usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
+
+# Build the fat binary
+lipo -create out/TinyWiiBackupManager-macos-x86_64 out/TinyWiiBackupManager-macos-arm64 -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+
+# Sign the .app bundle
+codesign --force --deep -s - TinyWiiBackupManager.app
+
+# Create the DMG
 mkdir dist
-cp target/aarch64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupManager-macos-arm64
+appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-{{ env.VERSION_NAME }}-macos-universal.dmg"
 '''
 
-[tasks.build-macos-arm64.env]
-CC = "clang"
-CXX = "clang++"
-AR = "llvm-ar"
-CFLAGS = "-O3 -flto"
-CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
+[tasks.package-macos-universal.tools]
+"npm:appdmg" = "latest"
