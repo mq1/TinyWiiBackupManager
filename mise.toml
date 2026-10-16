@@ -62,9 +62,6 @@ mkdir dist
 copy target\x86_64-win7-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-x64.exe
 '''
 
-[tasks.build-windows-x64.tools]
-"conda:lld" = "23"
-
 [tasks.build-windows-x64.env]
 CC = "clang-cl"
 CXX = "clang-cl"

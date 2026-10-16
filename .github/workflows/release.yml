@@ -108,6 +108,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Remove system LLVM installation
+        run: Remove-Item -Recurse -Force "C:\Program Files\LLVM"
+
       - name: Install mise and dependencies
         uses: jdx/mise-action@v4
 
