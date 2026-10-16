@@ -1,3 +1,6 @@
+[settings]
+windows_shim_mode = "exe"
+
 [tools]
 rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 "conda:clang" = "23"
