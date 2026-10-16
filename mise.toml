@@ -58,8 +58,7 @@ RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
 [tasks.build-windows-x64]
 shell = "pwsh -Command"
 run = '''
-$lldLinkPath = Get-ChildItem (mise where conda:lld) -Recurse -Filter lld-link.exe | Select -Expand FullName
-$env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=$lldLinkPath -C link-arg=/FORCE:MULTIPLE"
+$env:PATH = "$(mise where conda:lld@23)\Library\bin;$env:PATH"
 
 cargo build -Z build-std=std,panic_abort --release --target x86_64-win7-windows-msvc --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path dist
@@ -72,12 +71,12 @@ CXX = "clang-cl"
 AR = "llvm-lib"
 CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
 
 [tasks.build-windows-arm64]
 shell = "pwsh -Command"
 run = '''
-$lldLinkPath = Get-ChildItem (mise where conda:lld) -Recurse -Filter lld-link.exe | Select -Expand FullName
-$env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=$lldLinkPath -C link-arg=/FORCE:MULTIPLE"
+$env:PATH = "$(mise where conda:lld@23)\Library\bin;$env:PATH"
 
 cargo build -Z build-std=std,panic_abort --release --target aarch64-pc-windows-msvc --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path dist
