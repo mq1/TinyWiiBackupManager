@@ -50,7 +50,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install curl
+      - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y curl build-essential ${{ matrix.packages }}

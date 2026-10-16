@@ -2,6 +2,7 @@
 rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 "conda:clang" = "23"
 "conda:lld" = "23"
+"conda:llvm-tools" = "23"
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
@@ -91,7 +92,7 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 run = '''
 cargo build -Z build-std=std,panic_abort --release --target i686-win7-windows-msvc --no-default-features --features dist-windows-legacy
 mkdir dist
-copy target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-i686.exe
+copy target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-x86.exe
 '''
 
 [tasks.build-windows-x86.tools]
@@ -114,9 +115,10 @@ cp target/x86_64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupMan
 [tasks.build-macos-x86_64.env]
 CC = "clang"
 CXX = "clang++"
+AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=./macos-linker.sh -C link-arg=-fuse-ld=ld64.lld"
+RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=ld64.lld"
 
 [tasks.build-macos-arm64]
 run = '''
@@ -128,6 +130,7 @@ cp target/aarch64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupMa
 [tasks.build-macos-arm64.env]
 CC = "clang"
 CXX = "clang++"
+AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=./macos-linker.sh -C link-arg=-fuse-ld=ld64.lld"
+RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=ld64.lld"
