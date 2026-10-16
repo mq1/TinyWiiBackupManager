@@ -1,100 +1,79 @@
 [tools]
 rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
-clang = "23"
+"conda:clang" = "23"
+"conda:lld" = "23"
+"conda:llvm-tools" = "23"
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
 
 [tasks.build-linux-x86_64]
 run = '''
-CLANG_PATH=$(mise where clang@23)
-export CC="$CLANG_PATH/bin/clang"
-export CXX="$CLANG_PATH/bin/clang++"
-export AR="$CLANG_PATH/bin/llvm-ar"
-export RANLIB="$CLANG_PATH/bin/llvm-ranlib"
-
-export RUSTFLAGS="-C linker-plugin-lto -C linker=$CC -C link-arg=-fuse-ld=rust-lld"
-
 cargo build -Z build-std=std,panic_abort --release --target x86_64-unknown-linux-gnu --no-default-features --features dist-appimage
 mkdir dist
 cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-x86_64
 '''
 
 [tasks.build-linux-x86_64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+RANLIB = "llvm-ranlib"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
 
 [tasks.build-linux-aarch64]
 run = '''
-CLANG_PATH=$(mise where clang@23)
-export CC="$CLANG_PATH/bin/clang"
-export CXX="$CLANG_PATH/bin/clang++"
-export AR="$CLANG_PATH/bin/llvm-ar"
-export RANLIB="$CLANG_PATH/bin/llvm-ranlib"
-
-export RUSTFLAGS="-C linker-plugin-lto -C linker=$CC -C link-arg=-fuse-ld=rust-lld"
-
 cargo build -Z build-std=std,panic_abort --release --target aarch64-unknown-linux-gnu --no-default-features --features dist-appimage
 mkdir dist
 cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-aarch64
 '''
 
 [tasks.build-linux-aarch64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+RANLIB = "llvm-ranlib"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
 
 [tasks.build-linux-i686]
 run = '''
-CLANG_PATH=$(mise where clang@23)
-export CC="$CLANG_PATH/bin/clang"
-export CXX="$CLANG_PATH/bin/clang++"
-export AR="$CLANG_PATH/bin/llvm-ar"
-export RANLIB="$CLANG_PATH/bin/llvm-ranlib"
-
-export RUSTFLAGS="-C linker-plugin-lto -C linker=$CC -C link-arg=-fuse-ld=rust-lld"
-
 cargo build -Z build-std=std,panic_abort --release --target i686-unknown-linux-gnu --no-default-features --features dist-appimage
 mkdir dist
 cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager dist/TinyWiiBackupManager-linux-i686
 '''
 
 [tasks.build-linux-i686.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
+RANLIB = "llvm-ranlib"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
 
 [tasks.build-windows-x64]
 run = '''
 #!/usr/bin/env pwsh
-
-$clangPath = (mise where clang@23)
-$env:CC = "$clangPath\bin\clang-cl.exe"
-$env:CXX = "$clangPath\bin\clang-cl.exe"
-$env:AR = "$clangPath\bin\llvm-lib.exe"
-
-$lldLinkPath = "$clangPath\bin\lld-link.exe"
-$env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=$lldLinkPath"
-$env:CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=$lldLinkPath"
-$env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=$lldLinkPath -C link-arg=/FORCE:MULTIPLE"
-
 cargo build -Z build-std=std,panic_abort --release --target x86_64-win7-windows-msvc --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path dist
 Copy-Item -Path target\x86_64-win7-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-x64.exe
 '''
 
+[tasks.build-windows-x64.env]
+CC = "clang-cl"
+CXX = "clang-cl"
+AR = "llvm-lib"
+CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
+
 [tasks.build-windows-arm64]
 run = '''
 #!/usr/bin/env pwsh
-
-$clangPath = (mise where clang@23)
-$env:CC = "$clangPath\bin\clang-cl.exe"
-$env:CXX = "$clangPath\bin\clang-cl.exe"
-$env:AR = "$clangPath\bin\llvm-lib.exe"
-
-$lldLinkPath = "$clangPath\bin\lld-link.exe"
-$env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=$lldLinkPath"
-$env:CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=$lldLinkPath"
-$env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=$lldLinkPath -C link-arg=/FORCE:MULTIPLE"
-
 cargo build -Z build-std=std,panic_abort --release --target aarch64-pc-windows-msvc --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path dist
 Copy-Item -Path target\aarch64-pc-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-arm64.exe
@@ -111,11 +90,6 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 [tasks.build-windows-x86]
 run = '''
 #!/usr/bin/env pwsh
-
-$clangPath = (mise where clang@23)
-$env:CC = "$clangPath\bin\clang-cl.exe"
-$env:CXX = "$clangPath\bin\clang-cl.exe"
-
 cargo build -Z build-std=std,panic_abort --release --target i686-win7-windows-msvc --no-default-features --features dist-windows-legacy
 New-Item -ItemType Directory -Path dist
 Copy-Item -Path target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe -Destination dist\TinyWiiBackupManager-windows-x86.exe
@@ -125,42 +99,38 @@ Copy-Item -Path target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe -
 "conda:nasm" = "latest" # needed for aws-lc
 
 [tasks.build-windows-x86.env]
+CC = "clang-cl"
+CXX = "clang-cl"
 CFLAGS = "/clang:-O3"
 CXXFLAGS = "/clang:-O3"
 RUSTFLAGS = "-C target-feature=+crt-static"
 
 [tasks.build-macos-x86_64]
 run = '''
-CLANG_PATH=$(mise where clang@23)
-export CC="$CLANG_PATH/bin/clang"
-export CXX="$CLANG_PATH/bin/clang++"
-export AR="$CLANG_PATH/bin/llvm-ar"
-
-export RUSTFLAGS="-C linker-plugin-lto -C linker=$PWD/macos-linker.sh -C link-arg=-fuse-ld=rust-lld"
-
 cargo build -Z build-std=std,panic_abort --release --target x86_64-apple-darwin --no-default-features --features dist-macos
 mkdir dist
 cp target/x86_64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupManager-macos-x86_64
 '''
 
 [tasks.build-macos-x86_64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
 
 [tasks.build-macos-arm64]
 run = '''
-CLANG_PATH=$(mise where clang@23)
-export CC="$CLANG_PATH/bin/clang"
-export CXX="$CLANG_PATH/bin/clang++"
-export AR="$CLANG_PATH/bin/llvm-ar"
-
-export RUSTFLAGS="-C linker-plugin-lto -C linker=$PWD/macos-linker.sh -C link-arg=-fuse-ld=rust-lld"
-
 cargo build -Z build-std=std,panic_abort --release --target aarch64-apple-darwin --no-default-features --features dist-macos
 mkdir dist
 cp target/aarch64-apple-darwin/release/TinyWiiBackupManager dist/TinyWiiBackupManager-macos-arm64
 '''
 
 [tasks.build-macos-arm64.env]
+CC = "clang"
+CXX = "clang++"
+AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
+RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
