@@ -70,7 +70,7 @@ CXX = "clang-cl"
 AR = "llvm-lib"
 CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=lld-link"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
 
 [tasks.build-windows-arm64]
 run = '''
@@ -85,23 +85,24 @@ CXX = "clang-cl"
 AR = "llvm-lib"
 CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=lld-link"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
 
-[tasks.build-windows-i686]
+[tasks.build-windows-x86]
 run = '''
 cargo build -Z build-std=std,panic_abort --release --target i686-win7-windows-msvc --no-default-features --features dist-windows-legacy
 mkdir dist
 copy target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe dist\TinyWiiBackupManager-windows-i686.exe
 '''
 
-[tasks.build-windows-i686.tools]
+[tasks.build-windows-x86.tools]
 "conda:nasm" = "latest" # needed for aws-lc
 
-[tasks.build-windows-i686.env]
+[tasks.build-windows-x86.env]
 CC = "clang-cl"
 CXX = "clang-cl"
 CFLAGS = "/clang:-O3"
 CXXFLAGS = "/clang:-O3"
+RUSTFLAGS = "-C target-feature=+crt-static"
 
 [tasks.build-macos-x86_64]
 run = '''

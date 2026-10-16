@@ -42,6 +42,7 @@ jobs:
             arch: aarch64
           - runner: ubuntu-22.04
             arch: i686
+            packages: gcc-multilib
 
     steps:
       - name: Checkout
@@ -52,7 +53,7 @@ jobs:
       - name: Install curl
         run: |
           apt-get update
-          apt-get install -y curl
+          apt-get install -y curl build-essential ${{ matrix.packages }}
 
       - name: Download appimagetool
         run: |
