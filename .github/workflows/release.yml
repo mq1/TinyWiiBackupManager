@@ -111,13 +111,6 @@ jobs:
       - name: Install mise and dependencies
         uses: jdx/mise-action@v4
 
-      - name: Overwrite system LLVM installation
-        run: |
-          Remove-Item -Recurse -Force "C:\Program Files\LLVM"
-          mise use -g "conda:clang@23"
-          mise use -g "conda:lld@23"
-          mise use -g "conda:llvm-tools@23"
-
       - name: Build binary
         run: mise run build-windows-${{ matrix.arch }}
 
