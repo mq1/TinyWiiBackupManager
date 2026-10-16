@@ -1,3 +1,6 @@
+[settings]
+npm.package_manager = "npm"
+
 [tools]
 rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 "conda:clang" = "23"
@@ -34,6 +37,46 @@ vars = { target = "aarch64-unknown-linux-gnu", arch = "aarch64" }
 [tasks.build-linux-i686]
 extends = "build-linux"
 vars = { target = "i686-unknown-linux-gnu", arch = "i686" }
+
+[task_templates.package-linux]
+run = '''
+cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
+install -Dm0755 out/TinyWiiBackupManager-linux-{{ vars.arch }} TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
+
+export VERSION="$(./scripts/current-version.sh)"
+export ARCH="{{ vars.arch }}"
+
+mkdir dist
+appimagetool.AppImage \
+    --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
+    -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ vars.arch }}.AppImage.zsync" \
+    TinyWiiBackupManager.AppDir \
+    "dist/TinyWiiBackupManager-{{ env.VERSION_NAME }}-linux-{{ vars.arch }}.AppImage"
+'''
+
+[task_templates.package-linux.env]
+APPIMAGE_EXTRACT_AND_RUN = "1"
+
+[tasks.package-linux-x86_64]
+extends = "package-linux"
+vars = { arch = "x86_64" }
+
+[tasks.package-linux-x86_64.tools]
+"github:AppImage/appimagetool" = "latest"
+
+[tasks.package-linux-aarch64]
+extends = "package-linux"
+vars = { arch = "aarch64" }
+
+[tasks.package-linux-aarch64.tools]
+"github:AppImage/appimagetool" = "latest"
+
+[tasks.package-linux-i686]
+"extends" = "package-linux"
+"vars" = { arch = "i686" }
+
+[tasks.package-linux-i686.tools]
+"github:AppImage/appimagetool" = { version = "latest", asset_pattern = "appimagetool-i686.AppImage" }
 
 [task_templates.build-windows-modern]
 shell = "pwsh -Command"
@@ -145,4 +188,5 @@ appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-{{ env.VERSION_NAME 
 '''
 
 [tasks.package-macos-universal.tools]
-"npm:appdmg" = "latest"
+node = "lts"
+"npm:appdmg" = { version = "latest", depends = ["node"] }

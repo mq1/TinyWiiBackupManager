@@ -21,7 +21,6 @@ permissions:
 
 env:
   VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-  RUSTC_BOOTSTRAP: 1
 
 jobs:
   # ==================================================================================
@@ -55,33 +54,14 @@ jobs:
           apt-get update
           apt-get install -y file curl build-essential ${{ matrix.packages }}
 
-      - name: Download appimagetool
-        run: |
-          curl -LO "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
-          chmod +x appimagetool-${{ matrix.arch }}.AppImage
-
       - name: Install mise and dependencies
         uses: jdx/mise-action@v4
 
       - name: Build binary
         run: mise run build-linux-${{ matrix.arch }}
 
-      - name: Package AppImage
-        run: |
-          cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
-          mkdir -p TinyWiiBackupManager.AppDir/usr/bin
-          mkdir dist
-          mv out/TinyWiiBackupManager-linux-${{ matrix.arch }} TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
-          chmod 755 TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
-          export VERSION="$(./scripts/current-version.sh)"
-          ./appimagetool-${{ matrix.arch }}.AppImage \
-            --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
-            -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
-            TinyWiiBackupManager.AppDir \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-        env:
-          ARCH: ${{ matrix.arch }}
-          APPIMAGE_EXTRACT_AND_RUN: 1
+      - name: Package
+        run: mise run package-linux-${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
