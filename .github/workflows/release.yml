@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl build-essential ${{ matrix.packages }}
+          apt-get install -y file curl build-essential ${{ matrix.packages }}
 
       - name: Download appimagetool
         run: |
