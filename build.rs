@@ -50,15 +50,17 @@ fn main() {
         let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
 
         if !std::fs::exists(format!("{project_dir}\\VC-LTL-Binary")).unwrap() {
-            let _ = std::process::Command::new("curl.exe")
+            let status = std::process::Command::new("curl.exe")
                 .args(["-sSLo", "VC-LTL-Binary.7z", "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z"])
                 .status()
                 .unwrap();
+            assert!(status.success());
 
-            let _ = std::process::Command::new("7z.exe")
+            let status = std::process::Command::new("7z.exe")
                 .args(["x", "VC-LTL-Binary.7z", "-oVC-LTL-Binary"])
                 .status()
                 .unwrap();
+            assert!(status.success());
         }
 
         let vc_ltl5_path = match target_arch.as_str() {
@@ -71,15 +73,17 @@ fn main() {
 
         if target_arch != "aarch64" {
             if !std::fs::exists(format!("{project_dir}\\YY-Thunks-Objs")).unwrap() {
-                let _ = std::process::Command::new("curl.exe")
+                let status = std::process::Command::new("curl.exe")
                     .args(["-sSLo", "YY-Thunks-Objs.zip", "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip"])
                     .status()
                     .unwrap();
+                assert!(status.success());
 
-                let _ = std::process::Command::new("7z.exe")
+                let status = std::process::Command::new("7z.exe")
                     .args(["x", "YY-Thunks-Objs.zip", "-oYY-Thunks-Objs"])
                     .status()
                     .unwrap();
+                assert!(status.success());
             }
 
             let yy_thunks_path = match target_arch.as_str() {
