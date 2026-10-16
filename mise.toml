@@ -1,6 +1,3 @@
-[settings]
-npm.package_manager = "npm"
-
 [tools]
 rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 "conda:clang" = "23"
@@ -189,4 +186,4 @@ appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-{{ env.VERSION_NAME 
 
 [tasks.package-macos-universal.tools]
 node = "lts"
-"npm:appdmg" = { version = "latest", depends = ["node"] }
+"npm:appdmg" = { version = "latest", depends = ["node"], allow_builds = true }
