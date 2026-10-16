@@ -13,6 +13,7 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "package/**"
+      - "mise.toml"
   pull_request:
   workflow_dispatch:
 
@@ -21,7 +22,6 @@ permissions:
 
 env:
   VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-  RUSTC_BOOTSTRAP: 1
 
 jobs:
   # ==================================================================================
@@ -38,14 +38,11 @@ jobs:
         include:
           - runner: ubuntu-22.04
             arch: x86_64
-            target: x86_64-unknown-linux-gnu
           - runner: ubuntu-22.04-arm
             arch: aarch64
-            target: aarch64-unknown-linux-gnu
           - runner: ubuntu-22.04
             arch: i686
-            target: i686-unknown-linux-gnu
-            packages: libc6-dev-i386
+            packages: gcc-multilib
 
     steps:
       - name: Checkout
@@ -56,42 +53,16 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl lsb-release software-properties-common gnupg ${{ matrix.packages }}
+          apt-get install -y file curl build-essential ${{ matrix.packages }}
 
-      - name: Install LLVM
-        run: |
-          curl -sSL https://apt.llvm.org/llvm.sh | bash -s -- 23
-          ln -sf $(which clang-23) /usr/bin/cc
-          ln -sf $(which lld-23) /usr/bin/ld
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.99
-        with:
-          components: rust-src
-
-      - name: Download appimagetool
-        run: |
-          curl -LO "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
-          chmod +x appimagetool-${{ matrix.arch }}.AppImage
+      - name: Install mise and dependencies
+        uses: jdx/mise-action@v4
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-appimage
+        run: mise run build-linux-${{ matrix.arch }}
 
-      - name: Package AppImage
-        run: |
-          cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
-          install -Dm0755 target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
-          mkdir -p dist
-          cd dist
-          export VERSION="$(./scripts/current-version.sh)"
-          ../appimagetool-${{ matrix.arch }}.AppImage \
-            --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
-            -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
-            ../TinyWiiBackupManager.AppDir \
-            "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-        env:
-          ARCH: ${{ matrix.arch }}
-          APPIMAGE_EXTRACT_AND_RUN: 1
+      - name: Package
+        run: mise run package-linux-${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -107,14 +78,8 @@ jobs:
       matrix:
         include:
           - arch: arm64
-            target: aarch64-pc-windows-msvc
-            features: dist-windows-modern
           - arch: x64
-            target: x86_64-win7-windows-msvc
-            features: dist-windows-modern
           - arch: x86
-            target: i686-win7-windows-msvc
-            features: dist-windows-legacy
 
     steps:
       - name: Checkout
@@ -122,30 +87,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.3/LLVM-23.1.3-win64.msi" -OutFile llvm.msi
-          Start-Process msiexec.exe -Wait -ArgumentList '/i llvm.msi /qn /norestart'
-          "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.99
-        with:
-          components: rust-src
-
-      - name: Install NASM (for aws-lc-rs)
-        if: matrix.features == 'dist-windows-legacy' && matrix.arch != 'x64'
-        run: |
-          choco install nasm -y
-          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install mise and dependencies
+        uses: jdx/mise-action@v4
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
+        run: mise run build-windows-${{ matrix.arch }}
 
-      - name: Rename binary
-        run: |
-          New-Item -Path "dist" -ItemType Directory -Force
-          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+      - name: Package
+        run: mise run package-windows-${{ matrix.arch }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
@@ -161,9 +110,7 @@ jobs:
       matrix:
         include:
           - arch: arm64
-            target: aarch64-apple-darwin
           - arch: x86_64
-            target: x86_64-apple-darwin
 
     steps:
       - name: Checkout
@@ -171,22 +118,17 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and LLD
-        run: brew install llvm@23 lld@23
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.99
-        with:
-          components: rust-src
+      - name: Install mise and dependencies
+        uses: jdx/mise-action@v4
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features dist-macos
+        run: mise run build-macos-${{ matrix.arch }}
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7
         with:
           name: build-macos-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/release/TinyWiiBackupManager
+          path: out/*
 
   build-macos-universal:
     name: Build for macOS (Universal)
@@ -202,33 +144,15 @@ jobs:
       - name: Download macOS binaries
         uses: actions/download-artifact@v8
         with:
+          path: out
           pattern: "build-macos-*"
+          merge-multiple: true
 
-      - name: Create the .app bundle
-        run: |
-          cp -r package/macos/App TinyWiiBackupManager.app
-          mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-          VERSION="$(./scripts/current-version.sh)"
-          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
+      - name: Install mise and dependencies
+        uses: jdx/mise-action@v4
 
-      - name: Build the fat binary
-        run: |
-          lipo -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            build-macos-arm64/TinyWiiBackupManager \
-            build-macos-x86_64/TinyWiiBackupManager
-          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-
-      - name: Sign the .app bundle
-        run: codesign --force --deep -s - TinyWiiBackupManager.app
-
-      - name: Install appdmg
-        run: npm i -g appdmg
-
-      - name: Create Universal DMG
-        run: |
-          mkdir dist
-          appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+      - name: Package
+        run: mise run package-macos-universal
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
