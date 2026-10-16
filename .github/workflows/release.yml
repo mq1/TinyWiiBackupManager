@@ -54,7 +54,7 @@ jobs:
         uses: jdx/mise-action@v4
 
       - name: Build binary
-        run: docker run -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "curl -fsSL https://mise.run/bash | sh && ~/.local/bin/mise run build-linux-${{ matrix.arch }}"
+        run: docker run -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "curl -fsSL https://mise.run | MISE_INSTALL_MUSL=1 sh && ~/.local/bin/mise run build-linux-${{ matrix.arch }}"
 
       - name: Package
         run: mise run package-linux-${{ matrix.arch }}
