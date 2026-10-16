@@ -49,6 +49,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install curl
+        run: |
+          apt-get update
+          apt-get install -y curl
+
       - name: Download appimagetool
         run: |
           curl -LO "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
