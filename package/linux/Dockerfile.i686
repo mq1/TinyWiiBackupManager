@@ -1,3 +1,4 @@
 FROM quay.io/pypa/manylinux2014_x86_64
 COPY --from=ghcr.io/jdx/mise /usr/local/bin/mise /usr/local/bin/mise
+ENV APPIMAGE_EXTRACT_AND_RUN=1
 RUN yum install glibc-devel.i686 libgcc.i686 -y
