@@ -5,15 +5,7 @@ components = ["rust-src"]
 
 # llvm needs to match the rust toolchain for linker-plugin-lto
 
-[tools."conda:clang"]
-version = "23"
-os = ["linux"]
-
-[tools."conda:lld"]
-version = "23"
-os = ["linux"]
-
-[tools."conda:llvm-tools"]
+[tools."github:mayeut/static-clang-images"]
 version = "23"
 os = ["linux"]
 
