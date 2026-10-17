@@ -153,8 +153,6 @@ jobs:
 
       - name: Install mise and dependencies
         uses: jdx/mise-action@v4
-        with:
-          install: false
 
       - name: Package
         run: mise run package-macos-universal
