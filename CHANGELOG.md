@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- 🧑‍🍳 Added a [mise.toml](https://github.com/mq1/TinyWiiBackupManager/blob/main/mise.toml) for [mise-en-place](https://mise.jdx.dev/) with the build dependencies and steps previously defined in the github release workflow.
+  This should make it easier to build and package the app without depending on github actions.
 - 🐧 Linux AppImages should now work on any glibc linux distribution from 2014 onwards
 
 ## [v6.1.7] - 2026-10-13
