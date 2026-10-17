@@ -1,8 +1,11 @@
-[tools]
-rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
-"conda:clang" = "23"
-"conda:lld" = "23"
-"conda:llvm-tools" = "23"
+[tools.rust]
+version = "1.99"
+profile = "minimal"
+components = ["rust-src"]
+
+[tools."github:llvm/llvm-project"]
+version = "23"    # needs to match the rust toolchain for linker-plugin-lto
+matching = ".zst"
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
@@ -75,7 +78,6 @@ vars = { arch = "aarch64" }
 [task_templates.build-windows-modern]
 shell = "pwsh -Command"
 run = '''
-$env:PATH = "$(mise where conda:lld@23)\Library\bin;$env:PATH"
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path out
 Copy-Item -Path target\{{ vars.target }}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{ vars.arch }}.exe
