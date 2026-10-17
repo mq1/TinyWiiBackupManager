@@ -52,7 +52,7 @@ jobs:
 
       - name: Build and package binary
         run: |
-          docker run -v ${{ github.workspace }}:/work -w /work builder /bin/bash -c "\
+          docker run -v ${{ github.workspace }}:/work -w /work -e VERSION_NAME builder /bin/bash -c "\
             mise trust && \
             mise install && \
             mise run build-linux-${{ matrix.arch }} && \
