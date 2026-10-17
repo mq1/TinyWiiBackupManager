@@ -30,8 +30,6 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
-    container:
-      image: ubuntu:20.04
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +40,6 @@ jobs:
             arch: aarch64
           - runner: ubuntu-22.04
             arch: i686
-            packages: gcc-multilib
 
     steps:
       - name: Checkout
@@ -50,19 +47,17 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install dependencies
+      - name: Build docker image
+        run: docker build -f package/linux/Dockerfile.${{ matrix.arch }} -t builder .
+
+      - name: Build and package binary
         run: |
-          apt-get update
-          apt-get install -y file curl build-essential ${{ matrix.packages }}
-
-      - name: Install mise and dependencies
-        uses: jdx/mise-action@v4
-
-      - name: Build binary
-        run: mise run build-linux-${{ matrix.arch }}
-
-      - name: Package
-        run: mise run package-linux-${{ matrix.arch }}
+          docker run -v ${{ github.workspace }}:/work -w /work -e VERSION_NAME builder /bin/bash -c "\
+            mise trust && \
+            mise install && \
+            mise run build-linux-${{ matrix.arch }} && \
+            mise run package-linux-${{ matrix.arch }}
+          "
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
