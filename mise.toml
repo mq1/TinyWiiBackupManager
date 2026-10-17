@@ -1,8 +1,18 @@
-[tools]
-rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
-"conda:clang" = "23"
-"conda:lld" = "23"
-"conda:llvm-tools" = "23"
+[tools.rust]
+version = "1.99"
+profile = "minimal"
+components = ["rust-src"]
+
+# llvm needs to match the rust toolchain for linker-plugin-lto
+
+[tools."github:mayeut/static-clang-images"]
+version = "23"
+os = ["linux"]
+
+[tools."github:llvm/llvm-project"]
+version = "prefix:llvmorg-23"
+matching = ".zst"
+os = ["windows", "macos"]
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
@@ -75,7 +85,6 @@ vars = { arch = "aarch64" }
 [task_templates.build-windows-modern]
 shell = "pwsh -Command"
 run = '''
-$env:PATH = "$(mise where conda:lld@23)\Library\bin;$env:PATH"
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-windows-modern
 New-Item -ItemType Directory -Path out
 Copy-Item -Path target\{{ vars.target }}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{ vars.arch }}.exe
@@ -141,6 +150,7 @@ vars = { arch = "x86" }
 
 [task_templates.build-macos]
 run = '''
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-macos
 mkdir out
 cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{ vars.arch }}
