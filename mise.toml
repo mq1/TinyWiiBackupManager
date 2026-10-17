@@ -4,7 +4,7 @@ profile = "minimal"
 components = ["rust-src"]
 
 [tools."github:llvm/llvm-project"]
-version = "23"    # needs to match the rust toolchain for linker-plugin-lto
+version = "prefix:llvmorg-23" # needs to match the rust toolchain for linker-plugin-lto
 matching = ".zst"
 
 [env]
