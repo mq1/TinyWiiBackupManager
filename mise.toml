@@ -3,9 +3,24 @@ version = "1.99"
 profile = "minimal"
 components = ["rust-src"]
 
+# llvm needs to match the rust toolchain for linker-plugin-lto
+
+[tools."conda:clang"]
+version = "23"
+os = ["linux"]
+
+[tools."conda:lld"]
+version = "23"
+os = ["linux"]
+
+[tools."conda:llvm-tools"]
+version = "23"
+os = ["linux"]
+
 [tools."github:llvm/llvm-project"]
-version = "prefix:llvmorg-23" # needs to match the rust toolchain for linker-plugin-lto
+version = "prefix:llvmorg-23"
 matching = ".zst"
+os = ["windows", "macos"]
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
@@ -143,6 +158,7 @@ vars = { arch = "x86" }
 
 [task_templates.build-macos]
 run = '''
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-macos
 mkdir out
 cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{ vars.arch }}
