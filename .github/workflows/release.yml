@@ -58,7 +58,7 @@ jobs:
       - name: Build binary
         run: |
           docker run -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "\
-            if [[ \"${{ matrix.arch }}\\" == \"i686\" ]]; then yum install glibc-devel.i686 libgcc.i686 -y; fi && \
+            if [[ \"${{ matrix.arch }}\" == \"i686\" ]]; then yum install glibc-devel.i686 libgcc.i686 -y; fi && \
             curl -fsSL https://mise.run | MISE_INSTALL_MUSL=1 sh && \
             /root/.local/bin/mise install && \
             /root/.local/bin/mise run build-linux-${{ matrix.arch }}
