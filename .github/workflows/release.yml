@@ -36,13 +36,10 @@ jobs:
         include:
           - runner: ubuntu-22.04
             arch: x86_64
-            image: quay.io/pypa/manylinux2014_x86_64
           - runner: ubuntu-22.04-arm
             arch: aarch64
-            image: quay.io/pypa/manylinux2014_aarch64
           - runner: ubuntu-22.04
             arch: i686
-            image: quay.io/pypa/manylinux2014_x86_64
 
     steps:
       - name: Checkout
@@ -50,22 +47,17 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install mise and dependencies
-        uses: jdx/mise-action@v4
-        with:
-          install: false
+      - name: Build docker image
+        run: docker build -f package/linux/Dockerfile.${{ matrix.arch }} -t builder .
 
-      - name: Build binary
+      - name: Build and package binary
         run: |
-          docker run -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "\
-            if [[ \"${{ matrix.arch }}\" == \"i686\" ]]; then yum install glibc-devel.i686 libgcc.i686 -y; fi && \
-            curl -fsSL https://mise.run | MISE_INSTALL_MUSL=1 sh && \
-            /root/.local/bin/mise install && \
-            /root/.local/bin/mise run build-linux-${{ matrix.arch }}
+          docker run -v ${{ github.workspace }}:/work -w /work builder /bin/bash -c "\
+            mise trust && \
+            mise install && \
+            mise run build-linux-${{ matrix.arch }} && \
+            mise run package-linux-${{ matrix.arch }}
           "
-
-      - name: Package
-        run: mise run package-linux-${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
