@@ -109,8 +109,8 @@ CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -L {{ tools['github:Chuyu-Team/VC-LTL5'].path }}\\TargetPlatform\\6.0.6000.0\\lib\\x64 -C link-arg={{ tools['github:Chuyu-Team/YY-Thunks'].path }}\\objs\\x64\\YY_Thunks_for_Vista.obj -C link-arg=/SUBSYSTEM:WINDOWS,6.00"
 
 [tasks.build-windows-x64.tools]
-"github:Chuyu-Team/VC-LTL5" = "latest"
-"github:Chuyu-Team/YY-Thunks" = "latest"
+"github:Chuyu-Team/VC-LTL5" = { version = "latest", asset_pattern = "VC-LTL-Binary.7z" }
+"github:Chuyu-Team/YY-Thunks" = { version = "latest", asset_pattern = "YY-Thunks-Objs.zip" }
 
 [tasks.build-windows-arm64]
 extends = "build-windows"
@@ -123,7 +123,7 @@ CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -L {{ tools['github:Chuyu-Team/VC-LTL5'].path }}\\TargetPlatform\\10.0.10240.0\\lib\\ARM64"
 
 [tasks.build-windows-arm64.tools]
-"github:Chuyu-Team/VC-LTL5" = "latest"
+"github:Chuyu-Team/VC-LTL5" = { version = "latest", asset_pattern = "VC-LTL-Binary.7z" }
 
 [tasks.build-windows-x86]
 extends = "build-windows"
@@ -133,9 +133,9 @@ vars = { target = "i686-win7-windows-msvc", arch = "x86", features = "dist-windo
 RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L {{ tools['github:Chuyu-Team/VC-LTL5'].path }}\\TargetPlatform\\5.1.2600.0\\lib\\Win32 -C link-arg={{ tools['github:Chuyu-Team/YY-Thunks'].path }}\\objs\\x86\\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.01"
 
 [tasks.build-windows-x86.tools]
-"github:Chuyu-Team/VC-LTL5" = "latest"
-"github:Chuyu-Team/YY-Thunks" = "latest"
-"conda:nasm" = "latest"                  # needed for aws-lc
+"github:Chuyu-Team/VC-LTL5" = { version = "latest", asset_pattern = "VC-LTL-Binary.7z" }
+"github:Chuyu-Team/YY-Thunks" = { version = "latest", asset_pattern = "YY-Thunks-Objs.zip" }
+"conda:nasm" = "latest"                                                                      # needed for aws-lc
 
 # just a copy
 [task_templates.package-windows]
