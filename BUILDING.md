@@ -6,6 +6,7 @@
 - [Rust](https://rust-lang.org/)
 - A C compiler
 
+**Steps**
 ```sh
 git clone https://github.com/mq1/TinyWiiBackupManager.git
 cd TinyWiiBackupManager
@@ -23,6 +24,7 @@ Linux builds cam be built on manylinux2014 or newer.
 **Prerequisites**
 - [mise-en-place](https://mise.jdx.dev/)
 
+**Steps**
 ```sh
 git clone https://github.com/mq1/TinyWiiBackupManager.git
 cd TinyWiiBackupManager
