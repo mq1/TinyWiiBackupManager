@@ -99,7 +99,7 @@ RUSTFLAGS = "-C target-feature=+crt-static"
 
 [tasks.build-windows-x64]
 extends = "build-windows"
-vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-windows" }
+vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-windows-modern" }
 
 [tasks.build-windows-x64.env]
 AR = "llvm-lib"
@@ -113,7 +113,7 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 
 [tasks.build-windows-arm64]
 extends = "build-windows"
-vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-windows" }
+vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-windows-modern" }
 
 [tasks.build-windows-arm64.env]
 AR = "llvm-lib"
@@ -125,7 +125,7 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 "github:Chuyu-Team/VC-LTL5" = "latest"
 
 [tasks.build-windows-x86]
-extends = "build-windows-legacy"
+extends = "build-windows"
 vars = { target = "i686-win7-windows-msvc", arch = "x86", features = "dist-windows-legacy" }
 
 [tasks.build-windows-x86.env]
