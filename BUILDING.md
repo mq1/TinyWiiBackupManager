@@ -19,7 +19,7 @@ The binary will be at `./target/release/TinyWiiBackupManager`
 
 This will be built with linker-plugin-lto for more efficient optimization. \
 Windows builds will be compatible with Windows XP. \
-Linux builds cam be built on manylinux2014 or newer.
+Linux builds can be built on manylinux2014 or newer.
 
 **Prerequisites**
 - [mise-en-place](https://mise.jdx.dev/)
