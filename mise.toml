@@ -72,7 +72,7 @@ vars = { arch = "aarch64" }
 "vars" = { arch = "i686" }
 
 [tasks.package-linux-i686.tools]
-"github:AppImage/appimagetool" = { version = "latest", asset_pattern = "appimagetool-i686.AppImage" }
+"github:AppImage/appimagetool" = { version = "latest", matching = "i686" }
 
 [task_templates.build-windows]
 shell = "pwsh -Command"
@@ -88,6 +88,7 @@ CXX = "clang-cl"
 CFLAGS = "/clang:-O3"
 CXXFLAGS = "/clang:-O3"
 RUSTFLAGS = "-C target-feature=+crt-static"
+_.path = ["{{ tools['conda:lld'].path }}\\Library\\bin"]
 
 [tasks.build-windows-x64]
 extends = "build-windows"
@@ -162,7 +163,6 @@ AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
-SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path') }}"
 
 [tasks.build-macos-x86_64]
 extends = "build-macos"
