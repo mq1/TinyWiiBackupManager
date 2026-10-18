@@ -171,17 +171,17 @@ AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
-SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path')}}"
+SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path') }}"
 
 [tasks.build-macos-x86_64]
 extends = "build-macos"
 vars = { target = "x86_64-apple-darwin", arch = "x86_64" }
-env = { MACOSX_DEPLOYMENT_TARGET = "11.0" }
+env = { MACOSX_DEPLOYMENT_TARGET = "10.12" }
 
 [tasks.build-macos-arm64]
 extends = "build-macos"
 vars = { target = "aarch64-apple-darwin", arch = "arm64" }
-env = { MACOSX_DEPLOYMENT_TARGET = "10.12" }
+env = { MACOSX_DEPLOYMENT_TARGET = "11.0" }
 
 [tasks.package-macos-universal]
 run = '''
