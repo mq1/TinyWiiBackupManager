@@ -26,7 +26,7 @@ static-nod = [
 dialogs-rfd = ["dep:rfd"]             # modern
 dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
 
-dist-appimage = ["bundled-tld", "static-nod", "dialogs-rfd"]
+dist-appimage = ["bundled-tls", "static-nod", "dialogs-rfd"]
 dist-flatpak = ["native-tls", "dialogs-rfd"]
 dist-windows-modern = ["native-tls", "static-nod", "dialogs-rfd"]
 dist-windows-legacy = ["bundled-tls-certs", "static-nod", "dialogs-tfd"]
