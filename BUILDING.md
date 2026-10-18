@@ -1,6 +1,6 @@
-# Building TinyWiiBackupManager
+# 🛠️ Building TinyWiiBackupManager
 
-## Standard build
+## 🦀 Standard build
 
 **Prerequisites**
 - [Rust](https://rust-lang.org/)
@@ -14,7 +14,7 @@ cargo build --release
 
 The binary will be at `./target/release/TinyWiiBackupManager`
 
-## Distribution builds
+## 📦 Distribution build
 
 This will be built with linker-plugin-lto for more efficient optimization. \
 Windows builds will be compatible with Windows XP. \
