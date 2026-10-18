@@ -9,21 +9,28 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["minreq/https-rustls", "static-nod", "dialogs-rfd"]
+default = ["native-tls", "static-nod", "dialogs-rfd"]
+
+native-tls = ["minreq/https-native-tls"]    # uses system tls
+bundled-tls = ["minreq/https-rustls-probe"] # bundled tls + os certificates
+bundled-tls-certs = ["minreq/https-rustls"] # bundled tls + bundled certificates
+
+# bundled compression libraries
 static-nod = [
   "nod/compress-bzip2-static",
   "nod/compress-lzma-static",
   "nod/compress-zlib-static",
   "nod/compress-zstd-static",
 ]
-dialogs-rfd = ["dep:rfd"] # modern
+
+dialogs-rfd = ["dep:rfd"]             # modern
 dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
 
-dist-appimage = ["minreq/https-rustls-probe", "static-nod", "dialogs-rfd"]
-dist-flatpak = ["minreq/https-native-tls", "dialogs-rfd"]
-dist-windows-modern = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
-dist-windows-legacy = ["minreq/https-rustls", "static-nod", "dialogs-tfd"]
-dist-macos = ["minreq/https-native-tls", "static-nod", "dialogs-rfd"]
+dist-appimage = ["bundled-tls", "static-nod", "dialogs-rfd"]
+dist-flatpak = ["native-tls", "dialogs-rfd"]
+dist-windows-modern = ["native-tls", "static-nod", "dialogs-rfd"]
+dist-windows-legacy = ["bundled-tls-certs", "static-nod", "dialogs-tfd"]
+dist-macos = ["native-tls", "static-nod", "dialogs-rfd"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [

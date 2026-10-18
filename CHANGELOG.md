@@ -7,51 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- 🛠️ Added build instructions in [BUILDING.md](https://github.com/mq1/TinyWiiBackupManager/blob/main/BUILDING.md)
 - 🧑‍🍳 Added a [mise.toml](https://github.com/mq1/TinyWiiBackupManager/blob/main/mise.toml) for [mise-en-place](https://mise.jdx.dev/) with the build dependencies and steps previously defined in the github release workflow.
   This should make it easier to build and package the app without depending on github actions.
 - 🐧 Linux AppImages should now work on any glibc linux distribution from 2014 onwards
 
 ## [v6.1.7] - 2026-10-13
 
-## Fixed
+### Fixed
 
 - 🐛 Problem when installing apps using Wiiload (both OSC and toolbox) (<https://github.com/mq1/TinyWiiBackupManager/issues/697>)
 
 ## [v6.1.6] - 2026-10-12
 
-## Changed
+### Changed
 
 - 🪟 Windows x86 now bundles the tls library instead of using the system one (which may be outdated).
 - 🪟 Windows x64 builds use the modern Vista+ dialogs again; Windows XP users (if there are any) can still use the x86 build.
 - 🐧 Smaller flatpak build
 
-## Fixed
+### Fixed
 
 - 🪟 bzip2 now works on windows x86
 - 🐛 Potential fix for: WBFS file deleting after adding game (<https://github.com/mq1/TinyWiiBackupManager/issues/694>) (needs testing)
 
 ## [v6.1.5] - 2026-10-10
 
-## Added
+### Added
 
 - 🐧 Linux AppImages are working again on Ubuntu 20.04
 
-## Changed
+### Changed
 
 - 📦 Linux AppImages are smaller
 
-## Fixed
+### Fixed
 
 - 📦 Linux AppImage now should advertise the correct TWBM version
 - 🐛 Update prompt being shown even when on latest version
 
 ## [v6.1.4] - 2026-10-10
 
-## Added
+### Added
 
 - 🪟 Re-added Windows XP support
 
-## Fixed
+### Fixed
 
 - 🐛 TinyWiiBackupManager-data directory being created unconditionally
 
