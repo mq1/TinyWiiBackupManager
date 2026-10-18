@@ -1,19 +1,10 @@
-[tools.rust]
-version = "1.99"
-profile = "minimal"
-components = ["rust-src"]
+[tools]
+rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 
 # llvm needs to match the rust toolchain for linker-plugin-lto (1.99 <-> 23)
-
-# static-clang-images run on manylinux2014
-[tools."github:mayeut/static-clang-images"]
-version = "23"
-os = ["linux"]
-
-[tools."github:llvm/llvm-project"]
-version = "prefix:llvmorg-23"
-matching = ".zst"
-os = ["windows", "macos"]
+"conda:clang" = "23"
+"conda:lld" = "23"
+"conda:llvm-tools" = "23"
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
