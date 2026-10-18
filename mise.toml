@@ -99,7 +99,7 @@ RUSTFLAGS = "-C target-feature=+crt-static"
 
 [tasks.build-windows-x64]
 extends = "build-windows"
-vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-windows-modern" }
+vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-windows" }
 
 [tasks.build-windows-x64.env]
 AR = "llvm-lib"
@@ -112,8 +112,8 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-li
 "github:Chuyu-Team/YY-Thunks" = "latest"
 
 [tasks.build-windows-arm64]
-extends = "build-windows-modern"
-vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-windows-modern" }
+extends = "build-windows"
+vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-windows" }
 
 [tasks.build-windows-arm64.env]
 AR = "llvm-lib"
