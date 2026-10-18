@@ -134,9 +134,7 @@ RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L {{ tools.VC-LTL5.pa
 [tasks.build-windows-x86.tools]
 "github:Chuyu-Team/VC-LTL5" = "latest"
 "github:Chuyu-Team/YY-Thunks" = "latest"
-
-[tasks.build-windows-x86.tools]
-"conda:nasm" = "latest" # needed for aws-lc
+"conda:nasm" = "latest"                  # needed for aws-lc
 
 # just a copy
 [task_templates.package-windows]
