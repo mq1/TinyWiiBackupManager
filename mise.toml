@@ -171,7 +171,7 @@ AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
-SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path')}} "
+SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path')}}"
 
 [tasks.build-macos-x86_64]
 extends = "build-macos"
