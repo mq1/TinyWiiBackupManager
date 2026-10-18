@@ -159,7 +159,6 @@ vars = { arch = "x86" }
 
 [task_templates.build-macos]
 run = '''
-export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-macos
 mkdir out
 cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{ vars.arch }}
@@ -172,14 +171,17 @@ AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
+SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path')}} "
 
 [tasks.build-macos-x86_64]
 extends = "build-macos"
 vars = { target = "x86_64-apple-darwin", arch = "x86_64" }
+env = { MACOSX_DEPLOYMENT_TARGET = "11.0" }
 
 [tasks.build-macos-arm64]
 extends = "build-macos"
 vars = { target = "aarch64-apple-darwin", arch = "arm64" }
+env = { MACOSX_DEPLOYMENT_TARGET = "10.12" }
 
 [tasks.package-macos-universal]
 run = '''
