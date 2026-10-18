@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This should make it easier to build and package the app without depending on github actions.
 - 🐧 Linux AppImages should now work on any glibc linux distribution from 2014 onwards
 
+### Fixed
+
+- 🐛 Windows .exe file not showing icon, name, version and description
+
 ## [v6.1.7] - 2026-10-13
 
 ### Fixed

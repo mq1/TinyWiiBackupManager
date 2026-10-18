@@ -44,4 +44,11 @@ fn main() {
 
     let out_path = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("sha1_list.bin");
     fs::write(out_path, sha1_list.as_flattened()).unwrap();
+
+    if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
+        let mut res = winresource::WindowsResource::new();
+        res.set_icon("package/windows/icon.ico");
+        res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
+        res.compile().unwrap();
+    }
 }

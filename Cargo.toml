@@ -8,6 +8,10 @@ license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
+[package.metadata.winresource]
+OriginalFilename = "TinyWiiBackupManager.exe"
+LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
+
 [features]
 default = ["native-tls", "static-nod", "dialogs-rfd"]
 
@@ -119,6 +123,7 @@ wgpu = { version = "27.0", default-features = false, features = [
 
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
+winresource = "0.1"
 
 # tiny and fast
 [profile.release]
