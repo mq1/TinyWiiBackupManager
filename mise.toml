@@ -1,19 +1,10 @@
-[tools.rust]
-version = "1.99"
-profile = "minimal"
-components = ["rust-src"]
+[tools]
+rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 
 # llvm needs to match the rust toolchain for linker-plugin-lto (1.99 <-> 23)
-
-# static-clang-images run on manylinux2014
-[tools."github:mayeut/static-clang-images"]
-version = "23"
-os = ["linux"]
-
-[tools."github:llvm/llvm-project"]
-version = "prefix:llvmorg-23"
-matching = ".zst"
-os = ["windows", "macos"]
+"conda:clang" = "23"
+"conda:lld" = "23"
+"conda:llvm-tools" = "23"
 
 [env]
 RUSTC_BOOTSTRAP = "1" # needed for build-std
@@ -81,7 +72,7 @@ vars = { arch = "aarch64" }
 "vars" = { arch = "i686" }
 
 [tasks.package-linux-i686.tools]
-"github:AppImage/appimagetool" = { version = "latest", asset_pattern = "appimagetool-i686.AppImage" }
+"github:AppImage/appimagetool" = { version = "latest", matching = "i686" }
 
 [task_templates.build-windows]
 shell = "pwsh -Command"
@@ -97,6 +88,7 @@ CXX = "clang-cl"
 CFLAGS = "/clang:-O3"
 CXXFLAGS = "/clang:-O3"
 RUSTFLAGS = "-C target-feature=+crt-static"
+_.path = ["{{ tools['conda:lld'].path }}\\Library\\bin"]
 
 [tasks.build-windows-x64]
 extends = "build-windows"
@@ -171,7 +163,6 @@ AR = "llvm-ar"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
 RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C link-arg=-fuse-ld=lld"
-SDKROOT = "{{ exec(command='xcrun --sdk macosx --show-sdk-path') }}"
 
 [tasks.build-macos-x86_64]
 extends = "build-macos"
