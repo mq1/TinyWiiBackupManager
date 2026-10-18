@@ -106,7 +106,7 @@ vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-win
 AR = "llvm-lib"
 CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -L {{ tools.'VC-LTL5'.path }}\\TargetPlatform\\6.0.6000.0\\lib\\x64 -C link-arg={{ tools.'YY-Thunks'.path }}\\objs\\x64\\YY_Thunks_for_Vista.obj -C link-arg=/SUBSYSTEM:WINDOWS,6.00"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -L {{ tools[\"VC-LTL5\"].path }}\\TargetPlatform\\6.0.6000.0\\lib\\x64 -C link-arg={{ tools[\"YY-Thunks\"].path }}\\objs\\x64\\YY_Thunks_for_Vista.obj -C link-arg=/SUBSYSTEM:WINDOWS,6.00"
 
 [tasks.build-windows-x64.tools]
 "github:Chuyu-Team/VC-LTL5" = "latest"
@@ -120,7 +120,7 @@ vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-wi
 AR = "llvm-lib"
 CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -L {{ tools.'VC-LTL5'.path }}\\TargetPlatform\\10.0.10240.0\\lib\\ARM64"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -L {{ tools[\"VC-LTL5\"].path }}\\TargetPlatform\\10.0.10240.0\\lib\\ARM64"
 
 [tasks.build-windows-arm64.tools]
 "github:Chuyu-Team/VC-LTL5" = "latest"
@@ -130,7 +130,7 @@ extends = "build-windows"
 vars = { target = "i686-win7-windows-msvc", arch = "x86", features = "dist-windows-legacy" }
 
 [tasks.build-windows-x86.env]
-RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L {{ tools.'VC-LTL5'.path }}\\TargetPlatform\\5.1.2600.0\\lib\\Win32 -C link-arg={{ tools.'YY-Thunks'.path }}\\objs\\x86\\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.01"
+RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L {{ tools[\"VC-LTL5\"].path }}\\TargetPlatform\\5.1.2600.0\\lib\\Win32 -C link-arg={{ tools[\"YY-Thunks\"].path }}\\objs\\x86\\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.01"
 
 [tasks.build-windows-x86.tools]
 "github:Chuyu-Team/VC-LTL5" = "latest"
