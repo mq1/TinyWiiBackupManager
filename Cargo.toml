@@ -139,7 +139,6 @@ wgpu = { version = "27.0", default-features = false, features = [
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
 winresource = "0.1"
-minreq = { version = "3", features = ["https-native-tls"] }
 sevenz-rust2 = { version = "0.24", default-features = false, features = [
   "util",
 ] }

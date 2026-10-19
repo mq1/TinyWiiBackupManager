@@ -4,8 +4,9 @@
 use std::{
     env,
     fs::{self, File},
-    io::{self, BufReader, BufWriter, Seek, Write},
+    io::BufReader,
     path::PathBuf,
+    process::Command,
     thread,
 };
 use winresource::WindowsResource;
@@ -63,21 +64,13 @@ fn main() {
         if !vc_ltl5_dir.exists() {
             let archive_path = out_dir.join("VC-LTL-Binary.7z");
 
-            {
-                let mut resp = minreq::get(
-                "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z",
-                )
-                .send_lazy()
+            let status = Command::new("curl.exe")
+                .arg("-sSLo")
+                .arg(&archive_path)
+                .arg("https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z")
+                .status()
                 .unwrap();
-
-                if resp.status_code != 200 {
-                    panic!("VC-LTL5 download failed");
-                }
-
-                let mut writer = BufWriter::new(File::create(&archive_path).unwrap());
-                io::copy(&mut resp, &mut writer).unwrap();
-                writer.flush().unwrap();
-            }
+            assert!(status.success());
 
             fs::create_dir_all(&vc_ltl5_dir).unwrap();
             sevenz_rust2::decompress_file(archive_path, &vc_ltl5_dir).unwrap();
@@ -107,21 +100,13 @@ fn main() {
         if !yy_thunks_dir.exists() {
             let archive_path = out_dir.join("YY-Thunks-Objs.zip");
 
-            {
-                let mut resp = minreq::get(
-                "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip"
-                )
-                .send_lazy()
+            let status = Command::new("curl.exe")
+                .arg("-sSLo")
+                .arg(&archive_path)
+                .arg("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip")
+                .status()
                 .unwrap();
-
-                if resp.status_code != 200 {
-                    panic!("YY-Thunks download failed");
-                }
-
-                let mut writer = BufWriter::new(File::create(&archive_path).unwrap());
-                io::copy(&mut resp, &mut writer).unwrap();
-                writer.flush().unwrap();
-            }
+            assert!(status.success());
 
             fs::create_dir_all(&yy_thunks_dir).unwrap();
             let mut reader = BufReader::new(File::open(&archive_path).unwrap());
