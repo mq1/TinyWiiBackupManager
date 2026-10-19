@@ -23,7 +23,7 @@ AR = "llvm-ar"
 RANLIB = "llvm-ranlib"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker-features=+lld -C link-self-contained=+linker"
+RUSTFLAGS = "-C linker-plugin-lto -C linker-features=+lld"
 
 [tasks.build-linux-x86_64]
 extends = "build-linux"
