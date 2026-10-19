@@ -88,7 +88,6 @@ CXX = "clang-cl"
 CFLAGS = "/clang:-O3"
 CXXFLAGS = "/clang:-O3"
 RUSTFLAGS = "-C target-feature=+crt-static"
-_.path = ["{{ tools['conda:lld'].path }}\\Library\\bin"]
 
 [tasks.build-windows-x64]
 extends = "build-windows"
@@ -96,9 +95,9 @@ vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-win
 
 [tasks.build-windows-x64.env]
 AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
+CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
+CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=rust-lld -C link-arg=/FORCE:MULTIPLE"
 
 [tasks.build-windows-arm64]
 extends = "build-windows"
@@ -106,9 +105,9 @@ vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-wi
 
 [tasks.build-windows-arm64.env]
 AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link"
+CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
+CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=rust-lld"
 
 [tasks.build-windows-x86]
 extends = "build-windows"
