@@ -4,17 +4,25 @@
 use anyhow::{Context, Result, bail};
 use serde::de::DeserializeOwned;
 use smol::{
+    Timer,
     fs::{self, File},
+    future::FutureExt,
     net::TcpStream,
 };
-use std::{ffi::OsStr, io::Seek, path::Path};
+use std::{ffi::OsStr, io::{self, Seek}, path::Path, time::Duration};
 use tempfile::tempfile;
 use wiiload::WIILOAD_PORT;
 use zip::ZipArchive;
-
 use crate::util;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
+// in seconds
+mod timeout {
+    pub const GENERIC_DOWNLOAD: u64 = 300;
+    pub const GENERIC_API: u64 = 30;
+    pub const CONNECT_TO_WII: u64 = 10;
+}
 
 /// Downloads a file, creating the parent directory if needed
 /// Skips if the file already exists
@@ -47,6 +55,7 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<()> {
 
             let mut resp = minreq::get(&uri)
                 .with_header("User-Agent", USER_AGENT)
+                .with_timeout(timeout::GENERIC_DOWNLOAD)
                 .send_lazy()?;
             if resp.status_code >= 400 {
                 bail!("error downloading {}: {}", uri, resp.status_code);
@@ -80,6 +89,7 @@ pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
 
             let mut resp = minreq::get(&uri)
                 .with_header("User-Agent", USER_AGENT)
+                .with_timeout(timeout::GENERIC_DOWNLOAD)
                 .send_lazy()?;
             if resp.status_code >= 400 {
                 bail!("error downloading {}: {}", uri, resp.status_code);
@@ -113,6 +123,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
 
             let mut resp = minreq::get(&uri)
                 .with_header("User-Agent", USER_AGENT)
+                .with_timeout(timeout::GENERIC_DOWNLOAD)
                 .send_lazy()?;
             if resp.status_code >= 400 {
                 bail!("error downloading {}: {}", uri, resp.status_code);
@@ -127,7 +138,12 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
 
     let mut file = File::from(file); // make it async
     let size = file.metadata().await?.len() as usize;
-    let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).await?;
+
+    let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).or(async {
+        Timer::after(Duration::from_secs(timeout::CONNECT_TO_WII)).await;
+        Err(io::ErrorKind::TimedOut.into())
+    }).await?;
+
     wiiload::send_async(&mut conn, filename, &mut file, size).await?;
 
     Ok(excluded_files)
@@ -162,6 +178,7 @@ pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Re
 
             let mut resp = minreq::post(&uri)
                 .with_header("User-Agent", USER_AGENT)
+                .with_timeout(timeout::GENERIC_DOWNLOAD)
                 .with_body(data)
                 .send_lazy()?;
             if resp.status_code >= 400 {
@@ -182,6 +199,7 @@ pub async fn get_json<T: DeserializeOwned + Send + 'static>(uri: &'static str) -
     smol::unblock(move || {
         let resp = minreq::get(uri)
             .with_header("User-Agent", USER_AGENT)
+            .with_timeout(timeout::GENERIC_API)
             .send()?
             .json()?;
 
