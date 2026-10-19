@@ -2,7 +2,8 @@
 rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 
 # llvm needs to match the rust toolchain for linker-plugin-lto (1.99 <-> 23)
-"conda:clang" = "23"
+# rust-lld (rust 1.99) doesn't work well on macos 27 (yet), so we use upstream lld
+clang = "23"
 "conda:lld" = { version = "23", os = ["macos"] }
 "conda:llvm-tools" = "23"
 
@@ -157,12 +158,20 @@ RUSTFLAGS = "-C linker-plugin-lto -C linker={{ config_root }}/macos-linker.sh -C
 [tasks.build-macos-x86_64]
 extends = "build-macos"
 vars = { target = "x86_64-apple-darwin", arch = "x86_64" }
-env = { MACOSX_DEPLOYMENT_TARGET = "10.12" }
+
+[tasks.build-macos-x86_64.env]
+MACOSX_DEPLOYMENT_TARGET = "10.12"
+CFLAGS = "-O3 -flto -mmacosx-version-min=10.12 -target x86_64-apple-macos10.12"
+CXXFLAGS = "-O3 -flto -mmacosx-version-min=10.12 -target x86_64-apple-macos10.12"
 
 [tasks.build-macos-arm64]
 extends = "build-macos"
 vars = { target = "aarch64-apple-darwin", arch = "arm64" }
-env = { MACOSX_DEPLOYMENT_TARGET = "11.0" }
+
+[tasks.build-macos-arm64.env]
+MACOSX_DEPLOYMENT_TARGET = "11.0"
+CFLAGS = "-O3 -flto -mmacosx-version-min=11.0 -target arm64-apple-macos11.0"
+CXXFLAGS = "-O3 -flto -mmacosx-version-min=11.0 -target arm64-apple-macos11.0"
 
 [tasks.package-macos-universal]
 run = '''
