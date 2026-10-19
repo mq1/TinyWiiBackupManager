@@ -30,10 +30,25 @@ static-nod = [
 dialogs-rfd = ["dep:rfd"]             # modern
 dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
 
+yy-thunks = []
+vc-ltl5 = []
+
 dist-appimage = ["bundled-tls", "static-nod", "dialogs-rfd"]
 dist-flatpak = ["native-tls", "dialogs-rfd"]
-dist-windows-modern = ["native-tls", "static-nod", "dialogs-rfd"]
-dist-windows-legacy = ["bundled-tls-certs", "static-nod", "dialogs-tfd"]
+dist-windows-modern = [
+  "native-tls",
+  "static-nod",
+  "dialogs-rfd",
+  "yy-thunks",
+  "vc-ltl5",
+]
+dist-windows-legacy = [
+  "bundled-tls-certs",
+  "static-nod",
+  "dialogs-tfd",
+  "yy-thunks",
+  "vc-ltl5",
+]
 dist-macos = ["native-tls", "static-nod", "dialogs-rfd"]
 
 [dependencies]
@@ -124,6 +139,12 @@ wgpu = { version = "27.0", default-features = false, features = [
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
 winresource = "0.1"
+sevenz-rust2 = { version = "0.24", default-features = false, features = [
+  "util",
+] }
+zip = { version = "9", default-features = false, features = [
+  "deflate-flate2-zlib-rs",
+] }
 
 # tiny and fast
 [profile.release]
