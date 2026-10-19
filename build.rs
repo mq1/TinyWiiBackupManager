@@ -1,8 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, fs, path::PathBuf, process::Command, thread};
+use std::{
+    env,
+    fs::{self, File},
+    io::{self, BufReader, BufWriter, Seek, Write},
+    path::PathBuf,
+    thread,
+};
 use winresource::WindowsResource;
+use zip::ZipArchive;
 
 fn extract_sha1_list(dat_path: &str) -> Vec<[u8; 20]> {
     let dat = fs::read_to_string(dat_path).unwrap();
@@ -56,24 +63,24 @@ fn main() {
         if !vc_ltl5_dir.exists() {
             let archive_path = out_dir.join("VC-LTL-Binary.7z");
 
-            let status = Command::new("curl.exe")
-                .arg("-sSLo")
-                .arg(&archive_path)
-                .arg("https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z")
-                .status()
+            {
+                let mut resp = minreq::get(
+                "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z",
+                )
+                .send_lazy()
                 .unwrap();
-            assert!(status.success());
+
+                if resp.status_code != 200 {
+                    panic!("VC-LTL5 download failed");
+                }
+
+                let mut writer = BufWriter::new(File::create(&archive_path).unwrap());
+                io::copy(&mut resp, &mut writer).unwrap();
+                writer.flush().unwrap();
+            }
 
             fs::create_dir_all(&vc_ltl5_dir).unwrap();
-
-            let status = Command::new("tar.exe")
-                .arg("-xf")
-                .arg(&archive_path)
-                .arg("-C")
-                .arg(&vc_ltl5_dir)
-                .status()
-                .unwrap();
-            assert!(status.success());
+            sevenz_rust2::decompress_file(archive_path, &vc_ltl5_dir).unwrap();
         }
 
         let (win_ver, arch) = match target_arch.as_str() {
@@ -100,24 +107,28 @@ fn main() {
         if !yy_thunks_dir.exists() {
             let archive_path = out_dir.join("YY-Thunks-Objs.zip");
 
-            let status = Command::new("curl.exe")
-                .arg("-sSLo")
-                .arg(&archive_path)
-                .arg("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip")
-                .status()
+            {
+                let mut resp = minreq::get(
+                "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip"
+                )
+                .send_lazy()
                 .unwrap();
-            assert!(status.success());
+
+                if resp.status_code != 200 {
+                    panic!("YY-Thunks download failed");
+                }
+
+                let mut writer = BufWriter::new(File::create(&archive_path).unwrap());
+                io::copy(&mut resp, &mut writer).unwrap();
+                writer.flush().unwrap();
+            }
 
             fs::create_dir_all(&yy_thunks_dir).unwrap();
-
-            let status = Command::new("tar.exe")
-                .arg("-xf")
-                .arg(&archive_path)
-                .arg("-C")
-                .arg(&yy_thunks_dir)
-                .status()
+            let mut reader = BufReader::new(File::open(&archive_path).unwrap());
+            ZipArchive::new(&mut reader)
+                .unwrap()
+                .extract(&yy_thunks_dir)
                 .unwrap();
-            assert!(status.success());
         }
 
         let (os, arch, win_ver) = match target_arch.as_str() {
