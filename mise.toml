@@ -3,7 +3,7 @@ rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 
 # llvm needs to match the rust toolchain for linker-plugin-lto (1.99 <-> 23)
 "conda:clang" = "23"
-"conda:lld" = "23"
+"conda:lld" = { version = "23", os = ["linux", "macos"] }
 "conda:llvm-tools" = "23"
 
 [env]
@@ -95,8 +95,8 @@ vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-win
 
 [tasks.build-windows-x64.env]
 AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
+CFLAGS = "/clang:-O3 /clang:-flto"
+CXXFLAGS = "/clang:-O3 /clang:-flto"
 RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=rust-lld -C link-arg=/FORCE:MULTIPLE"
 
 [tasks.build-windows-arm64]
@@ -105,8 +105,8 @@ vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-wi
 
 [tasks.build-windows-arm64.env]
 AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=rust-lld"
+CFLAGS = "/clang:-O3 /clang:-flto"
+CXXFLAGS = "/clang:-O3 /clang:-flto"
 RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=rust-lld"
 
 [tasks.build-windows-x86]
