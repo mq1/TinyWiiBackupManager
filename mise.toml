@@ -13,7 +13,7 @@ RUSTC_BOOTSTRAP = "1" # needed for build-std
 [task_templates.build-linux]
 run = '''
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-appimage
-mkdir out
+mkdir -p out
 cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-linux-{{ vars.arch }}
 '''
 
@@ -114,9 +114,6 @@ RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=rust-l
 extends = "build-windows"
 vars = { target = "i686-win7-windows-msvc", arch = "x86", features = "dist-windows-legacy" }
 
-[tasks.build-windows-x86.env]
-RUSTFLAGS = "-C target-feature=+crt-static"
-
 [tasks.build-windows-x86.tools]
 "conda:nasm" = "latest" # needed for aws-lc
 
@@ -143,7 +140,7 @@ vars = { arch = "x86" }
 [task_templates.build-macos]
 run = '''
 cargo build -Z build-std=std,panic_abort --release --target {{ vars.target }} --no-default-features --features dist-macos
-mkdir out
+mkdir -p out
 cp target/{{ vars.target }}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{ vars.arch }}
 '''
 
