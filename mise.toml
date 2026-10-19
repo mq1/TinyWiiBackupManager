@@ -85,37 +85,23 @@ Copy-Item -Path target\{{ vars.target }}\release\TinyWiiBackupManager.exe -Desti
 [task_templates.build-windows.env]
 CC = "clang-cl"
 CXX = "clang-cl"
-CFLAGS = "/clang:-O3"
-CXXFLAGS = "/clang:-O3"
-RUSTFLAGS = "-C target-feature=+crt-static"
+AR = "llvm-lib"
+CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
 _.path = ["{{ tools['conda:lld'].path }}\\Library\\bin"]
 
 [tasks.build-windows-x64]
 extends = "build-windows"
 vars = { target = "x86_64-win7-windows-msvc", arch = "x64", features = "dist-windows-modern" }
 
-[tasks.build-windows-x64.env]
-AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE"
-
 [tasks.build-windows-arm64]
 extends = "build-windows"
 vars = { target = "aarch64-pc-windows-msvc", arch = "arm64", features = "dist-windows-modern" }
 
-[tasks.build-windows-arm64.env]
-AR = "llvm-lib"
-CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-CXXFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
-RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link"
-
 [tasks.build-windows-x86]
 extends = "build-windows"
 vars = { target = "i686-win7-windows-msvc", arch = "x86", features = "dist-windows-legacy" }
-
-[tasks.build-windows-x86.env]
-RUSTFLAGS = "-C target-feature=+crt-static"
 
 [tasks.build-windows-x86.tools]
 "conda:nasm" = "latest" # needed for aws-lc
