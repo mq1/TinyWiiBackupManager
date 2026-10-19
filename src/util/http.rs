@@ -131,6 +131,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
 
             std::io::copy(&mut resp, &mut og_app)?;
 
+            og_app.rewind()?;
             util::wiiload::rebuild_zip(og_app)
         }
     })
