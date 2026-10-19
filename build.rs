@@ -64,6 +64,8 @@ fn main() {
                 .unwrap();
             assert!(status.success());
 
+            fs::create_dir_all(&vc_ltl5_dir).unwrap();
+
             let status = Command::new("tar.exe")
                 .arg("-xf")
                 .arg(&archive_path)
@@ -105,6 +107,8 @@ fn main() {
                 .status()
                 .unwrap();
             assert!(status.success());
+
+            fs::create_dir_all(&yy_thunks_dir).unwrap();
 
             let status = Command::new("tar.exe")
                 .arg("-xf")
