@@ -3,7 +3,7 @@ rust = { version = "1.99", profile = "minimal", components = ["rust-src"] }
 
 # llvm needs to match the rust toolchain for linker-plugin-lto (1.99 <-> 23)
 "conda:clang" = "23"
-"conda:lld" = { version = "23", os = ["linux", "macos"] }
+"conda:lld" = { version = "23", os = ["macos"] }
 "conda:llvm-tools" = "23"
 
 [env]
@@ -23,7 +23,7 @@ AR = "llvm-ar"
 RANLIB = "llvm-ranlib"
 CFLAGS = "-O3 -flto"
 CXXFLAGS = "-O3 -flto"
-RUSTFLAGS = "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
+RUSTFLAGS = "-Z unstable-options -C linker-plugin-lto -C linker-features=+lld -C link-self-contained=+linker"
 
 [tasks.build-linux-x86_64]
 extends = "build-linux"
