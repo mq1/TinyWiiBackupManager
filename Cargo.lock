@@ -4635,13 +4635,12 @@ dependencies = [
 
 [[package]]
 name = "wiiload"
-version = "0.7.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdb849781b62376bed69b3e3055a88976d1274c4ff57897492f6fa1b6a545c48"
+checksum = "3675d074a8e69b11219366c20fe3908cec3d6a32950bb60a6a47719dcfc9e85d"
 dependencies = [
  "async-compression",
  "futures-lite",
- "thiserror 2.0.21",
 ]
 
 [[package]]

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::util;
 use anyhow::{Context, Result, bail};
 use serde::de::DeserializeOwned;
 use smol::{
@@ -9,11 +10,15 @@ use smol::{
     future::FutureExt,
     net::TcpStream,
 };
-use std::{ffi::OsStr, io::{self, Seek}, path::Path, time::Duration};
+use std::{
+    ffi::OsStr,
+    io::{self, Seek},
+    path::Path,
+    time::Duration,
+};
 use tempfile::tempfile;
 use wiiload::WIILOAD_PORT;
 use zip::ZipArchive;
-use crate::util;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
@@ -22,6 +27,7 @@ mod timeout {
     pub const GENERIC_DOWNLOAD: u64 = 300;
     pub const GENERIC_API: u64 = 30;
     pub const CONNECT_TO_WII: u64 = 10;
+    pub const SEND_TO_WII: u64 = 600;
 }
 
 /// Downloads a file, creating the parent directory if needed
@@ -140,12 +146,19 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
     let mut file = File::from(file); // make it async
     let size = file.metadata().await?.len() as usize;
 
-    let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT)).or(async {
-        Timer::after(Duration::from_secs(timeout::CONNECT_TO_WII)).await;
-        Err(io::ErrorKind::TimedOut.into())
-    }).await?;
+    let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT))
+        .or(async {
+            Timer::after(Duration::from_secs(timeout::CONNECT_TO_WII)).await;
+            Err(io::ErrorKind::TimedOut.into())
+        })
+        .await?;
 
-    wiiload::send_async(&mut conn, filename, &mut file, size).await?;
+    wiiload::send_async(&mut conn, filename, &mut file, size)
+        .or(async {
+            Timer::after(Duration::from_secs(timeout::SEND_TO_WII)).await;
+            Err(io::ErrorKind::TimedOut.into())
+        })
+        .await?;
 
     Ok(excluded_files)
 }
