@@ -48,7 +48,7 @@ jobs:
           fetch-depth: 1
 
       - name: Build docker image
-        run: docker build -f package/linux/Dockerfile.${{ matrix.arch }} -t builder .
+        run: docker build -f dockerfiles/Dockerfile.${{ matrix.arch }} -t builder .
 
       - name: Build and package binary
         run: |
