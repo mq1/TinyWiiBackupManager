@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - 🛠️ Added build instructions in [BUILDING.md](https://github.com/mq1/TinyWiiBackupManager/blob/main/BUILDING.md) (WIP).
-- 🧑‍🍳 Added a [mise.toml](https://github.com/mq1/TinyWiiBackupManager/blob/main/mise.toml) for [mise-en-place](https://mise.jdx.dev/) with the build dependencies and steps previously defined in the github release workflow.
-  This should make it easier to build and package the app without depending on github actions.
+- 🧑‍🍳 ~Added a [mise.toml](https://github.com/mq1/TinyWiiBackupManager/blob/main/mise.toml) for [mise-en-place](https://mise.jdx.dev/) with the build dependencies and steps previously defined in the github release workflow.
+  This should make it easier to build and package the app without depending on github actions.~ update: replaced with a [justfile](https://github.com/mq1/TinyWiiBackupManager/blob/main/Justfile)
 - 🐧 Linux AppImages should now work on any glibc linux distribution from 2014 onwards
 
 ### Changed
