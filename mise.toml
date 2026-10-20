@@ -46,12 +46,13 @@ install -Dm0755 out/TinyWiiBackupManager-linux-{{ vars.arch }} TinyWiiBackupMana
 export VERSION="$(./scripts/current-version.sh)"
 export ARCH="{{ vars.arch }}"
 
-mkdir dist
+mkdir -p dist
+cd dist
 appimagetool.AppImage \
     --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
     -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ vars.arch }}.AppImage.zsync" \
-    TinyWiiBackupManager.AppDir \
-    "dist/TinyWiiBackupManager-{{ env.VERSION_NAME }}-linux-{{ vars.arch }}.AppImage"
+    ../TinyWiiBackupManager.AppDir \
+    "TinyWiiBackupManager-{{ env.VERSION_NAME }}-linux-{{ vars.arch }}.AppImage"
 '''
 
 [tasks.package-linux-x86_64]
@@ -185,7 +186,7 @@ lipo -create out/TinyWiiBackupManager-macos-x86_64 out/TinyWiiBackupManager-maco
 codesign --force --deep -s - TinyWiiBackupManager.app
 
 # Create the DMG
-mkdir dist
+mkdir -p dist
 appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-{{ env.VERSION_NAME }}-macos-universal.dmg"
 '''
 
