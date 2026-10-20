@@ -85,6 +85,8 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@1.99
+        with:
+          components: rust-src
 
       - name: Install LLVM
         run: choco install llvm --version 23.1.3 -y --no-progress
@@ -122,6 +124,8 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@1.99
+        with:
+          components: rust-src
 
       - name: Install LLVM
         run: brew install llvm@23 lld@23
