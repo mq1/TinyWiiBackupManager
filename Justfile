@@ -1,9 +1,3 @@
-[unix]
-set shell := ["bash", "-euo", "pipefail", "-c"]
-
-[windows]
-set shell := ["pwsh.exe", "-Command"]
-
 export RUSTC_BOOTSTRAP := "1"
 VERSION_NAME := env("VERSION_NAME", "dev")
 
@@ -15,6 +9,9 @@ default:
 # -----
 
 _build-linux target arch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     export CC="clang"
     export CXX="clang++"
     export AR="llvm-ar"
@@ -33,6 +30,9 @@ build-linux-i686: (_build-linux "i686-unknown-linux-gnu" "i686")
 
 
 _package-linux arch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
     install -Dm0755 out/TinyWiiBackupManager-linux-{{ arch }} TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
 
@@ -41,7 +41,7 @@ _package-linux arch:
 
     mkdir -p dist
     cd dist
-    appimagetool.AppImage \
+    appimagetool \
         --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
         -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ arch }}.AppImage.zsync" \
         ../TinyWiiBackupManager.AppDir \
@@ -56,6 +56,9 @@ package-linux-i686: (_package-linux "i686")
 # -------
 
 _build-windows target arch features ar="lib.exe" cflags="" cxxflags="" rustflags="":
+    #!pwsh
+    $ErrorActionPreference = "Stop"
+
     $env:CC = "clang-cl"
     $env:CXX = "clang-cl"
     $env:AR = "{{ ar }}"
@@ -76,6 +79,9 @@ build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86" "dist-windows-
 
 # just a copy
 _package-windows arch:
+    #!pwsh
+    $ErrorActionPreference = "Stop"
+
     New-Item -ItemType Directory -Force -Path dist | Out-Null
     Copy-Item -Path "out\TinyWiiBackupManager-windows-{{ arch }}.exe" -Destination "dist\TinyWiiBackupManager-{{ VERSION_NAME }}-windows-{{ arch }}.exe"
 
@@ -87,6 +93,9 @@ package-windows-x86: (_package-windows "x86")
 # -----
 
 _build-macos target arch deployment_target:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     export CC="clang"
     export CXX="clang++"
     export AR="llvm-ar"
@@ -104,6 +113,9 @@ build-macos-arm64: (_build-macos "aarch64-apple-darwin" "arm64" "11.0")
 
 # requires node + appdmg (npm i -g appdmg)
 package-macos-universal:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     # Create the .app bundle
     cp -r package/macos/App TinyWiiBackupManager.app
     mkdir -p TinyWiiBackupManager.app/Contents/MacOS
