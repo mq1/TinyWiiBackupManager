@@ -4,6 +4,9 @@ version_name := env("VERSION_NAME", "dev")
 [unix]
 export VERSION := `./scripts/current-version.sh`
 
+[windows]
+export VERSION := "" # not used for now
+
 default:
     @just --list
 
