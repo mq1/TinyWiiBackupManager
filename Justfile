@@ -70,9 +70,9 @@ _build-windows target arch features ar="" cflags="" cxxflags="" rustflags="":
     New-Item -ItemType Directory -Force -Path out | Out-Null
     Copy-Item -Path target\{{ target }}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{ arch }}.exe
 
-build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64" "dist-windows-modern" "llvm-lib" "/clang:-flto" "/clang:-flto" "-C linker-plugin-lto -C linker=rust-lld -C link-arg=/FORCE:MULTIPLE")
+build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64" "dist-windows-modern" "llvm-lib" "/clang:-flto /clang:-fuse-ld=lld-link" "/clang:-flto /clang:-fuse-ld=lld-link" "-C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE")
 
-build-windows-arm64: (_build-windows "aarch64-pc-windows-msvc" "arm64" "dist-windows-modern" "llvm-lib" "/clang:-flto" "/clang:-flto" "-C linker-plugin-lto -C linker=rust-lld")
+build-windows-arm64: (_build-windows "aarch64-pc-windows-msvc" "arm64" "dist-windows-modern" "llvm-lib" "/clang:-flto /clang:-fuse-ld=lld-link" "/clang:-flto /clang:-fuse-ld=lld-link" "-C linker-plugin-lto -C linker=lld-link")
 
 # requires nasm (needed for aws-lc)
 build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86" "dist-windows-legacy")
