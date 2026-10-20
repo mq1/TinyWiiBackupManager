@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.8] - 2026-10-20
+
 ### Added
 
-- 🛠️ Added build instructions in [BUILDING.md](https://github.com/mq1/TinyWiiBackupManager/blob/main/BUILDING.md)
+- 🛠️ Added build instructions in [BUILDING.md](https://github.com/mq1/TinyWiiBackupManager/blob/main/BUILDING.md) (WIP).
 - 🧑‍🍳 Added a [mise.toml](https://github.com/mq1/TinyWiiBackupManager/blob/main/mise.toml) for [mise-en-place](https://mise.jdx.dev/) with the build dependencies and steps previously defined in the github release workflow.
   This should make it easier to build and package the app without depending on github actions.
 - 🐧 Linux AppImages should now work on any glibc linux distribution from 2014 onwards
+
+### Changed
+
+- ⏱️ Added timeouts for HTTP and wiiload requests
 
 ### Fixed
 
@@ -567,7 +573,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.7...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.8...HEAD
+[v6.1.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.7...v6.1.8
 [v6.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.6...v6.1.7
 [v6.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.5...v6.1.6
 [v6.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.4...v6.1.5
