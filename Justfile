@@ -18,7 +18,7 @@ _build-linux target arch:
     export RANLIB="llvm-ranlib"
     export CFLAGS="-O3 -flto"
     export CXXFLAGS="-O3 -flto"
-    export RUSTFLAGS="-Z unstable-options -C linker-plugin-lto -C linker-features=+lld -C link-self-contained=+linker"
+    export RUSTFLAGS="-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld"
 
     cargo build -Z build-std=std,panic_abort --release --target {{ target }} --no-default-features --features dist-appimage
     mkdir -p out

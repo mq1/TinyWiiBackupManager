@@ -13,7 +13,8 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "package/**"
-      - "mise.toml"
+      - "dockerfiles/**"
+      - "Justfile"
   pull_request:
   workflow_dispatch:
 
@@ -93,7 +94,9 @@ jobs:
 
       - name: Install NASM (needed for aws-lc on win x86)
         if: matrix.arch == 'x86'
-        run: choco install nasm -y --no-progress
+        run: |
+          choco install nasm -y --no-progress
+          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build binary
         run: just build-windows-${{ matrix.arch }}
@@ -132,7 +135,10 @@ jobs:
           components: rust-src
 
       - name: Install LLVM
-        run: brew install llvm@23 lld@23
+        run: |
+          brew install llvm@23 lld@23
+          echo "$(brew --prefix llvm@23)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix lld@23)/bin" >> "$GITHUB_PATH"
 
       - name: Build binary
         run: just build-macos-${{ matrix.arch }}
