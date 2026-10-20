@@ -55,7 +55,7 @@ package-linux-i686: (_package-linux "i686")
 # Windows
 # -------
 
-_build-windows target arch features ar="lib.exe" cflags="" cxxflags="" rustflags="":
+_build-windows target arch features ar="" cflags="" cxxflags="" rustflags="":
     #!pwsh
     $ErrorActionPreference = "Stop"
 
