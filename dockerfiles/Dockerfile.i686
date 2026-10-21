@@ -22,8 +22,3 @@ ADD https://github.com/AppImage/appimagetool/releases/download/continuous/appima
 RUN chmod +x /usr/local/bin/appimagetool
 
 ENV APPIMAGE_EXTRACT_AND_RUN=1
-
-ENV CC_i686_unknown_linux_gnu=clang \
-    CXX_i686_unknown_linux_gnu=clang++ \
-    AR_i686_unknown_linux_gnu=llvm-ar \
-    CFLAGS_i686_unknown_linux_gnu="-m32"
