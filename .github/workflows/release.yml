@@ -204,7 +204,7 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: ./scripts/current-version.sh > dist/version.txt
+        run: yq '.package.version' Cargo.toml | tr -d '\n' > dist/version.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

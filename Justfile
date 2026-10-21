@@ -2,13 +2,13 @@
 set shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
 
 export RUSTC_BOOTSTRAP := "1"
+export VERSION := replace_regex(read("Cargo.toml"), '(?s).*?\[package\][^\[]*?\nversion\s*=\s*"([^"]+)".*', "$1")
 version_name := env("VERSION_NAME", "dev")
 
-[unix]
-export VERSION := `./scripts/current-version.sh`
 
 default:
     @just --list
+
 
 # Linux
 # -----
@@ -128,6 +128,9 @@ package-macos-universal:
 
 # Utils
 # -----
+
+print-current-version:
+    @echo {{VERSION}}
 
 # requires komac
 submit-to-winget:
