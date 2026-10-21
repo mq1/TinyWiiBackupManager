@@ -124,3 +124,18 @@ package-macos-universal:
     # Create the DMG
     mkdir -p dist
     appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-{{version_name}}-macos-universal.dmg"
+
+
+# Utils
+# -----
+
+# requires komac
+submit-to-winget:
+    komac update mq1.TinyWiiBackupManager \
+        --version {{VERSION}} \
+        --urls \
+            https://github.com/mq1/TinyWiiBackupManager/releases/download/v{{VERSION}}/TinyWiiBackupManager-v{{VERSION}}-windows-x64.exe \
+            https://github.com/mq1/TinyWiiBackupManager/releases/download/v{{VERSION}}/TinyWiiBackupManager-v{{VERSION}}-windows-x86.exe \
+            https://github.com/mq1/TinyWiiBackupManager/releases/download/v{{VERSION}}/TinyWiiBackupManager-v{{VERSION}}-windows-arm64.exe \
+        --submit
+
