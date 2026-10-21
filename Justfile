@@ -1,3 +1,6 @@
+[windows]
+set shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
+
 export RUSTC_BOOTSTRAP := "1"
 version_name := env("VERSION_NAME", "dev")
 
