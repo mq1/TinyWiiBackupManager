@@ -8,7 +8,7 @@
 
 > [!TIP]
 > **:penguin: Linux installation:**\
-> Most users should download `TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage`
+> Most users should download `TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage`\
 > `chmod +x /path/to/AppImage` after downloading may be required
 
 > [!IMPORTANT]
