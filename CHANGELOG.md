@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.9] - 2026-10-21
+
+### Fixed
+
+- 🐛 Updated root certs <https://www.reddit.com/r/rust/comments/1xba5mj/psa_if_your_program_does_http_requests_update/>.
+  Should only concern Windows x86 users (as other builds use the OS certs). Other users, please update your OS!
+
 ## [v6.1.8] - 2026-10-20
 
 ### Added
@@ -573,7 +580,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.8...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.9...HEAD
+[v6.1.9]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.8...v6.1.9
 [v6.1.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.7...v6.1.8
 [v6.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.6...v6.1.7
 [v6.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.5...v6.1.6
