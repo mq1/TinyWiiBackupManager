@@ -13,7 +13,7 @@ default:
 # -----
 
 [linux]
-_build-linux arch:
+_build-linux target arch:
     cargo build-dist-appimage --target {{target}}
     mkdir -p out
     cp target/{{target}}/release/TinyWiiBackupManager out/TinyWiiBackupManager-linux-{{arch}}
