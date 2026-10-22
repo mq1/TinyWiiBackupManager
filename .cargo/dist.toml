@@ -1,10 +1,4 @@
-[unstable]
-build-std = ["std", "panic_abort"]
-
-# ---
-
 [env]
-RUSTC_BOOTSTRAP = "1"
 AWS_LC_SYS_NO_JITTER_ENTROPY = "1"
 AWS_LC_SYS_CFLAGS = "-fno-lto"
 
