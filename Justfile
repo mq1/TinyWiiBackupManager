@@ -1,7 +1,6 @@
 [windows]
 set shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
 
-export RUSTC_BOOTSTRAP := "1"
 export VERSION := replace_regex(read("Cargo.toml"), '(?s).*?\nversion\s*=\s*"([^"]+)".*', "$1")
 version_name := env("VERSION_NAME", "dev")
 
@@ -14,15 +13,8 @@ default:
 # -----
 
 [linux]
-[env("CC", "clang")]
-[env("CXX", "clang++")]
-[env("AR", "llvm-ar")]
-[env("RANLIB", "llvm-ranlib")]
-[env("CFLAGS", "-O3 -flto")]
-[env("CXXFLAGS", "-O3 -flto")]
-[env("RUSTFLAGS", "-C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld")]
-_build-linux target arch:
-    cargo build -Z build-std=std,panic_abort --release --target {{target}} --no-default-features --features dist-appimage
+_build-linux arch:
+    cargo build-dist-appimage --target {{target}}
     mkdir -p out
     cp target/{{target}}/release/TinyWiiBackupManager out/TinyWiiBackupManager-linux-{{arch}}
 
@@ -56,22 +48,17 @@ package-linux-i686: (_package-linux "i686")
 # -------
 
 [windows]
-[env("CC", "clang-cl")]
-[env("CXX", "clang-cl")]
-_build-windows target arch features $AR $CFLAGS $CXXFLAGS $RUSTFLAGS:
-    cargo build -Z build-std=std,panic_abort --release --target {{target}} --no-default-features --features {{features}}
+_build-windows target arch variant:
+    cargo build-dist-windows-{{variant}} --target {{target}}
     New-Item -ItemType Directory -Force -Path out | Out-Null
     Copy-Item -Path target\{{target}}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{arch}}.exe
 
 [windows]
-build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64" "dist-windows-modern" "llvm-lib" "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link" "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link" "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link -C link-arg=/FORCE:MULTIPLE")
-
+build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64" "modern")
 [windows]
-build-windows-arm64: (_build-windows "aarch64-pc-windows-msvc" "arm64" "dist-windows-modern" "llvm-lib" "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link" "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link" "-C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link")
-
-# requires nasm (needed for aws-lc)
+build-windows-arm64: (_build-windows "aarch64-pc-windows-msvc" "arm64" "modern")
 [windows]
-build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86" "dist-windows-legacy" "" "/clang:-O3" "/clang:-O3" "-C target-feature=+crt-static")
+build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86" "legacy")
 
 # just a copy
 [windows]
@@ -90,14 +77,8 @@ package-windows-x86: (_package-windows "x86")
 # -----
 
 [macos]
-[env("CC", "clang")]
-[env("CXX", "clang++")]
-[env("AR", "llvm-ar")]
-[env("CFLAGS", "-O3 -flto")]
-[env("CXXFLAGS", "-O3 -flto")]
-[env("RUSTFLAGS", "-C linker-plugin-lto -C linker=" + justfile_dir() + "/macos-linker.sh -C link-arg=-fuse-ld=lld")]
 _build-macos target arch $MACOSX_DEPLOYMENT_TARGET:
-    cargo build -Z build-std=std,panic_abort --release --target {{target}} --no-default-features --features dist-macos
+    cargo build-dist-macos --target {{target}}
     mkdir -p out
     cp target/{{target}}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{arch}}
 

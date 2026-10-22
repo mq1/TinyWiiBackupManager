@@ -28,5 +28,5 @@ do
 done
 
 # use clang to call ld64
-exec ${CC} -v "${args[@]}"
+exec clang -v "${args[@]}"
 

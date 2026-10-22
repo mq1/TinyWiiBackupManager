@@ -1,0 +1,99 @@
+[unstable]
+build-std = ["std", "panic_abort"]
+
+# ---
+
+[env]
+RUSTC_BOOTSTRAP = "1"
+AWS_LC_SYS_NO_JITTER_ENTROPY = "1"
+AWS_LC_SYS_CFLAGS = "-fno-lto"
+
+CC_x86_64_unknown_linux_gnu = "clang"
+CXX_x86_64_unknown_linux_gnu = "clang++"
+AR_x86_64_unknown_linux_gnu = "llvm-ar"
+RANLIB_x86_64_unknown_linux_gnu = "llvm-ranlib"
+CFLAGS_x86_64_unknown_linux_gnu = "-O3 -flto"
+CXXFLAGS_x86_64_unknown_linux_gnu = "-O3 -flto"
+
+CC_aarch64_unknown_linux_gnu = "clang"
+CXX_aarch64_unknown_linux_gnu = "clang++"
+AR_aarch64_unknown_linux_gnu = "llvm-ar"
+RANLIB_aarch64_unknown_linux_gnu = "llvm-ranlib"
+CFLAGS_aarch64_unknown_linux_gnu = "-O3 -flto"
+CXXFLAGS_aarch64_unknown_linux_gnu = "-O3 -flto"
+
+CC_i686_unknown_linux_gnu = "clang"
+CXX_i686_unknown_linux_gnu = "clang++"
+AR_i686_unknown_linux_gnu = "llvm-ar"
+RANLIB_i686_unknown_linux_gnu = "llvm-ranlib"
+CFLAGS_i686_unknown_linux_gnu = "-O3 -flto"
+CXXFLAGS_i686_unknown_linux_gnu = "-O3 -flto"
+
+CC_x86_64_win7_windows_msvc = "clang-cl"
+CXX_x86_64_win7_windows_msvc = "clang-cl"
+AR_x86_64_win7_windows_msvc = "llvm-lib"
+CFLAGS_x86_64_win7_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+CXXFLAGS_x86_64_win7_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+
+CC_aarch64_pc_windows_msvc = "clang-cl"
+CXX_aarch64_pc_windows_msvc = "clang-cl"
+AR_aarch64_pc_windows_msvc = "llvm-lib"
+CFLAGS_aarch64_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+CXXFLAGS_aarch64_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+
+CC_i686_win7_windows_msvc = "clang-cl"
+CXX_i686_win7_windows_msvc = "clang-cl"
+CFLAGS_i686_win7_windows_msvc = "/clang:-O3"
+CXXFLAGS_i686_win7_windows_msvc = "/clang:-O3"
+
+CC_x86_64_apple_darwin = "clang"
+CXX_x86_64_apple_darwin = "clang++"
+AR_x86_64_apple_darwin = "llvm-ar"
+CFLAGS_x86_64_apple_darwin = "-O3 -flto"
+CXXFLAGS_x86_64_apple_darwin = "-O3 -flto"
+
+CC_aarch64_apple_darwin = "clang"
+CXX_aarch64_apple_darwin = "clang++"
+AR_aarch64_apple_darwin = "llvm-ar"
+CFLAGS_aarch64_apple_darwin = "-O3 -flto"
+CXXFLAGS_aarch64_apple_darwin = "-O3 -flto"
+
+# ---
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]
+
+[target.aarch64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]
+
+[target.i686-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]
+
+[target.x86_64-win7-windows-msvc]
+linker = "lld-link"
+rustflags = [
+  "-C",
+  "target-feature=+crt-static",
+  "-C",
+  "linker-plugin-lto",
+  "-C",
+  "link-arg=/FORCE:MULTIPLE",
+]
+
+[target.aarch64-pc-windows-msvc]
+linker = "lld-link"
+rustflags = ["-C", "target-feature=+crt-static", "-C", "linker-plugin-lto"]
+
+[target.i686-win7-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.x86_64-apple-darwin]
+linker = "./macos-linker.sh"
+rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]
+
+[target.aarch64-apple-darwin]
+linker = "./macos-linker.sh"
+rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]
