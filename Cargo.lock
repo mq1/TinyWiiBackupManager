@@ -4128,6 +4128,9 @@ name = "twbm-idmap"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ed8d49bd834380807e65723bff8914a9a64443248d704b57ece76723b1c1424"
+dependencies = [
+ "zstd-sys",
+]
 
 [[package]]
 name = "typed-path"
