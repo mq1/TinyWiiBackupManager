@@ -2857,9 +2857,9 @@ dependencies = [
 
 [[package]]
 name = "openssl-probe"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
+checksum = "7e036b411754132fd6b74e94b74e9a13c5cf606fa93d1885c35860d3060820b1"
 
 [[package]]
 name = "openssl-sys"
@@ -4636,9 +4636,9 @@ dependencies = [
 
 [[package]]
 name = "wiiload"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3675d074a8e69b11219366c20fe3908cec3d6a32950bb60a6a47719dcfc9e85d"
+checksum = "671cc90794516c0cd93b7efa38eb8acdb5def68456f6b5fd10dda27cc4b11753"
 dependencies = [
  "async-compression",
  "futures-lite",
