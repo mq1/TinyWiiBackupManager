@@ -24,7 +24,7 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 #[inline]
 fn get_window_icon() -> Option<iced::window::Icon> {
     let rgba8_bytes = image::load_from_memory_with_format(
-        include_bytes!("../package/windows/TinyWiiBackupManager-64x64.png"),
+        include_bytes!("../package/windows/UltimateGameBackupManager-64x64.png"),
         image::ImageFormat::Png,
     )
     .expect("Failed to load app icon")
@@ -68,7 +68,7 @@ pub fn main() -> iced::Result {
 
     let settings = iced::Settings {
         default_text_size: 14.into(),
-        id: Some("it.mq1.TinyWiiBackupManager".into()),
+        id: Some("io.github.petter1.UltimateGameBackupManager".into()),
         fonts: vec![LUCIDE_FONT_BYTES.into()],
         ..Default::default()
     };
@@ -105,7 +105,7 @@ pub fn main() -> iced::Result {
         // linux wayland only
         #[cfg(target_os = "linux")]
         platform_specific: iced::window::settings::PlatformSpecific {
-            application_id: "it.mq1.TinyWiiBackupManager".into(),
+            application_id: "io.github.petter1.UltimateGameBackupManager".into(),
             ..Default::default()
         },
 

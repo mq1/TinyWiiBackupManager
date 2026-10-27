@@ -6,23 +6,28 @@ use anyhow::Result;
 use semver::Version;
 
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const URL: &str = "https://api.github.com/repos/mq1/TinyWiiBackupManager/releases/latest";
+const URL: &str = "https://api.github.com/repos/petter1/UltimateGameBackupManager/releases/latest";
 
 #[derive(serde::Deserialize)]
 struct Response {
-    pub tag_name: String,
+    // missing while the repository has no releases yet
+    pub tag_name: Option<String>,
 }
 
 pub async fn check() -> Result<Option<Version>> {
-    if std::env::var("TWBM_DISABLE_UPDATES").is_ok_and(|v| v == "1") {
+    if std::env::var("UGBM_DISABLE_UPDATES").is_ok_and(|v| v == "1") {
         return Ok(None);
     }
 
     let resp = get_json::<Response>(URL).await?;
 
-    let version = match resp.tag_name.strip_prefix('v') {
+    let Some(tag_name) = resp.tag_name else {
+        return Ok(None);
+    };
+
+    let version = match tag_name.strip_prefix('v') {
         Some(v) => v,
-        None => &resp.tag_name,
+        None => &tag_name,
     };
 
     let current_version = Version::parse(CURRENT_VERSION)?;

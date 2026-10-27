@@ -3,8 +3,8 @@
 version = 4
 
 [[package]]
-name = "TinyWiiBackupManager"
-version = "6.1.9"
+name = "UltimateGameBackupManager"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "arrayvec",

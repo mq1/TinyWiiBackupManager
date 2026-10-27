@@ -1,5 +1,5 @@
 {
-  "title": "TinyWiiBackupManager",
+  "title": "Ultimate Game Backup Manager",
   "background": "dmg-background.png",
   "icon-size": 160,
   "window": {
@@ -15,7 +15,7 @@
       "x": 180,
       "y": 170,
       "type": "file",
-      "path": "../../TinyWiiBackupManager.app"
+      "path": "../../UltimateGameBackupManager.app"
     },
     {
       "x": 480,

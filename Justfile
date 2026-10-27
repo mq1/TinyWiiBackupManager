@@ -17,7 +17,7 @@ default:
 _build-linux target arch:
     cargo build-dist-appimage --target {{target}}
     mkdir -p out
-    cp target/{{target}}/release/TinyWiiBackupManager out/TinyWiiBackupManager-linux-{{arch}}
+    cp target/{{target}}/release/UltimateGameBackupManager out/UltimateGameBackupManager-linux-{{arch}}
 
 [linux]
 build-linux-x86_64: (_build-linux "x86_64-unknown-linux-gnu" "x86_64")
@@ -28,14 +28,14 @@ build-linux-i686: (_build-linux "i686-unknown-linux-gnu" "i686")
 
 [linux]
 _package-linux $ARCH:
-    cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
-    install -Dm0755 out/TinyWiiBackupManager-linux-{{ARCH}} TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
+    cp -rP package/linux/AppDir UltimateGameBackupManager.AppDir
+    install -Dm0755 out/UltimateGameBackupManager-linux-{{ARCH}} UltimateGameBackupManager.AppDir/usr/bin/UltimateGameBackupManager
 
     mkdir -p dist && cd dist && appimagetool \
         --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
-        -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ARCH}}.AppImage.zsync" \
-        ../TinyWiiBackupManager.AppDir \
-        "TinyWiiBackupManager-{{version_name}}-linux-{{ARCH}}.AppImage"
+        -u "gh-releases-zsync|petter1|UltimateGameBackupManager|latest|*{{ARCH}}.AppImage.zsync" \
+        ../UltimateGameBackupManager.AppDir \
+        "UltimateGameBackupManager-{{version_name}}-linux-{{ARCH}}.AppImage"
 
 [linux]
 package-linux-x86_64: (_package-linux "x86_64")
@@ -52,7 +52,7 @@ package-linux-i686: (_package-linux "i686")
 _build-windows target arch variant:
     cargo build-dist-windows-{{variant}} --target {{target}}
     New-Item -ItemType Directory -Force -Path out | Out-Null
-    Copy-Item -Path target\{{target}}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{arch}}.exe
+    Copy-Item -Path target\{{target}}\release\UltimateGameBackupManager.exe -Destination out\UltimateGameBackupManager-windows-{{arch}}.exe
 
 [windows]
 build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64" "modern")
@@ -65,7 +65,7 @@ build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86" "legacy")
 [windows]
 _package-windows arch:
     New-Item -ItemType Directory -Force -Path dist | Out-Null
-    Copy-Item -Path "out\TinyWiiBackupManager-windows-{{arch}}.exe" -Destination "dist\TinyWiiBackupManager-{{version_name}}-windows-{{arch}}.exe"
+    Copy-Item -Path "out\UltimateGameBackupManager-windows-{{arch}}.exe" -Destination "dist\UltimateGameBackupManager-{{version_name}}-windows-{{arch}}.exe"
 
 [windows]
 package-windows-x64: (_package-windows "x64")
@@ -81,7 +81,7 @@ package-windows-x86: (_package-windows "x86")
 _build-macos target arch $MACOSX_DEPLOYMENT_TARGET:
     cargo build-dist-macos --target {{target}}
     mkdir -p out
-    cp target/{{target}}/release/TinyWiiBackupManager out/TinyWiiBackupManager-macos-{{arch}}
+    cp target/{{target}}/release/UltimateGameBackupManager out/UltimateGameBackupManager-macos-{{arch}}
 
 [macos]
 build-macos-x86_64: (_build-macos "x86_64-apple-darwin" "x86_64" "10.12")
@@ -92,20 +92,20 @@ build-macos-arm64: (_build-macos "aarch64-apple-darwin" "arm64" "11.0")
 [macos]
 package-macos-universal:
     # Create the .app bundle
-    cp -r package/macos/App TinyWiiBackupManager.app
-    mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-    /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string {{VERSION}}" TinyWiiBackupManager.app/Contents/Info.plist
+    cp -r package/macos/App UltimateGameBackupManager.app
+    mkdir -p UltimateGameBackupManager.app/Contents/MacOS
+    /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string {{VERSION}}" UltimateGameBackupManager.app/Contents/Info.plist
 
     # Build the fat binary
-    lipo -create out/TinyWiiBackupManager-macos-x86_64 out/TinyWiiBackupManager-macos-arm64 -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-    chmod +x TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+    lipo -create out/UltimateGameBackupManager-macos-x86_64 out/UltimateGameBackupManager-macos-arm64 -output UltimateGameBackupManager.app/Contents/MacOS/UltimateGameBackupManager
+    chmod +x UltimateGameBackupManager.app/Contents/MacOS/UltimateGameBackupManager
 
     # Sign the .app bundle
-    codesign --force --deep -s - TinyWiiBackupManager.app
+    codesign --force --deep -s - UltimateGameBackupManager.app
 
     # Create the DMG
     mkdir -p dist
-    appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-{{version_name}}-macos-universal.dmg"
+    appdmg package/macos/appdmg.json "dist/UltimateGameBackupManager-{{version_name}}-macos-universal.dmg"
 
 
 # Utils
@@ -114,13 +114,4 @@ package-macos-universal:
 print-current-version:
     @echo {{VERSION}}
 
-# requires komac
-submit-to-winget:
-    komac update mq1.TinyWiiBackupManager \
-        --version {{VERSION}} \
-        --urls \
-            https://github.com/mq1/TinyWiiBackupManager/releases/download/v{{VERSION}}/TinyWiiBackupManager-v{{VERSION}}-windows-x64.exe \
-            https://github.com/mq1/TinyWiiBackupManager/releases/download/v{{VERSION}}/TinyWiiBackupManager-v{{VERSION}}-windows-x86.exe \
-            https://github.com/mq1/TinyWiiBackupManager/releases/download/v{{VERSION}}/TinyWiiBackupManager-v{{VERSION}}-windows-arm64.exe \
-        --submit
 

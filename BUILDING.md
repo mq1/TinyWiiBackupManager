@@ -1,4 +1,4 @@
-# 🛠️ Building TinyWiiBackupManager
+# 🛠️ Building Ultimate Game Backup Manager
 
 ## 🦀 Standard build
 
@@ -8,12 +8,12 @@
 
 **Steps**
 ```sh
-git clone https://github.com/mq1/TinyWiiBackupManager.git
-cd TinyWiiBackupManager
+git clone https://github.com/petter1/UltimateGameBackupManager.git
+cd UltimateGameBackupManager
 cargo build --release
 ```
 
-The binary will be at `./target/release/TinyWiiBackupManager`
+The binary will be at `./target/release/UltimateGameBackupManager`
 
 ## 📦 Distribution build
 
@@ -33,8 +33,8 @@ For linux builds, dockerfiles with all required tools are provided in `./dockerf
 
 **Steps**
 ```sh
-git clone https://github.com/mq1/TinyWiiBackupManager.git
-cd TinyWiiBackupManager
+git clone https://github.com/petter1/UltimateGameBackupManager.git
+cd UltimateGameBackupManager
 just build-<os>-<arch>
 just package-<os>-<arch>
 ```

@@ -5,17 +5,17 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleDisplayName</key>
-    <string>TinyWiiBackupManager</string>
+    <string>Ultimate Game Backup Manager</string>
     <key>CFBundleExecutable</key>
-    <string>TinyWiiBackupManager</string>
+    <string>UltimateGameBackupManager</string>
     <key>CFBundleIconFile</key>
-    <string>TinyWiiBackupManager.icns</string>
+    <string>UltimateGameBackupManager.icns</string>
     <key>CFBundleIdentifier</key>
-    <string>it.mq1.TinyWiiBackupManager</string>
+    <string>io.github.petter1.UltimateGameBackupManager</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>TinyWiiBackupManager</string>
+    <string>UltimateGameBackupManager</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleVersion</key>

@@ -39,7 +39,7 @@ fn is_portable() -> bool {
 }
 
 fn get_user_dir() -> Option<PathBuf> {
-    ProjectDirs::from("it", "mq1", "TinyWiiBackupManager")
+    ProjectDirs::from("io.github", "petter1", "UltimateGameBackupManager")
         .map(|proj| proj.data_dir().to_path_buf())
         .and_then(|data_dir| match data_dir.exists() {
             false => fs::create_dir_all(&data_dir).is_ok().then_some(data_dir),
@@ -50,7 +50,7 @@ fn get_user_dir() -> Option<PathBuf> {
 fn get_portable_dir() -> Option<PathBuf> {
     std::env::current_exe()
         .ok()
-        .map(|path| path.with_file_name("TinyWiiBackupManager-data"))
+        .map(|path| path.with_file_name("UltimateGameBackupManager-data"))
         .and_then(|data_dir| match data_dir.exists() {
             false => fs::create_dir_all(&data_dir).is_ok().then_some(data_dir),
             true => Some(data_dir),

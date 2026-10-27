@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 Manuel Quarneti, Yanik Fuchs -->
+<component type="desktop-application">
+    <id>io.github.petter1.UltimateGameBackupManager</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-only</project_license>
+    <name>Ultimate Game Backup Manager</name>
+    <summary>A game backup, homebrew and console manager for Nintendo consoles</summary>
+    <developer id="io.github.petter1">
+        <name>Yanik Fuchs</name>
+    </developer>
+    <description>
+        <p>‼️ Ultimate Game Backup Manager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of Ultimate Game Backup Manager for pirated or unauthorized copies of games is strictly prohibited.</p>
+        <p>Based on TinyWiiBackupManager by Manuel Quarneti (mq1).</p>
+        <p>✨ Features</p>
+        <ul>
+            <li>Native app written in Rust and Iced, no Electron!</li>
+            <li>Vast platform support: Windows XP+, macOS 10.12+, Linux ~2014+</li>
+        </ul>
+        <p>🎮 Game Management</p>
+        <ul>
+            <li>Games view: Manage your Wii and GameCube games</li>
+            <li>Format Support: .iso, .rvz and major formats thanks to NOD</li>
+            <li>Automatic Splitting: .wbfs file splitting when needed</li>
+            <li>Partition Stripping: Remove the update partition to save space</li>
+            <li>Game Archiving: Archive games using RVZ+zstd-19</li>
+            <li>Integrity Checks: Verify game data for corruption</li>
+            <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB</li>
+            <li>TxtCodes: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org</li>
+        </ul>
+        <p>🛠️ Wii Homebrew Management</p>
+        <ul>
+            <li>Apps: Manage Wii homebrew applications</li>
+            <li>OSC: Download apps from the Open Shop Channel</li>
+            <li>Wiiload: Send apps directly to Wii via network</li>
+        </ul>
+    </description>
+    <launchable type="desktop-id">io.github.petter1.UltimateGameBackupManager.desktop</launchable>
+    <keywords>
+        <keyword>Game Manager</keyword>
+        <keyword>Game Backup Manager</keyword>
+        <keyword>Homebrew app Manager</keyword>
+        <keyword>Homebrew</keyword>
+        <keyword>Wii</keyword>
+        <keyword>GameCube</keyword>
+    </keywords>
+    <branding>
+        <color type="primary" scheme_preference="light">#d3d3d3</color>
+        <color type="primary" scheme_preference="dark">#a9a9a9</color>
+    </branding>
+    <content_rating type="oars-1.1"/>
+    <url type="bugtracker">https://github.com/petter1/UltimateGameBackupManager/issues</url>
+    <url type="homepage">https://github.com/petter1/UltimateGameBackupManager</url>
+    <url type="vcs-browser">https://github.com/petter1/UltimateGameBackupManager</url>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://github.com/petter1/UltimateGameBackupManager/blob/main/assets/screenshot.png?raw=true</image>
+            <caption>UltimateGameBackupManager</caption>
+        </screenshot>
+    </screenshots>
+    <releases>
+        <release version="0.1.0" date="2026-10-28">
+            <url type="details">https://github.com/petter1/UltimateGameBackupManager/releases/tag/v0.1.0</url>
+        </release>
+    </releases>
+    <recommends>
+        <control>keyboard</control>
+        <control>pointing</control>
+        <display_length compare="ge">800</display_length>
+    </recommends>
+</component>

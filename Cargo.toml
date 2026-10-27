@@ -1,16 +1,16 @@
 [package]
-name = "TinyWiiBackupManager"
-version = "6.1.9"
+name = "UltimateGameBackupManager"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.98"
-authors = ["Manuel Quarneti <mq1@ik.me>"]
+authors = ["Manuel Quarneti <mq1@ik.me>", "Yanik Fuchs <yanik.fuchs@me.com>"]
 license = "GPL-3.0-only"
-repository = "https://github.com/mq1/TinyWiiBackupManager"
-description = "A tiny game backup and homebrew app manager for the Wii"
+repository = "https://github.com/petter1/UltimateGameBackupManager"
+description = "A game backup, homebrew and console manager for Nintendo consoles"
 
 [package.metadata.winresource]
-OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
+OriginalFilename = "UltimateGameBackupManager.exe"
+LegalCopyright = "Copyright © 2026 Manuel Quarneti, Yanik Fuchs. Licensed under GPL-3.0-only."
 
 [features]
 default = ["native-tls", "static-nod", "dialogs-rfd"]

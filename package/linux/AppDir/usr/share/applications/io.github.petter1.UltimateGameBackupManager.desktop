@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=Game;Utility;
+Comment=A game backup, homebrew and console manager for Nintendo consoles
+Exec=UltimateGameBackupManager
+Icon=io.github.petter1.UltimateGameBackupManager
+Name=Ultimate Game Backup Manager
+Terminal=false
+Type=Application
+StartupWMClass=io.github.petter1.UltimateGameBackupManager

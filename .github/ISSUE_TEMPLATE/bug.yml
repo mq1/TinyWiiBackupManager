@@ -1,5 +1,5 @@
 name: 🐛 Create Bug Report
-description: Report a bug or crash in TinyWiiBackupManager.
+description: Report a bug or crash in UltimateGameBackupManager.
 title: '[Bug] '
 labels:
   - bug
@@ -32,7 +32,7 @@ body:
     id: download
     attributes:
       label: 📦 Which package did I download
-      placeholder: ex. TinyWiiBackupManager-v5.1.2-windows-x86_64.zip
+      placeholder: ex. UltimateGameBackupManager-v5.1.2-windows-x86_64.zip
     validations:
       required: true
 

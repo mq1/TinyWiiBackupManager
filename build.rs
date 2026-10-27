@@ -141,7 +141,7 @@ fn main() {
     if target_os == "windows" {
         let mut res = WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
-        res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
+        res.set_manifest_file("package/windows/UltimateGameBackupManager.exe.manifest");
         res.compile().unwrap();
     }
 }

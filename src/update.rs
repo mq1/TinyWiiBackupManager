@@ -17,7 +17,7 @@ use crate::{
 };
 use iced::Task;
 
-const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
+const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking app update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
