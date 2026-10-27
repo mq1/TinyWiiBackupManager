@@ -12,7 +12,7 @@ use crate::{
             homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
         },
         pages::{
-            Page, about::about, games::games, homebrew_apps::homebrew_apps,
+            Page, about::about, consoles::consoles, games::games, homebrew_apps::homebrew_apps,
             import_queue::import_queue, osc_apps::osc_apps, toolbox::toolbox,
         },
     },
@@ -28,6 +28,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             sidebar(state),
             container(match state.current_page {
                 Page::Games => games(state),
+                Page::Consoles => consoles(state),
                 Page::HomebrewApps => homebrew_apps(state),
                 Page::Osc => osc_apps(state),
                 Page::Settings => settings(&state.config).map(Message::Config),

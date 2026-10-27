@@ -108,7 +108,8 @@ impl Console {
 }
 
 /// What a companion app says about itself, in discovery and in the info command
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(transparent)]
 pub struct Info {
     pub keys: HashMap<String, String>,
 }

@@ -4,6 +4,7 @@
 use strum_macros::{Display, IntoStaticStr};
 
 pub mod about;
+pub mod consoles;
 pub mod errored;
 pub mod games;
 pub mod homebrew_apps;
@@ -16,6 +17,8 @@ pub mod toolbox;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Display, IntoStaticStr)]
 pub enum Page {
     Games,
+    #[strum(serialize = "My Consoles")]
+    Consoles,
     #[strum(serialize = "Homebrew Apps")]
     HomebrewApps,
     #[strum(serialize = "Open Shop Channel")]

@@ -5,9 +5,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+mod consoles;
 mod games;
 mod homebrew;
-#[allow(dead_code)] // the My Consoles page that uses it comes next
+#[allow(dead_code)] // most of the client is for the console pages still to come
 mod link;
 mod long_operation;
 mod message;

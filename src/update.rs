@@ -3,6 +3,7 @@
 
 use crate::{
     config::message::ConfigMessage,
+    consoles,
     games::{
         ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
         games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
@@ -42,6 +43,10 @@ impl AppState {
             }
             Message::NavigateTo(page) => {
                 self.current_page = page;
+
+                if page == Page::Consoles && !self.consoles.searching {
+                    return self.update(Message::SearchConsoles);
+                }
 
                 if page == Page::Osc && matches!(self.osc_contents, OscState::Loaded(_)) {
                     self.reload_all_osc_icons();
@@ -392,6 +397,34 @@ impl AppState {
                 Task::stream(convert_game(disc_path, out_path)).map(|op_state| {
                     Message::SetLongOperationState(LongOperationKind::Convert, op_state)
                 })
+            }
+            Message::GotKnownConsoles(entries) => {
+                self.consoles.set_known(entries);
+                Task::none()
+            }
+            Message::SearchConsoles => {
+                self.consoles.searching = true;
+                Task::perform(
+                    consoles::search(self.consoles.known_addresses()),
+                    Message::GotConsoles,
+                )
+            }
+            Message::GotConsoles(result) => {
+                self.consoles.searching = false;
+                self.consoles.searched_once = true;
+
+                match result {
+                    Ok(found) => {
+                        self.consoles.merge(found);
+                        let data_dir = self.data_dir;
+                        let entries = self.consoles.entries.clone();
+                        Task::perform(consoles::save(data_dir, entries), |res| match res {
+                            Ok(()) => Message::NoOp,
+                            Err(e) => Message::Notify(e.into()),
+                        })
+                    }
+                    Err(e) => Task::done(Message::Notify(Notification::error(e))),
+                }
             }
             Message::GotUpdate(new_version) => {
                 self.new_version = Some(new_version);

@@ -3,6 +3,7 @@
 
 use crate::{
     config::{Config, ThemePreference},
+    consoles::{self, ConsolesState},
     games::{
         ImportEntry, covers::download_ui_covers, game::Game, games_state::GamesState,
         import::import_game,
@@ -53,6 +54,7 @@ pub struct AppState {
     pub osc_contents: OscState,
     pub animation_state: bool,
     pub new_version: Option<Version>,
+    pub consoles: ConsolesState,
 }
 
 impl AppState {
@@ -72,11 +74,13 @@ impl AppState {
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
+                    consoles: ConsolesState::default(),
                     long_operations: LongOperations::new(),
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
                     Task::perform(OscState::load(data_dir, false), Message::GotOscContents),
+                    Task::perform(consoles::load(data_dir), Message::GotKnownConsoles),
                     Task::perform(updates::check(), |res| match res {
                         Ok(Some(version)) => Message::GotUpdate(version),
                         Ok(None) => Message::NoOp,

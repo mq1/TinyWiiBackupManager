@@ -3,8 +3,10 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
+    consoles::ConsoleEntry,
     games::{ImportEntry, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
+    link::discovery::Found,
     long_operation::{LongOperationKind, LongOperationState},
     notifications::notification::Notification,
     osc::{osc_app::OscApp, osc_state::OscState},
@@ -73,6 +75,9 @@ pub enum Message {
     PickGameToConvert,
     ConvertGame(PathBuf, PathBuf),
     GotUpdate(Version),
+    GotKnownConsoles(Vec<ConsoleEntry>),
+    SearchConsoles,
+    GotConsoles(Result<Vec<Found>, String>),
     TriggerImport,
     FileDropped(PathBuf),
     GotUpdatePartitionCheckResult(bool),

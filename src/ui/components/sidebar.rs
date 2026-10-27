@@ -25,6 +25,13 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
             tooltip::Position::Right
         ),
         tooltip(
+            my_sidebar_button(&[Icon::MonitorSmartphone])
+                .active(state.current_page == Page::Consoles)
+                .on_press(Message::NavigateTo(Page::Consoles)),
+            my_card("My Consoles"),
+            tooltip::Position::Right
+        ),
+        tooltip(
             my_sidebar_button(&[Icon::Waves, Icon::Bubbles])
                 .active(state.current_page == Page::HomebrewApps)
                 .on_press(Message::NavigateTo(Page::HomebrewApps)),
