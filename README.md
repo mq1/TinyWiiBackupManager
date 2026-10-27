@@ -1,92 +1,108 @@
-<img alt="TinyWiiBackupManager Logo" width="128" src="assets/TinyWiiBackupManager-256x256.png" align="left">
+<img alt="Ultimate Game Backup Manager Logo" width="128" src="assets/UltimateGameBackupManager-256x256.png" align="left">
 
-### `TinyWiiBackupManager`<br><sub><sup>:star: A tiny game backup and homebrew app manager for the Wii</sup></sub>
+### `Ultimate Game Backup Manager`<br><sub><sup>:star: One app for the game backups, homebrew and consoles of the whole Nintendo family</sup></sub>
 
-[![release: vX.X.X](https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager)](https://github.com/mq1/TinyWiiBackupManager/releases/latest)
-[![license: GPL-3.0](https://img.shields.io/github/license/mq1/TinyWiiBackupManager)](https://github.com/mq1/TinyWiiBackupManager/blob/main/COPYING)
+[![license: GPL-3.0](https://img.shields.io/github/license/petter1/UltimateGameBackupManager)](https://github.com/petter1/UltimateGameBackupManager/blob/main/COPYING)
+[![based on: TinyWiiBackupManager](https://img.shields.io/badge/based%20on-TinyWiiBackupManager-blue)](https://github.com/mq1/TinyWiiBackupManager)
 
 <br>
 
+> [!IMPORTANT]
+> **This is a fork of [TinyWiiBackupManager](https://github.com/mq1/TinyWiiBackupManager) by
+> [Manuel Quarneti (mq1)](https://github.com/mq1).** Everything that works today – the UI,
+> the Wii and GameCube game management, the Open Shop Channel, Wiiload – is mq1's work.
+> Please don't report bugs of this fork to TinyWiiBackupManager.
+
+> [!NOTE]
+> **This fork is written with AI.** Its code, docs and commits are produced by Claude (Anthropic)
+> together with a human who decides what gets built, tests it on real consoles and owns the result.
+> See [AI_POLICY.md](AI_POLICY.md).
+
 > [!CAUTION]
-> TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.
-> Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
+> Ultimate Game Backup Manager is intended strictly for legal homebrew use and is not affiliated
+> with or endorsed by Nintendo. Use it only with games you own.
 
 <img align="center" alt="App Screenshot" src="assets/screenshot.png">
 
+## :scroll: How this came to be
+
+First there was [vcinject](https://github.com/petter1/vcinject), a tool to build Virtual
+Console injects for the 3DS, with a little 3DS app called *vcinject Link* to manage consoles over
+Wi-Fi. It grew. It got a GUI. It wanted to do the Wii and the Wii U next.
+
+Then its author found TinyWiiBackupManager, opened it, and fell in love with the UI on the spot.
+Rather than rebuild something that pretty from scratch, the plan changed: take TWBM as the
+foundation and teach it more consoles, one at a time.
+
+*(The AI would like it on record that it smuggled this paragraph in. It was told to be honest
+about who writes the code, and it takes that very seriously.)*
+
 ## :sparkles: Features
 
-- **Lightweight & fast**: Native app written in Rust and Iced, no Electron!
-- **Vast platform support**:
-  - :window: Windows XP+ | x86 (32-bit), x64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
-  - :apple: macOS 10.12+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
-  - :penguin: Linux ~2014+ | x86 (32-bit), x86_64 (64-bit), arm64 (Raspberry PIs etc.)
+Everything TinyWiiBackupManager does:
 
-#### :video_game: Game Management
+- **Lightweight & fast**: native app written in Rust and Iced, no Electron
+- **Platforms**: Windows XP+, macOS 10.12+, Linux ~2014+ (x86, x64, arm64)
+- **Wii and GameCube games**: .iso, .rvz and more thanks to [NOD](https://github.com/encounter/nod),
+  .wbfs splitting, update partition stripping, RVZ archiving, integrity checks
+- **GameTDB** covers and `wiitdb.xml`, **TxtCodes** cheat codes
+- **Wii homebrew**: manage apps, download from the Open Shop Channel, send with Wiiload
 
-- **Games view**: Manage your Wii and GameCube games
-- **Format Support**: .iso, .rvz and major formats thanks to [NOD](https://github.com/encounter/nod)
-- **Automatic Splitting**: .wbfs file splitting when needed
-- **Partition Stripping**: Remove the update partition to save space
-- **Game Archiving**: Archive games using RVZ+zstd-19
-- **Integrity Checks**: Verify game files for corruption
-- **GameTDB**: Fetch covers and `wiitdb.xml` from GameTDB
-- **TxtCodes**: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org
+## :world_map: Roadmap
 
-#### :toolbox: Wii Homebrew Management
+Every console becomes a module with the same building blocks: games, homebrew, an injector and a
+companion app that lets this app manage the console over Wi-Fi.
 
-- **Apps view**: Manage Wii homebrew applications
-- **OSC view**: Download apps from the Open Shop Channel
-- **Wiiload**: Send apps directly to Wii via network
+| Phase | Console | What | Status |
+| --- | --- | --- | --- |
+| 0 | – | fork, rename, credits, CI, one [Link protocol](docs/LINK_PROTOCOL.md) for all companion apps | in progress |
+| 1 | 3DS | vcinject Link client: discovery, titles, Wi-Fi install, status and updates, Universal-DB, saves, HOME Menu; Virtual Console injector | planned |
+| 2 | Wii | companion app: title list, WAD install, saves (Wiiload already works) | planned |
+| 3 | Wii U | Aroma companion app with WUP-Installer-style installs, title list, saves; injector | planned |
 
-<br>
+The sidebar will be organised by job – **Games**, **My Consoles**, **Homebrew**, **Setup** – with
+consoles as chips inside each section, so it scales past three consoles.
 
 ## :arrow_down: Downloads
 
-<table>
-  <tr>
-    <td width="9999px"><strong>:window: Windows</strong></td>
-  </tr>
-  <tr>
-    <td>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary</a>
-      <br>
-      <br>
-      :package: <code>winget install -e --id mq1.TinyWiiBackupManager</code>
-    </td>
-  </tr>
-</table>
+There are no releases of this fork yet. Until there are, build it yourself: see
+[BUILDING.md](BUILDING.md). If you only need Wii and GameCube, use
+[TinyWiiBackupManager](https://github.com/mq1/TinyWiiBackupManager/releases/latest) – it's the
+original and it's great.
 
-<table>
-  <tr>
-    <td width="9999px"><strong>:apple: macOS</strong></td>
-  </tr>
-  <tr>
-    <td>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download universal DMG</a>
-    </td>
-  </tr>
-</table>
+## :heart: Credits
 
-<table>
-  <tr>
-    <td width="9999px"><strong>:penguin: Linux</strong></td>
-  </tr>
-  <tr>
-    <td>
-      :arrow_right: <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download on Flathub</a> (recommended for most users)
-      <br>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage</a>
-    </td>
-  </tr>
-</table>
+**[Manuel Quarneti (mq1)](https://github.com/mq1)** wrote TinyWiiBackupManager, and with it the
+whole base of this app. Thank you.
 
-<br>
+Thanks as well to:
 
-## :page_facing_up: Additional Info
+- the TinyWiiBackupManager contributors:
+  [encounter](https://github.com/encounter), [mak448a](https://github.com/mak448a),
+  [brunochanrio](https://github.com/brunochanrio), [GABO1423](https://github.com/GABO1423)
+  and [everyone else](https://github.com/mq1/TinyWiiBackupManager/graphs/contributors)
+- [Luke Street (encounter)](https://github.com/encounter) for [NOD](https://github.com/encounter/nod)
+- [blackb0x](https://github.com/wiidev) for the feedback and advice that shaped TWBM
+- [GameTDB](https://www.gametdb.com), the [Open Shop Channel](https://oscwii.org) and the
+  cheat code archives TWBM uses
+- for the 3DS work coming over from vcinject: [3dbrew](https://www.3dbrew.org),
+  [devkitPro](https://devkitpro.org), [Luma3DS](https://github.com/LumaTeam/Luma3DS),
+  [Universal-Team](https://github.com/Universal-Team) and the rest of the
+  [vcinject credits](https://github.com/petter1/vcinject#credits)
+- [UWUVCI](https://github.com/stuff-by-3-random-dudes/UWUVCI-AIO-WPF), the gold standard for
+  Wii U injects and an inspiration for vcinject
 
-For useful tips, check out the [Wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
+## :coin: Donations
+
+This fork doesn't take donations. If you'd like to give something back, give it to the people
+who built the foundation: star and support [TinyWiiBackupManager](https://github.com/mq1/TinyWiiBackupManager),
+[mq1](https://github.com/mq1) and its contributors.
+
+## :balance_scale: License
+
+[GPL-3.0-only](COPYING), like TinyWiiBackupManager. Code taken over from vcinject (MIT) keeps its
+copyright notice.
 
 <br>
-<br>
 
-<p align="center"> Made with :white_heart::pink_heart::light_blue_heart::brown_heart::black_heart::heart::orange_heart::yellow_heart::green_heart::blue_heart::purple_heart: for the Wii homebrew community </p>
+<p align="center"> Made with :white_heart::pink_heart::light_blue_heart::brown_heart::black_heart::heart::orange_heart::yellow_heart::green_heart::blue_heart::purple_heart: for the Nintendo homebrew community, on the shoulders of TinyWiiBackupManager </p>

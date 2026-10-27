@@ -1,38 +1,23 @@
 # AI Policy
 
-Using AI (i.e., LLMs) as tools for coding is welcome. A high bar is held for
-all contributions to this project. Moreover, the project maintainers remain
-responsible for any code that is published as part of a release. Contributors
-are expected to be responsible for any code they publish.
+## How this fork is written
 
-**AI should not be used to generate comments when communicating with
-maintainers**. Comments are expected to be written by humans. Comments that are
-believed to be written by AI may be hidden without notice.
+Ultimate Game Backup Manager is developed with AI. Most of its code, documentation and commit
+messages are written by Claude (Anthropic), working with the maintainer, who decides what gets
+built, reviews and tests the result on real hardware, and is responsible for every release.
+Commits written with AI carry a `Co-Authored-By: Claude` trailer.
 
-If you are opening an issue, you should be able to describe the problem in your
-own words.
+## Contributing here
 
-If you are opening a pull request, you are expected to be able to explain the
-proposed changes in your own words. This includes the pull request body and
-responses to questions. **Do not copy responses from the AI when replying to
-questions from maintainers.**
+Using AI to contribute is fine, as long as a human understands and stands behind the change.
+Issues and pull request descriptions should say what you want in your own words.
 
-This project requires a human in the loop who understands the work produced by
-AI. **Autonomous agents are not allowed to be used for contributing to this
-project**. Pull requests that appear in violation of this will be closed,
-perhaps without notice.
+## Contributing to TinyWiiBackupManager
 
-If you wish to include context from an interaction with AI in your comments, it
-must be in a quote block (e.g., using `>`) and disclosed as such. It must be
-accompanied by human commentary explaining the relevance and implications of
-the context. Do not share long snippets.
+This fork is based on [TinyWiiBackupManager](https://github.com/mq1/TinyWiiBackupManager), which
+has a stricter policy: no autonomous agents, and issues, pull requests and comments written by
+humans. Its policy, copied by mq1 from [ripgrep](https://github.com/BurntSushi/ripgrep), is here:
+<https://github.com/mq1/TinyWiiBackupManager/blob/main/AI_POLICY.md>.
 
-AI is useful when communicating as a non-native English speaker. If you are
-using AI to edit your comments for this purpose, please take the time to ensure
-it reflects your own voice and ideas. If using AI for translation, we recommend
-writing in your native language and including the AI translation in a quote
-block.
-
-This policy was copied without modification from [ripgrep's AI policy].
-
-[ripgrep's AI policy]: https://github.com/BurntSushi/ripgrep/blob/4857d6fa67db69a95cd4b6f2adda5d807d4d0119/AI_POLICY.md
+**Respect it.** Changes from this fork are never sent upstream by an agent. If something here
+would help TinyWiiBackupManager, a human opens the issue or pull request there, in their own words.
