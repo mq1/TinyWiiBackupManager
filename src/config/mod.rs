@@ -137,6 +137,21 @@ impl Config {
         }
     }
 
+    /// Forgets a drive; when it is the selected one, no drive is selected anymore
+    pub fn forget_drive(&mut self, path: &Path) -> Task<ConfigMessage> {
+        self.contents.known_drives.retain(|p| p != path);
+        if self.contents.mount_point == path {
+            self.contents.mount_point = PathBuf::new();
+        }
+        self.write()
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn known_drives(&self) -> &[PathBuf] {
+        &self.contents.known_drives
+    }
+
     #[must_use]
     #[inline]
     pub fn always_split(&self) -> bool {

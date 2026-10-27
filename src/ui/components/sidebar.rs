@@ -90,11 +90,6 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
             )
         }),
         tooltip(
-            my_sidebar_button(&[Icon::HardDrive]).on_press(Message::PickMountPoint),
-            my_card("Select a drive"),
-            tooltip::Position::Right
-        ),
-        tooltip(
             my_sidebar_button(&[Icon::Info])
                 .active(state.current_page == Page::About)
                 .on_press(Message::NavigateTo(Page::About)),

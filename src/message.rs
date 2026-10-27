@@ -3,7 +3,7 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    consoles::{ConsoleEntry, InstalledTitle},
+    consoles::{ConsoleEntry, Drive, InstalledTitle},
     games::{ImportEntry, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     link::discovery::Found,
@@ -79,6 +79,9 @@ pub enum Message {
     SearchConsoles,
     GotConsoles(Result<Vec<Found>, String>),
     OpenConsole(SocketAddr),
+    GotDrives(Vec<Drive>),
+    OpenDrive(PathBuf, Page),
+    ForgetDrive(PathBuf),
     CloseConsole,
     GotConsoleTitles(SocketAddr, Result<Vec<InstalledTitle>, String>),
     TriggerImport,

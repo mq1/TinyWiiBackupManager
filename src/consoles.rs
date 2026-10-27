@@ -20,6 +20,7 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
+use which_fs::FsKind;
 
 const FILENAME: &str = "consoles.json";
 const DISCOVERY_TIMEOUT: Duration = Duration::from_secs(2);
@@ -103,6 +104,61 @@ pub struct ConsolesState {
     /// The console whose titles are shown
     pub selected: Option<SocketAddr>,
     pub titles: TitlesState,
+    pub drives: Vec<Drive>,
+}
+
+/// A remembered drive for a Wii or GameCube (USB disk or SD card)
+#[derive(Debug, Clone)]
+pub struct Drive {
+    pub path: PathBuf,
+    pub label: String,
+    /// None while it isn't plugged in
+    pub space: Option<DriveSpace>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct DriveSpace {
+    pub free: u64,
+    pub total: u64,
+    pub fs_kind: FsKind,
+}
+
+impl Drive {
+    fn load(path: PathBuf) -> Self {
+        let label = path
+            .file_name()
+            .unwrap_or(path.as_os_str())
+            .to_string_lossy()
+            .into_owned();
+
+        let space = path
+            .is_dir()
+            .then(|| fs4::statvfs(&path).ok())
+            .flatten()
+            .map(|stat| DriveSpace {
+                free: stat.available_space(),
+                total: stat.total_space(),
+                fs_kind: FsKind::try_from_path(&path).unwrap_or(FsKind::Unknown),
+            });
+
+        Self { path, label, space }
+    }
+
+    /// The same judgement as the toolbox's drive info
+    pub fn fs_warning(&self) -> Option<&'static str> {
+        match self.space?.fs_kind {
+            FsKind::Fat32 => None,
+            FsKind::Ntfs | FsKind::ExFat => {
+                Some("limited support for game backups and homebrew apps")
+            }
+            FsKind::Unknown => Some("unknown support"),
+            _ => Some("won't work for game backups and homebrew apps"),
+        }
+    }
+}
+
+pub async fn load_drives(paths: Vec<PathBuf>) -> Vec<Drive> {
+    smol::unblock(move || paths.into_iter().map(Drive::load).collect()).await
 }
 
 impl ConsolesState {

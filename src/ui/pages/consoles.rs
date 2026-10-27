@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    consoles::{ConsoleEntry, InstalledTitle, TitlesState, VCINJECT_LINK_VERSION},
+    consoles::{ConsoleEntry, Drive, InstalledTitle, TitlesState, VCINJECT_LINK_VERSION},
     link::protocol::{Console, n3ds},
     message::Message,
     state::AppState,
-    ui::components::{
-        my_button::{MyButtonKind, my_button},
-        my_card::my_card,
-        my_group::my_group,
+    ui::{
+        components::{
+            my_button::{MyButtonKind, my_button},
+            my_card::my_card,
+            my_group::my_group,
+        },
+        pages::Page,
     },
 };
 use iced::{
@@ -42,7 +45,7 @@ pub fn consoles(state: &AppState) -> Element<'_, Message> {
     .padding(10)
     .align_y(Alignment::Center);
 
-    let body: Element<'_, Message> = if consoles.entries.is_empty() {
+    let network: Element<'_, Message> = if consoles.entries.is_empty() {
         column![
             text(if consoles.searching || !consoles.searched_once {
                 "Looking for consoles in your network…"
@@ -56,21 +59,53 @@ pub fn consoles(state: &AppState) -> Element<'_, Message> {
             .size(12),
         ]
         .spacing(5)
-        .padding(10)
         .into()
     } else {
-        scrollable(
-            consoles
-                .entries
-                .iter()
-                .map(console_card)
-                .collect::<Column<'_, _>>()
-                .spacing(10)
-                .padding(padding::all(10).right(20))
-                .width(Length::Fill),
-        )
-        .into()
+        consoles
+            .entries
+            .iter()
+            .map(console_card)
+            .collect::<Column<'_, _>>()
+            .spacing(10)
+            .into()
     };
+
+    let drives: Element<'_, Message> = if consoles.drives.is_empty() {
+        text("Add the USB disk or SD card of your Wii or GameCube to manage its games and apps.")
+            .size(12)
+            .into()
+    } else {
+        consoles
+            .drives
+            .iter()
+            .map(|drive| drive_card(drive, drive.path == state.config.mount_point()))
+            .collect::<Column<'_, _>>()
+            .spacing(10)
+            .into()
+    };
+
+    let drives_header = row![
+        text("Drives").size(16),
+        space::horizontal(),
+        my_button::<Message>()
+            .icon(Icon::Plus)
+            .label("Add drive")
+            .on_press(Message::PickMountPoint),
+    ]
+    .align_y(Alignment::Center);
+
+    let body = scrollable(
+        column![
+            text("Network").size(16),
+            network,
+            space().height(10),
+            drives_header,
+            drives
+        ]
+        .spacing(10)
+        .padding(padding::all(10).right(20))
+        .width(Length::Fill),
+    );
 
     column![titlebar, body].into()
 }
@@ -222,5 +257,63 @@ fn title_row(title: &InstalledTitle) -> Element<'_, Message> {
     ]
     .spacing(10)
     .align_y(Alignment::Center)
+    .into()
+}
+
+fn drive_card(drive: &Drive, selected: bool) -> Element<'_, Message> {
+    let path = text(drive.path.display().to_string()).size(12);
+
+    let space = drive.space.map(|space| {
+        text(format!(
+            "{} free of {}",
+            Size::from_bytes(space.free),
+            Size::from_bytes(space.total)
+        ))
+    });
+
+    let warning = drive.fs_warning().map(|warning| {
+        row![
+            icon_alert_triangle(),
+            text(format!("File system: {warning}"))
+        ]
+        .spacing(5)
+        .align_y(Alignment::Center)
+    });
+
+    let online = drive.space.is_some();
+    let actions = row![
+        online.then(|| {
+            my_button()
+                .icon(Icon::Gamepad2)
+                .label("Games")
+                .on_press(Message::OpenDrive(drive.path.clone(), Page::Games))
+        }),
+        online.then(|| {
+            my_button()
+                .icon(Icon::Bubbles)
+                .label("Homebrew")
+                .on_press(Message::OpenDrive(drive.path.clone(), Page::HomebrewApps))
+        }),
+        space::horizontal(),
+        my_button()
+            .icon(Icon::Trash)
+            .label("Forget")
+            .kind(MyButtonKind::Danger)
+            .on_press(Message::ForgetDrive(drive.path.clone())),
+    ]
+    .spacing(5);
+
+    let status = match (online, selected) {
+        (false, _) => "Not connected",
+        (true, true) => "Connected · selected",
+        (true, false) => "Connected",
+    };
+
+    my_group(
+        &drive.label,
+        column![path, space, warning, actions].spacing(5),
+    )
+    .icon(Icon::HardDrive)
+    .top_right_content(text(status).size(12))
     .into()
 }

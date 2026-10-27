@@ -112,6 +112,11 @@ impl AppState {
         }
     }
 
+    pub fn load_drives_task(&self) -> Task<Message> {
+        let paths = self.config.known_drives().to_vec();
+        Task::perform(consoles::load_drives(paths), Message::GotDrives)
+    }
+
     pub fn get_games_task(&mut self) -> Task<Message> {
         self.games = GamesState::Loading;
         let mount_point = self.config.mount_point().to_path_buf();

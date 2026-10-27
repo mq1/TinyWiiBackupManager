@@ -58,12 +58,18 @@ impl AppState {
             Message::PickMountPoint => {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_mount_point_dialog_task)
             }
-            Message::MountPointPicked(path) => Task::batch([
-                self.config
+            Message::MountPointPicked(path) => {
+                let config_task = self
+                    .config
                     .update(ConfigMessage::SetMountPoint(path))
-                    .map(Message::Config),
-                self.refresh_games_and_apps(),
-            ]),
+                    .map(Message::Config);
+
+                Task::batch([
+                    config_task,
+                    self.refresh_games_and_apps(),
+                    self.load_drives_task(),
+                ])
+            }
             Message::CloseNotification(idx) => {
                 self.notifications.close(idx);
                 Task::none()
@@ -71,7 +77,7 @@ impl AppState {
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
             Message::GotConfig(config) => {
                 self.config = config;
-                self.refresh_games_and_apps()
+                Task::batch([self.refresh_games_and_apps(), self.load_drives_task()])
             }
             Message::GotGames(games) => {
                 self.games = games;
@@ -404,11 +410,37 @@ impl AppState {
             }
             Message::SearchConsoles => {
                 self.consoles.searching = true;
-                Task::perform(
-                    consoles::search(self.consoles.known_addresses()),
-                    Message::GotConsoles,
-                )
+                Task::batch([
+                    Task::perform(
+                        consoles::search(self.consoles.known_addresses()),
+                        Message::GotConsoles,
+                    ),
+                    self.load_drives_task(),
+                ])
             }
+            Message::GotDrives(drives) => {
+                self.consoles.drives = drives;
+                Task::none()
+            }
+            Message::OpenDrive(path, page) => {
+                self.current_page = page;
+                if path == self.config.mount_point() {
+                    return Task::none();
+                }
+                self.update(Message::MountPointPicked(path))
+            }
+            Message::ForgetDrive(path) => Task::batch([
+                self.config.forget_drive(&path).map(Message::Config),
+                self.refresh_games_and_apps(),
+                Task::done(Message::GotDrives(
+                    self.consoles
+                        .drives
+                        .iter()
+                        .filter(|drive| drive.path != path)
+                        .cloned()
+                        .collect(),
+                )),
+            ]),
             Message::GotConsoles(result) => {
                 self.consoles.searching = false;
                 self.consoles.searched_once = true;
