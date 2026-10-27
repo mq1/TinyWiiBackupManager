@@ -3,11 +3,16 @@
 
 //! The consoles running a companion app: found in the network and remembered
 
-use crate::link::{
-    discovery::{self, Found},
-    protocol::{Console, Info, PORT, n3ds},
+use crate::{
+    link::{
+        client::Link,
+        discovery::{self, Found},
+        protocol::{Console, Info, PORT, Title, n3ds},
+    },
+    n3ds::smdh,
 };
 use anyhow::Result;
+use iced::widget::image;
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::{
@@ -18,6 +23,8 @@ use std::{
 
 const FILENAME: &str = "consoles.json";
 const DISCOVERY_TIMEOUT: Duration = Duration::from_secs(2);
+// icons per request: one round trip for many, but not too much for the 3DS's memory
+const METADATA_BATCH: usize = 20;
 
 /// The vcinject Link version this app expects; older ones get an update offer
 pub const VCINJECT_LINK_VERSION: u32 = 13;
@@ -71,11 +78,31 @@ impl ConsoleEntry {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct InstalledTitle {
+    pub title: Title,
+    pub name: String,
+    pub publisher: String,
+    pub icon: Option<image::Handle>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub enum TitlesState {
+    #[default]
+    NotLoaded,
+    Loading,
+    Loaded(Vec<InstalledTitle>),
+    Failed(String),
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct ConsolesState {
     pub searching: bool,
     pub searched_once: bool,
     pub entries: Vec<ConsoleEntry>,
+    /// The console whose titles are shown
+    pub selected: Option<SocketAddr>,
+    pub titles: TitlesState,
 }
 
 impl ConsolesState {
@@ -141,6 +168,85 @@ pub async fn search(known: Vec<IpAddr>) -> Result<Vec<Found>, String> {
         })
     })
     .await
+}
+
+fn smdh_cache_path(data_dir: &Path, title: &Title) -> PathBuf {
+    data_dir
+        .join("smdh-cache")
+        .join(format!("{:016X}-v{}.smdh", title.id, title.version))
+}
+
+/// The games and apps on a 3DS (SD card and game card), with names and icons;
+/// icons are cached, as reading them all takes long
+pub async fn load_titles(
+    data_dir: &'static Path,
+    addr: SocketAddr,
+) -> Result<Vec<InstalledTitle>, String> {
+    smol::unblock(move || {
+        let mut link = Link::connect(addr)?;
+        link.note("Reading the titles")?;
+
+        let mut titles = link.titles(n3ds::LOCATION_SD, true)?;
+        // no game card is an error too; that's fine
+        titles.extend(
+            link.titles(n3ds::LOCATION_GAME_CARD, true)
+                .unwrap_or_default(),
+        );
+        titles.retain(|title| crate::n3ds::is_app(title.id));
+
+        let mut installed = Vec::with_capacity(titles.len());
+        let (cached, missing): (Vec<_>, Vec<_>) = titles
+            .into_iter()
+            .map(|title| {
+                let smdh = std::fs::read(smdh_cache_path(data_dir, &title)).ok();
+                (title, smdh)
+            })
+            .partition(|(_, smdh)| smdh.as_deref().is_some_and(smdh::is_smdh));
+
+        for (title, smdh) in cached {
+            installed.push(installed_title(title, smdh.as_deref()));
+        }
+
+        let missing: Vec<Title> = missing.into_iter().map(|(title, _)| title).collect();
+        if !missing.is_empty() {
+            let _ = std::fs::create_dir_all(data_dir.join("smdh-cache"));
+            link.note(&format!("Reading {} icons", missing.len()))?;
+        }
+        for batch in missing.chunks(METADATA_BATCH) {
+            let metadata = link.metadata_batch(batch)?;
+            for (title, smdh) in batch.iter().zip(metadata) {
+                if let Some(smdh) = &smdh {
+                    let _ = std::fs::write(smdh_cache_path(data_dir, title), smdh);
+                }
+                installed.push(installed_title(title.clone(), smdh.as_deref()));
+            }
+        }
+
+        installed.sort_by_key(|title| title.name.to_lowercase());
+        Ok(installed)
+    })
+    .await
+    .map_err(|e: anyhow::Error| e.to_string())
+}
+
+fn installed_title(title: Title, smdh: Option<&[u8]>) -> InstalledTitle {
+    let names = smdh.and_then(|smdh| smdh::names(smdh, "en"));
+    let icon = smdh
+        .and_then(smdh::large_icon_rgba)
+        .map(|rgba| image::Handle::from_rgba(smdh::LARGE_ICON_SIZE, smdh::LARGE_ICON_SIZE, rgba));
+
+    let (name, publisher) = match names {
+        // some names are split over two lines
+        Some(names) => (names.short.replace('\n', " "), names.publisher),
+        None => (format!("{:016X}", title.id), String::new()),
+    };
+
+    InstalledTitle {
+        title,
+        name,
+        publisher,
+        icon,
+    }
 }
 
 #[cfg(test)]

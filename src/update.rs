@@ -426,6 +426,27 @@ impl AppState {
                     Err(e) => Task::done(Message::Notify(Notification::error(e))),
                 }
             }
+            Message::OpenConsole(addr) => {
+                self.consoles.selected = Some(addr);
+                self.consoles.titles = consoles::TitlesState::Loading;
+                Task::perform(consoles::load_titles(self.data_dir, addr), move |res| {
+                    Message::GotConsoleTitles(addr, res)
+                })
+            }
+            Message::CloseConsole => {
+                self.consoles.selected = None;
+                self.consoles.titles = consoles::TitlesState::NotLoaded;
+                Task::none()
+            }
+            Message::GotConsoleTitles(addr, result) => {
+                if self.consoles.selected == Some(addr) {
+                    self.consoles.titles = match result {
+                        Ok(titles) => consoles::TitlesState::Loaded(titles),
+                        Err(e) => consoles::TitlesState::Failed(e),
+                    };
+                }
+                Task::none()
+            }
             Message::GotUpdate(new_version) => {
                 self.new_version = Some(new_version);
                 Task::none()

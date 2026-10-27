@@ -12,6 +12,7 @@ mod homebrew;
 mod link;
 mod long_operation;
 mod message;
+mod n3ds;
 mod notifications;
 mod osc;
 mod state;

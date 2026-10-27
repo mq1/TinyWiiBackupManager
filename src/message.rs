@@ -3,7 +3,7 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    consoles::ConsoleEntry,
+    consoles::{ConsoleEntry, InstalledTitle},
     games::{ImportEntry, game::Game, games_state::GamesState},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewState},
     link::discovery::Found,
@@ -16,7 +16,7 @@ use crate::{
 };
 
 use semver::Version;
-use std::{ffi::OsString, path::PathBuf};
+use std::{ffi::OsString, net::SocketAddr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -78,6 +78,9 @@ pub enum Message {
     GotKnownConsoles(Vec<ConsoleEntry>),
     SearchConsoles,
     GotConsoles(Result<Vec<Found>, String>),
+    OpenConsole(SocketAddr),
+    CloseConsole,
+    GotConsoleTitles(SocketAddr, Result<Vec<InstalledTitle>, String>),
     TriggerImport,
     FileDropped(PathBuf),
     GotUpdatePartitionCheckResult(bool),

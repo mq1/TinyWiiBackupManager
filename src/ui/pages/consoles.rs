@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    consoles::{ConsoleEntry, VCINJECT_LINK_VERSION},
+    consoles::{ConsoleEntry, InstalledTitle, TitlesState, VCINJECT_LINK_VERSION},
     link::protocol::{Console, n3ds},
     message::Message,
     state::AppState,
@@ -14,13 +14,19 @@ use crate::{
 };
 use iced::{
     Alignment, Element, Length, padding,
-    widget::{Column, column, row, scrollable, space, text, tooltip},
+    widget::{Column, column, image, row, scrollable, space, text, tooltip},
 };
 use lucide_icons::{Icon, iced::icon_alert_triangle};
 use size::Size;
 
 pub fn consoles(state: &AppState) -> Element<'_, Message> {
     let consoles = &state.consoles;
+
+    if let Some(addr) = consoles.selected
+        && let Some(entry) = consoles.entries.iter().find(|entry| entry.addr == addr)
+    {
+        return console_titles(entry, &consoles.titles);
+    }
 
     let titlebar = row![
         text("My Consoles").size(18),
@@ -133,7 +139,14 @@ fn console_card(entry: &ConsoleEntry) -> Element<'_, Message> {
         .align_y(Alignment::Center)
     });
 
-    let content = column![text(app), system, battery, storage, outdated].spacing(5);
+    let titles_button = entry.online.then(|| {
+        my_button()
+            .icon(Icon::LayoutGrid)
+            .label("Titles")
+            .on_press(Message::OpenConsole(entry.addr))
+    });
+
+    let content = column![text(app), system, battery, storage, outdated, titles_button].spacing(5);
 
     my_group(&entry.label, content)
         .icon(if entry.online {
@@ -143,4 +156,71 @@ fn console_card(entry: &ConsoleEntry) -> Element<'_, Message> {
         })
         .top_right_content(text(if entry.online { "Online" } else { "Offline" }).size(12))
         .into()
+}
+
+fn console_titles<'a>(entry: &'a ConsoleEntry, titles: &'a TitlesState) -> Element<'a, Message> {
+    let titlebar = row![
+        my_button::<Message>()
+            .icon(Icon::ArrowLeft)
+            .kind(MyButtonKind::Toolbar)
+            .on_press(Message::CloseConsole),
+        text(&entry.label).size(18),
+        space::horizontal(),
+        tooltip(
+            my_button::<Message>()
+                .icon(Icon::RefreshCw)
+                .kind(MyButtonKind::Toolbar)
+                .on_press(Message::OpenConsole(entry.addr)),
+            my_card("Reload"),
+            tooltip::Position::Bottom
+        ),
+    ]
+    .spacing(10)
+    .padding(10)
+    .align_y(Alignment::Center);
+
+    let body: Element<'_, Message> = match titles {
+        TitlesState::NotLoaded | TitlesState::Loading => text("Reading the titles…").into(),
+        TitlesState::Failed(e) => text(e).into(),
+        TitlesState::Loaded(titles) if titles.is_empty() => text("No games or apps.").into(),
+        TitlesState::Loaded(titles) => scrollable(
+            titles
+                .iter()
+                .map(title_row)
+                .collect::<Column<'_, _>>()
+                .spacing(8)
+                .padding(padding::all(10).right(20))
+                .width(Length::Fill),
+        )
+        .into(),
+    };
+
+    column![titlebar, column![body].padding(padding::horizontal(10))].into()
+}
+
+fn title_row(title: &InstalledTitle) -> Element<'_, Message> {
+    let icon: Element<'_, Message> = match &title.icon {
+        Some(handle) => image(handle).width(48).height(48).into(),
+        None => space().width(48).height(48).into(),
+    };
+
+    let mut details = Vec::new();
+    if !title.publisher.is_empty() {
+        details.push(title.publisher.clone());
+    }
+    if !title.title.product_code.is_empty() {
+        details.push(title.title.product_code.clone());
+    }
+    details.push(Size::from_bytes(title.title.size).to_string());
+    if title.title.version > 0 {
+        details.push(format!("v{}", title.title.version));
+    }
+
+    row![
+        icon,
+        column![text(&title.name), text(details.join(" · ")).size(12)].spacing(2)
+    ]
+    .spacing(10)
+    .align_y(Alignment::Center)
+    .into()
 }
