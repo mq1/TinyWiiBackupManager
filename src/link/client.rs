@@ -14,7 +14,8 @@ use std::{
     time::Duration,
 };
 
-const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+// a 3DS in power saving is slow to answer
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
 const IO_TIMEOUT: Duration = Duration::from_secs(15);
 // finishing a large install takes a while
 const INSTALL_TIMEOUT: Duration = Duration::from_secs(120);
@@ -26,8 +27,8 @@ pub struct Link {
 
 impl Link {
     pub fn connect(addr: SocketAddr) -> Result<Self> {
-        let stream = TcpStream::connect_timeout(&addr, CONNECT_TIMEOUT).with_context(|| {
-            format!("Could not connect to {addr}. Is the companion app open on the console?")
+        let stream = TcpStream::connect_timeout(&addr, CONNECT_TIMEOUT).map_err(|e| {
+            anyhow!("Could not connect to {addr} ({e}). Is the companion app open on the console?")
         })?;
         stream.set_read_timeout(Some(IO_TIMEOUT))?;
         stream.set_write_timeout(Some(IO_TIMEOUT))?;
