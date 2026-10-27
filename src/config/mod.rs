@@ -67,6 +67,9 @@ pub struct ConfigContents {
     #[serde(default)]
     known_drives: Vec<PathBuf>,
 
+    #[serde(default)]
+    rom_sources: Vec<PathBuf>,
+
     #[serde(default = "system_language")]
     preferred_language: PreferredLanguage,
 }
@@ -135,6 +138,24 @@ impl Config {
         } else {
             self.write()
         }
+    }
+
+    pub fn add_rom_source(&mut self, path: PathBuf) -> Task<ConfigMessage> {
+        if !self.contents.rom_sources.contains(&path) {
+            self.contents.rom_sources.push(path);
+        }
+        self.write()
+    }
+
+    pub fn remove_rom_source(&mut self, path: &Path) -> Task<ConfigMessage> {
+        self.contents.rom_sources.retain(|p| p != path);
+        self.write()
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn rom_sources(&self) -> &[PathBuf] {
+        &self.contents.rom_sources
     }
 
     /// Forgets a drive; when it is the selected one, no drive is selected anymore
@@ -248,6 +269,7 @@ impl Default for ConfigContents {
         Self {
             always_split: false,
             mount_point: PathBuf::new(),
+            rom_sources: Vec::new(),
             remove_sources_apps: false,
             remove_sources_games: false,
             scrub_update_partition: false,

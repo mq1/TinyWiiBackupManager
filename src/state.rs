@@ -9,6 +9,7 @@ use crate::{
         import::import_game,
     },
     homebrew::{self, homebrew_state::HomebrewState},
+    library::LibraryState,
     long_operation::{LongOperationKind, LongOperationState, LongOperations},
     message::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
@@ -55,6 +56,7 @@ pub struct AppState {
     pub animation_state: bool,
     pub new_version: Option<Version>,
     pub consoles: ConsolesState,
+    pub library: LibraryState,
 }
 
 impl AppState {
@@ -68,13 +70,14 @@ impl AppState {
                     drive: DriveState::NotLoaded,
                     games: GamesState::NotLoaded,
                     homebrew: HomebrewState::NotLoaded,
-                    current_page: Page::Games,
+                    current_page: Page::Library,
                     current_modal: None,
                     import_queue: Vec::new(),
                     osc_contents: OscState::NotLoaded,
                     animation_state: false,
                     new_version: None,
                     consoles: ConsolesState::default(),
+                    library: LibraryState::default(),
                     long_operations: LongOperations::new(),
                 },
                 Task::batch([
@@ -110,6 +113,16 @@ impl AppState {
             ThemePreference::Light => Some(theme::light()),
             ThemePreference::Dark => Some(theme::dark()),
         }
+    }
+
+    /// Reads the titles of online 3DSs, to show what of the library is on them
+    pub fn load_missing_titles_task(&mut self) -> Task<Message> {
+        Task::batch(
+            self.consoles
+                .without_titles()
+                .into_iter()
+                .map(|addr| Task::done(Message::LoadConsoleTitles(addr))),
+        )
     }
 
     pub fn load_drives_task(&self) -> Task<Message> {

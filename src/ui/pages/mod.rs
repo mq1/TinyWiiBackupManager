@@ -9,6 +9,7 @@ pub mod errored;
 pub mod games;
 pub mod homebrew_apps;
 pub mod import_queue;
+pub mod library;
 pub mod loading;
 pub mod no_drive;
 pub mod osc_apps;
@@ -16,6 +17,7 @@ pub mod toolbox;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Display, IntoStaticStr)]
 pub enum Page {
+    Library,
     Games,
     #[strum(serialize = "My Consoles")]
     Consoles,

@@ -19,8 +19,8 @@ pub fn sidebar(state: &AppState) -> Element<'_, Message> {
     column![
         tooltip(
             my_sidebar_button(&[Icon::Gamepad2])
-                .active(state.current_page == Page::Games)
-                .on_press(Message::NavigateTo(Page::Games)),
+                .active(state.current_page == Page::Library)
+                .on_press(Message::NavigateTo(Page::Library)),
             my_card("Games"),
             tooltip::Position::Right
         ),

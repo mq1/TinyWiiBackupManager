@@ -156,6 +156,16 @@ pub fn make_pick_mount_point_dialog_task(base: Base) -> Task<Message> {
     )
 }
 
+pub fn make_pick_rom_source_dialog_task(base: Base) -> Task<Message> {
+    Task::perform(
+        pick_folder(base, "Add a folder with games"),
+        |res| match res {
+            Some(path) => Message::AddRomSource(path),
+            None => Message::NoOp,
+        },
+    )
+}
+
 pub fn make_pick_homebrew_apps_dialog_task(base: Base) -> Task<Message> {
     Task::perform(
         pick_files(

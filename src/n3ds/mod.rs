@@ -3,6 +3,7 @@
 
 //! Nintendo 3DS formats
 
+pub mod cia;
 pub mod smdh;
 
 /// Title ID high words of what people think of as games and apps (not system titles, updates, DLC)

@@ -9,6 +9,7 @@ use crate::{
         games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
     },
     homebrew::homebrew_state::HomebrewState,
+    library,
     long_operation::{LongOperationKind, LongOperationState},
     message::Message,
     notifications::notification::Notification,
@@ -48,6 +49,15 @@ impl AppState {
                     return self.update(Message::SearchConsoles);
                 }
 
+                if page == Page::Library {
+                    let scan = if self.library.scanned_once {
+                        Task::none()
+                    } else {
+                        self.update(Message::ScanLibrary)
+                    };
+                    return Task::batch([scan, self.load_missing_titles_task()]);
+                }
+
                 if page == Page::Osc && matches!(self.osc_contents, OscState::Loaded(_)) {
                     self.reload_all_osc_icons();
                     self.download_osc_icons_task()
@@ -77,7 +87,11 @@ impl AppState {
             Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
             Message::GotConfig(config) => {
                 self.config = config;
-                Task::batch([self.refresh_games_and_apps(), self.load_drives_task()])
+                Task::batch([
+                    self.refresh_games_and_apps(),
+                    self.load_drives_task(),
+                    self.update(Message::ScanLibrary),
+                ])
             }
             Message::GotGames(games) => {
                 self.games = games;
@@ -448,36 +462,99 @@ impl AppState {
                 match result {
                     Ok(found) => {
                         self.consoles.merge(found);
+                        let titles = if self.current_page == Page::Library {
+                            self.load_missing_titles_task()
+                        } else {
+                            Task::none()
+                        };
                         let data_dir = self.data_dir;
                         let entries = self.consoles.entries.clone();
-                        Task::perform(consoles::save(data_dir, entries), |res| match res {
-                            Ok(()) => Message::NoOp,
-                            Err(e) => Message::Notify(e.into()),
-                        })
+                        Task::batch([
+                            titles,
+                            Task::perform(consoles::save(data_dir, entries), |res| match res {
+                                Ok(()) => Message::NoOp,
+                                Err(e) => Message::Notify(e.into()),
+                            }),
+                        ])
                     }
                     Err(e) => Task::done(Message::Notify(Notification::error(e))),
                 }
             }
             Message::OpenConsole(addr) => {
                 self.consoles.selected = Some(addr);
-                self.consoles.titles = consoles::TitlesState::Loading;
+                self.update(Message::LoadConsoleTitles(addr))
+            }
+            Message::LoadConsoleTitles(addr) => {
+                self.consoles
+                    .titles
+                    .insert(addr, consoles::TitlesState::Loading);
                 Task::perform(consoles::load_titles(self.data_dir, addr), move |res| {
                     Message::GotConsoleTitles(addr, res)
                 })
             }
             Message::CloseConsole => {
                 self.consoles.selected = None;
-                self.consoles.titles = consoles::TitlesState::NotLoaded;
                 Task::none()
             }
             Message::GotConsoleTitles(addr, result) => {
-                if self.consoles.selected == Some(addr) {
-                    self.consoles.titles = match result {
-                        Ok(titles) => consoles::TitlesState::Loaded(titles),
-                        Err(e) => consoles::TitlesState::Failed(e),
-                    };
+                let titles = match result {
+                    Ok(titles) => consoles::TitlesState::Loaded(titles),
+                    Err(e) => consoles::TitlesState::Failed(e),
+                };
+                self.consoles.titles.insert(addr, titles);
+                Task::none()
+            }
+            Message::ScanLibrary => {
+                self.library.scanning = true;
+                let sources = self.config.rom_sources().to_vec();
+                Task::perform(library::scan_async(sources), Message::GotLibrary)
+            }
+            Message::GotLibrary(items) => {
+                self.library.items = items;
+                self.library.scanning = false;
+                self.library.scanned_once = true;
+                if self
+                    .library
+                    .platform
+                    .is_some_and(|p| !self.library.platforms().contains(&p))
+                {
+                    self.library.platform = None;
                 }
                 Task::none()
+            }
+            Message::FilterLibrary(platform) => {
+                self.library.platform = platform;
+                Task::none()
+            }
+            Message::SearchLibrary(search) => {
+                self.library.search = search;
+                Task::none()
+            }
+            Message::ToggleRomSources => {
+                self.library.show_sources = !self.library.show_sources;
+                Task::none()
+            }
+            Message::PickRomSource => {
+                dialogs::init_file_dialog_task().then(dialogs::make_pick_rom_source_dialog_task)
+            }
+            Message::AddRomSource(path) => Task::batch([
+                self.config.add_rom_source(path).map(Message::Config),
+                self.update(Message::ScanLibrary),
+            ]),
+            Message::RemoveRomSource(path) => Task::batch([
+                self.config.remove_rom_source(&path).map(Message::Config),
+                self.update(Message::ScanLibrary),
+            ]),
+            Message::CopyToDrive(path) => {
+                if self.config.mount_point().as_os_str().is_empty() {
+                    return Task::done(Message::Notify(Notification::warning(
+                        "Select a drive in My Consoles first",
+                    )));
+                }
+                Task::perform(ImportEntry::new(path), |res| match res {
+                    Ok(entry) => Message::PickedGames(vec![entry]),
+                    Err(e) => Message::Notify(e.into()),
+                })
             }
             Message::GotUpdate(new_version) => {
                 self.new_version = Some(new_version);

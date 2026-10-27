@@ -28,7 +28,7 @@ pub fn consoles(state: &AppState) -> Element<'_, Message> {
     if let Some(addr) = consoles.selected
         && let Some(entry) = consoles.entries.iter().find(|entry| entry.addr == addr)
     {
-        return console_titles(entry, &consoles.titles);
+        return console_titles(entry, consoles.titles.get(&addr));
     }
 
     let titlebar = row![
@@ -193,7 +193,10 @@ fn console_card(entry: &ConsoleEntry) -> Element<'_, Message> {
         .into()
 }
 
-fn console_titles<'a>(entry: &'a ConsoleEntry, titles: &'a TitlesState) -> Element<'a, Message> {
+fn console_titles<'a>(
+    entry: &'a ConsoleEntry,
+    titles: Option<&'a TitlesState>,
+) -> Element<'a, Message> {
     let titlebar = row![
         my_button::<Message>()
             .icon(Icon::ArrowLeft)
@@ -214,7 +217,7 @@ fn console_titles<'a>(entry: &'a ConsoleEntry, titles: &'a TitlesState) -> Eleme
     .padding(10)
     .align_y(Alignment::Center);
 
-    let body: Element<'_, Message> = match titles {
+    let body: Element<'_, Message> = match titles.unwrap_or(&TitlesState::NotLoaded) {
         TitlesState::NotLoaded | TitlesState::Loading => text("Reading the titles…").into(),
         TitlesState::Failed(e) => text(e).into(),
         TitlesState::Loaded(titles) if titles.is_empty() => text("No games or apps.").into(),

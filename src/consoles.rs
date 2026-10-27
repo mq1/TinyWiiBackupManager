@@ -16,6 +16,7 @@ use iced::widget::image;
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::{
+    collections::HashMap,
     net::{IpAddr, SocketAddr},
     path::{Path, PathBuf},
     time::Duration,
@@ -103,7 +104,7 @@ pub struct ConsolesState {
     pub entries: Vec<ConsoleEntry>,
     /// The console whose titles are shown
     pub selected: Option<SocketAddr>,
-    pub titles: TitlesState,
+    pub titles: HashMap<SocketAddr, TitlesState>,
     pub drives: Vec<Drive>,
 }
 
@@ -162,6 +163,25 @@ pub async fn load_drives(paths: Vec<PathBuf>) -> Vec<Drive> {
 }
 
 impl ConsolesState {
+    /// Online consoles whose titles haven't been read yet
+    pub fn without_titles(&self) -> Vec<SocketAddr> {
+        self.entries
+            .iter()
+            .filter(|entry| entry.online && entry.info.console() == Some(Console::N3ds))
+            .map(|entry| entry.addr)
+            .filter(|addr| !self.titles.contains_key(addr))
+            .collect()
+    }
+
+    /// The online consoles that have a title installed
+    pub fn having_title(&self, title_id: u64) -> impl Iterator<Item = &ConsoleEntry> {
+        self.entries.iter().filter(move |entry| {
+            entry.online
+                && matches!(self.titles.get(&entry.addr), Some(TitlesState::Loaded(titles))
+                    if titles.iter().any(|t| t.title.id == title_id))
+        })
+    }
+
     pub fn known_addresses(&self) -> Vec<IpAddr> {
         self.entries.iter().map(|entry| entry.addr.ip()).collect()
     }
