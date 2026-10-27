@@ -196,6 +196,9 @@ An *archive* says where a path lives: `u32 archive` followed by an *archive path
 | 4 | UTF-16 (3DS) |
 | 5 | UTF-8 |
 
+ASCII and UTF-16 paths end in a NUL character, which `length` includes (the 3DS's FS service
+expects it); UTF-8 paths don't.
+
 The archive values are per console, see the console sections. The 3DS uses its FS archive IDs
 directly, the Wii and the Wii U small numbers for their mounts.
 

@@ -7,6 +7,8 @@
 mod config;
 mod games;
 mod homebrew;
+#[allow(dead_code)] // the My Consoles page that uses it comes next
+mod link;
 mod long_operation;
 mod message;
 mod notifications;
