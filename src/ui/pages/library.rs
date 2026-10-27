@@ -195,9 +195,17 @@ fn presence(item: &LibraryItem, state: &AppState) -> Vec<String> {
 fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Message> {
     let icon: Element<'_, Message> = match &item.icon {
         Some(handle) => image(handle).width(48).height(48).into(),
-        None => container(placeholder_icon(item.platform).widget().size(28))
-            .center(48)
-            .into(),
+        None => container(
+            if item.kind == ItemKind::SdBackup {
+                Icon::MemoryStick
+            } else {
+                placeholder_icon(item.platform)
+            }
+            .widget()
+            .size(28),
+        )
+        .center(48)
+        .into(),
     };
 
     let mut details = vec![item.platform.label().to_string()];
@@ -209,6 +217,7 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
             ItemKind::Wad => "WAD",
             ItemKind::WiiUTitle => "title",
             ItemKind::Rom => "ROM",
+            ItemKind::SdBackup => "SD card backup",
         }
         .to_string(),
     );

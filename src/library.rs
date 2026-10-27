@@ -71,6 +71,8 @@ pub enum ItemKind {
     WiiUTitle,
     /// a ROM for an emulator or an inject
     Rom,
+    /// a copy of a console's SD card: listed as one entry, not looked into
+    SdBackup,
 }
 
 #[derive(Debug, Clone)]
@@ -135,7 +137,58 @@ fn display_name(path: &Path) -> String {
         .replace('_', " ")
 }
 
+/// Folders on the SD card of a console next to `apps/`; with them, a folder is an SD card copy
+const SD_MARKERS: [&str; 8] = [
+    "private",
+    "bootmii",
+    "usb-loader",
+    "wad",
+    "wiiu",
+    "luma",
+    "3ds",
+    "nintendo 3ds",
+];
+
+/// The console of a folder that is a copy of an SD card, if it is one
+fn sd_backup_platform(dir: &Path) -> Option<Platform> {
+    let names: Vec<String> = fs::read_dir(dir)
+        .ok()?
+        .flatten()
+        .filter(|entry| entry.file_type().is_ok_and(|t| t.is_dir()))
+        .filter_map(|entry| entry.file_name().to_str().map(str::to_ascii_lowercase))
+        .collect();
+    let has = |name: &str| names.iter().any(|n| n == name);
+
+    let is_sd = has("nintendo 3ds")
+        || has("wiiu")
+        || (has("apps") && SD_MARKERS.iter().any(|marker| has(marker)));
+    if !is_sd {
+        return None;
+    }
+
+    Some(if has("wiiu") {
+        Platform::WiiU
+    } else if has("nintendo 3ds") || has("luma") || has("3ds") {
+        Platform::N3ds
+    } else {
+        Platform::Wii
+    })
+}
+
 fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<LibraryItem> {
+    if kind == ItemKind::SdBackup {
+        return Some(LibraryItem {
+            name: display_name(&path),
+            size: smol::block_on(crate::util::fs::get_dir_size(&path)),
+            platform,
+            kind,
+            id: None,
+            icon: None,
+            in_cloud: false,
+            path,
+        });
+    }
+
     let meta = fs::metadata(&path).ok()?;
     let in_cloud = is_dataless(&meta);
 
@@ -214,7 +267,13 @@ fn walk(dir: &Path, depth: usize, found: &mut Vec<(PathBuf, Platform, ItemKind)>
         }
 
         match entry.file_type() {
-            Ok(t) if t.is_dir() && depth < MAX_DEPTH => walk(&path, depth + 1, found),
+            Ok(t) if t.is_dir() => {
+                if let Some(platform) = sd_backup_platform(&path) {
+                    found.push((path, platform, ItemKind::SdBackup));
+                } else if depth < MAX_DEPTH {
+                    walk(&path, depth + 1, found);
+                }
+            }
             Ok(t) if t.is_file() => {
                 if let Some((platform, kind)) = classify(&path) {
                     found.push((path, platform, kind));
@@ -291,6 +350,9 @@ mod tests {
         fs::write(root.join("GBA/notes.txt"), b"").unwrap();
         fs::write(root.join("wiiU/Mario Kart 8/title.tmd"), b"tmd").unwrap();
         fs::write(root.join("broken.cia"), b"not a cia").unwrap();
+        fs::create_dir_all(root.join("wii/2024-04-12/apps/nintendont")).unwrap();
+        fs::create_dir_all(root.join("wii/2024-04-12/bootmii")).unwrap();
+        fs::write(root.join("wii/2024-04-12/IOS36-64-v3351.wad"), b"wad").unwrap();
 
         let items = scan(&[root.to_path_buf()]);
         let summary: Vec<_> = items
@@ -302,6 +364,7 @@ mod tests {
             summary,
             vec![
                 (Platform::N3ds, "broken"),
+                (Platform::Wii, "2024-04-12"),
                 (Platform::WiiU, "Mario Kart 8"),
                 (Platform::GameBoyAdvance, "Metroid Fusion"),
             ]

@@ -420,7 +420,8 @@ impl AppState {
             }
             Message::GotKnownConsoles(entries) => {
                 self.consoles.set_known(entries);
-                Task::none()
+                // so that the library can show what is on them
+                self.update(Message::SearchConsoles)
             }
             Message::SearchConsoles => {
                 self.consoles.searching = true;
