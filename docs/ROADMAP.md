@@ -45,9 +45,31 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
   turned out not to be needed: the media folders scan in under a second; the slow part was the
   cold hard disk.)
 
+### M1a · Task manager with progress bars (M) – before M1
+
+Every longer action – import, copy to a drive, install on a console, convert, export, scrub,
+checksums, downloads, scans, later unpacking and injecting – becomes a **task** in one task manager.
+It replaces TWBM's one slot per kind of action (`LongOperations`) and its separate import queue.
+
+- **Progress bars** with bytes and percent, speed and time left, for every task; the 3DS shows its
+  own bar during installs, as vcinject Link already does.
+- **In parallel where it makes sense**: tasks run side by side, but each *resource* – a drive, a
+  console's connection (vcinject Link serves one at a time), the network – has its own queue, so
+  two copies to the same disk don't slow each other down, while a copy to WiiGames and an install
+  on the 3DS run at the same time.
+- **Control**: pause, cancel (cleaning up half-written files), retry a failed task, change the order
+  of waiting tasks.
+- **Where to see it**: a compact bar at the bottom of every page (number of running tasks, overall
+  progress), opening the task manager page with the list: running, waiting, done, failed with
+  the reason. Finished tasks stay in a history until cleared.
+- **After a restart**: unfinished tasks are listed again and can be resumed or dropped.
+- Built on iced's `Task::sipper`/streams for progress, with a cancel token per task; the existing
+  import, convert, export, scrub and hash code reports progress through it.
+
 ### M1 · Install on the 3DS over Wi-Fi (M)
 
-- "Install" on a CIA in the library: choose the 3DS, progress on the computer and on the 3DS.
+- "Install" on a CIA in the library: choose the 3DS; it runs as a task (M1a), with progress on the
+  computer and on the 3DS.
 - Delete and launch titles from the console's title list.
 - Offer the update of vcinject Link when it is older than the app expects.
 
