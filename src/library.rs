@@ -27,10 +27,14 @@ pub enum Platform {
     Nes,
     Snes,
     MegaDrive,
+    N64,
+    Nds,
+    Msx,
+    Other,
 }
 
 impl Platform {
-    pub const ALL: [Self; 10] = [
+    pub const ALL: [Self; 14] = [
         Self::N3ds,
         Self::Wii,
         Self::GameCube,
@@ -41,6 +45,10 @@ impl Platform {
         Self::Nes,
         Self::Snes,
         Self::MegaDrive,
+        Self::N64,
+        Self::Nds,
+        Self::Msx,
+        Self::Other,
     ];
 
     pub fn label(self) -> &'static str {
@@ -55,6 +63,10 @@ impl Platform {
             Self::Nes => "NES",
             Self::Snes => "SNES",
             Self::MegaDrive => "Mega Drive",
+            Self::N64 => "N64",
+            Self::Nds => "DS",
+            Self::Msx => "MSX",
+            Self::Other => "Other",
         }
     }
 }
@@ -73,6 +85,90 @@ pub enum ItemKind {
     Rom,
     /// a copy of a console's SD card: listed as one entry, not looked into
     SdBackup,
+    /// a RAR, ZIP or 7z archive, or a release folder of RAR parts; unpacked when needed
+    Archive,
+}
+
+/// The platform a folder name stands for, e.g. "GBA", "Wii U inject", "gc isos"
+fn platform_of_folder(name: &str) -> Option<Platform> {
+    Some(match name.to_ascii_lowercase().as_str() {
+        "3ds" | "3ds inject" | "n3ds" => Platform::N3ds,
+        "wiiu" | "wii u" | "wii u inject" => Platform::WiiU,
+        "wii" | "wbfs" => Platform::Wii,
+        "gc" | "ngc" | "gamecube" | "gc isos" | "games" => Platform::GameCube,
+        "n64" => Platform::N64,
+        "nds" | "ds" => Platform::Nds,
+        "gba" => Platform::GameBoyAdvance,
+        "gbc" => Platform::GameBoyColor,
+        "gb" | "gb(c)" | "gameboy" => Platform::GameBoy,
+        "nes" | "famicom" => Platform::Nes,
+        "snes" | "super nintendo" => Platform::Snes,
+        "sega" | "md" | "genesis" | "mega drive" | "megadrive" => Platform::MegaDrive,
+        "msx" => Platform::Msx,
+        _ => return None,
+    })
+}
+
+/// The platform of the nearest folder above `path` that names one
+fn platform_from_folders(path: &Path) -> Platform {
+    path.ancestors()
+        .skip(1)
+        .filter_map(|dir| dir.file_name()?.to_str())
+        .find_map(platform_of_folder)
+        .unwrap_or(Platform::Other)
+}
+
+/// A title ID (16 hex digits) or game ID (6 letters and digits) in a name, e.g. "[RSBE01]"
+fn id_in_name(name: &str) -> Option<ItemId> {
+    let title_id = |s: &str| {
+        (s.len() == 16 && s.chars().all(|c| c.is_ascii_hexdigit()))
+            .then(|| u64::from_str_radix(s, 16).ok())
+            .flatten()
+            .map(ItemId::Title)
+    };
+
+    let bracketed = name.split('[').skip(1).filter_map(|s| s.split(']').next());
+    for s in bracketed {
+        if let Some(id) = title_id(s) {
+            return Some(id);
+        }
+        if s.len() == 6 && s.chars().all(|c| c.is_ascii_alphanumeric()) {
+            return Some(ItemId::Game(s.to_ascii_uppercase()));
+        }
+    }
+
+    title_id(name.split('.').next()?)
+}
+
+/// The name of the release a RAR part belongs to: "x.part02.rar" and "x.rar" are "x"
+fn rar_base(name: &str) -> Option<&str> {
+    let stem = name.strip_suffix(".rar")?;
+    Some(match stem.rsplit_once(".part") {
+        Some((base, n)) if n.chars().all(|c| c.is_ascii_digit()) => base,
+        _ => stem,
+    })
+}
+
+/// A folder of one release split into RAR parts (.r00 … or .partNN.rar), maybe with .sfv/.nfo
+fn is_release_folder(names: &[String]) -> bool {
+    if names.iter().any(|n| n.ends_with(".r00")) {
+        return true;
+    }
+
+    let mut bases = names.iter().filter_map(|n| rar_base(n));
+    let Some(first) = bases.next() else {
+        return false;
+    };
+    let one_release = bases.all(|base| base == first);
+    let only_parts = names.iter().all(|n| {
+        rar_base(n).is_some()
+            || [".sfv", ".nfo", ".txt", ".jpg", ".png"]
+                .iter()
+                .any(|ext| n.ends_with(ext))
+            || !n.contains('.')
+    });
+
+    one_release && only_parts
 }
 
 #[derive(Debug, Clone)]
@@ -100,6 +196,11 @@ fn classify(path: &Path) -> Option<(Platform, ItemKind)> {
     let name = path.file_name()?.to_str()?.to_ascii_lowercase();
 
     Some(match ext.as_str() {
+        // archives outside of a platform's folder are rarely games (films, e-books …)
+        "rar" | "zip" | "7z" => match platform_from_folders(path) {
+            Platform::Other => return None,
+            platform => (platform, ItemKind::Archive),
+        },
         "cia" => (Platform::N3ds, ItemKind::Cia),
         "3ds" | "cci" => (Platform::N3ds, ItemKind::Cart),
         "wbfs" | "rvz" | "wia" | "ciso" => (Platform::Wii, ItemKind::Disc),
@@ -128,6 +229,22 @@ fn is_dataless(meta: &fs::Metadata) -> bool {
 #[cfg(not(target_os = "macos"))]
 fn is_dataless(_meta: &fs::Metadata) -> bool {
     false
+}
+
+/// A release folder's name; scene names use dots and underscores for spaces and often start
+/// with the platform, as in "gc_skies_of_arcadia_legends_usa"
+fn display_name_of_folder(path: &Path) -> String {
+    let name = path
+        .file_name()
+        .and_then(OsStr::to_str)
+        .unwrap_or_default()
+        .replace(['_', '.'], " ");
+    let name = name.trim();
+
+    match name.split_once(' ') {
+        Some((first, rest)) if platform_of_folder(first).is_some() => rest.trim().to_string(),
+        _ => name.to_string(),
+    }
 }
 
 fn display_name(path: &Path) -> String {
@@ -159,9 +276,8 @@ fn sd_backup_platform(dir: &Path) -> Option<Platform> {
         .collect();
     let has = |name: &str| names.iter().any(|n| n == name);
 
-    let is_sd = has("nintendo 3ds")
-        || has("wiiu")
-        || (has("apps") && SD_MARKERS.iter().any(|marker| has(marker)));
+    // a folder of games may well have a "WiiU" folder; only next to apps/ is it an SD card
+    let is_sd = has("nintendo 3ds") || (has("apps") && SD_MARKERS.iter().any(|marker| has(marker)));
     if !is_sd {
         return None;
     }
@@ -176,6 +292,35 @@ fn sd_backup_platform(dir: &Path) -> Option<Platform> {
 }
 
 fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<LibraryItem> {
+    if kind == ItemKind::Archive && path.is_dir() {
+        let size = fs::read_dir(&path)
+            .ok()?
+            .flatten()
+            .filter_map(|entry| entry.metadata().ok())
+            .filter(fs::Metadata::is_file)
+            .map(|meta| meta.len())
+            .sum();
+        let name = display_name_of_folder(&path);
+        // the title ID is often only in the parts' names, e.g. 0005000010105317.part01.rar
+        let id = id_in_name(&name).or_else(|| {
+            fs::read_dir(&path)
+                .ok()?
+                .flatten()
+                .filter_map(|e| e.file_name().to_str().map(str::to_string))
+                .find_map(|n| id_in_name(&n))
+        });
+        return Some(LibraryItem {
+            id,
+            name,
+            size,
+            platform,
+            kind,
+            icon: None,
+            in_cloud: false,
+            path,
+        });
+    }
+
     if kind == ItemKind::SdBackup {
         return Some(LibraryItem {
             name: display_name(&path),
@@ -245,6 +390,20 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
                 }
             }
         }
+        ItemKind::Archive => {
+            // part2 and later belong to part1
+            let lower = item.name.to_ascii_lowercase();
+            if let Some((_, part)) = lower.rsplit_once(".part")
+                && part.trim_start_matches('0') != "1"
+            {
+                return None;
+            }
+            item.id = id_in_name(&item.name);
+            item.name = item
+                .name
+                .rsplit_once(".part")
+                .map_or(item.name.clone(), |(name, _)| name.to_string());
+        }
         _ => {}
     }
 
@@ -268,7 +427,27 @@ fn walk(dir: &Path, depth: usize, found: &mut Vec<(PathBuf, Platform, ItemKind)>
 
         match entry.file_type() {
             Ok(t) if t.is_dir() => {
-                if let Some(platform) = sd_backup_platform(&path) {
+                let names: Vec<String> = fs::read_dir(&path)
+                    .map(|entries| {
+                        entries
+                            .flatten()
+                            .filter_map(|e| e.file_name().to_str().map(str::to_ascii_lowercase))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                let platform_folder = path
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .and_then(platform_of_folder)
+                    .is_some();
+
+                if !platform_folder && is_release_folder(&names) {
+                    let platform = platform_from_folders(&path.join("x"));
+                    if platform != Platform::Other {
+                        found.push((path, platform, ItemKind::Archive));
+                    }
+                } else if let Some(platform) = sd_backup_platform(&path) {
                     found.push((path, platform, ItemKind::SdBackup));
                 } else if depth < MAX_DEPTH {
                     walk(&path, depth + 1, found);
@@ -345,6 +524,8 @@ mod tests {
         let root = dir.path();
         fs::create_dir_all(root.join("GBA/.hidden")).unwrap();
         fs::create_dir_all(root.join("wiiU/Mario Kart 8/meta")).unwrap();
+        // a games folder with a WiiU folder is not an SD card
+        fs::create_dir_all(root.join("WiiU")).unwrap();
         fs::write(root.join("GBA/Metroid_Fusion.gba"), b"rom").unwrap();
         fs::write(root.join("GBA/.hidden/x.gba"), b"rom").unwrap();
         fs::write(root.join("GBA/notes.txt"), b"").unwrap();
@@ -353,6 +534,16 @@ mod tests {
         fs::create_dir_all(root.join("wii/2024-04-12/apps/nintendont")).unwrap();
         fs::create_dir_all(root.join("wii/2024-04-12/bootmii")).unwrap();
         fs::write(root.join("wii/2024-04-12/IOS36-64-v3351.wad"), b"wad").unwrap();
+        let release = root.join("WiiU/Cars_3_EUR_WiiU-CAT");
+        fs::create_dir_all(&release).unwrap();
+        for part in ["cat-ba4p.rar", "cat-ba4p.r00", "cat-ba4p.sfv"] {
+            fs::write(release.join(part), b"12").unwrap();
+        }
+        let injects = root.join("N64/Injects");
+        fs::create_dir_all(&injects).unwrap();
+        fs::write(injects.join("0005000010105317.part01.rar"), b"1").unwrap();
+        fs::write(injects.join("0005000010105317.part02.rar"), b"1").unwrap();
+        fs::write(injects.join("Mario [NSME00].zip"), b"1").unwrap();
 
         let items = scan(&[root.to_path_buf()]);
         let summary: Vec<_> = items
@@ -365,10 +556,26 @@ mod tests {
             vec![
                 (Platform::N3ds, "broken"),
                 (Platform::Wii, "2024-04-12"),
+                (Platform::WiiU, "Cars 3 EUR WiiU-CAT"),
                 (Platform::WiiU, "Mario Kart 8"),
                 (Platform::GameBoyAdvance, "Metroid Fusion"),
+                (Platform::N64, "0005000010105317"),
+                (Platform::N64, "Mario [NSME00]"),
             ]
         );
+        let release = items
+            .iter()
+            .find(|i| i.name == "Cars 3 EUR WiiU-CAT")
+            .unwrap();
+        assert_eq!((release.platform, release.size), (Platform::WiiU, 6));
+        assert_eq!(
+            display_name_of_folder(Path::new("gc_skies_of_arcadia_usa")),
+            "skies of arcadia usa"
+        );
+        let inject = items.iter().find(|i| i.name == "0005000010105317").unwrap();
+        assert_eq!(inject.id, Some(ItemId::Title(0x0005_0000_1010_5317)));
+        let zip = items.iter().find(|i| i.name == "Mario [NSME00]").unwrap();
+        assert_eq!(zip.id, Some(ItemId::Game("NSME00".into())));
         assert_eq!(items[0].id, None);
     }
 }

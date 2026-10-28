@@ -218,6 +218,7 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
             ItemKind::WiiUTitle => "title",
             ItemKind::Rom => "ROM",
             ItemKind::SdBackup => "SD card backup",
+            ItemKind::Archive => "archive",
         }
         .to_string(),
     );
