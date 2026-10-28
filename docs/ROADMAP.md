@@ -79,7 +79,7 @@ what the console expects.
 
 | OS | Partition + format | Rights |
 | --- | --- | --- |
-| macOS | `diskutil eraseDisk FAT32 <NAME> MBRFormat /dev/diskN`, then `newfs_msdos -F 32 -c <sectors per cluster> -v <NAME>` on the partition for the cluster size | none for external disks (the partition is unmounted for `newfs_msdos`) |
+| macOS | `diskutil eraseDisk FAT32 <NAME> MBRFormat /dev/diskN`, then `newfs_msdos -F 32 -c <sectors per cluster> -v <NAME>` on the partition for the cluster size | `diskutil` none; `newfs_msdos` needs administrator rights (password prompt), on the unmounted raw partition `/dev/rdiskNsM`; `-c 128` = 64 KiB clusters (`diskutil` alone picks 32 KiB) |
 | Windows | `diskpart` script (`clean`, `convert mbr`, `create partition primary`, `format fs=fat32 unit=<size> quick label=<NAME>`, `assign`) | administrator (UAC prompt) |
 | Linux | `parted` (`mklabel msdos`, `mkpart primary fat32`) and `mkfs.fat -F 32 -s <sectors per cluster> -n <NAME>` | `pkexec` |
 
