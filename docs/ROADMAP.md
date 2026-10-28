@@ -14,6 +14,8 @@ Done and tried on real hardware (the 3DS "petter1", the iCloud collection and th
 - **Library** (the Games page): the collection from several ROM sources, filtered by platform.
   CIAs, discs, WADs, Wii U titles, ROMs, RAR releases and archives, SD card copies; files only in
   iCloud aren't downloaded. Shows which online console a title is installed on.
+- **[Test log](TESTLOG.md)**: every test on real hardware is written down there – device, what,
+  who, when, how, why and the result. From now on each milestone counts as done only with an entry.
 
 ## How the app is meant to work
 
@@ -203,6 +205,45 @@ what the console expects.
 - Research before building: better sources for series (e.g. Wikidata's "part of the series",
   IGDB's franchises, MobyGames groups – licenses and offline use to check).
 
+### M5b · File management (M–L)
+
+Builds on identified games (M2) and one entry per game (M4). Everything that moves, renames or
+deletes files runs as a task (M1a) and shows a preview first.
+
+**Folder structure, configurable**
+- Per ROM source a **layout** as a template with placeholders, e.g.
+  `{platform}/{title} [{region}]/{title}.{ext}` or `{platform}/{series}/{title} ({id})`, with
+  presets for common layouts (No-Intro names, one folder per game, USB loader layout `wbfs/`).
+  Separate layouts for ROMs, injects, saves and archives (RAR, ZIP) where wanted.
+- **Organize** a source into its layout: the app shows a dry run – what moves where,
+  which names change, conflicts (two files for one target, names too long for FAT32) – and only
+  runs after confirmation. Every run is logged and can be undone from that log.
+- **Clean up**: find duplicates (same checksum), empty folders, leftovers (`.part`, unpacked RAR
+  caches, macOS `._` files), unidentified files; each as a list to review, nothing is deleted
+  silently. Deleted files go to the system's trash where there is one.
+- The layout of devices (drives, SD cards) stays what the console expects (M1b); the layout here
+  is for the collection on the computer.
+
+**Backup rules**
+- Rules per platform, source, collection or single game: *what* (ROM, saves, injects), *where*
+  (another ROM source, an external drive, a network share), *how often* (on change, daily,
+  weekly, by hand) and *how many* versions to keep (e.g. the last 10 saves, every save of the last
+  30 days).
+- Saves are versioned (timestamp, console they came from, checksum); ROMs and discs are only
+  copied once and checked by checksum afterwards.
+- A status per game and per rule: backed up, outdated, never; a report of what isn't backed up
+  anywhere (e.g. "37 games exist only on gamestation").
+- Restoring picks a version and a target (a source folder, a drive, a console over Link).
+
+**ROMs and saves in the game view**
+- The game view (M4) gets the tabs **Files** (ROMs, discs, injects with source, size, checksum,
+  identification), **Saves** (all versions per console, with date and size; back up, restore,
+  export, delete, compare) and **Backups** (which rules cover the game, last run, where the copies
+  are).
+- From there: set the game's own rule, move a file to another source, mark one copy as the main one.
+- Saves come from the consoles (3DS M6, Wii M7, Wii U M8) and from save folders on drives
+  and SD cards; until then the tab shows the save files found in the sources.
+
 ### M6 · The rest of the 3DS (M–L)
 
 - Saves: back up and restore.
@@ -221,9 +262,50 @@ what the console expects.
 - Companion app for Aroma (`.wuhb`) with WUP installs like WUP Installer GX2, title list, saves.
 - Injector modelled on UWUVCI (GPL-3.0, so compatible).
 
+### M9 · Server version in Docker with a web UI (L)
+
+The app as a service on a NAS or home server, in the style of Sonarr/Radarr (the *arr apps):
+runs all the time, is used in the browser, watches the collection and does the backup rules on
+its own.
+
+- **One core, two faces.** Library, devices, tasks, databases, file management and the Link
+  client move into a core crate without iced; the desktop app and the server both use it. This
+  split is prepared in every milestone before: new logic goes into the core, not into the UI.
+- **Server**: a headless binary (`ugbm-server`) with an HTTP API (REST + WebSocket/SSE for task
+  progress and notifications) and the web UI served by the same process. API documented
+  (OpenAPI), so scripts and other tools can use it.
+- **Web UI** like the *arr apps: sidebar (Library, Missing, Collections, Devices, Tasks,
+  Activity/History, Settings, System), tables with filters and bulk actions, a queue page,
+  the log and system status (version, disk space, database age, health checks such as "ROM source
+  not reachable").
+- **Docker image** in the usual home server style:
+  - `/config` for settings, databases and the log; ROM sources and backup targets as volumes
+    (e.g. `/data/roms`, `/data/backups`), paths mapped in the settings.
+  - `PUID`/`PGID`, `TZ`, `UMASK`; port `8765` (to be chosen); multi-arch (amd64, arm64);
+    a healthcheck; images on GHCR, built in CI for every tag.
+  - A `docker-compose.yml` as an example in the docs.
+- **Security**: login (form or basic auth), an API key for scripts, "no login on the local
+  network" as an option like the *arr apps; meant for the home network, HTTPS through a reverse
+  proxy.
+- **What changes in a container**:
+  - Finding consoles needs UDP broadcast/mDNS: `network_mode: host`, or consoles entered by IP.
+  - Formatting disks (M1b) isn't offered; the server works with folders and shares.
+  - Keeping the computer awake isn't needed; notifications go to the web UI and optionally to
+    webhooks (Discord, ntfy, Gotify, e-mail), as the *arr apps do with "Connect".
+- **Scheduler**: backup rules (M5b), database updates (M2) and library scans run on their own,
+  with the scan watching the folders for changes.
+- Tested in CI with the image started and the API called; a test log entry (see TESTLOG.md) on a
+  real NAS before the first release.
+
 ## Open questions
 
 - How large the database snapshot gets, and whether it needs Git LFS.
 - How collections are shared between people.
 - Whether a source for series exists that is good, open and usable offline (see M5).
 - Formatting FAT32 above 32 GB with Windows' own tools: which versions allow it (see M1b).
+- Which template syntax for folder layouts, and how undo works when files changed after a run
+  (see M5b).
+- Where save versions live: next to the game in the ROM source or in one save store (see M5b).
+- Web UI: which framework (server-rendered with htmx, or a single-page app), and whether the
+  desktop app can also be reached through it (see M9).
+- How much of the core can be split from iced without slowing down the milestones before M9.
