@@ -51,6 +51,58 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 - Delete and launch titles from the console's title list.
 - Offer the update of vcinject Link when it is older than the app expects.
 
+### M1b · Prepare SD cards and drives (M)
+
+A wizard in My Consoles ("Prepare an SD card or drive") that makes a card or disk ready for a
+console: check it, format it if needed – with the tools the operating system brings – and lay out
+what the console expects.
+
+**1. Choose the target and the disk**
+- Target: Wii SD card, Wii/GameCube USB drive (USB loaders, Nintendont), Wii U SD card, 3DS SD
+  card. Wii U game drives are formatted by the Wii U itself (WFS); the wizard only says so.
+- Only external and removable disks are offered, never the system disk. Each shows model, size,
+  partition scheme, file system and cluster size.
+
+**2. Check what is there**
+- Wanted: MBR (not GPT) with one primary FAT32 partition; clusters of 32 KiB up to 32 GiB, 64 KiB
+  above (the rule TWBM's drive info already uses). The 3DS wants FAT32 with 64 KiB clusters too.
+- If it already fits: no formatting, go on with the layout. If not: say exactly what is wrong
+  (e.g. "NTFS: the Wii can't use it, and macOS can only read it").
+
+**3. Back up, then format (only when needed)**
+- Before formatting, offer to copy the contents into a ROM source (games, saves, `apps/`) and show
+  how much that is.
+- Formatting erases everything: the disk's name and size are shown again and must be confirmed by
+  typing its name.
+- The operating system's own tools do the work; the app builds the command, shows it and runs it
+  with the rights it needs:
+
+| OS | Partition + format | Rights |
+| --- | --- | --- |
+| macOS | `diskutil eraseDisk FAT32 <NAME> MBRFormat /dev/diskN`, then `newfs_msdos -F 32 -c <sectors per cluster> -v <NAME>` on the partition for the cluster size | none for external disks (the partition is unmounted for `newfs_msdos`) |
+| Windows | `diskpart` script (`clean`, `convert mbr`, `create partition primary`, `format fs=fat32 unit=<size> quick label=<NAME>`, `assign`) | administrator (UAC prompt) |
+| Linux | `parted` (`mklabel msdos`, `mkpart primary fat32`) and `mkfs.fat -F 32 -s <sectors per cluster> -n <NAME>` | `pkexec` |
+
+- Windows refuses FAT32 above 32 GB with its own tools in older versions; newer Windows 11
+  versions are said to lift that limit for the command line. To verify; where it doesn't work, the
+  wizard explains it instead of falling back to a third-party formatter.
+
+**4. Lay out the card or drive**
+- Folders per target: `wbfs/` and `games/` (Wii/GameCube drive), `apps/` (Wii SD), `wiiu/` (Wii U
+  SD, Aroma), `3ds/`, `luma/`, `cias/` (3DS SD).
+- Optionally the usual homebrew, downloaded at that moment from its official source (Open Shop
+  Channel, Universal-DB, the projects' GitHub releases): e.g. USB Loader GX and Nintendont, Aroma,
+  Luma3DS's `boot.firm`. Nothing that isn't freely distributable is bundled.
+- Then the card or drive is remembered as a device in My Consoles, and the backup (if one was
+  made) can be copied back.
+
+**5. Safety**
+- The command is shown before it runs, and its output is kept in the app's log.
+- A disk that changed between choosing and formatting (unplugged, other disk at the same name) stops
+  the wizard.
+- Tested first with disk images (`hdiutil` on macOS, loop devices on Linux, VHDs on Windows) in CI,
+  never with a real disk.
+
 ### M2 · Game databases (M)
 
 - Import and keep up to date: libretro-database (No-Intro, Redump), GameTDB (Wii, GameCube,
@@ -124,3 +176,4 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 - How large the database snapshot gets, and whether it needs Git LFS.
 - How collections are shared between people.
 - Whether a source for series exists that is good, open and usable offline (see M5).
+- Formatting FAT32 above 32 GB with Windows' own tools: which versions allow it (see M1b).
