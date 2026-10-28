@@ -70,6 +70,12 @@ There are no releases of this fork yet. Until there are, build it yourself: see
 [TinyWiiBackupManager](https://github.com/mq1/TinyWiiBackupManager/releases/latest) – it's the
 original and it's great.
 
+## :handshake: Contributing
+
+How branches, commits, pull requests and releases work here: [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md).
+What's planned: [docs/ROADMAP.md](docs/ROADMAP.md). What was tested on real hardware:
+[docs/TESTLOG.md](docs/TESTLOG.md).
+
 ## :heart: Credits
 
 **[Manuel Quarneti (mq1)](https://github.com/mq1)** wrote TinyWiiBackupManager, and with it the
