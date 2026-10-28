@@ -122,6 +122,7 @@ pub struct DriveSpace {
     pub free: u64,
     pub total: u64,
     pub fs_kind: FsKind,
+    pub writable: bool,
 }
 
 impl Drive {
@@ -140,9 +141,22 @@ impl Drive {
                 free: stat.available_space(),
                 total: stat.total_space(),
                 fs_kind: FsKind::try_from_path(&path).unwrap_or(FsKind::Unknown),
+                // e.g. NTFS, which macOS only reads
+                writable: tempfile::tempfile_in(&path).is_ok(),
             });
 
         Self { path, label, space }
+    }
+
+    pub fn read_only(&self) -> bool {
+        self.space.is_some_and(|space| !space.writable)
+    }
+
+    pub fn read_only_reason(&self) -> &'static str {
+        match self.space.map(|space| space.fs_kind) {
+            Some(FsKind::Ntfs) if cfg!(target_os = "macos") => " (NTFS, which macOS only reads)",
+            _ => "",
+        }
     }
 
     /// The same judgement as the toolbox's drive info

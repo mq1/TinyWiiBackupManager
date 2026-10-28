@@ -283,6 +283,18 @@ fn drive_card(drive: &Drive, selected: bool) -> Element<'_, Message> {
         .align_y(Alignment::Center)
     });
 
+    let read_only = drive.read_only().then(|| {
+        row![
+            icon_alert_triangle(),
+            text(format!(
+                "Read-only{}: games and apps can't be added",
+                drive.read_only_reason()
+            ))
+        ]
+        .spacing(5)
+        .align_y(Alignment::Center)
+    });
+
     let online = drive.space.is_some();
     let actions = row![
         online.then(|| {
@@ -314,7 +326,7 @@ fn drive_card(drive: &Drive, selected: bool) -> Element<'_, Message> {
 
     my_group(
         &drive.label,
-        column![path, space, warning, actions].spacing(5),
+        column![path, space, warning, read_only, actions].spacing(5),
     )
     .icon(Icon::HardDrive)
     .top_right_content(text(status).size(12))

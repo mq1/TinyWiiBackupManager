@@ -125,6 +125,14 @@ impl AppState {
         )
     }
 
+    pub fn selected_drive(&self) -> Option<&consoles::Drive> {
+        let mount_point = self.config.mount_point();
+        self.consoles
+            .drives
+            .iter()
+            .find(|drive| drive.path == mount_point)
+    }
+
     pub fn load_drives_task(&self) -> Task<Message> {
         let paths = self.config.known_drives().to_vec();
         Task::perform(consoles::load_drives(paths), Message::GotDrives)

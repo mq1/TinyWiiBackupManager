@@ -21,8 +21,34 @@ use iced::Task;
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking app update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 
+/// Messages that write to the selected drive
+fn writes_to_drive(message: &Message) -> bool {
+    matches!(
+        message,
+        Message::DeleteDir(_)
+            | Message::ImportHomebrewApps(_)
+            | Message::RunTool(_)
+            | Message::InstallOscApp(_)
+            | Message::DownloadTxtCodes(_)
+            | Message::PickedGames(_)
+            | Message::TriggerImport
+            | Message::Scrub(_)
+    )
+}
+
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
+        if writes_to_drive(&message)
+            && let Some(drive) = self.selected_drive().filter(|drive| drive.read_only())
+        {
+            self.notifications.push(Notification::error(format!(
+                "{} is read-only{}: nothing can be written to it",
+                drive.label,
+                drive.read_only_reason()
+            )));
+            return Task::none();
+        }
+
         match message {
             Message::Config(message) => {
                 match &message {
