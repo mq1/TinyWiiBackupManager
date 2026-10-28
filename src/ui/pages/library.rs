@@ -226,6 +226,9 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
     if item.in_cloud {
         details.push("in the cloud".to_string());
     }
+    if !item.copies.is_empty() {
+        details.push(format!("{} copies", item.copies.len() + 1));
+    }
 
     let on = presence(item, state);
     let status: Element<'_, Message> = if on.is_empty() {

@@ -183,6 +183,8 @@ pub struct LibraryItem {
     pub icon: Option<image::Handle>,
     /// only in the cloud: not read, so that scanning doesn't download it
     pub in_cloud: bool,
+    /// the same file in other places (other sources, backups)
+    pub copies: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -317,6 +319,7 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
             kind,
             icon: None,
             in_cloud: false,
+            copies: Vec::new(),
             path,
         });
     }
@@ -330,6 +333,7 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
             id: None,
             icon: None,
             in_cloud: false,
+            copies: Vec::new(),
             path,
         });
     }
@@ -345,6 +349,7 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
         id: None,
         icon: None,
         in_cloud,
+        copies: Vec::new(),
         path,
     };
 
@@ -507,7 +512,45 @@ pub fn scan(sources: &[PathBuf]) -> Vec<LibraryItem> {
             .cmp(&b.platform)
             .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     });
-    items
+    merge_copies(items)
+}
+
+/// One entry per file: the same file name and size in several places is one item with copies.
+/// The copy that is on this computer (not only in the cloud) leads.
+fn merge_copies(items: Vec<LibraryItem>) -> Vec<LibraryItem> {
+    let mut merged: Vec<LibraryItem> = Vec::with_capacity(items.len());
+    let mut index: std::collections::HashMap<(String, u64, bool), usize> =
+        std::collections::HashMap::new();
+
+    for item in items {
+        let key = (
+            item.path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_lowercase())
+                .unwrap_or_default(),
+            item.size,
+            item.path.is_dir(),
+        );
+
+        match index.get(&key) {
+            Some(&i) => {
+                let first = &mut merged[i];
+                if first.in_cloud && !item.in_cloud {
+                    let old = std::mem::replace(first, item);
+                    first.copies.push(old.path);
+                    first.copies.extend(old.copies);
+                } else {
+                    first.copies.push(item.path);
+                }
+            }
+            None => {
+                index.insert(key, merged.len());
+                merged.push(item);
+            }
+        }
+    }
+
+    merged
 }
 
 pub async fn scan_async(sources: Vec<PathBuf>) -> Vec<LibraryItem> {
@@ -563,6 +606,14 @@ mod tests {
                 (Platform::N64, "Mario [NSME00]"),
             ]
         );
+        let mut copy = root.join("backup");
+        fs::create_dir_all(&copy).unwrap();
+        copy.push("Metroid_Fusion.gba");
+        fs::write(&copy, b"rom").unwrap();
+        let fusion = scan(&[root.to_path_buf()]);
+        let fusion = fusion.iter().find(|i| i.name == "Metroid Fusion").unwrap();
+        assert_eq!(fusion.copies.len(), 1);
+
         let release = items
             .iter()
             .find(|i| i.name == "Cars 3 EUR WiiU-CAT")
