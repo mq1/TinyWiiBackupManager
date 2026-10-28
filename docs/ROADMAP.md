@@ -92,6 +92,12 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
   Emerald Version" and "Pokemon Mystery Dungeon" → "Pokemon", with exceptions like "Mario Andretti
   Racing"); "missing" leaves out betas, hacks, BIOS and the like, as vcinject's catalog does.
   Port both.
+- Name matching alone isn't good enough for series ("The Legend of Zelda", "Zelda II" and "Link's
+  Awakening" are one series; "Metroid" and "Super Metroid" too). So: keep the name heuristic, and
+  add a hand-made list of important series (Mario, Zelda, Pokémon, Metroid, Kirby, Donkey Kong …)
+  with their games' IDs, which wins over the heuristic.
+- Research before building: better sources for series (e.g. Wikidata's "part of the series",
+  IGDB's franchises, MobyGames groups – licenses and offline use to check).
 
 ### M6 · The rest of the 3DS (M–L)
 
@@ -115,3 +121,4 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 
 - How large the database snapshot gets, and whether it needs Git LFS.
 - How collections are shared between people.
+- Whether a source for series exists that is good, open and usable offline (see M5).
