@@ -65,6 +65,27 @@ It replaces TWBM's one slot per kind of action (`LongOperations`) and its separa
 - **After a restart**: unfinished tasks are listed again and can be resumed or dropped.
 - Built on iced's `Task::sipper`/streams for progress, with a cancel token per task; the existing
   import, convert, export, scrub and hash code reports progress through it.
+- **The computer stays awake while data moves**: as long as a task copies, installs, imports or
+  downloads, the app keeps the computer from going to sleep from idleness (macOS: an IOKit
+  power assertion like `caffeinate -i`; Windows: `SetThreadExecutionState`; Linux:
+  `systemd-inhibit`/the portal's Inhibit), and lets go when the last such task ends. The screen may
+  still turn off. Found while 116 Wii games were imported to the WiiGames drive.
+
+### M1a+ · Notifications and log (S–M)
+
+TWBM's notifications are toasts in the window that pile up (one per error, e.g. hundreds of
+"Read-only file system"). Rework them together with the task manager:
+
+- **The system's notifications** for what matters while the app is in the background: a task
+  finished or failed, a console came online, an update is ready (macOS: User Notifications;
+  Windows: toast notifications; Linux: the freedesktop notification spec). Can be turned off.
+- **An own notification center** in the app: all messages in one list, grouped (many errors of one
+  task are one entry with "and 245 more"), with time, source (task, console, drive) and a link to
+  what they are about.
+- **The log in the same place**: choose a level – errors, warnings, info, debug – and the center
+  shows the log lines of that level next to the notifications, searchable and exportable as a file
+  for bug reports. The log is also written to a file in the data folder.
+
 
 ### M1 · Install on the 3DS over Wi-Fi (M)
 
