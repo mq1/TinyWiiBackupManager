@@ -103,6 +103,13 @@ what the console expects.
 - Tested first with disk images (`hdiutil` on macOS, loop devices on Linux, VHDs on Windows) in CI,
   never with a real disk.
 
+### M1c · Copy many games to a drive (S)
+
+- "Copy to drive" in the library for a selection, a platform or a whole source folder, not one game
+  at a time; files over 4 GiB are always split for FAT32 (`.wbfs` + `.wbf1` …), as the drive import
+  already does. Found when copying the WBFS backup to the freshly formatted WiiGames drive, where
+  the Finder refuses files over 4 GiB.
+
 ### M2 · Game databases (M)
 
 - Import and keep up to date: libretro-database (No-Intro, Redump), GameTDB (Wii, GameCube,
