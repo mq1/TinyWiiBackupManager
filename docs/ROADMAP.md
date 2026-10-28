@@ -35,13 +35,15 @@ Done and tried on real hardware (the 3DS "petter1", the iCloud collection and th
 Each milestone ends in something usable. They are in the planned order; sizes are rough
 (S = a few hours, M = about one working session like 2026-10-28, L = several).
 
-### M0 · Loose ends (S)
+### M0 · Loose ends (S) – done
 
-- Writing tools check first whether a drive is writable: one clear message ("WiiGames is
-  read-only: NTFS on macOS") instead of one per file; the drive card shows it.
-- The same file in two sources is one entry with "2 copies".
-- A drive's games and homebrew open as tabs in its card in My Consoles.
-- Ignore folders in a source (e.g. `video/`, `music/` on gamestation) to keep scans fast.
+- Writing actions check first whether the drive is writable: one clear message ("WiiGames is
+  read-only (NTFS, which macOS only reads)") instead of one per file; the drive card shows it.
+- The same file in several sources is one entry with "2 copies".
+- A drive's games and homebrew are tabs below a bar with the way back to My Consoles.
+- The library shows the last scan at once and scans again in the background. (Ignoring folders
+  turned out not to be needed: the media folders scan in under a second; the slow part was the
+  cold hard disk.)
 
 ### M1 · Install on the 3DS over Wi-Fi (M)
 
