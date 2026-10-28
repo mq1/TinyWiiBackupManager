@@ -47,6 +47,24 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
   turned out not to be needed: the media folders scan in under a second; the slow part was the
   cold hard disk.)
 
+### M0b · Own face: icon, screenshot, README (S–M)
+
+The fork still shows TinyWiiBackupManager's icon (Wiimote, "TWBM") and screenshot.
+
+- **New icon**, drawn as an SVG source in `assets/` (2–3 drafts to choose from): no Nintendo
+  shapes, logos or controllers; readable at 16×16 and on dark backgrounds. A `just icons` recipe
+  makes every size from it: the PNGs, `package/windows/icon.ico`, the window icon, the macOS
+  iconset and `.icns` (`iconutil`, on macOS or in a macOS CI job), the Linux AppDir sizes, the
+  About page.
+- **New screenshot** of the Library or My Consoles with real data and no personal paths; used in
+  the README and in the Linux `metainfo.xml`. The old icon and screenshot are removed everywhere.
+- **README**:
+  - a section on **injects**: what an inject is, which ones are planned (3DS: GBA, NES, SNES,
+    GB; Wii U: N64, DS, GBA, SNES, NES, GameCube, Wii), identifying them by content (M3), one
+    entry per game with "installable on" (M4), building them (3DS through vcinject, later in Rust,
+    M6; Wii U modelled on UWUVCI, M8), and that no keys or ROMs are shipped.
+  - the outdated phase table replaced by a short overview linking to this roadmap.
+
 ### M1a · Task manager with progress bars (M) – before M1
 
 Every longer action – import, copy to a drive, install on a console, convert, export, scrub,
