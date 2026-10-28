@@ -52,10 +52,17 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 ### M2 · Game databases (M)
 
 - Import and keep up to date: libretro-database (No-Intro, Redump), GameTDB (Wii, GameCube,
-  Wii U, 3DS), 3dsdb and WiiUBrew title lists.
-- Identify every library entry: by checksum (for RAR releases from the RAR headers, read with an
-  external `lsar`/`7z` – the unrar library's license doesn't fit GPL), by title or game ID, by name
-  as a last resort.
+  Wii U, 3DS), 3dsdb and WiiUBrew title lists – only the platforms we support, compacted.
+- **The app ships the databases and updates them.** It keeps working when a source is down.
+  - Every build pulls the current databases.
+  - A snapshot lives in the repository, so that a `git clone` brings current databases along and
+    a build works offline; the build uses it when it can't download, and refreshes it when it can.
+  - At run time the app checks for newer databases and falls back to the shipped ones.
+- Identify every library entry: by checksum (for RAR releases from the RAR headers), by title or
+  game ID, by name as a last resort.
+- RAR is read and unpacked with an external **7-Zip** (`7z`, `7zz` on macOS; on every platform,
+  handles RAR5), falling back to `unar`/`lsar` when only that is installed. The unrar library's
+  license doesn't fit GPL, so it isn't linked.
 - Real names for the ~700 entries that are only a title ID today.
 
 ### M3 · Injects by content (M–L)
@@ -80,8 +87,11 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 
 - Per platform: have / missing, from the databases.
 - Collections: their own file in the data folder with references to game IDs; create, edit, add
-  games; progress per collection ("Zelda: 14 of 19"). Check libretro and Wikidata for series to
-  import as a starting point.
+  games; progress per collection ("Zelda: 14 of 19").
+- Series are suggested from the database names, as vcinject's `library.series` does ("Pokemon -
+  Emerald Version" and "Pokemon Mystery Dungeon" → "Pokemon", with exceptions like "Mario Andretti
+  Racing"); "missing" leaves out betas, hacks, BIOS and the like, as vcinject's catalog does.
+  Port both.
 
 ### M6 · The rest of the 3DS (M–L)
 
@@ -103,6 +113,5 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 
 ## Open questions
 
-- How should the app get the databases: download on first start, or ship a snapshot and update?
-- Which external unpacker to require for RAR (`unar`/`lsar` on macOS, `7z` elsewhere)?
-- Collections: where do suggested series come from, and how are they shared?
+- How large the database snapshot gets, and whether it needs Git LFS.
+- How collections are shared between people.
