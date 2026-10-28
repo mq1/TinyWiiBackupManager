@@ -3,6 +3,7 @@
 
 pub mod convert;
 pub mod drive_info;
+pub mod drive_tabs;
 pub mod dual_toggle;
 pub mod filter_console;
 pub mod game_card;

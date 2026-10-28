@@ -6,7 +6,7 @@ use crate::{
     message::Message,
     state::AppState,
     ui::{
-        components::{notifications::notifications, sidebar::sidebar},
+        components::{drive_tabs::drive_tabs, notifications::notifications, sidebar::sidebar},
         modals::{
             Modal, confirm_scub::confirm_scrub, delete_dir::delete_dir, game_info::game_info,
             homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
@@ -19,7 +19,7 @@ use crate::{
 };
 use iced::{
     Background, Element, Length, Theme, color,
-    widget::{container, opaque, row, stack},
+    widget::{column, container, opaque, row, stack},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
@@ -28,9 +28,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             sidebar(state),
             container(match state.current_page {
                 Page::Library => library(state),
-                Page::Games => games(state),
+                Page::Games => column![drive_tabs(state), games(state)].into(),
                 Page::Consoles => consoles(state),
-                Page::HomebrewApps => homebrew_apps(state),
+                Page::HomebrewApps => column![drive_tabs(state), homebrew_apps(state)].into(),
                 Page::Osc => osc_apps(state),
                 Page::Settings => settings(&state.config).map(Message::Config),
                 Page::Toolbox => toolbox(state),
