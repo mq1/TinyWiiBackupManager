@@ -116,6 +116,10 @@ impl AppState {
                 Task::batch([
                     self.refresh_games_and_apps(),
                     self.load_drives_task(),
+                    Task::perform(
+                        library::load_cache(self.data_dir),
+                        Message::GotCachedLibrary,
+                    ),
                     self.update(Message::ScanLibrary),
                 ])
             }
@@ -536,7 +540,21 @@ impl AppState {
                 let sources = self.config.rom_sources().to_vec();
                 Task::perform(library::scan_async(sources), Message::GotLibrary)
             }
+            Message::GotCachedLibrary(items) => {
+                // a finished scan is newer than the cache
+                if !self.library.scanned_once {
+                    self.library.items = items;
+                }
+                Task::none()
+            }
             Message::GotLibrary(items) => {
+                let save = Task::perform(
+                    library::save_cache(self.data_dir, items.clone()),
+                    |res| match res {
+                        Ok(()) => Message::NoOp,
+                        Err(e) => Message::Notify(e.into()),
+                    },
+                );
                 self.library.items = items;
                 self.library.scanning = false;
                 self.library.scanned_once = true;
@@ -547,7 +565,7 @@ impl AppState {
                 {
                     self.library.platform = None;
                 }
-                Task::none()
+                save
             }
             Message::FilterLibrary(platform) => {
                 self.library.platform = platform;

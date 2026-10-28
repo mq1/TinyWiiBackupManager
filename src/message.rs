@@ -83,6 +83,7 @@ pub enum Message {
     LoadConsoleTitles(SocketAddr),
     ScanLibrary,
     GotLibrary(Vec<LibraryItem>),
+    GotCachedLibrary(Vec<LibraryItem>),
     FilterLibrary(Option<Platform>),
     SearchLibrary(String),
     ToggleRomSources,

@@ -15,7 +15,9 @@ use std::{
 /// How deep a scan goes into a source's folders
 const MAX_DEPTH: usize = 8;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
+)]
 pub enum Platform {
     N3ds,
     Wii,
@@ -71,7 +73,7 @@ impl Platform {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ItemKind {
     /// an installable 3DS title
     Cia,
@@ -171,7 +173,7 @@ fn is_release_folder(names: &[String]) -> bool {
     one_release && only_parts
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct LibraryItem {
     pub path: PathBuf,
     pub platform: Platform,
@@ -180,6 +182,7 @@ pub struct LibraryItem {
     pub size: u64,
     /// 3DS title ID or Wii/GameCube game ID, when the file was read
     pub id: Option<ItemId>,
+    #[serde(skip)]
     pub icon: Option<image::Handle>,
     /// only in the cloud: not read, so that scanning doesn't download it
     pub in_cloud: bool,
@@ -187,7 +190,7 @@ pub struct LibraryItem {
     pub copies: Vec<PathBuf>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ItemId {
     Title(u64),
     Game(String),
@@ -555,6 +558,42 @@ fn merge_copies(items: Vec<LibraryItem>) -> Vec<LibraryItem> {
 
 pub async fn scan_async(sources: Vec<PathBuf>) -> Vec<LibraryItem> {
     smol::unblock(move || scan(&sources)).await
+}
+
+const CACHE_FILENAME: &str = "library.json";
+
+/// The last scan, to show the library at once while the sources are scanned again
+pub async fn load_cache(data_dir: &'static Path) -> Vec<LibraryItem> {
+    smol::unblock(move || {
+        let Ok(contents) = fs::read_to_string(data_dir.join(CACHE_FILENAME)) else {
+            return Vec::new();
+        };
+        let mut items: Vec<LibraryItem> = serde_json::from_str(&contents).unwrap_or_default();
+
+        // icons aren't cached; a CIA's are read from a few KB of it
+        for item in items
+            .iter_mut()
+            .filter(|item| item.kind == ItemKind::Cia && !item.in_cloud)
+        {
+            item.icon = File::open(&item.path)
+                .and_then(|f| cia::read(BufReader::new(f)))
+                .ok()
+                .and_then(|info| info.smdh)
+                .and_then(|smdh| smdh::large_icon_rgba(&smdh))
+                .map(|rgba| {
+                    image::Handle::from_rgba(smdh::LARGE_ICON_SIZE, smdh::LARGE_ICON_SIZE, rgba)
+                });
+        }
+
+        items
+    })
+    .await
+}
+
+pub async fn save_cache(data_dir: &'static Path, items: Vec<LibraryItem>) -> anyhow::Result<()> {
+    let contents = serde_json::to_string(&items)?;
+    smol::fs::write(data_dir.join(CACHE_FILENAME), contents).await?;
+    Ok(())
 }
 
 #[cfg(test)]
