@@ -47,11 +47,19 @@ pub fn task_row(task: &Task) -> Element<'_, Message> {
     };
 
     let buttons = match task.state() {
-        TaskState::Waiting => row![row_button(
-            Icon::X,
-            "Cancel",
-            Some(move || Message::CancelTask(id))
-        )],
+        TaskState::Waiting => row![
+            row_button(
+                Icon::ArrowUp,
+                "Earlier",
+                Some(move || Message::MoveTask(id, true))
+            ),
+            row_button(
+                Icon::ArrowDown,
+                "Later",
+                Some(move || Message::MoveTask(id, false))
+            ),
+            row_button(Icon::X, "Cancel", Some(move || Message::CancelTask(id))),
+        ],
         TaskState::Running => row![
             row_button(Icon::Pause, "Pause", Some(move || Message::PauseTask(id))),
             row_button(Icon::X, "Cancel", Some(move || Message::CancelTask(id))),

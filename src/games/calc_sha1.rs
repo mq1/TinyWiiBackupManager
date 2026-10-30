@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, long_operation::LongOperationState, util::sha1_list};
+use crate::{
+    games::game::Game,
+    tasks::{self, Reporter, TaskControl, WorkerEvent},
+    util::sha1_list,
+};
 use anyhow::{Context, Result};
 use nod::{
     read::{DiscOptions, DiscReader},
@@ -9,8 +13,10 @@ use nod::{
 };
 use smol::stream::Stream;
 
-fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>) -> Result<bool> {
+fn perform_blocking(game: &Game, control: &TaskControl, reporter: &mut Reporter) -> Result<bool> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+    let message = || format!("Hashing {}", game.title());
+    reporter.progress(0, None, message);
 
     let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
 
@@ -21,47 +27,32 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
 
     let writer = DiscWriter::new(disc, &FormatOptions::default())?;
 
-    let mut prev_percentage = 100;
     let finalization = writer.process(
         |_, progress, total| {
-            let progress_percentage = progress * 100 / total;
-
-            if progress_percentage != prev_percentage {
-                let _ = tx.try_send(LongOperationState::Progress(format!(
-                    "✓  Hashing {}  {progress_percentage:02}%",
-                    game.title()
-                )));
-
-                prev_percentage = progress_percentage;
-            }
-
+            control.checkpoint().map_err(std::io::Error::other)?;
+            reporter.progress(progress, Some(total), message);
             Ok(())
         },
         &process_opts,
-    )?;
+    );
 
-    let sha1 = finalization.sha1.context("Failed to calculate SHA1")?;
+    // nod wraps the error; the task manager knows it was cancelled anyway
+    control.checkpoint()?;
+    let sha1 = finalization?.sha1.context("Failed to calculate SHA1")?;
 
-    let known_sha1 = sha1_list::is_known(&sha1);
-
-    Ok::<_, anyhow::Error>(known_sha1)
+    Ok(sha1_list::is_known(&sha1))
 }
 
-pub fn calc_sha1(game: Game) -> impl Stream<Item = LongOperationState> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, &tx) {
-            Ok(true) => LongOperationState::Finished(format!(
+/// Checks the game's SHA-1 against the list of known good dumps as a task.
+pub fn calc_sha1(game: Game, control: TaskControl) -> impl Stream<Item = WorkerEvent> {
+    tasks::spawn_blocking(
+        move |reporter| match perform_blocking(&game, &control, reporter) {
+            Ok(true) => Ok(format!(
                 "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
                 game.title()
             )),
-            Ok(false) => LongOperationState::Errored(format!("Hash mismatch for {}", game.title())),
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+            Ok(false) => Err(format!("Hash mismatch for {}", game.title())),
+            Err(e) => Err(e.to_string()),
+        },
+    )
 }

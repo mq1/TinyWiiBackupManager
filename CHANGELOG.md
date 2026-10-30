@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (size, speed, time left) on the new Tasks page and a bar at the bottom of every page. A running
   import can be paused or cancelled – a cancelled or failed import leaves no half-written files
   behind – and retried. Replaces the import queue and its "Start importing" button.
+- 📊 Converting, exporting, scrubbing and checking the hash of a game are tasks too, with the same
+  progress bars, pause, cancel and retry; several exports can wait in line, and waiting tasks can
+  be moved earlier or later. A cancelled conversion or export removes its half-written file; a
+  cancelled scrub leaves the game as it was.
 
 ## [v6.1.9] - 2026-10-21
 

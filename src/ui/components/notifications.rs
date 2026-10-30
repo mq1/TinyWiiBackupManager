@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    long_operation::{LongOperationKind, LongOperationState},
     message::Message,
     notifications::notification::{Notification, NotificationLevel},
     state::AppState,
@@ -12,9 +11,7 @@ use iced::{
     Alignment, Element, Theme, border,
     widget::{Column, button, row, text},
 };
-use itertools::Either;
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
-use std::iter::{empty, once};
 
 fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     let icon = match notification.level() {
@@ -52,24 +49,12 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     .into()
 }
 
-fn progress(
-    (op_state, _): &(LongOperationState, LongOperationKind),
-) -> impl Iterator<Item = Element<'_, Message>> {
-    match op_state {
-        LongOperationState::Progress(progress) => {
-            Either::Left(once(Element::from(my_card(text(progress.as_str())))))
-        }
-        _ => Either::Right(empty()),
-    }
-}
-
 pub fn notifications(state: &AppState) -> Element<'_, Message> {
     state
         .notifications
         .iter()
         .enumerate()
         .map(item)
-        .chain(state.long_operations.iter().flat_map(progress))
         .collect::<Column<'_, Message>>()
         .padding(10)
         .spacing(10)

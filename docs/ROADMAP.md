@@ -22,20 +22,20 @@ Done and tried on real hardware (the 3DS "petter1", the iCloud collection and th
 What cloud sessions can't do: real drives, consoles, the macOS build and its look. In this order;
 each item is ticked off here (and gets its test log entry) when done.
 
-1. **M1a, import as tasks** (pull request #5, branch `claude/m1a-import-tasks`): check out the
-   branch, `cargo run`, import a few Wii and GameCube games to WiiGames (a FAT32 drive, so Wii
+1. **M1a, import as tasks** (#5, merged before the test at the maintainer's request): on `main`,
+   `cargo run`, import a few Wii and GameCube games to WiiGames (a FAT32 drive, so Wii
    games are split). Watch the progress bar on the Tasks page and the bar at the bottom of other
    pages; pause and resume one; cancel one and check that its folder in `wbfs/` or `games/` is
    gone; import two discs of one GameCube game and cancel the second (the first must stay);
    retry a cancelled one. Also try a read-only drive (the NTFS one): one clear message, no task.
-   Then a test log entry, and merge #5.
+   Then a test log entry.
 2. **M0b, own face** (see M0b below): `just icons` for the `.icns`, the new screenshot, the icon
    in the Dock, Finder, ⌘-Tab and at 16 px; test log entry; M0b done.
-3. **M1a, convert, export, scrub and hash as tasks** (branch `claude/m1a-more-tasks`, after #5):
-   in the Toolbox convert a game into RVZ and cancel it halfway (no file left); export two games
+3. **M1a, convert, export, scrub and hash as tasks** (#10, merged before the test too): in the
+   Toolbox convert a game into RVZ and cancel it halfway (no file left); export two games
    from WiiGames at once (the second waits), move a waiting one earlier; scrub a Wii game with an
    update partition, then cancel a second scrub (the game must still start in USB Loader GX);
-   check the hash of a known good dump. Test log entry, then merge.
+   check the hash of a known good dump. Test log entry.
 4. **Every later M1a pull request**: try it on the Mac before merging (the stay-awake one with a
    long import and the Mac left alone until it would sleep).
 
@@ -114,13 +114,13 @@ The fork still shows TinyWiiBackupManager's icon (Wiimote, "TWBM") and screensho
 1. **Core** (`claude/m1a-task-core`): `src/tasks/` without iced – tasks with resources and one
    queue per resource, progress with speed and time left, cancel and pause (`TaskControl`),
    retry, reordering, history. Tested, not used by the UI yet.
-2. **Import as tasks** (`claude/m1a-import-tasks`, cloud session 2026-10-30): the import queue
+2. **Import as tasks** (#5, cloud session 2026-10-30, merged): the import queue
    becomes tasks, with progress bars and the bar at the bottom of every page; replaces
    `LongOperationKind::Import`. Imports start when added (no "Start importing" any more); pause,
    cancel (removes what was written) and retry per task; the Tasks page already lists every
    task and the history. Still to try on the Mac with real games (test log).
-3. **Convert, export, scrub, checksums as tasks** (`claude/m1a-more-tasks`, cloud session
-   2026-10-30, on top of #5): `LongOperations` is removed; waiting tasks can be moved earlier
+3. **Convert, export, scrub, checksums as tasks** (#10, cloud session 2026-10-30, merged):
+   `LongOperations` is removed; waiting tasks can be moved earlier
    or later on the Tasks page. Still to try on the Mac (test log).
 4. **Stay awake** while a task is running (macOS, Windows, Linux).
 5. **Unfinished tasks after a restart**: listed again, to resume or drop. Split off from 3,

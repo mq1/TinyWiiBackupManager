@@ -18,7 +18,7 @@ pub fn tasks(state: &AppState) -> Element<'_, Message> {
         state.tasks.iter().partition(|t| t.state().is_finished());
 
     let content: Element<'_, Message> = if finished.is_empty() && open.is_empty() {
-        text("No tasks yet: importing a game to a drive shows up here.").into()
+        text("No tasks yet: importing, exporting, converting, scrubbing and hashing games show up here.").into()
     } else {
         my_card(
             open.into_iter()

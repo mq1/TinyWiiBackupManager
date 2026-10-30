@@ -8,7 +8,6 @@ use crate::{
     homebrew::{self, homebrew_state::HomebrewState},
     jobs::Job,
     library::LibraryState,
-    long_operation::LongOperations,
     message::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     osc::{self, osc_state::OscState},
@@ -50,7 +49,6 @@ pub struct AppState {
     pub homebrew: HomebrewState,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
-    pub long_operations: LongOperations,
     pub tasks: TaskManager,
     pub jobs: HashMap<TaskId, Job>,
     pub osc_contents: OscState,
@@ -80,7 +78,6 @@ impl AppState {
                     new_version: None,
                     consoles: ConsolesState::default(),
                     library: LibraryState::default(),
-                    long_operations: LongOperations::new(),
                 },
                 Task::batch([
                     Task::perform(Config::load(data_dir), Message::GotConfig),
@@ -267,6 +264,17 @@ impl AppState {
 
             Some(Task::stream(job.run(control)).map(move |event| Message::TaskEvent(id, event)))
         }))
+    }
+
+    /// Whether the game in `game_dir` waits for or is being scrubbed.
+    pub fn is_scrubbing(&self, game_dir: &Path) -> bool {
+        self.tasks.iter().any(|task| {
+            !task.state().is_finished()
+                && self
+                    .jobs
+                    .get(&task.id())
+                    .is_some_and(|job| job.scrubs(game_dir))
+        })
     }
 
     /// Removes the finished tasks and their jobs.

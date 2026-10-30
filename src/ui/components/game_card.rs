@@ -13,17 +13,15 @@ use iced::{
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
-pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
+pub fn game_card(game: &Game) -> Element<'_, Message> {
     let cover: Element<'_, Message> = match game.cover() {
         Some(cover) => image(cover).height(96).into(),
         None => space().height(96).into(),
     };
 
-    let mut export_btn = my_button().icon(Icon::HardDriveDownload);
-
-    if !is_exporting {
-        export_btn = export_btn.on_press_with(|| Message::PickExportDest(game.clone()));
-    }
+    let export_btn = my_button()
+        .icon(Icon::HardDriveDownload)
+        .on_press_with(|| Message::PickExportDest(game.clone()));
 
     my_card(
         column![

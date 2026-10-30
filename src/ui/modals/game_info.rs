@@ -3,7 +3,6 @@
 
 use crate::{
     games::game::Game,
-    long_operation::LongOperationKind,
     message::Message,
     state::AppState,
     ui::components::{
@@ -78,7 +77,7 @@ pub fn game_info<'a>(
             .icon(Icon::Shredder)
             .kind(MyButtonKind::Secondary);
 
-        if state.long_operations.is_idle(LongOperationKind::Scrub) {
+        if !state.is_scrubbing(game.path()) {
             btn = btn.on_press_with(|| Message::AskConfirmScrub(game.clone()));
         }
 

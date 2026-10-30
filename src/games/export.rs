@@ -1,20 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, long_operation::LongOperationState, util::misc::OPTIMAL_THREADS};
-use anyhow::{Context, Result};
-use nod::{
-    common::Format,
-    read::{DiscOptions, DiscReader},
-    write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
+use crate::{
+    games::{convert::write_disc_blocking, game::Game},
+    tasks::{self, TaskControl, WorkerEvent},
 };
+use nod::common::Format;
 use smol::stream::Stream;
-use std::{
-    ffi::OsStr,
-    fs::File,
-    io::{BufWriter, Seek, Write},
-    path::PathBuf,
-};
+use std::path::PathBuf;
 
 pub fn ext_to_format(ext: &str) -> Option<Format> {
     match ext {
@@ -29,82 +22,19 @@ pub fn ext_to_format(ext: &str) -> Option<Format> {
     }
 }
 
-fn perform_blocking(
-    game: &Game,
+/// Exports a game from the drive to a file as a task.
+pub fn export_game(
+    game: Game,
     out_path: PathBuf,
-    tx: &smol::channel::Sender<LongOperationState>,
-) -> Result<()> {
-    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+    control: TaskControl,
+) -> impl Stream<Item = WorkerEvent> {
+    tasks::spawn_blocking(move |reporter| {
+        let disc_path = game.get_disc_path_blocking().ok_or("disc not found")?;
 
-    let ext = out_path
-        .extension()
-        .and_then(OsStr::to_str)
-        .and_then(ext_to_format)
-        .context("invalid extension")?;
-
-    let format_opts = FormatOptions::new(ext);
-
-    let disc_reader = DiscReader::new(
-        &disc_path,
-        &DiscOptions {
-            preloader_threads: OPTIMAL_THREADS.preloader,
-            ..Default::default()
-        },
-    )?;
-
-    let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
-    let mut out_writer = {
-        let file = File::create(out_path)?;
-        BufWriter::new(file)
-    };
-
-    let mut prev_percentage = 100;
-    let finalization = disc_writer.process(
-        |data, progress, total| {
-            out_writer.write_all(&data)?;
-
-            let progress_percentage = progress * 100 / total;
-            if progress_percentage != prev_percentage {
-                let _ = tx.try_send(LongOperationState::Progress(format!(
-                    "⤓  Exporting {}  {progress_percentage:02}%",
-                    game.title()
-                )));
-
-                prev_percentage = progress_percentage;
-            }
-
-            Ok(())
-        },
-        &ProcessOptions {
-            processor_threads: OPTIMAL_THREADS.processor,
-            scrub: ScrubLevel::None,
-            digest_crc32: true,
-            digest_md5: false,
-            digest_sha1: true,
-            digest_xxh64: true,
-        },
-    )?;
-
-    if !finalization.header.is_empty() {
-        out_writer.rewind()?;
-        out_writer.write_all(&finalization.header)?;
-    }
-
-    out_writer.flush()?;
-    Ok(())
-}
-
-pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = LongOperationState> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, out_path, &tx) {
-            Ok(()) => LongOperationState::Finished(format!("Exported {}", game.title())),
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+        write_disc_blocking(&disc_path, &out_path, &control, reporter, || {
+            format!("Exporting {}", game.title())
+        })
+        .map(|()| format!("Exported {}", game.title()))
+        .map_err(|e| e.to_string())
+    })
 }

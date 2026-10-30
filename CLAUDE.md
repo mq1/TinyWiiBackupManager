@@ -30,18 +30,19 @@ start from `main` and only see what is there, so the update goes to `main` in it
 
 - **M1a, task manager** (see the roadmap):
   1. Core: merged (#4).
-  2. Import as tasks: pull request **#5**, branch `claude/m1a-import-tasks`; `main` merged in,
-     checks green, waits for the maintainer's review and a test on the Mac (see "Waiting for the
-     Mac" in the roadmap). Has pause, resume, retry, cancel and "Cancel all" already.
-  3. Convert, export, scrub and checksums as tasks, `LongOperations` removed, reordering:
-     branch `claude/m1a-more-tasks` on top of #5, pushed; waits for #5 and a test on the Mac.
-  4. Stay awake: pull request **#7**, branch `claude/m1a-stay-awake`, open.
-  5. Unfinished tasks after a restart: **not started**, the next piece of work (start it from
-     `claude/m1a-more-tasks`, or from `main` once 3 is merged).
+  2. Import as tasks: merged (#5).
+  3. Convert, export, scrub and checksums as tasks, `LongOperations` removed, reordering: merged
+     (#10).
+     Both were merged before the test on the Mac; it is still due (see "Waiting for the Mac" in
+     the roadmap).
+  4. Stay awake: pull request **#7**, branch `claude/m1a-stay-awake`, open; was branched before
+     #5 and needs `main` merged in.
+  5. Unfinished tasks after a restart: **not started**, the next piece of work; start it from
+     `main`.
 - **M0b**: only the Mac part is left (`.icns`, screenshot).
-- A second, parallel version of #5 was pushed as `claude/m1a-import-tasks-alt` by mistake; the
-  maintainer deletes it on GitHub (sessions may not delete remote branches). Its one useful
-  change (reload the games only when the import went to the drive shown) is in #5.
+- Branches to delete on GitHub (sessions may not): `claude/m1a-import-tasks-alt` (a duplicate
+  of #5 pushed by mistake), and the merged `claude/m1a-import-tasks`, `claude/m1a-more-tasks`
+  and `claude/docs-handover-on-main`.
 
 ## Working with the maintainer
 

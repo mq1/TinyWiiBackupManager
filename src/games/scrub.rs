@@ -4,7 +4,7 @@ use crate::{
         game::Game,
         import::{SPLIT_SIZE, get_filename},
     },
-    long_operation::LongOperationState,
+    tasks::{self, Reporter, TaskControl, WorkerEvent},
     util::misc::OPTIMAL_THREADS,
 };
 use anyhow::{Context, Result, anyhow};
@@ -18,9 +18,12 @@ use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
     io::{BufWriter, Write},
+    path::Path,
 };
 
-fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>) -> Result<()> {
+/// Writes the scrubbed game next to the game's folder and swaps the two once it is complete; on
+/// failure or cancel only the unfinished copy is removed, the game stays as it was.
+fn perform_blocking(game: &Game, control: &TaskControl, reporter: &mut Reporter) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let game_dir_name = game
@@ -32,6 +35,26 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
     let tmp_game_dir_name = format!("{game_dir_name} SCRUB");
     let tmp_game_dir = game.path().with_file_name(tmp_game_dir_name);
     std::fs::create_dir(&tmp_game_dir)?;
+
+    if let Err(e) = write_scrubbed(game, &disc_path, &tmp_game_dir, control, reporter) {
+        let _ = std::fs::remove_dir_all(&tmp_game_dir);
+        return Err(e);
+    }
+
+    std::fs::remove_dir_all(game.path())?;
+    std::fs::rename(tmp_game_dir, game.path())?;
+
+    Ok(())
+}
+
+fn write_scrubbed(
+    game: &Game,
+    disc_path: &Path,
+    tmp_game_dir: &Path,
+    control: &TaskControl,
+    reporter: &mut Reporter,
+) -> Result<()> {
+    reporter.progress(0, None, || format!("Scrubbing {}", game.title()));
 
     let format_opts = FormatOptions::new(Format::Wbfs);
 
@@ -45,7 +68,7 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
     };
 
     {
-        let files = retrieve_multi_disc_files(&disc_path)?;
+        let files = retrieve_multi_disc_files(disc_path)?;
 
         let must_split = files.len() > 1;
         let split_size = must_split.then_some(SPLIT_SIZE);
@@ -61,7 +84,7 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
         let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
 
         let out_writer = SplitWriter::create(
-            &tmp_game_dir,
+            tmp_game_dir,
             |part| {
                 get_filename(
                     game.id(),
@@ -77,25 +100,21 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
         )?;
         let mut out_writer = BufWriter::new(out_writer);
 
-        let mut prev_percentage = 100;
         let finalization = disc_writer.process(
             |data, progress, total| {
+                control.checkpoint().map_err(std::io::Error::other)?;
                 out_writer.write_all(&data)?;
-
-                let progress_percentage = progress * 100 / total;
-                if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(LongOperationState::Progress(format!(
-                        "Scrubbing {}  {progress_percentage:02}%",
-                        game.title()
-                    )));
-
-                    prev_percentage = progress_percentage;
-                }
-
+                reporter.progress(progress, Some(total), || {
+                    format!("Scrubbing {}", game.title())
+                });
                 Ok(())
             },
             &process_opts,
-        )?;
+        );
+
+        // nod wraps the error; the task manager knows it was cancelled anyway
+        control.checkpoint()?;
+        let finalization = finalization?;
 
         let mut out_writer = out_writer
             .into_inner()
@@ -108,23 +127,14 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
         out_writer.flush()?;
     }
 
-    std::fs::remove_dir_all(game.path())?;
-    std::fs::rename(tmp_game_dir, game.path())?;
-
     Ok(())
 }
 
-pub fn scrub_game(game: Game) -> impl Stream<Item = LongOperationState> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, &tx) {
-            Ok(()) => LongOperationState::Finished(format!("Scrubbed {}", game.title())),
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+/// Removes the update partition of a Wii game on the drive as a task.
+pub fn scrub_game(game: Game, control: TaskControl) -> impl Stream<Item = WorkerEvent> {
+    tasks::spawn_blocking(move |reporter| {
+        perform_blocking(&game, &control, reporter)
+            .map(|()| format!("Scrubbed {}", game.title()))
+            .map_err(|e| e.to_string())
+    })
 }

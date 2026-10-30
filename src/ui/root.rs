@@ -68,13 +68,11 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 }),
             )
         }),
-        (state.notifications.has_notifications() || state.long_operations.is_any_running()).then(
-            || {
-                container(notifications(state))
-                    .align_right(Length::Fill)
-                    .align_bottom(Length::Fill)
-            }
-        )
+        state.notifications.has_notifications().then(|| {
+            container(notifications(state))
+                .align_right(Length::Fill)
+                .align_bottom(Length::Fill)
+        })
     ];
 
     // fill title bar

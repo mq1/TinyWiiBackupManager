@@ -4,7 +4,6 @@
 use crate::{
     config::ViewAs,
     games::games_state::GamesState,
-    long_operation::LongOperationKind,
     message::Message,
     state::AppState,
     ui::{
@@ -30,12 +29,10 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
         GamesState::NotLoaded | GamesState::Loading => loading(),
         GamesState::Errored(e) => errored(e),
         GamesState::Loaded(games) => {
-            let is_exporting = !state.long_operations.is_idle(LongOperationKind::Export);
-
             let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => games
                     .iter_by(state.config.sort_by())
-                    .map(|game| game_card(game, is_exporting))
+                    .map(|game| game_card(game))
                     .collect::<Row<'_, _>>()
                     .spacing(10)
                     .wrap()
@@ -44,7 +41,7 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
                 ViewAs::Table => my_card(
                     games
                         .iter_by(state.config.sort_by())
-                        .map(|game| game_row(game, is_exporting))
+                        .map(|game| game_row(game))
                         .intersperse_with(|| rule::horizontal(1).into())
                         .collect::<Column<'_, _>>(),
                 )

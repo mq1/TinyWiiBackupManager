@@ -4,14 +4,10 @@
 use crate::{
     config::message::ConfigMessage,
     consoles,
-    games::{
-        ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
-        games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
-    },
+    games::{ImportEntry, games_state::GamesState, txtcodes::download_cheats},
     homebrew::homebrew_state::HomebrewState,
     jobs::Job,
     library,
-    long_operation::{LongOperationKind, LongOperationState},
     message::Message,
     notifications::notification::Notification,
     osc::osc_state::OscState,
@@ -204,14 +200,11 @@ impl AppState {
             }
             Message::HomebrewAppsImported(_) => Task::none(),
             Message::CalcGameSha1(game) => {
-                self.long_operations.set(
-                    LongOperationKind::Hash,
-                    LongOperationState::Progress(String::new()),
-                );
-
-                Task::stream(calc_sha1(game)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Hash, op_state)
-                })
+                self.add_job(Job::Hash {
+                    game,
+                    mount_point: self.config.mount_point().to_path_buf(),
+                });
+                self.start_ready_tasks()
             }
             Message::PickGames => {
                 if let GamesState::Loaded(games) = &self.games {
@@ -279,11 +272,9 @@ impl AppState {
                     }
                 }
 
-                // only the drive shown needs reloading, and only if the game went there
-                let refresh = match self.jobs.get(&id) {
-                    Some(Job::Import { config, .. })
-                        if config.mount_point() == self.config.mount_point() =>
-                    {
+                // only the drive shown needs reloading, and only if the job changed its games
+                let refresh = match self.jobs.get(&id).and_then(Job::changes_games_on) {
+                    Some(mount_point) if mount_point == self.config.mount_point() => {
                         Task::batch([self.get_games_task(), self.get_drive_info_task()])
                     }
                     _ => Task::none(),
@@ -315,6 +306,10 @@ impl AppState {
             }
             Message::ResumeTask(id) => {
                 self.tasks.resume(id);
+                Task::none()
+            }
+            Message::MoveTask(id, up) => {
+                self.tasks.move_waiting(id, up);
                 Task::none()
             }
             Message::RetryTask(id) => {
@@ -372,26 +367,12 @@ impl AppState {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => {
-                self.long_operations.set(
-                    LongOperationKind::Export,
-                    LongOperationState::Progress(String::new()),
-                );
-
-                Task::stream(export_game(game, out_path)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Export, op_state)
-                })
-            }
-            Message::SetLongOperationState(op_kind, mut op_state) => {
-                if let LongOperationState::Finished(success) = op_state {
-                    self.notifications.push(Notification::success(success));
-                    op_state = LongOperationState::Idle;
-                } else if let LongOperationState::Errored(error) = op_state {
-                    self.notifications.push(Notification::error(error));
-                    op_state = LongOperationState::Idle;
-                }
-
-                self.long_operations.set(op_kind, op_state);
-                Task::none()
+                self.add_job(Job::Export {
+                    game,
+                    out_path,
+                    mount_point: self.config.mount_point().to_path_buf(),
+                });
+                self.start_ready_tasks()
             }
             Message::RunTool(tool) => self.run_tool(tool),
             Message::PickFileToSendViaWiiload => dialogs::init_file_dialog_task()
@@ -502,9 +483,11 @@ impl AppState {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_in_out_dialogs_task)
             }
             Message::ConvertGame(disc_path, out_path) => {
-                Task::stream(convert_game(disc_path, out_path)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Convert, op_state)
-                })
+                self.add_job(Job::Convert {
+                    disc_path,
+                    out_path,
+                });
+                self.start_ready_tasks()
             }
             Message::GotKnownConsoles(entries) => {
                 self.consoles.set_known(entries);
@@ -677,11 +660,11 @@ impl AppState {
             }
             Message::Scrub(game) => {
                 self.current_modal = None;
-                Task::stream(scrub_game(game))
-                    .map(|op_state| {
-                        Message::SetLongOperationState(LongOperationKind::Scrub, op_state)
-                    })
-                    .chain(Task::done(Message::RefreshGamesAndApps))
+                self.add_job(Job::Scrub {
+                    game,
+                    mount_point: self.config.mount_point().to_path_buf(),
+                });
+                self.start_ready_tasks()
             }
         }
     }
