@@ -17,6 +17,7 @@ mod n3ds;
 mod notifications;
 mod osc;
 mod state;
+mod tasks;
 mod toolbox;
 mod ui;
 mod update;

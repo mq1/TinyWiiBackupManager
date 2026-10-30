@@ -88,6 +88,16 @@ The fork still shows TinyWiiBackupManager's icon (Wiimote, "TWBM") and screensho
 
 ### M1a · Task manager with progress bars (M) – before M1
 
+**Pull requests, in this order** (each leaves `main` usable):
+1. **Core** (`claude/m1a-task-core`): `src/tasks/` without iced – tasks with resources and one
+   queue per resource, progress with speed and time left, cancel and pause (`TaskControl`),
+   retry, reordering, history. Tested, not used by the UI yet.
+2. **Import as tasks**: the import queue becomes tasks, with progress bars and the bar at the
+   bottom of every page; replaces `LongOperationKind::Import`.
+3. **Convert, export, scrub, checksums as tasks**, then `LongOperations` is removed; the task
+   manager page with pause, cancel, retry, reorder and the history; unfinished tasks after a restart.
+4. **Stay awake** while a task is running (macOS, Windows, Linux).
+
 Every longer action – import, copy to a drive, install on a console, convert, export, scrub,
 checksums, downloads, scans, later unpacking and injecting – becomes a **task** in one task manager.
 It replaces TWBM's one slot per kind of action (`LongOperations`) and its separate import queue.
