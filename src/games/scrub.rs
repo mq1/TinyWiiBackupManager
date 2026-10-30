@@ -1,11 +1,11 @@
 use crate::{
+    config::Config,
     games::{
-        disc_reader::{SharedMultiFileReader, retrieve_multi_disc_files},
         game::Game,
-        import::{SPLIT_SIZE, get_filename},
+        import::{BUF_SIZE, SPLIT_SIZE, get_filename},
     },
     long_operation::LongOperationState,
-    util::misc::OPTIMAL_THREADS,
+    util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
 use anyhow::{Context, Result, anyhow};
 use nod::{
@@ -19,8 +19,14 @@ use std::{
     ffi::OsStr,
     io::{BufWriter, Write},
 };
+use which_fs::FsKind;
 
-fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>) -> Result<()> {
+fn perform_blocking(
+    game: &Game,
+    config: &Config,
+    drive: &DriveState,
+    tx: &smol::channel::Sender<LongOperationState>,
+) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let game_dir_name = game
@@ -45,19 +51,21 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
     };
 
     {
-        let files = retrieve_multi_disc_files(&disc_path)?;
+        let is_fat32 = if let DriveState::Loaded(info) = drive {
+            info.fs_kind() == FsKind::Fat32
+        } else {
+            true
+        };
 
-        let must_split = files.len() > 1;
+        let must_split = is_fat32 || config.always_split();
         let split_size = must_split.then_some(SPLIT_SIZE);
 
-        let disc_reader = DiscReader::new_stream(
-            Box::new(SharedMultiFileReader::new(files)?),
-            &DiscOptions {
-                preloader_threads: OPTIMAL_THREADS.preloader,
-                ..Default::default()
-            },
-        )?;
+        let disc_opts = DiscOptions {
+            preloader_threads: OPTIMAL_THREADS.preloader,
+            ..Default::default()
+        };
 
+        let disc_reader = DiscReader::new(&disc_path, &disc_opts)?;
         let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
 
         let out_writer = SplitWriter::create(
@@ -75,7 +83,7 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
             },
             split_size,
         )?;
-        let mut out_writer = BufWriter::new(out_writer);
+        let mut out_writer = BufWriter::with_capacity(BUF_SIZE, out_writer);
 
         let mut prev_percentage = 100;
         let finalization = disc_writer.process(
@@ -99,13 +107,13 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
 
         let mut out_writer = out_writer
             .into_inner()
-            .map_err(|_| anyhow!("Failed to get inner writer"))?;
+            .map_err(|_| anyhow!("Failed to flush BufWriter"))?;
 
         if !finalization.header.is_empty() {
             out_writer.write_header(&finalization.header)?;
         }
 
-        out_writer.flush()?;
+        out_writer.sync_all()?;
     }
 
     std::fs::remove_dir_all(game.path())?;
@@ -114,11 +122,15 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
     Ok(())
 }
 
-pub fn scrub_game(game: Game) -> impl Stream<Item = LongOperationState> {
+pub fn scrub_game(
+    game: Game,
+    config: Config,
+    drive: DriveState,
+) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, &tx) {
+        let exit = match perform_blocking(&game, &config, &drive, &tx) {
             Ok(()) => LongOperationState::Finished(format!("Scrubbed {}", game.title())),
             Err(e) => LongOperationState::Errored(e.to_string()),
         };

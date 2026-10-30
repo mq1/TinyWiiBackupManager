@@ -412,7 +412,8 @@ impl AppState {
             }
             Message::Scrub(game) => {
                 self.current_modal = None;
-                Task::stream(scrub_game(game))
+
+                Task::stream(scrub_game(game, self.config.clone(), self.drive.clone()))
                     .map(|op_state| {
                         Message::SetLongOperationState(LongOperationKind::Scrub, op_state)
                     })

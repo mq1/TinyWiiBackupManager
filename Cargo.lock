@@ -3806,9 +3806,9 @@ dependencies = [
 
 [[package]]
 name = "split-write"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37511b4f11e05ce80505e3d985638dfea6e438d83df0b9804d09cabc9ae3a4ea"
+checksum = "dd81e7310154b3e95f6e3fd671487575d40b49ff08ed7c8470c3ff56318fc837"
 
 [[package]]
 name = "static_assertions"

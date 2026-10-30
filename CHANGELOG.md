@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- ✍️ Disc file writing is more reliable (fsync is now called after each written file) and potentially faster (buffer size is now 4 MiB, previouly 32 KiB)
+
 ## [v6.1.9] - 2026-10-21
 
 ### Fixed

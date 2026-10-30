@@ -80,7 +80,7 @@ open = "5"
 wii-disc-info = { version = "0.11", features = ["async"] }
 twbm-idmap = { version = "0.7", features = ["ascii-titles", "gamehacking"] }
 itertools = "0.15"
-split-write = "0.2"
+split-write = "0.3"
 tempfile = "3"
 arrayvec = { version = "0.7", features = ["serde"] }
 zip = { version = "9", default-features = false, features = [

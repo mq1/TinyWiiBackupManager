@@ -17,11 +17,11 @@ pub mod banners;
 pub mod calc_sha1;
 pub mod convert;
 pub mod covers;
-pub mod disc_reader;
 pub mod export;
 pub mod game;
 pub mod games_state;
 pub mod import;
+pub mod multi_disc;
 pub mod scrub;
 pub mod txtcodes;
 

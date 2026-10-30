@@ -3,10 +3,7 @@
 
 use crate::{
     config::Config,
-    games::{
-        ImportEntry,
-        disc_reader::{SharedMultiFileReader, retrieve_multi_disc_files},
-    },
+    games::{ImportEntry, multi_disc::retrieve_multi_disc_files},
     long_operation::LongOperationState,
     util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
@@ -20,14 +17,45 @@ use smol::stream::Stream;
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
-    io::{Read, Write},
+    fs::File,
+    io::{self, BufWriter, Read, Write},
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
+use tempfile::tempfile;
 use which_fs::FsKind;
 use wii_disc_info::game_id::GameID;
+use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
+pub const BUF_SIZE: usize = 4 * 1024 * 1024; // 4 MiB
+
+enum InputFile<'a> {
+    Disc(&'a Path),
+    Zip(File),
+}
+
+impl<'a> InputFile<'a> {
+    fn new(path: &'a Path) -> Result<Self> {
+        let is_zip = path
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
+
+        let input_file = if is_zip {
+            let mut zip = ZipArchive::new(File::open(path)?)?;
+            let mut entry = zip.by_index(0)?;
+
+            let mut tmp = tempfile()?;
+            io::copy(&mut entry, &mut tmp)?;
+
+            Self::Zip(tmp)
+        } else {
+            Self::Disc(path)
+        };
+
+        Ok(input_file)
+    }
+}
 
 fn perform_blocking(
     entry: &ImportEntry,
@@ -45,7 +73,7 @@ fn perform_blocking(
         "›  Opening {filename}"
     )))?;
 
-    let mut files = retrieve_multi_disc_files(entry.path())?;
+    let input_file = InputFile::new(entry.path())?;
 
     let is_fat32 = if let DriveState::Loaded(info) = drive {
         info.fs_kind() == FsKind::Fat32
@@ -94,6 +122,11 @@ fn perform_blocking(
     if out_format == wii_disc_info_to_nod_format(entry.meta().format()) {
         // if the input is already in the right format, just copy it
 
+        let mut files = match input_file {
+            InputFile::Disc(path) => retrieve_multi_disc_files(path)?,
+            InputFile::Zip(file) => std::iter::once(file).collect(),
+        };
+
         // move here so it gets dropped
         let mut out_writer = out_writer;
 
@@ -104,7 +137,7 @@ fn perform_blocking(
 
         let mut written = 0;
         let mut prev_percentage = 100;
-        let mut buf = vec![0; 0x8000].into_boxed_slice();
+        let mut buf = vec![0; BUF_SIZE];
 
         for file in &mut files {
             loop {
@@ -128,19 +161,19 @@ fn perform_blocking(
             }
         }
 
-        out_writer.flush()?;
+        out_writer.sync_all()?;
     } else {
-        let stream = SharedMultiFileReader::new(files)?;
+        let disc_opts = DiscOptions {
+            preloader_threads: OPTIMAL_THREADS.preloader,
+            ..Default::default()
+        };
 
-        let disc_reader = DiscReader::new_stream(
-            Box::new(stream),
-            &DiscOptions {
-                preloader_threads: OPTIMAL_THREADS.preloader,
-                ..Default::default()
-            },
-        )?;
+        let disc_reader = match input_file {
+            InputFile::Disc(path) => DiscReader::new(path, &disc_opts)?,
+            InputFile::Zip(file) => DiscReader::new_from_non_cloneable_read(file, &disc_opts)?,
+        };
 
-        let mut out_writer = std::io::BufWriter::with_capacity(0x8000, out_writer);
+        let mut out_writer = BufWriter::with_capacity(BUF_SIZE, out_writer);
         let disc_writer = DiscWriter::new(disc_reader, &FormatOptions::new(out_format))?;
 
         let options = ProcessOptions {
@@ -178,13 +211,13 @@ fn perform_blocking(
 
         let mut out_writer = out_writer
             .into_inner()
-            .map_err(|_| anyhow!("Failed to get inner writer"))?;
+            .map_err(|_| anyhow!("Failed to flush BufWriter"))?;
 
         if !finalization.header.is_empty() {
             out_writer.write_header(&finalization.header)?;
         }
 
-        out_writer.flush()?;
+        out_writer.sync_all()?;
     }
 
     if config.remove_sources_games() {
