@@ -7,7 +7,7 @@ use crate::{
         ImportEntry,
         disc_reader::{SharedMultiFileReader, retrieve_multi_disc_files},
     },
-    long_operation::LongOperationState,
+    tasks::{self, Reporter, TaskControl, WorkerEvent},
     util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
 };
 use anyhow::{Context, Result, anyhow};
@@ -29,11 +29,14 @@ use wii_disc_info::game_id::GameID;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 
+/// Writes the game into its folder on the drive. On failure or cancel, whatever this import
+/// wrote is removed again, so no half-written game stays behind.
 fn perform_blocking(
     entry: &ImportEntry,
     config: &Config,
     drive: &DriveState,
-    tx: &smol::channel::Sender<LongOperationState>,
+    control: &TaskControl,
+    reporter: &mut Reporter,
 ) -> Result<()> {
     let filename = entry
         .path()
@@ -41,10 +44,62 @@ fn perform_blocking(
         .and_then(OsStr::to_str)
         .context("invalid filename")?;
 
-    tx.send_blocking(LongOperationState::Progress(format!(
-        "›  Opening {filename}"
-    )))?;
+    reporter.progress(0, None, || format!("Opening {filename}"));
 
+    let parent_dir_name = if entry.meta().is_wii() {
+        "wbfs"
+    } else {
+        "games"
+    };
+
+    let game_dir = config
+        .mount_point()
+        .join(parent_dir_name)
+        .join(make_game_dir_name(
+            entry.meta().game_id(),
+            entry.meta().game_title(),
+        ));
+
+    // the second disc of a game goes into the folder of the first one
+    let dir_existed = game_dir.exists();
+    let files_before = list_files(&game_dir);
+    std::fs::create_dir_all(&game_dir)?;
+
+    if let Err(e) = write_game(entry, config, drive, &game_dir, control, reporter) {
+        if dir_existed {
+            for file in list_files(&game_dir) {
+                if !files_before.contains(&file) {
+                    let _ = std::fs::remove_file(file);
+                }
+            }
+        } else {
+            let _ = std::fs::remove_dir_all(&game_dir);
+        }
+
+        return Err(e);
+    }
+
+    if config.remove_sources_games() {
+        std::fs::remove_file(entry.path())?;
+    }
+
+    Ok(())
+}
+
+fn list_files(dir: &Path) -> Vec<PathBuf> {
+    std::fs::read_dir(dir)
+        .map(|entries| entries.filter_map(|e| Some(e.ok()?.path())).collect())
+        .unwrap_or_default()
+}
+
+fn write_game(
+    entry: &ImportEntry,
+    config: &Config,
+    drive: &DriveState,
+    game_dir: &Path,
+    control: &TaskControl,
+    reporter: &mut Reporter,
+) -> Result<()> {
     let mut files = retrieve_multi_disc_files(entry.path())?;
 
     let is_fat32 = if let DriveState::Loaded(info) = drive {
@@ -56,21 +111,8 @@ fn perform_blocking(
     let must_split = entry.meta().is_wii() && (is_fat32 || config.always_split());
     let split_size = must_split.then_some(SPLIT_SIZE);
 
-    let parent_dir_name = if entry.meta().is_wii() {
-        "wbfs"
-    } else {
-        "games"
-    };
-
-    let parent_dir = config.mount_point().join(parent_dir_name);
-    let game_dir = make_game_dir(
-        &parent_dir,
-        entry.meta().game_id(),
-        entry.meta().game_title(),
-    )?;
-
     let out_writer = SplitWriter::create(
-        &game_dir,
+        game_dir,
         |part| {
             get_filename(
                 entry.meta().game_id(),
@@ -91,6 +133,9 @@ fn perform_blocking(
         config.gc_output_format()
     };
 
+    let title = entry.meta().game_title();
+    let message = || format!("Importing {title}");
+
     if out_format == wii_disc_info_to_nod_format(entry.meta().format()) {
         // if the input is already in the right format, just copy it
 
@@ -103,11 +148,12 @@ fn perform_blocking(
         }
 
         let mut written = 0;
-        let mut prev_percentage = 100;
         let mut buf = vec![0; 0x8000].into_boxed_slice();
 
         for file in &mut files {
             loop {
+                control.checkpoint()?;
+
                 let n = file.read(&mut buf)?;
                 if n == 0 {
                     break;
@@ -116,15 +162,7 @@ fn perform_blocking(
                 out_writer.write_all(&buf[..n])?;
                 written += n as u64;
 
-                let progress_percentage = written * 100 / to_write;
-                if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(LongOperationState::Progress(format!(
-                        "⤓  Importing {}  {progress_percentage:02}%",
-                        entry.meta().game_title()
-                    )));
-
-                    prev_percentage = progress_percentage;
-                }
+                reporter.progress(written, Some(to_write), message);
             }
         }
 
@@ -156,25 +194,19 @@ fn perform_blocking(
             digest_xxh64: true,
         };
 
-        let mut prev_percentage = 100;
         let finalization = disc_writer.process(
             |data, progress, total| {
+                control.checkpoint().map_err(std::io::Error::other)?;
                 out_writer.write_all(&data)?;
-
-                let progress_percentage = progress * 100 / total;
-                if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(LongOperationState::Progress(format!(
-                        "⤓  Importing {}  {progress_percentage:02}%",
-                        entry.meta().game_title()
-                    )));
-
-                    prev_percentage = progress_percentage;
-                }
-
+                reporter.progress(progress, Some(total), message);
                 Ok(())
             },
             &options,
-        )?;
+        );
+
+        // nod wraps the error; the task manager knows it was cancelled anyway
+        control.checkpoint()?;
+        let finalization = finalization?;
 
         let mut out_writer = out_writer
             .into_inner()
@@ -187,32 +219,21 @@ fn perform_blocking(
         out_writer.flush()?;
     }
 
-    if config.remove_sources_games() {
-        std::fs::remove_file(entry.path())?;
-    }
-
     Ok(())
 }
 
+/// Imports a game to the drive as a task: progress in bytes, pause and cancel through `control`.
 pub fn import_game(
     entry: ImportEntry,
     config: Config,
     drive: DriveState,
-) -> impl Stream<Item = LongOperationState> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&entry, &config, &drive, &tx) {
-            Ok(()) => {
-                LongOperationState::Finished(format!("Imported {}", entry.meta().game_title()))
-            }
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+    control: TaskControl,
+) -> impl Stream<Item = WorkerEvent> {
+    tasks::spawn_blocking(move |reporter| {
+        perform_blocking(&entry, &config, &drive, &control, reporter)
+            .map(|()| format!("Imported {}", entry.meta().game_title()))
+            .map_err(|e| e.to_string())
+    })
 }
 
 pub fn get_filename(
@@ -283,14 +304,6 @@ pub fn make_game_dir_name(game_id: GameID, fallback_title: &str) -> String {
     format!("{game_title} [{game_id}]")
 }
 
-fn make_game_dir(base_dir: &Path, game_id: GameID, fallback_title: &str) -> Result<PathBuf> {
-    let dir_name = make_game_dir_name(game_id, fallback_title);
-    let path = base_dir.join(dir_name);
-
-    std::fs::create_dir_all(&path)?;
-    Ok(path)
-}
-
 fn wii_disc_info_to_nod_format(format: wii_disc_info::Format) -> Format {
     match format {
         wii_disc_info::Format::Wbfs => Format::Wbfs,
@@ -300,5 +313,81 @@ fn wii_disc_info_to_nod_format(format: wii_disc_info::Format) -> Format {
         wii_disc_info::Format::Wia => Format::Wia,
         wii_disc_info::Format::Gcz => Format::Gcz,
         wii_disc_info::Format::Tgc => Format::Tgc,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use smol::stream::StreamExt;
+
+    /// A GameCube disc image with only a header: enough to be recognised and copied.
+    fn fake_gc_disc(dir: &Path) -> PathBuf {
+        let mut disc = vec![0u8; 3 * 0x8000];
+        disc[..6].copy_from_slice(b"GTST01");
+        disc[0x1c..0x20].copy_from_slice(&[0xC2, 0x33, 0x9F, 0x3D]);
+        disc[0x20..0x60].copy_from_slice(&[b' '; 0x40]);
+        disc[0x20..0x29].copy_from_slice(b"Test Game");
+        for (i, byte) in disc.iter_mut().enumerate().skip(0x60) {
+            *byte = i as u8;
+        }
+
+        let path = dir.join("Test Game.iso");
+        std::fs::write(&path, disc).unwrap();
+        path
+    }
+
+    fn import(source: &Path, drive: &Path, control: TaskControl) -> Result<String, String> {
+        let entry = smol::block_on(ImportEntry::new(source.to_path_buf())).unwrap();
+        let mut config = Config::default();
+        let _ = config.set_mount_point(drive.to_path_buf());
+
+        let events: Vec<WorkerEvent> =
+            smol::block_on(import_game(entry, config, DriveState::NotLoaded, control).collect());
+
+        match events.last() {
+            Some(WorkerEvent::Finished(result)) => result.clone(),
+            other => panic!("no result: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn copies_the_game_into_its_folder() {
+        let source = tempfile::tempdir().unwrap();
+        let drive = tempfile::tempdir().unwrap();
+        let disc = fake_gc_disc(source.path());
+
+        let result = import(&disc, drive.path(), TaskControl::new());
+        assert!(result.is_ok(), "{result:?}");
+
+        let game_dir = drive.path().join("games").join("Test Game [GTST01]");
+        assert_eq!(
+            std::fs::read(game_dir.join("game.iso")).unwrap(),
+            std::fs::read(&disc).unwrap()
+        );
+    }
+
+    #[test]
+    fn a_cancelled_import_leaves_nothing_behind() {
+        let source = tempfile::tempdir().unwrap();
+        let drive = tempfile::tempdir().unwrap();
+        let disc = fake_gc_disc(source.path());
+
+        let game_dir = drive.path().join("games").join("Test Game [GTST01]");
+
+        let control = TaskControl::new();
+        control.cancel();
+        assert!(import(&disc, drive.path(), control).is_err());
+        assert!(!game_dir.exists());
+
+        // a folder that was there before (the first disc of the game) stays, with its files
+        std::fs::create_dir_all(&game_dir).unwrap();
+        std::fs::write(game_dir.join("disc1.iso"), b"first disc").unwrap();
+
+        let control = TaskControl::new();
+        control.cancel();
+        assert!(import(&disc, drive.path(), control).is_err());
+        let left: Vec<_> = list_files(&game_dir);
+        assert_eq!(left, vec![game_dir.join("disc1.iso")]);
     }
 }

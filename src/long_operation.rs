@@ -14,7 +14,6 @@ pub enum LongOperationState {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumCount)]
 pub enum LongOperationKind {
-    Import,
     Convert,
     Export,
     Scrub,
@@ -29,7 +28,6 @@ impl LongOperations {
     pub fn new() -> Self {
         Self {
             operations: [
-                (LongOperationState::Idle, LongOperationKind::Import),
                 (LongOperationState::Idle, LongOperationKind::Convert),
                 (LongOperationState::Idle, LongOperationKind::Export),
                 (LongOperationState::Idle, LongOperationKind::Scrub),

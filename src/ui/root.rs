@@ -6,14 +6,17 @@ use crate::{
     message::Message,
     state::AppState,
     ui::{
-        components::{drive_tabs::drive_tabs, notifications::notifications, sidebar::sidebar},
+        components::{
+            drive_tabs::drive_tabs, notifications::notifications, sidebar::sidebar,
+            task_bar::task_bar,
+        },
         modals::{
             Modal, confirm_scub::confirm_scrub, delete_dir::delete_dir, game_info::game_info,
             homebrew_app_info::homebrew_app_info, osc_app_info::osc_app_info,
         },
         pages::{
             Page, about::about, consoles::consoles, games::games, homebrew_apps::homebrew_apps,
-            import_queue::import_queue, library::library, osc_apps::osc_apps, toolbox::toolbox,
+            library::library, osc_apps::osc_apps, tasks::tasks, toolbox::toolbox,
         },
     },
 };
@@ -26,23 +29,26 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = stack![
         row![
             sidebar(state),
-            container(match state.current_page {
-                Page::Library => library(state),
-                Page::Games => column![drive_tabs(state), games(state)].into(),
-                Page::Consoles => consoles(state),
-                Page::HomebrewApps => column![drive_tabs(state), homebrew_apps(state)].into(),
-                Page::Osc => osc_apps(state),
-                Page::Settings => settings(&state.config).map(Message::Config),
-                Page::Toolbox => toolbox(state),
-                Page::ImportQueue => import_queue(state),
-                Page::About => about(state),
-            })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(|theme: &Theme| container::Style {
-                border: container::bordered_box(theme).border.rounded(10),
-                ..container::bordered_box(theme)
-            })
+            column![
+                container(match state.current_page {
+                    Page::Library => library(state),
+                    Page::Games => column![drive_tabs(state), games(state)].into(),
+                    Page::Consoles => consoles(state),
+                    Page::HomebrewApps => column![drive_tabs(state), homebrew_apps(state)].into(),
+                    Page::Osc => osc_apps(state),
+                    Page::Settings => settings(&state.config).map(Message::Config),
+                    Page::Toolbox => toolbox(state),
+                    Page::Tasks => tasks(state),
+                    Page::About => about(state),
+                })
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(|theme: &Theme| container::Style {
+                    border: container::bordered_box(theme).border.rounded(10),
+                    ..container::bordered_box(theme)
+                }),
+                task_bar(state),
+            ]
         ],
         state.current_modal.as_ref().map(|modal| {
             opaque(
