@@ -204,6 +204,51 @@ what the console expects.
   already does. Found when copying the WBFS backup to the freshly formatted WiiGames drive, where
   the Finder refuses files over 4 GiB.
 
+### M1d · SD cards: manage, back up, set up (M)
+
+The SD card of a 3DS, a Wii or a Wii U becomes a device in My Consoles, like a drive: the app
+sees what is on it, keeps backups of it and sets up new cards. Builds on M1b (format and layout).
+
+**Recognising a card and its console**
+- By its content, not its name: 3DS (`Nintendo 3DS/`, `boot.firm`, `luma/`, `3ds/`, `cias/`),
+  Wii (`apps/`, `private/wii/`, `wad/`, BootMii's `bootmii/`), Wii U (`wiiu/`,
+  `wiiu/environments/aroma/`, `wiiu/apps/`, `wiiu/plugins/`), or a mix (a Wii U card often
+  holds vWii homebrew too).
+- The card remembers its console (name in My Consoles), so a card in the computer shows up under
+  the right console.
+
+**Managing**
+- What is on it, grouped: CFW or environment and its version (Luma3DS, Aroma), homebrew apps,
+  plugins, CIAs and WADs waiting to be installed, saves, free space; the M1b check of file system
+  and cluster size.
+- Update homebrew from its official source (Open Shop Channel, Universal-DB, the projects'
+  GitHub releases), remove apps, move games and apps between card and library.
+
+**Backing up**
+- One backup per card and date in the data folder (or a chosen folder), as a plain copy of the
+  files; restoring to the same or to a new, larger card (moving to a bigger card is the common
+  case).
+- **Irreplaceable files** are marked and their absence warned about, because without them a
+  broken console can't be restored:
+  - 3DS: the NAND backup and `essential.exefs` from GodMode9 (`gm9/out/`); the content of
+    `Nintendo 3DS/` is encrypted for this one console and only works on it.
+  - Wii: BootMii's `nand.bin` and `keys.bin`.
+  - Wii U: the NAND, `otp.bin` and `seeprom.bin` dumps.
+- These files belong to the console and stay on the computer; they are never uploaded or shared.
+
+**Setting up**
+- A new card for a console that is already modded: M1b's layout plus the homebrew the console
+  uses, or the content of a backup.
+
+**Models and revisions**
+- 3DS family: Old 3DS, Old 3DS XL and 2DS take a full-size SD card; New 3DS, New 3DS XL and
+  New 2DS XL a microSD card (behind a screwed cover on the New 3DS). The app asks for the model
+  once and remembers it with the console.
+- Wii: RVL-001 (with GameCube ports), RVL-101 "Family Edition" (no GameCube ports, so no
+  Nintendont from discs), RVL-201 Wii mini (**no SD slot**: USB only, so its "card" is a USB
+  stick).
+- Wii U: one SD slot for Wii U and vWii homebrew; game drives are WFS (see M1b).
+
 ### M2 · Game databases (M)
 
 - Import and keep up to date: libretro-database (No-Intro, Redump), GameTDB (Wii, GameCube,
@@ -293,6 +338,60 @@ deletes files runs as a task (M1a) and shows a preview first.
 - Saves come from the consoles (3DS M6, Wii M7, Wii U M8) and from save folders on drives
   and SD cards; until then the tab shows the save files found in the sources.
 
+### M6a · Softmod wizard (L)
+
+A wizard in My Consoles that takes an unmodded console to custom firmware or the Homebrew Channel,
+**following the community guides step by step instead of replacing them**:
+[3ds.hacks.guide](https://3ds.hacks.guide), [wii.hacks.guide](https://wii.hacks.guide) and
+[wiiu.hacks.guide](https://wiiu.hacks.guide). Order: 3DS first (with M6), then Wii (M7) and Wii U
+with vWii (M8).
+
+**How it works**
+- The guides stay the reference: every step names and links its page in the guide; the wizard
+  doesn't copy their text (they change, and they are their authors' work). If the guide and the
+  wizard disagree, the wizard says to follow the guide.
+- The computer's part is automated: preparing the SD card (M1b, M1d), downloading the files a
+  step needs from their official sources at that moment, checking that they arrived complete, and
+  later reading back what the console wrote (backups).
+- The console's part is shown, not done: the wizard says what to do on the console, links the
+  guide's page and waits for "done" or reads the result from the card.
+- It can be left and resumed: the state is read from the card (e.g. `boot.firm` and `luma/` there:
+  boot9strap is installed).
+- Nothing that isn't freely distributable is bundled; no keys, no firmware, no piracy tools (the
+  guides leave those out too).
+
+**Step 1: which console exactly** – the method depends on model, revision, system version and
+region, so the wizard asks first (with pictures and where to read it on the console):
+- 3DS: model (Old 3DS / Old 3DS XL / 2DS / **New 3DS / New 3DS XL / New 2DS XL**), system
+  version (e.g. `11.17.0-50E`) and region. New models have the faster CPU and the microSD slot;
+  some methods work only on New models (super-skaterhax: New 3DS and New 2DS from 11.15.0 to
+  11.17.0), others on all models (MSET9).
+- Wii: RVL-001, RVL-101 Family Edition or RVL-201 Wii mini; System Menu version and region. The
+  guide picks the exploit from that: e.g. str2hax (needs internet, no SD card), Bluebomb
+  (Bluetooth; the only way on the Wii mini, which the guide warns is easy to brick).
+- Wii U: system version and region; the guide's way to Aroma (e.g. the browser exploit), then
+  PayloadLoader for a permanent setup, then vWii through wii.hacks.guide.
+
+**Step 2: the method** – chosen from a table of model × version → guide page, kept as a data file
+in the app and checked against the guides before each release. A console that doesn't fit the
+table (a newer system version, an unknown revision) gets no guess: the wizard sends the user to the
+guide's start page.
+
+**Step 3: backups first** – as soon as the console can make them (GodMode9's NAND backup and
+`essential.exefs`, BootMii's NAND backup, the Wii U's NAND, OTP and SEEPROM), the wizard asks for
+them and copies them into the console's backups (M1d). It doesn't go on without them.
+
+**Step 4: afterwards** – the usual homebrew (from M1d) and the companion app (vcinject Link on the
+3DS, later the Wii and Wii U ones), then the console is added to My Consoles.
+
+**Safety**
+- The app never writes to a console's NAND and never runs a step that can brick it; those stay on
+  the console, done by the user with the guide open.
+- Warnings the guides give (e.g. "don't update", "don't follow video guides for the Wii mini") are
+  shown at the step they belong to.
+- Tested on real consoles of each model the table names before it is released for that model;
+  every test goes into the test log.
+
 ### M6 · The rest of the 3DS (M–L)
 
 - Saves: back up and restore.
@@ -358,3 +457,8 @@ its own.
 - Web UI: which framework (server-rendered with htmx, or a single-page app), and whether the
   desktop app can also be reached through it (see M9).
 - How much of the core can be split from iced without slowing down the milestones before M9.
+- Softmod wizard (M6a): the method table per model and system version has to be checked against
+  the live guides; the cloud sessions can't reach the guides (network settings), only search
+  results about them (2026-10-30). Their pages are linked, not copied; whether short step titles
+  may be shown depends on the guides' licence, to check.
+- Wii mini (M1d, M6a): the app has to handle a USB stick in place of the SD card.
