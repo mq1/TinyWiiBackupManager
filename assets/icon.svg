@@ -1,0 +1,22 @@
+<!-- SPDX-FileCopyrightText: 2026 Ultimate Game Backup Manager contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- Source of every app icon; run `just icons` after changing it. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b6cff"/>
+      <stop offset="1" stop-color="#8a3ffc"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <g fill="none" stroke="#fff" stroke-width="64" stroke-linecap="round" stroke-linejoin="round">
+    <!-- U -->
+    <path d="M234,212 V352 A110,110 0 0 0 454,352 V212"/>
+    <!-- G -->
+    <path d="M760,249 A125,125 0 1 0 797,337 H682"/>
+    <!-- B -->
+    <path d="M240,812 V552 H350 A62,62 0 0 1 350,676 H240 M350,676 H366 A68,68 0 0 1 366,812 H240"/>
+    <!-- M -->
+    <path d="M552,812 V552 L674,700 L797,552 V812"/>
+  </g>
+</svg>

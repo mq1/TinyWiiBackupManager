@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🍴 Forked from TinyWiiBackupManager v6.1.9 by mq1 and renamed to Ultimate Game Backup Manager
   (new app ID `io.github.petter1.UltimateGameBackupManager`, own data directory and update checks).
   The entries below are TinyWiiBackupManager's history.
+- 🎨 Own icon: the letters "UGBM" instead of TinyWiiBackupManager's Wiimote.
 
 ## [v6.1.9] - 2026-10-21
 

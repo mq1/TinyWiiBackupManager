@@ -47,7 +47,28 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
   turned out not to be needed: the media folders scan in under a second; the slow part was the
   cold hard disk.)
 
-### M0b · Own face: icon, screenshot, README (S–M)
+### M0b · Own face: icon, screenshot, README (S–M) – in progress
+
+**Done** (pull request #3, cloud session 2026-10-30):
+- Icon: the letters "UGBM" in a 2×2 grid, white on a blue–violet rounded square,
+  `assets/icon.svg`. Chosen by the maintainer instead of drafts.
+- `just icons` (see BUILDING.md) made every PNG, the `.ico` and the iconset from it; all committed.
+- README: injects section, phase table replaced by a short overview linking here, every project
+  it names linked.
+
+**Open, on the Mac** – a new branch from `main` (e.g. `claude/m0b-macos`), its own pull request;
+nothing else waits for it:
+1. `cargo install resvg`, `brew install imagemagick just` if missing; `just icons` – this also
+   writes `package/macos/App/Contents/Resources/UltimateGameBackupManager.icns`, which is still
+   TWBM's. Commit it (the other generated files should come out unchanged).
+2. Screenshot: start the app (`cargo run`) with the real library, Library or My Consoles page, no
+   personal paths visible (rename sources if needed), about 1800×1500 like the old one; save as
+   `assets/screenshot.png` (replacing TWBM's) and shrink it (`oxipng -o 4` or `pngquant`). README
+   and `metainfo.xml` already point there.
+3. Look at the icon in the Dock, Finder, ⌘-Tab, the window and the About page, also at 16 px in
+   a Finder list; the 16 px size is the weak spot of four letters – if unreadable, a 16/32 px
+   variant with only "U" may be drawn.
+4. Test log entry in TESTLOG.md, then mark M0b done here.
 
 The fork still shows TinyWiiBackupManager's icon (Wiimote, "TWBM") and screenshot.
 

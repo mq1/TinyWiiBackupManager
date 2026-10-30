@@ -108,6 +108,39 @@ package-macos-universal:
     appdmg package/macos/appdmg.json "dist/UltimateGameBackupManager-{{version_name}}-macos-universal.dmg"
 
 
+# Icons
+# -----
+
+# every icon from assets/icon.svg; needs resvg (cargo install resvg) and ImageMagick,
+# the .icns needs iconutil (macOS)
+[unix]
+icons:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    r() { resvg -w "$1" -h "$1" assets/icon.svg "$2"; }
+    r 256 assets/UltimateGameBackupManager-256x256.png
+    r 1024 assets/UltimateGameBackupManager-1024x1024.png
+    r 64 package/windows/UltimateGameBackupManager-64x64.png
+    for s in 16 32 48 64 128 256 512; do
+        r $s package/linux/AppDir/usr/share/icons/hicolor/${s}x${s}/apps/io.github.petter1.UltimateGameBackupManager.png
+    done
+    iconset=package/macos/UltimateGameBackupManager.iconset
+    for s in 16 32 128 256 512; do
+        r $s $iconset/icon_${s}x${s}.png
+        r $((s * 2)) $iconset/icon_${s}x${s}@2x.png
+    done
+    tmp=$(mktemp -d)
+    for s in 16 24 32 48 64 256; do r $s $tmp/$s.png; done
+    im=$(command -v magick || command -v convert)
+    "$im" $tmp/{16,24,32,48,64,256}.png package/windows/icon.ico
+    rm -r "$tmp"
+    if command -v iconutil >/dev/null; then
+        iconutil -c icns $iconset -o package/macos/App/Contents/Resources/UltimateGameBackupManager.icns
+    else
+        echo "iconutil not found: the .icns was not updated, run this on macOS"
+    fi
+
+
 # Utils
 # -----
 

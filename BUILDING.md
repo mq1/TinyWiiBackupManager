@@ -53,3 +53,10 @@ The available os-arch pairs are:
 The binary will be in `./out` \
 The distributable artifact will be in `./dist`
 
+
+## Icons
+
+All icons are made from `assets/icon.svg`. After changing it, run `just icons` (needs
+[resvg](https://github.com/linebender/resvg) – `cargo install resvg` – and ImageMagick). It writes
+the PNGs, `package/windows/icon.ico`, the window icon, the Linux AppDir sizes and the macOS iconset;
+the `.icns` is only made on macOS, where `iconutil` exists. The generated files are committed.
