@@ -24,8 +24,7 @@ each item is ticked off here (and gets its test log entry) when done.
 
 1. ~~**M1a, import as tasks** (#5)~~: done 2026-10-31, see the test log (read-only drive tried
    with a read-only disk image; the NTFS wording of the message is still untested).
-2. **M0b, own face** (see M0b below): `just icons` for the `.icns`, the new screenshot, the icon
-   in the Dock, Finder, ⌘-Tab and at 16 px; test log entry; M0b done.
+2. ~~**M0b, own face**~~: done 2026-10-31, see the test log.
 3. **M1a, convert, export, scrub and hash as tasks** (#10, merged before the test too): in the
    Toolbox convert a game into RVZ and cancel it halfway (no file left); export two games
    from WiiGames at once (the second waits), move a waiting one earlier; scrub a Wii game with an
@@ -64,44 +63,18 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
   turned out not to be needed: the media folders scan in under a second; the slow part was the
   cold hard disk.)
 
-### M0b · Own face: icon, screenshot, README (S–M) – in progress
+### M0b · Own face: icon, screenshot, README (S–M) – done
 
-**Done** (pull request #3, cloud session 2026-10-30):
 - Icon: the letters "UGBM" in a 2×2 grid, white on a blue–violet rounded square,
-  `assets/icon.svg`. Chosen by the maintainer instead of drafts.
-- `just icons` (see BUILDING.md) made every PNG, the `.ico` and the iconset from it; all committed.
+  `assets/icon.svg`, chosen by the maintainer instead of drafts. `just icons` (see BUILDING.md)
+  makes every size from it: the PNGs, the `.ico`, the macOS iconset and `.icns`, the Linux
+  AppDir sizes, the window icon and the About page (#3; the `.icns` made on the Mac).
+- Screenshot `assets/screenshot.png`: the My Consoles page with real consoles and drives, used in
+  the README and the Linux `metainfo.xml`.
 - README: injects section, phase table replaced by a short overview linking here, every project
   it names linked.
-
-**Open, on the Mac** – a new branch from `main` (e.g. `claude/m0b-macos`), its own pull request;
-nothing else waits for it:
-1. `cargo install resvg`, `brew install imagemagick just` if missing; `just icons` – this also
-   writes `package/macos/App/Contents/Resources/UltimateGameBackupManager.icns`, which is still
-   TWBM's. Commit it (the other generated files should come out unchanged).
-2. Screenshot: start the app (`cargo run`) with the real library, Library or My Consoles page, no
-   personal paths visible (rename sources if needed), about 1800×1500 like the old one; save as
-   `assets/screenshot.png` (replacing TWBM's) and shrink it (`oxipng -o 4` or `pngquant`). README
-   and `metainfo.xml` already point there.
-3. Look at the icon in the Dock, Finder, ⌘-Tab, the window and the About page, also at 16 px in
-   a Finder list; the 16 px size is the weak spot of four letters – if unreadable, a 16/32 px
-   variant with only "U" may be drawn.
-4. Test log entry in TESTLOG.md, then mark M0b done here.
-
-The fork still shows TinyWiiBackupManager's icon (Wiimote, "TWBM") and screenshot.
-
-- **New icon**, drawn as an SVG source in `assets/` (2–3 drafts to choose from): no Nintendo
-  shapes, logos or controllers; readable at 16×16 and on dark backgrounds. A `just icons` recipe
-  makes every size from it: the PNGs, `package/windows/icon.ico`, the window icon, the macOS
-  iconset and `.icns` (`iconutil`, on macOS or in a macOS CI job), the Linux AppDir sizes, the
-  About page.
-- **New screenshot** of the Library or My Consoles with real data and no personal paths; used in
-  the README and in the Linux `metainfo.xml`. The old icon and screenshot are removed everywhere.
-- **README**:
-  - a section on **injects**: what an inject is, which ones are planned (3DS: GBA, NES, SNES,
-    GB; Wii U: N64, DS, GBA, SNES, NES, GameCube, Wii), identifying them by content (M3), one
-    entry per game with "installable on" (M4), building them (3DS through vcinject, later in Rust,
-    M6; Wii U modelled on UWUVCI, M8), and that no keys or ROMs are shipped.
-  - the outdated phase table replaced by a short overview linking to this roadmap.
+- Looked at on the Mac 2026-10-31 (see the test log). At 16 px the four letters blur; the
+  maintainer keeps it that way (a 16 px variant with only "U" would be the fix if it bothers).
 
 ### M1a · Task manager with progress bars (M) – before M1
 
