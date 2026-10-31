@@ -31,8 +31,7 @@ start from `main` and only see what is there, so the update goes to `main` in it
 - **M1a, task manager** (see the roadmap):
   1. Core: merged (#4).
   2. Import as tasks: merged (#5), tested on the Mac 2026-10-31. Disc named in the task title
-     of a game with several discs: pull request **#15**, branch `claude/m1a-disc-in-task-title`,
-     confirmed on the Mac, ready to merge.
+     of a game with several discs: merged (#15), confirmed on the Mac.
   3. Convert, export, scrub and checksums as tasks, `LongOperations` removed, reordering: merged
      (#10) before the test on the Mac; it is still due (item 3 in "Waiting for the Mac").
   4. Stay awake: pull request **#7**, branch `claude/m1a-stay-awake`, open; was branched before
