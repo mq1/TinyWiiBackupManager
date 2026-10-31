@@ -26,7 +26,7 @@ what already exists, so no work is done twice:
 
 Handover between sessions; the session that changes the state updates this section. New sessions
 start from `main` and only see what is there, so the update goes to `main` in its own small
-`docs/` pull request (merged right away), not only in the feature branch. As of 2026-10-30:
+`docs/` pull request (merged right away), not only in the feature branch. As of 2026-10-31:
 
 - **M1a, task manager** (see the roadmap):
   1. Core: merged (#4).
@@ -39,10 +39,16 @@ start from `main` and only see what is there, so the update goes to `main` in it
      #5 and needs `main` merged in.
   5. Unfinished tasks after a restart: **not started**, the next piece of work; start it from
      `main`.
+- **M1, install on the 3DS**: pull request **#11**, branch `claude/m1-3ds-install-and-consoles`,
+  open: "Install" on a CIA as a task (`Job::Install`, `Resource::Console`), consoles found in
+  the background every 15 seconds (failures only logged), installed titles remembered in
+  `consoles.json`. Ported from the local branch `feature/task-manager`, which predates #4 and
+  has its own task manager; nothing else there is needed (its M1d roadmap is #8, staying awake
+  is #7). Waits for the Mac test (item 5 in "Waiting for the Mac" on that branch) before merging.
 - **M0b**: only the Mac part is left (`.icns`, screenshot).
 - Branches to delete on GitHub (sessions may not): `claude/m1a-import-tasks-alt` (a duplicate
   of #5 pushed by mistake), and the merged `claude/m1a-import-tasks`, `claude/m1a-more-tasks`
-  and `claude/docs-handover-on-main`.
+  and `claude/docs-handover-on-main`; after #11 is merged also `feature/task-manager`.
 
 ## Working with the maintainer
 
