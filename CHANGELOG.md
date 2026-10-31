@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.1.10] - 2026-10-31
+
 ### Changed
 
-- ✍️ Disc file writing is more reliable (fsync is now called after each written file) and potentially faster (buffer size is now 4 MiB, previouly 32 KiB)
+- ✍️ Disc file writing is more reliable (fsync is now called after each written file) and potentially faster (buffer size is now 4 MiB, previously 32 KiB)
 
 ## [v6.1.9] - 2026-10-21
 
@@ -584,7 +586,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.9...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.10...HEAD
+[v6.1.10]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.9...v6.1.10
 [v6.1.9]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.8...v6.1.9
 [v6.1.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.7...v6.1.8
 [v6.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.1.6...v6.1.7
