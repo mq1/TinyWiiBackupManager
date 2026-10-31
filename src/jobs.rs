@@ -54,7 +54,7 @@ fn folder_of(path: &Path) -> Resource {
 impl Job {
     pub fn title(&self) -> String {
         match self {
-            Self::Import { entry, .. } => format!("Import {}", entry.meta().game_title()),
+            Self::Import { entry, .. } => format!("Import {}", entry.display_title()),
             Self::Convert { out_path, .. } => format!(
                 "Convert into {}",
                 out_path

@@ -133,7 +133,7 @@ fn write_game(
         config.gc_output_format()
     };
 
-    let title = entry.meta().game_title();
+    let title = entry.display_title();
     let message = || format!("Importing {title}");
 
     if out_format == wii_disc_info_to_nod_format(entry.meta().format()) {
@@ -231,7 +231,7 @@ pub fn import_game(
 ) -> impl Stream<Item = WorkerEvent> {
     tasks::spawn_blocking(move |reporter| {
         perform_blocking(&entry, &config, &drive, &control, reporter)
-            .map(|()| format!("Imported {}", entry.meta().game_title()))
+            .map(|()| format!("Imported {}", entry.display_title()))
             .map_err(|e| e.to_string())
     })
 }

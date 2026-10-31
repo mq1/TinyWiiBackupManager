@@ -91,6 +91,18 @@ impl ImportEntry {
     pub fn meta(&self) -> &wii_disc_info::Meta {
         &self.meta
     }
+
+    /// The game's title, with the disc when the game has more than one, so the discs of one game
+    /// can be told apart in the task manager.
+    #[must_use]
+    pub fn display_title(&self) -> String {
+        let title = self.meta.game_title();
+        if self.is_multidisc() || self.meta.disc_number() > 0 {
+            format!("{title} (Disc {})", self.meta.disc_number() + 1)
+        } else {
+            title.to_string()
+        }
+    }
 }
 
 impl PartialEq for ImportEntry {
