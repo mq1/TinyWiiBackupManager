@@ -97,7 +97,7 @@ fn perform_blocking(
         entry.meta().game_title(),
     )?;
 
-    let out_writer = SplitWriter::create(
+    let mut out_writer = SplitWriter::create(
         &game_dir,
         |part| {
             get_filename(
@@ -126,9 +126,6 @@ fn perform_blocking(
             InputFile::Disc(path) => retrieve_multi_disc_files(path)?,
             InputFile::Zip(file) => std::iter::once(file).collect(),
         };
-
-        // move here so it gets dropped
-        let mut out_writer = out_writer;
 
         let mut to_write = 0;
         for file in &files {
@@ -161,7 +158,7 @@ fn perform_blocking(
             }
         }
 
-        out_writer.sync_all()?;
+        out_writer.finalize(None)?;
     } else {
         let disc_opts = DiscOptions {
             preloader_threads: OPTIMAL_THREADS.preloader,
@@ -209,15 +206,13 @@ fn perform_blocking(
             &options,
         )?;
 
-        let mut out_writer = out_writer
+        let out_writer = out_writer
             .into_inner()
             .map_err(|_| anyhow!("Failed to flush BufWriter"))?;
 
         if !finalization.header.is_empty() {
-            out_writer.write_header(&finalization.header)?;
+            out_writer.finalize(Some(&finalization.header))?;
         }
-
-        out_writer.sync_all()?;
     }
 
     if config.remove_sources_games() {

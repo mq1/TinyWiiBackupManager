@@ -105,15 +105,13 @@ fn perform_blocking(
             &process_opts,
         )?;
 
-        let mut out_writer = out_writer
+        let out_writer = out_writer
             .into_inner()
             .map_err(|_| anyhow!("Failed to flush BufWriter"))?;
 
         if !finalization.header.is_empty() {
-            out_writer.write_header(&finalization.header)?;
+            out_writer.finalize(Some(&finalization.header))?;
         }
-
-        out_writer.sync_all()?;
     }
 
     std::fs::remove_dir_all(game.path())?;
