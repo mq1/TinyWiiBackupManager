@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    long_operation::{LongOperationKind, LongOperationState},
+    long_operation::LongOperationState,
     message::Message,
     notifications::notification::{Notification, NotificationLevel},
     state::AppState,
@@ -52,9 +52,7 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     .into()
 }
 
-fn progress(
-    (op_state, _): &(LongOperationState, LongOperationKind),
-) -> impl Iterator<Item = Element<'_, Message>> {
+fn progress(op_state: &LongOperationState) -> impl Iterator<Item = Element<'_, Message>> {
     match op_state {
         LongOperationState::Progress(progress) => {
             Either::Left(once(Element::from(my_card(text(progress.as_str())))))
