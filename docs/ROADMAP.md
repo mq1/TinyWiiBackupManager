@@ -22,13 +22,8 @@ Done and tried on real hardware (the 3DS "petter1", the iCloud collection and th
 What cloud sessions can't do: real drives, consoles, the macOS build and its look. In this order;
 each item is ticked off here (and gets its test log entry) when done.
 
-1. **M1a, import as tasks** (#5, merged before the test at the maintainer's request): on `main`,
-   `cargo run`, import a few Wii and GameCube games to WiiGames (a FAT32 drive, so Wii
-   games are split). Watch the progress bar on the Tasks page and the bar at the bottom of other
-   pages; pause and resume one; cancel one and check that its folder in `wbfs/` or `games/` is
-   gone; import two discs of one GameCube game and cancel the second (the first must stay);
-   retry a cancelled one. Also try a read-only drive (the NTFS one): one clear message, no task.
-   Then a test log entry.
+1. ~~**M1a, import as tasks** (#5)~~: done 2026-10-31, see the test log (read-only drive tried
+   with a read-only disk image; the NTFS wording of the message is still untested).
 2. **M0b, own face** (see M0b below): `just icons` for the `.icns`, the new screenshot, the icon
    in the Dock, Finder, ⌘-Tab and at 16 px; test log entry; M0b done.
 3. **M1a, convert, export, scrub and hash as tasks** (#10, merged before the test too): in the

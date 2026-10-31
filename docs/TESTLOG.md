@@ -35,11 +35,24 @@ console, a real drive or a real collection can show.
 | Name | Kind | Details |
 | --- | --- | --- |
 | petter1 | 3DS | runs vcinject Link |
-| WiiGames | Wii/GameCube USB drive | was NTFS (macOS reads only), being reformatted to FAT32 (M1b) |
+| WiiGames | Wii/GameCube USB drive | FAT32 (was NTFS, which macOS only reads) |
 | gamestation | drive | ROM source |
 | iCloud collection | ROM source | files only in iCloud aren't downloaded |
 
 ## Entries
+
+### 2026-10-31 · WiiGames · import as tasks
+
+| | |
+| --- | --- |
+| **Device** | WiiGames, Wii/GameCube USB drive, FAT32; WIIRO, a read-only FAT32 disk image |
+| **What** | M1a, import as tasks (#5), item 1 of "Waiting for the Mac" |
+| **Who** | petter1 |
+| **When** | 2026-10-31, `main` with #15 (commit 4421619), macOS 27 |
+| **How** | Wii and GameCube games imported to WiiGames (Wii games split); progress on the Tasks page and in the bar on other pages; one paused and resumed, one cancelled, two discs of one GameCube game with the second cancelled, a cancelled one retried. Read-only drive: no NTFS drive at hand, so a FAT32 image mounted read-only (`hdiutil attach -readonly`), then an import to it |
+| **Why** | #5 was merged before the test on real hardware |
+| **Result** | ✅ Works as listed. With two discs of one game, both tasks had the same title (fixed in #15, confirmed). Read-only drive: one message "WIIRO is read-only: nothing can be written to it", no task. The NTFS wording of that message isn't tested (needs a real NTFS drive). |
+| **Follow-up** | none |
 
 ### 2026-10-28 · WiiGames · importing Wii games to the drive
 
