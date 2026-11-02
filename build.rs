@@ -1,20 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    env,
-    fs::{self, File},
-    io::BufReader,
-    path::PathBuf,
-    process::Command,
-    thread,
-};
+use std::{env, fs, path::PathBuf};
 use winresource::WindowsResource;
 use zip::ZipArchive;
 
-fn extract_sha1_list(dat_path: &str) -> Vec<[u8; 20]> {
+fn extract_sha1_list(dat_path: &str, list: &mut Vec<[u8; 20]>) {
     let dat = fs::read_to_string(dat_path).unwrap();
-    let mut list = Vec::with_capacity(4096);
 
     let mut remaining = &dat[..];
     while let Some(found) = remaining.find("sha1=\"") {
@@ -30,8 +22,6 @@ fn extract_sha1_list(dat_path: &str) -> Vec<[u8; 20]> {
 
         remaining = &remaining[next_quote + 1..];
     }
-
-    list
 }
 
 fn main() {
@@ -46,12 +36,10 @@ fn main() {
     println!("cargo:rerun-if-changed={ngc_dat_path}");
     println!("cargo:rerun-if-changed=build.rs");
 
-    let wii_hashes_handle = thread::spawn(|| extract_sha1_list(wii_dat_path));
-    let ngc_hashes = extract_sha1_list(ngc_dat_path);
-    let wii_hashes = wii_hashes_handle.join().unwrap();
+    let mut sha1_list = Vec::with_capacity(8192);
+    extract_sha1_list(wii_dat_path, &mut sha1_list);
+    extract_sha1_list(ngc_dat_path, &mut sha1_list);
 
-    let mut sha1_list = wii_hashes;
-    sha1_list.extend(ngc_hashes);
     sha1_list.sort_unstable();
     sha1_list.dedup();
 
@@ -62,18 +50,17 @@ fn main() {
         let vc_ltl5_dir = out_dir.join("VC-LTL-Binary");
 
         if !vc_ltl5_dir.exists() {
-            let archive_path = out_dir.join("VC-LTL-Binary.7z");
-
-            let status = Command::new("curl.exe")
-                .arg("-sSLo")
-                .arg(&archive_path)
-                .arg("https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z")
-                .status()
-                .unwrap();
-            assert!(status.success());
+            let resp = minreq::get(
+                "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z",
+            )
+            .with_timeout(60)
+            .send()
+            .unwrap();
+            assert_eq!(resp.status_code, 200);
 
             fs::create_dir_all(&vc_ltl5_dir).unwrap();
-            sevenz_rust2::decompress_file(archive_path, &vc_ltl5_dir).unwrap();
+            let mut cursor = std::io::Cursor::new(resp.as_bytes());
+            sevenz_rust2::decompress(&mut cursor, &vc_ltl5_dir).unwrap();
         }
 
         let (win_ver, arch) = match target_arch.as_str() {
@@ -98,34 +85,27 @@ fn main() {
         let yy_thunks_dir = out_dir.join("YY-Thunks-Objs");
 
         if !yy_thunks_dir.exists() {
-            let archive_path = out_dir.join("YY-Thunks-Objs.zip");
-
-            let status = Command::new("curl.exe")
-                .arg("-sSLo")
-                .arg(&archive_path)
-                .arg("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip")
-                .status()
+            let resp = minreq::get("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.3/YY-Thunks-Objs.zip")
+                .with_timeout(60)
+                .send()
                 .unwrap();
-            assert!(status.success());
+            assert_eq!(resp.status_code, 200);
 
             fs::create_dir_all(&yy_thunks_dir).unwrap();
-            let mut reader = BufReader::new(File::open(&archive_path).unwrap());
-            ZipArchive::new(&mut reader)
+            let mut cursor = std::io::Cursor::new(resp.as_bytes());
+            ZipArchive::new(&mut cursor)
                 .unwrap()
                 .extract(&yy_thunks_dir)
                 .unwrap();
         }
 
-        let (os, arch, win_ver) = match target_arch.as_str() {
-            "x86_64" => ("Vista", "x64", "6.00"),
-            "x86" => ("WinXP", "x86", "5.01"),
+        let (obj_filename, arch, win_ver) = match target_arch.as_str() {
+            "x86_64" => ("YY_Thunks_for_Vista.obj", "x64", "6.00"),
+            "x86" => ("YY_Thunks_for_WinXP.obj", "x86", "5.01"),
             _ => unreachable!(),
         };
 
-        let obj_path = yy_thunks_dir
-            .join("objs")
-            .join(arch)
-            .join(format!("YY_Thunks_for_{os}.obj"));
+        let obj_path = yy_thunks_dir.join("objs").join(arch).join(obj_filename);
 
         assert!(obj_path.exists());
         println!("cargo:rustc-link-arg={}", obj_path.display());
