@@ -6,13 +6,9 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- \
-    --yes \
-    --quiet \
-    --no-modify-path \
-    --profile minimal \
-    --default-toolchain 1.99 \
-    --component rust-src
+COPY --from=rust:1.99 /usr/local/rustup /usr/local/rustup
+COPY --from=rust:1.99 /usr/local/cargo /usr/local/cargo
+RUN rustup component add rust-src
 
 COPY --from=ghcr.io/casey/just:latest /just /usr/local/bin/
 
