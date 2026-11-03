@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, long_operation::LongOperationState, util::misc::OPTIMAL_THREADS};
+use crate::{
+    games::{game::Game, multi_disc::open_multi_disc_files},
+    long_operation::LongOperationState,
+    util::{misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
+};
 use anyhow::{Context, Result};
 use nod::{
     common::Format,
@@ -34,7 +38,17 @@ fn perform_blocking(
     out_path: PathBuf,
     tx: &smol::channel::Sender<LongOperationState>,
 ) -> Result<()> {
-    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+    let disc_reader = {
+        let disc_opts = DiscOptions {
+            preloader_threads: OPTIMAL_THREADS.preloader,
+            ..Default::default()
+        };
+
+        let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+        let disc_files = open_multi_disc_files(&disc_path)?;
+        let disc_files_reader = SplitFileReader::new(disc_files)?;
+        DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?
+    };
 
     let ext = out_path
         .extension()
@@ -43,14 +57,6 @@ fn perform_blocking(
         .context("invalid extension")?;
 
     let format_opts = FormatOptions::new(ext);
-
-    let disc_reader = DiscReader::new(
-        &disc_path,
-        &DiscOptions {
-            preloader_threads: OPTIMAL_THREADS.preloader,
-            ..Default::default()
-        },
-    )?;
 
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
     let mut out_writer = {

@@ -3,9 +3,9 @@
 
 use crate::{
     config::Config,
-    games::{ImportEntry, multi_disc::retrieve_multi_disc_files},
+    games::{ImportEntry, multi_disc::open_multi_disc_files},
     long_operation::LongOperationState,
-    util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
+    util::{drive_state::DriveState, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
 };
 use anyhow::{Context, Result, anyhow};
 use nod::{
@@ -123,7 +123,7 @@ fn perform_blocking(
         // if the input is already in the right format, just copy it
 
         let mut files = match input_file {
-            InputFile::Disc(path) => retrieve_multi_disc_files(path)?,
+            InputFile::Disc(path) => open_multi_disc_files(path)?,
             InputFile::Zip(file) => std::iter::once(file).collect(),
         };
 
@@ -160,14 +160,21 @@ fn perform_blocking(
 
         out_writer.finalize(None)?;
     } else {
-        let disc_opts = DiscOptions {
-            preloader_threads: OPTIMAL_THREADS.preloader,
-            ..Default::default()
-        };
+        let disc_reader = {
+            let disc_opts = DiscOptions {
+                preloader_threads: OPTIMAL_THREADS.preloader,
+                ..Default::default()
+            };
 
-        let disc_reader = match input_file {
-            InputFile::Disc(path) => DiscReader::new(path, &disc_opts)?,
-            InputFile::Zip(file) => DiscReader::new_from_non_cloneable_read(file, &disc_opts)?,
+            let disc_files_reader = match input_file {
+                InputFile::Disc(path) => {
+                    let disc_files = open_multi_disc_files(path)?;
+                    SplitFileReader::new(disc_files)?
+                }
+                InputFile::Zip(file) => SplitFileReader::new(vec![file])?,
+            };
+
+            DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?
         };
 
         let mut out_writer = BufWriter::with_capacity(BUF_SIZE, out_writer);

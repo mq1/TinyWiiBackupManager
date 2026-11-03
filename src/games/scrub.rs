@@ -3,9 +3,10 @@ use crate::{
     games::{
         game::Game,
         import::{BUF_SIZE, SPLIT_SIZE, get_filename},
+        multi_disc::open_multi_disc_files,
     },
     long_operation::LongOperationState,
-    util::{drive_state::DriveState, misc::OPTIMAL_THREADS},
+    util::{drive_state::DriveState, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
 };
 use anyhow::{Context, Result, anyhow};
 use nod::{
@@ -60,12 +61,17 @@ fn perform_blocking(
         let must_split = is_fat32 || config.always_split();
         let split_size = must_split.then_some(SPLIT_SIZE);
 
-        let disc_opts = DiscOptions {
-            preloader_threads: OPTIMAL_THREADS.preloader,
-            ..Default::default()
+        let disc_reader = {
+            let disc_opts = DiscOptions {
+                preloader_threads: OPTIMAL_THREADS.preloader,
+                ..Default::default()
+            };
+
+            let disc_files = open_multi_disc_files(&disc_path)?;
+            let disc_files_reader = SplitFileReader::new(disc_files)?;
+            DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?
         };
 
-        let disc_reader = DiscReader::new(&disc_path, &disc_opts)?;
         let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
 
         let out_writer = SplitWriter::create(

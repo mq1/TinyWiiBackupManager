@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛 Sometimes additional disc files are picked up when reading the same disc in the same directory (<https://github.com/mq1/TinyWiiBackupManager/issues/734>)
+
 ## [v6.1.10] - 2026-10-31
 
 ### Changed
