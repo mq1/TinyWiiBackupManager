@@ -171,7 +171,7 @@ fn perform_blocking(
                     let disc_files = open_multi_disc_files(path)?;
                     SplitFileReader::new(disc_files)?
                 }
-                InputFile::Zip(file) => SplitFileReader::new(vec![file])?,
+                InputFile::Zip(file) => SplitFileReader::new(std::iter::once(file))?,
             };
 
             DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?

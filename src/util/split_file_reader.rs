@@ -42,12 +42,10 @@ pub struct SplitFileReader {
 }
 
 impl SplitFileReader {
-    pub fn new(files: Vec<File>) -> io::Result<Self> {
-        if files.is_empty() {
-            return Err(io::ErrorKind::InvalidData.into());
-        }
+    pub fn new(files: impl IntoIterator<Item = File>) -> io::Result<Self> {
+        let files = files.into_iter();
 
-        let mut parts = Vec::with_capacity(files.len());
+        let mut parts = Vec::with_capacity(files.size_hint().0);
         let mut stream_len = 0;
 
         for file in files {
