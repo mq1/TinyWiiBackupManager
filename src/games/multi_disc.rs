@@ -4,8 +4,17 @@
 use anyhow::{Context, Result};
 use std::{ffi::OsStr, fs::File, path::Path};
 
+const SUFFIXES: [(&str, &str, &str); 6] = [
+    (".part0.iso", ".part", ".iso"),
+    (".PART0.ISO", ".PART", ".ISO"),
+    (".iso", ".iso.", ""),
+    (".ISO", ".ISO.", ""),
+    (".wbfs", ".wbf", ""),
+    (".WBFS", ".WBF", ""),
+];
+
 pub fn open_multi_disc_files(path: &Path) -> Result<Vec<File>> {
-    let mut files = Vec::new();
+    let mut files = Vec::with_capacity(2);
 
     let filename = path
         .file_name()
@@ -14,37 +23,16 @@ pub fn open_multi_disc_files(path: &Path) -> Result<Vec<File>> {
 
     files.push(File::open(path)?);
 
-    if let Some(filename) = filename.strip_suffix(".part0.iso") {
-        for i in 1..=3 {
-            let discx_path = path.with_file_name(format!("{filename}.part{i}.iso"));
-            if !discx_path.exists() {
-                break;
+    for (suffix, mid, end) in SUFFIXES {
+        if let Some(prefix) = filename.strip_suffix(suffix) {
+            for i in 1.. {
+                let discx_path = path.with_file_name(format!("{prefix}{mid}{i}{end}"));
+                if !discx_path.exists() {
+                    break;
+                }
+                files.push(File::open(&discx_path)?);
             }
-            files.push(File::open(&discx_path)?);
-        }
-    } else if let Some(filename) = filename.strip_suffix(".PART0.ISO") {
-        for i in 1..=3 {
-            let discx_path = path.with_file_name(format!("{filename}.PART{i}.ISO"));
-            if !discx_path.exists() {
-                break;
-            }
-            files.push(File::open(&discx_path)?);
-        }
-    } else if let Some(filename) = filename.strip_suffix(".wbfs") {
-        for i in 1..=3 {
-            let wbfx_path = path.with_file_name(format!("{filename}.wbf{i}"));
-            if !wbfx_path.exists() {
-                break;
-            }
-            files.push(File::open(&wbfx_path)?);
-        }
-    } else if let Some(filename) = filename.strip_suffix(".WBFS") {
-        for i in 1..=3 {
-            let wbfx_path = path.with_file_name(format!("{filename}.WBF{i}"));
-            if !wbfx_path.exists() {
-                break;
-            }
-            files.push(File::open(&wbfx_path)?);
+            break;
         }
     }
 
