@@ -7,10 +7,10 @@ use std::{ffi::OsStr, fs::File, path::Path};
 const SUFFIXES: [(&str, &str, &str); 6] = [
     (".part0.iso", ".part", ".iso"),
     (".PART0.ISO", ".PART", ".ISO"),
-    (".iso", ".iso.", ""),
-    (".ISO", ".ISO.", ""),
     (".wbfs", ".wbf", ""),
     (".WBFS", ".WBF", ""),
+    (".iso", ".iso.", ""),
+    (".ISO", ".ISO.", ""),
 ];
 
 pub fn open_multi_disc_files(path: &Path) -> Result<Vec<File>> {
