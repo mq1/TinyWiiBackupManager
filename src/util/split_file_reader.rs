@@ -1,15 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use itertools::Itertools;
 use nod::read::DiscStream;
 use std::{fs::File, io, sync::Arc};
 
+#[derive(Debug)]
 struct Part {
     file: File,
     size: u64,
 }
 
 impl Part {
+    fn try_new(file: File) -> io::Result<Self> {
+        match file.metadata()?.len() {
+            0 => Err(io::ErrorKind::InvalidData.into()),
+            size => Ok(Self { file, size }),
+        }
+    }
+
     #[cfg(unix)]
     #[inline]
     fn read_exact_at(&self, buf: &mut [u8], offset: u64) -> io::Result<()> {
@@ -35,7 +44,7 @@ impl Part {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SplitFileReader {
     parts: Arc<[Part]>,
     stream_len: u64,
@@ -43,25 +52,10 @@ pub struct SplitFileReader {
 
 impl SplitFileReader {
     pub fn new(files: impl IntoIterator<Item = File>) -> io::Result<Self> {
-        let files = files.into_iter();
+        let parts: Arc<_> = files.into_iter().map(Part::try_new).try_collect()?;
+        let stream_len = parts.iter().map(|p| p.size).sum();
 
-        let mut parts = Vec::with_capacity(files.size_hint().0);
-        let mut stream_len = 0;
-
-        for file in files {
-            let size = file.metadata()?.len();
-            if size == 0 {
-                return Err(io::ErrorKind::InvalidData.into());
-            }
-            stream_len += size;
-
-            parts.push(Part { file, size });
-        }
-
-        Ok(Self {
-            parts: parts.into(),
-            stream_len,
-        })
+        Ok(Self { parts, stream_len })
     }
 }
 
