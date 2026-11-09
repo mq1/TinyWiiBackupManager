@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- 💬 When exporting a game, the format is now selectable in the dialog (thanks @davideme <https://github.com/PolyMeilex/rfd/pull/328>)
+
+### Fixed
+
+- 🐛 Could not export games as .gcm
+
 ## [v6.1.11] - 2026-11-03
 
 ### Fixed

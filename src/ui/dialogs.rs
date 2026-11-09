@@ -12,27 +12,61 @@ use std::{ffi::OsStr, path::PathBuf};
 use wii_disc_info::game_id::GameID;
 
 #[rustfmt::skip]
-const GAME_EXTS_WITH_ZIP: &[&str] = &[
-    "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc", "zip",
-    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC", "ZIP",
-];
+const IN_GAME_FILTER_WITH_ZIP: (&[&str], &str) = (
+    &[
+        "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc", "zip",
+        "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC", "ZIP",
+    ],
+    "Wii/NGC rom",
+);
 
 #[rustfmt::skip]
-const GAME_EXTS: &[&str] = &[
-    "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc",
-    "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC",
+const IN_GAME_FILTER: (&[&str], &str) = (
+    &[
+        "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc",
+        "ISO", "GCM", "WIA", "RVZ", "WBFS", "CISO", "GZC", "TGC",
+    ],
+    "Wii/NGC rom"
+);
+
+#[cfg(feature = "dialogs-rfd")]
+#[rustfmt::skip]
+const OUT_GAME_FILTERS: &[(&[&str], &str)] = &[
+    (&["rvz"], "RVZ"),
+    (&["iso", "gcm"], "ISO"),
+    (&["wia"], "WIA"),
+    (&["wbfs"], "WBFS"),
+    (&["ciso"], "CISO"),
+    (&["gcz"], "GCZ"),
+    (&["tgc"], "TGC"),
 ];
 
+#[cfg(feature = "dialogs-tfd")]
 #[rustfmt::skip]
-const LOWERCASE_GAME_EXTS: &[&str] = &[
-    "iso", "gcm", "wia", "rvz", "wbfs", "ciso", "gcz", "tgc",
-];
+const OUT_GAME_FILTERS: (&[&str], &str) = (
+    &[
+        "rvz", "iso", "gcm", "wia", "wbfs", "ciso", "gcz", "tgc",
+    ],
+    "Wii/NGC rom"
+);
 
 #[rustfmt::skip]
-const WIILOAD_EXTS: &[&str] = &[
-    "zip", "dol", "elf",
-    "ZIP", "DOL", "ELF",
-];
+const IN_APP_FILTER: (&[&str], &str) = (
+    &[
+        "zip",
+        "ZIP"
+    ],
+    "Homebrew app"
+);
+
+#[rustfmt::skip]
+const IN_WIILOAD_FILTER: (&[&str], &str) = (
+    &[
+        "zip", "dol", "elf",
+        "ZIP", "DOL", "ELF",
+    ],
+    "Homebrew app"
+);
 
 #[cfg(feature = "dialogs-rfd")]
 type Base = rfd::AsyncFileDialog;
@@ -67,7 +101,7 @@ async fn pick_folder(_base: Base, title: &'static str) -> Option<PathBuf> {
 async fn pick_file(
     base: Base,
     title: &'static str,
-    filter: (&'static [&str], &'static str),
+    filter: (&'static [&'static str], &'static str),
 ) -> Option<PathBuf> {
     base.set_title(title)
         .add_filter(filter.1, filter.0)
@@ -80,7 +114,7 @@ async fn pick_file(
 async fn pick_file(
     _base: (),
     title: &'static str,
-    filter: (&'static [&str], &'static str),
+    filter: (&'static [&'static str], &'static str),
 ) -> Option<PathBuf> {
     smol::unblock(move || tinyfiledialogs::open_file_dialog(title, "", Some(filter)))
         .await
@@ -91,7 +125,7 @@ async fn pick_file(
 async fn pick_files(
     base: Base,
     title: &'static str,
-    filter: (&'static [&str], &'static str),
+    filter: (&'static [&'static str], &'static str),
 ) -> Vec<PathBuf> {
     base.set_title(title)
         .add_filter(filter.1, filter.0)
@@ -107,7 +141,7 @@ async fn pick_files(
 async fn pick_files(
     _base: Base,
     title: &'static str,
-    filter: (&'static [&str], &'static str),
+    filter: (&'static [&'static str], &'static str),
 ) -> Vec<PathBuf> {
     smol::unblock(move || tinyfiledialogs::open_file_dialog_multi(title, "", Some(filter)))
         .await
@@ -122,11 +156,13 @@ async fn save_file(
     base: Base,
     title: &'static str,
     filename: String,
-    filter: (&'static [&str], &'static str),
+    filters: &'static [(&'static [&'static str], &'static str)],
 ) -> Option<PathBuf> {
-    base.set_title(title)
+    filters
+        .iter()
+        .fold(base, |d, &(exts, name)| d.add_filter(name, exts))
+        .set_title(title)
         .set_file_name(filename)
-        .add_filter(filter.1, filter.0)
         .save_file()
         .await
         .map(PathBuf::from)
@@ -137,7 +173,7 @@ async fn save_file(
     _base: Base,
     title: &'static str,
     filename: String,
-    filter: (&'static [&str], &'static str),
+    filter: (&'static [&'static str], &'static str),
 ) -> Option<PathBuf> {
     smol::unblock(move || {
         tinyfiledialogs::save_file_dialog_with_filter(title, &filename, filter.0, filter.1)
@@ -158,11 +194,7 @@ pub fn make_pick_mount_point_dialog_task(base: Base) -> Task<Message> {
 
 pub fn make_pick_homebrew_apps_dialog_task(base: Base) -> Task<Message> {
     Task::perform(
-        pick_files(
-            base,
-            "Select Homebrew App(s) to import",
-            (&["zip", "ZIP"], "Homebrew app"),
-        ),
+        pick_files(base, "Select Homebrew App(s) to import", IN_APP_FILTER),
         |res| match res {
             paths if !paths.is_empty() => Message::ImportHomebrewApps(paths),
             _ => Message::NoOp,
@@ -173,12 +205,7 @@ pub fn make_pick_homebrew_apps_dialog_task(base: Base) -> Task<Message> {
 pub fn make_pick_in_out_dialogs_task(base: Base) -> Task<Message> {
     Task::perform(
         async move {
-            let in_path = pick_file(
-                base.clone(),
-                "Select Game to convert",
-                (GAME_EXTS, "Wii/NGC rom"),
-            )
-            .await?;
+            let in_path = pick_file(base.clone(), "Select Game to convert", IN_GAME_FILTER).await?;
 
             let file_stem = in_path.file_stem().and_then(OsStr::to_str)?;
             let rvz_filename = format!("{file_stem}.rvz");
@@ -187,7 +214,7 @@ pub fn make_pick_in_out_dialogs_task(base: Base) -> Task<Message> {
                 base,
                 "Save converted game to",
                 rvz_filename,
-                (LOWERCASE_GAME_EXTS, "Wii/NGC rom"),
+                OUT_GAME_FILTERS,
             )
             .await?;
 
@@ -203,12 +230,7 @@ pub fn make_pick_in_out_dialogs_task(base: Base) -> Task<Message> {
 pub fn make_pick_games_dialog_task(base: Base, existing_ids: Box<[GameID]>) -> Task<Message> {
     Task::perform(
         async move {
-            let paths = pick_files(
-                base,
-                "Select Game(s) to import",
-                (GAME_EXTS_WITH_ZIP, "Wii/NGC rom"),
-            )
-            .await;
+            let paths = pick_files(base, "Select Game(s) to import", IN_GAME_FILTER_WITH_ZIP).await;
 
             keep_valid_games(stream::iter(paths), &existing_ids).await
         },
@@ -225,7 +247,7 @@ pub fn make_pick_games_recursively_dialog_task(
             let res = pick_folder(base, "Select a directory containing game(s) to import").await;
 
             if let Some(path) = res {
-                let games = recursive_file_scan(path, GAME_EXTS_WITH_ZIP);
+                let games = recursive_file_scan(path, IN_GAME_FILTER_WITH_ZIP.0);
 
                 keep_valid_games(games, &existing_ids).await
             } else {
@@ -245,7 +267,7 @@ pub fn make_pick_export_game_dest_dialog_task(base: Base, game: Game) -> Task<Me
             base,
             "Select where you want to export the game",
             filename,
-            (LOWERCASE_GAME_EXTS, "Wii/NGC rom"),
+            OUT_GAME_FILTERS,
         ),
         move |opt| match opt {
             Some(path) => Message::ExportGame(game, path),
@@ -256,11 +278,7 @@ pub fn make_pick_export_game_dest_dialog_task(base: Base, game: Game) -> Task<Me
 
 pub fn make_pick_file_to_wiiload_dialog_task(base: Base) -> Task<Message> {
     Task::perform(
-        pick_file(
-            base,
-            "Select a file to send via wiiload",
-            (WIILOAD_EXTS, "Homebrew app"),
-        ),
+        pick_file(base, "Select a file to send via wiiload", IN_WIILOAD_FILTER),
         |opt| match opt {
             Some(path) => Message::SendViaWiiload(path),
             None => Message::NoOp,

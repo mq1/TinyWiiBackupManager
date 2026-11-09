@@ -22,7 +22,7 @@ use std::{
 
 pub fn ext_to_format(ext: &str) -> Option<Format> {
     match ext {
-        "iso" | "ISO" => Some(Format::Iso),
+        "iso" | "ISO" | "gcm" | "GCM" => Some(Format::Iso),
         "ciso" | "CISO" => Some(Format::Ciso),
         "gcz" | "CGZ" => Some(Format::Gcz),
         "rvz" | "RVZ" => Some(Format::Rvz),
