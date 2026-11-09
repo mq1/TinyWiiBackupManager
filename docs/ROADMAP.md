@@ -1,6 +1,6 @@
 # Roadmap
 
-The master plan for Ultimate Game Backup Manager, as of 2026-10-28. It replaces the phase list
+The master plan for Ultimate Game Backup Manager, as of 2026-11-09. It replaces the phase list
 in the README where the two differ.
 
 ## Where we are
@@ -16,6 +16,11 @@ Done and tried on real hardware (the 3DS "petter1", the iCloud collection and th
   iCloud aren't downloaded. Shows which online console a title is installed on.
 - **[Test log](TESTLOG.md)**: every test on real hardware is written down there – device, what,
   who, when, how, why and the result. From now on each milestone counts as done only with an entry.
+- **M0 and M0b**: the loose ends, and the own icon, screenshot and README.
+- **Tasks (M1a, partly)**: imports, convert, export, scrub and hash run as tasks with progress
+  bars; waiting, moving earlier, cancelling and hashing tried, the rest in "Waiting for the Mac".
+- **Messages (M1a+, partly)**: the same message is counted instead of repeated, and the Messages
+  page lists every message since the start.
 
 ## Waiting for the Mac
 
@@ -82,7 +87,7 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
 ### M1a · Task manager with progress bars (M) – before M1
 
 **Pull requests, in this order** (each leaves `main` usable):
-1. **Core** (`claude/m1a-task-core`): `src/tasks/` without iced – tasks with resources and one
+1. **Core** (#4, merged): `src/tasks/` without iced – tasks with resources and one
    queue per resource, progress with speed and time left, cancel and pause (`TaskControl`),
    retry, reordering, history. Tested, not used by the UI yet.
 2. **Import as tasks** (#5, cloud session 2026-10-30, merged): the import queue
@@ -94,7 +99,7 @@ Each milestone ends in something usable. They are in the planned order; sizes ar
    `LongOperations` is removed; waiting tasks can be moved earlier
    or later on the Tasks page. Still to try on the Mac (test log).
 4. **Stay awake** while a task is running (macOS, Windows, Linux) (#7, cloud session
-   2026-10-30): `src/util/keep_awake.rs`, held while `tasks.is_busy()` (a paused task lets go).
+   2026-10-30, merged 2026-10-31): `src/util/keep_awake.rs`, held while `tasks.is_busy()` (a paused task lets go).
    Tried on the Mac 2026-10-31: `caffeinate` runs only while a task runs; the long sleep test
    (item 4 in "Waiting for the Mac") is still due.
 5. **Unfinished tasks after a restart**: listed again, to resume or drop. Split off from 3,
@@ -140,10 +145,10 @@ TWBM's notifications are toasts in the window that pile up (one per error, e.g. 
   for bug reports. The log is also written to a file in the data folder.
 
 First step (#20, 2026-10-31): the same message again is counted in one toast ("245×") instead of
-shown again; the log file (`log.txt`, already there) gets every one. Works on the Mac
-(2026-10-31); test log entry still to write.
+shown again; the log file (`log.txt`, already there) gets every one. Merged; works on the Mac
+(2026-10-31, see the test log).
 
-Messages page (#24, 2026-10-31, on top of the first step): every message since the start (the
+Messages page (#24, 2026-10-31, on top of the first step, merged): every message since the start (the
 last 1000; runs of the same one are one entry), newest first, a filter "Only warnings and
 errors", a search field, "Open log file". Works on the Mac (2026-10-31), the search not tried
 yet. Still open: the source (task, console, drive) with a link to it, grouping different errors

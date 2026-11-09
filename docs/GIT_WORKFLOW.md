@@ -6,7 +6,7 @@ used, and its history reads like a list of what changed and why, one line per ch
 ## In short
 
 1. Every change starts on a short-lived **branch** from `main`.
-2. It goes into `main` through a **pull request**: CI must be green, and the maintainer reviews it.
+2. It goes into `main` through a **pull request**: CI must be green, and the code is reviewed.
 3. The pull request is **squash-merged**: one commit per pull request on `main`, history stays
    linear, no merge commits.
 4. **Releases** are tags `vX.Y.Z` on `main`; the tag builds and publishes them.
@@ -30,6 +30,9 @@ used, and its history reads like a list of what changed and why, one line per ch
 - Merged branches are deleted.
 - Keeping a branch up to date with `main`: `git rebase origin/main` on your own branch (then
   `git push --force-with-lease`); never rebase or force-push a branch someone else works on.
+  Cloud sessions can't force-push, so they merge `origin/main` into the branch instead.
+- Before a Claude session ends, every open branch gets the new `main` (see
+  [CLAUDE.md](../CLAUDE.md#before-a-session-ends)), so its `CLAUDE.md` is current too.
 
 ## Commits
 
@@ -66,9 +69,20 @@ Co-Authored-By: Claude … (for commits written with AI, see AI_POLICY.md)
   - The roadmap is updated when the plan changed or a milestone is done.
 - **Squash merge**, with the pull request number in the commit (GitHub adds `(#12)`). The
   `Co-Authored-By` lines of the branch's commits stay in the body.
-- Pull requests opened by Claude are reviewed and merged by the maintainer, who is responsible
-  for every change (see [AI_POLICY.md](../AI_POLICY.md)). Claude merges only when the maintainer
-  says so for that pull request.
+- **Pull requests opened by Claude are merged by Claude**, without asking the maintainer first,
+  as soon as:
+  - the points above are done (CI green, changelog, test log, roadmap);
+  - Claude has reviewed the diff quickly: the logic, what is written to or deleted from drives,
+    SD cards and consoles, what is saved in the data folder (config, `tasks.json`,
+    `consoles.json`), error handling. **UI code isn't reviewed** (layout, widgets, texts and
+    styling, mostly `src/ui/`): if the UI works when tried, it is good;
+  - a change that waits for a test on real hardware ("Waiting for the Mac" in the
+    [roadmap](ROADMAP.md)) has worked there; that test also covers its UI.
+
+  Documentation-only pull requests are merged as soon as CI is green. Findings of the review are
+  fixed on the branch before merging; a question only the maintainer can answer stops the merge.
+  The maintainer stays responsible for every change (see [AI_POLICY.md](../AI_POLICY.md)) and can
+  revert any merge.
 
 ### When a pull request isn't needed
 

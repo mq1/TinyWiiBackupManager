@@ -4,7 +4,8 @@
 
 Ultimate Game Backup Manager is developed with AI. Most of its code, documentation and commit
 messages are written by Claude (Anthropic), working with the maintainer, who decides what gets
-built, reviews and tests the result on real hardware, and is responsible for every release.
+built, tests the result on real hardware, and is responsible for every change and release. Claude
+reviews and merges its own pull requests (see [the Git workflow](docs/GIT_WORKFLOW.md#pull-requests)).
 Commits written with AI carry a `Co-Authored-By: Claude` trailer.
 
 ## Contributing here

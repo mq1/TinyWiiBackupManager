@@ -22,11 +22,24 @@ what already exists, so no work is done twice:
   A branch that has to go is deleted by the maintainer on GitHub, or by a Claude Desktop session
   on the Mac, which can probably do it (not tried yet).
 
+## Before a session ends
+
+Before a session is archived (or the work is handed over), two things hold, so every session and
+every branch starts from the latest state:
+
+1. **`CLAUDE.md` on `main` is up to date**: "Current state" below describes what this session
+   changed, merged in its own small `docs/` pull request.
+2. **Every open branch has the new `main`** (and with it this file): `git fetch origin`, then for
+   each branch of an open pull request `git merge origin/main`, resolve conflicts, run the checks
+   (see "Where things are") and push. Cloud sessions merge instead of rebasing, because a rebase
+   needs a force-push, which they can't do (see above); with squash merging both give the same
+   commit on `main`. A session that can force-push (on the Mac) may rebase its own branches.
+
 ## Current state
 
 Handover between sessions; the session that changes the state updates this section. New sessions
 start from `main` and only see what is there, so the update goes to `main` in its own small
-`docs/` pull request (merged right away), not only in the feature branch. As of 2026-10-31 (afternoon):
+`docs/` pull request (merged right away), not only in the feature branch. As of 2026-11-09:
 
 - **Merged 2026-10-31 after review** (all tried on the Mac before): #20 (the same message
   counted, "245×"), #24 (Messages page; its search not tried on the Mac), #7 (stay awake while
@@ -44,6 +57,7 @@ start from `main` and only see what is there, so the update goes to `main` in it
   one merged second adds `SavedJob::Install` (`to_saved`, `leftovers`, `restore`) and renumbers
   its "Waiting for the Mac" item 5.
 - **M1, install on the 3DS**: pull request **#11** (`claude/m1-3ds-install-and-consoles`), open,
+  `main` merged in again 2026-11-09 (conflicts in `docs/ROADMAP.md` and `src/consoles.rs`),
   not reviewed again yet: "Install" on a CIA as a task, consoles found every 15 seconds,
   installed titles in `consoles.json`. To check on the 3DS: pausing an install holds the TCP
   connection (Link may give up; then Install tasks shouldn't offer Pause); cancelling must not
@@ -64,16 +78,30 @@ start from `main` and only see what is there, so the update goes to `main` in it
   to WiiGames is untested.
 - **Next on the Mac, in this order**: #36, #41, #13 (again, after the review's changes), #22 (the
   banner), #11 (3DS); then the long sleep test for #7 and item 3 of "Waiting for the Mac". Each
-  one that works may be merged by Claude when the maintainer says so.
+  one that works is merged by Claude after a quick review, without asking (see "Merging" below).
 - **M2b, explain and repair bad dumps** (#26): first step merged (#38). nod's H0–H3 validation
   fails on WBFS as it is (see the roadmap). Open: only the first disc of a multi-disc game is
   hashed.
 - A ROM source or drive that doesn't answer no longer holds up the library scan (#31) or the
   settings (#28). Trying a build on macOS: BUILDING.md (#29); every re-signed test build asks again
   for removable volumes access.
-- Branches to delete on GitHub: `feature/task-manager` once #11 is merged.
+- Branches to delete on GitHub (checked 2026-11-09 against the full history; cloud sessions
+  can't delete them):
+  - already fully in `main`: `feature/3ds-link-client`, `feature/drive-devices`,
+    `feature/link-protocol`, `feature/m0-loose-ends`, `feature/rebrand`;
+  - copies of TinyWiiBackupManager's own branches, identical to upstream (where they stay):
+    `pure-rust`, `test-lucide-icons-svg`;
+  - `feature/task-manager`: an early task manager (one commit) replaced by #4, #5 and #10; #11
+    was ported from it and no longer builds on it, so it can go now.
+  - A clone in a cloud session is shallow (50 commits): `git fetch --unshallow origin` before
+    comparing old branches with `main`, or every one looks unrelated.
 
 ## Working with the maintainer
+
+- **Merging**: Claude merges its own pull requests without asking, as soon as CI is green, the
+  code is quickly reviewed and, where the roadmap says so, the test on the Mac worked.
+  Documentation-only: as soon as CI is green. UI code isn't reviewed: if the UI works, it is
+  good. Details: [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md#pull-requests).
 
 - **Recommend a new session proactively** as soon as it makes sense, without being asked: when
   the conversation has grown long, when the next piece of work doesn't need what this session
