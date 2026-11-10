@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 💾 A drive that doesn't answer (a hung disk, or macOS still asking for access) no longer
   empties the drive list in My Consoles: each drive is read on its own, and one that takes more
   than 5 seconds says "Doesn't answer".
+- 🎮 A disc that is already waiting or being imported isn't added to the queue again (the same
+  game picked twice, or from two files).
 
 ## [v6.1.9] - 2026-10-21
 

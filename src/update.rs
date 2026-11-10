@@ -240,16 +240,28 @@ impl AppState {
             }
             Message::PickedGames(mut paths) => {
                 let picked = paths.len();
-                // also for a dropped file, which doesn't go through the dialog's check
+                // not twice into the queue: the same disc picked again, or once more in one pick,
+                // while its import waits or runs (a running one already has its file on the
+                // drive); nor a disc already on the drive, also for a dropped file, which doesn't
+                // go through the dialog's check
+                let mut queued = self.queued_imports();
                 paths.retain(|entry| {
-                    let on_drive = entry.is_on_drive(self.config.mount_point());
-                    if on_drive {
-                        self.notifications.push(Notification::info(format!(
-                            "{} is already on the drive",
+                    let target = entry.target();
+                    let skip = if queued.contains(&target) {
+                        Some("is already being imported")
+                    } else if entry.is_on_drive(self.config.mount_point()) {
+                        Some("is already on the drive")
+                    } else {
+                        None
+                    };
+                    match skip {
+                        Some(reason) => self.notifications.push(Notification::info(format!(
+                            "{} {reason}",
                             entry.display_title()
-                        )));
+                        ))),
+                        None => queued.push(target),
                     }
-                    !on_drive
+                    skip.is_none()
                 });
 
                 if picked == 0 {
@@ -336,6 +348,17 @@ impl AppState {
                 Task::none()
             }
             Message::RetryTask(id) => {
+                // the same disc may have been picked again since this import failed
+                if let Some(Job::Import { entry, config, .. }) = self.jobs.get(&id)
+                    && config.mount_point() == self.config.mount_point()
+                    && self.queued_imports().contains(&entry.target())
+                {
+                    self.notifications.push(Notification::info(format!(
+                        "{} is already being imported",
+                        entry.display_title()
+                    )));
+                    return Task::none();
+                }
                 self.tasks.retry(id);
                 self.start_ready_tasks()
             }
@@ -715,5 +738,169 @@ impl AppState {
                 self.start_ready_tasks()
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        games::ImportEntry,
+        message::Message,
+        state::AppState,
+        tasks::{Resource, TaskState},
+    };
+    use std::path::{Path, PathBuf};
+    use tempfile::TempDir;
+
+    /// A GameCube disc image as far as `ImportEntry` reads it: the 32 KiB that hold the header.
+    fn fake_gamecube_disc(dir: &Path, file: &str, id: &[u8; 6], title: &str) -> PathBuf {
+        let mut data = vec![0u8; 0x8000];
+        data[..6].copy_from_slice(id);
+        data[0x1c..0x20].copy_from_slice(&[0xC2, 0x33, 0x9F, 0x3D]);
+        data[0x20..0x20 + title.len()].copy_from_slice(title.as_bytes());
+        let path = dir.join(file);
+        std::fs::write(&path, data).unwrap();
+        path
+    }
+
+    fn entry(path: &Path) -> ImportEntry {
+        smol::block_on(ImportEntry::new(path.to_path_buf())).unwrap()
+    }
+
+    /// The app's data folder, the selected drive and a ROM source, removed after the test.
+    struct Folders {
+        data: TempDir,
+        drive: TempDir,
+        source: TempDir,
+    }
+
+    impl Folders {
+        fn new() -> Self {
+            Self {
+                data: TempDir::new().unwrap(),
+                drive: TempDir::new().unwrap(),
+                source: TempDir::new().unwrap(),
+            }
+        }
+
+        /// The app with the empty drive selected, which another task keeps busy, so imports wait
+        /// as they do behind a long one (a fake disc would otherwise be copied at once).
+        fn app(&self) -> AppState {
+            let data_dir = Box::leak(self.data.path().to_path_buf().into_boxed_path());
+            let mut state = AppState::boot(data_dir)().0;
+            let drive = self.drive.path().to_path_buf();
+            let _ = state.config.set_mount_point(drive.clone());
+            state.tasks.add("Busy", vec![Resource::Drive(drive)]);
+            assert_eq!(state.tasks.start_ready().len(), 1);
+            state
+        }
+
+        fn disc(&self, file: &str, id: &[u8; 6], title: &str) -> PathBuf {
+            fake_gamecube_disc(self.source.path(), file, id, title)
+        }
+    }
+
+    fn says_already_imported(state: &AppState) -> bool {
+        state
+            .notifications
+            .iter()
+            .any(|n| n.label().ends_with("is already being imported"))
+    }
+
+    #[test]
+    fn the_same_game_picked_again_is_queued_once() {
+        let folders = Folders::new();
+        let game = folders.disc("game.iso", b"GZZE01", "Test Game");
+        let copy = folders.disc("copy.iso", b"GZZE01", "Test Game");
+        let other = folders.disc("other.iso", b"GZYE01", "Other Game");
+        let mut state = folders.app();
+
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        assert_eq!(state.jobs.len(), 1);
+        assert!(!says_already_imported(&state));
+
+        // picked again while the first waits, also from another file of the same disc
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        let _ = state.update(Message::PickedGames(vec![entry(&copy)]));
+        assert_eq!(state.jobs.len(), 1);
+        assert!(says_already_imported(&state));
+
+        // twice in one pick, next to a new game: only the new game is added
+        let _ = state.update(Message::PickedGames(vec![
+            entry(&other),
+            entry(&other),
+            entry(&game),
+        ]));
+        assert_eq!(state.jobs.len(), 2);
+    }
+
+    #[test]
+    fn retry_refuses_a_game_picked_again_meanwhile() {
+        let folders = Folders::new();
+        let game = folders.disc("game.iso", b"GZXE01", "Retry Game");
+        let mut state = folders.app();
+
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        let first = *state.jobs.keys().next().unwrap();
+        state.tasks.cancel(first);
+
+        // a cancelled import doesn't hold the game: picking it again queues it
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        assert_eq!(state.jobs.len(), 2);
+        assert!(!says_already_imported(&state));
+
+        // retrying the cancelled one now would write the same file twice
+        let _ = state.update(Message::RetryTask(first));
+        assert_eq!(
+            state.tasks.get(first).unwrap().state(),
+            &TaskState::Cancelled
+        );
+        assert!(says_already_imported(&state));
+    }
+
+    #[test]
+    fn retry_works_when_the_game_is_not_queued_again() {
+        let folders = Folders::new();
+        let game = folders.disc("game.iso", b"GZWE01", "Lonely Game");
+        let mut state = folders.app();
+
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        let first = *state.jobs.keys().next().unwrap();
+        state.tasks.cancel(first);
+
+        let _ = state.update(Message::RetryTask(first));
+        assert!(!state.tasks.get(first).unwrap().state().is_finished());
+        assert!(!says_already_imported(&state));
+    }
+
+    #[test]
+    fn a_running_import_is_named_as_such_not_as_on_the_drive() {
+        let folders = Folders::new();
+        let game = folders.disc("game.iso", b"GZVE01", "Running Game");
+        let mut state = folders.app();
+
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        // a running import writes its file under its final name
+        let game_dir =
+            folders
+                .drive
+                .path()
+                .join("games")
+                .join(crate::games::import::make_game_dir_name(
+                    entry(&game).target().0,
+                    "Running Game",
+                ));
+        std::fs::create_dir_all(&game_dir).unwrap();
+        std::fs::write(game_dir.join("game.iso"), b"half").unwrap();
+
+        let _ = state.update(Message::PickedGames(vec![entry(&game)]));
+        assert_eq!(state.jobs.len(), 1);
+        assert!(says_already_imported(&state));
+        assert!(
+            !state
+                .notifications
+                .iter()
+                .any(|n| n.label().ends_with("is already on the drive"))
+        );
     }
 }

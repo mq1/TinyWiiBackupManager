@@ -132,6 +132,12 @@ fn is_x(path: &Path, x: &str) -> bool {
 }
 
 impl ImportEntry {
+    /// The disc this entry writes on the drive: two entries with the same one (e.g. the same game
+    /// picked twice, or from two files) would write the same file.
+    pub fn target(&self) -> (GameID, u8) {
+        (self.meta.game_id(), self.meta.disc_number())
+    }
+
     /// Whether this disc is already in its game's folder on the drive (a file named like the one
     /// the import would write). Importing it again would overwrite the game, and a cancelled or
     /// failed import would then leave it broken.
