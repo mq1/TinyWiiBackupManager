@@ -102,11 +102,10 @@ start from `main` and only see what is there, so the update goes to `main` in it
   ~700 entries that are only a title ID), the link to the release's entry in libretro-database.
   RAR via 7-Zip and artwork come later in M2. Anything on the 3DS side (vcinject Link 14) waits
   for the maintainer's decision.
-- **Branches to delete on GitHub** (cloud sessions can't): `claude/charming-clarke-dpz4xs`,
-  `claude/wizardly-fermi-whgi2g`, `claude/m2b-hash-all-discs`, `claude/no-double-import`,
-  `claude/m1c-copy-many`, `claude/docs-current-state-2026-11-10` (all merged 2026-11-10), and
-  `claude/docs-handover-2026-11-10` once it is merged. The local `feature/task-manager` on
-  the Mac goes once #11 is merged. A clone in a cloud session is shallow (50 commits): `git
+- **Branches**: the merged ones were deleted on GitHub 2026-11-10; only `main` and the branches
+  of the open pull requests (#11, #13, #22, #48, #49) are left. A docs branch a session merges is
+  deleted by the maintainer afterwards. The local `feature/task-manager` on the Mac goes once #11
+  is merged. A clone in a cloud session is shallow (50 commits): `git
   fetch --unshallow origin` before comparing old branches with `main`.
 - A ROM source or drive that doesn't answer no longer holds up the library scan (#31) or the
   settings (#28). Trying a build on macOS: BUILDING.md (#29).
