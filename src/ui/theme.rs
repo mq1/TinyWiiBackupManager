@@ -9,7 +9,7 @@ use iced::{
     },
 };
 
-#[cfg(any(target_os = "linux", target_arch = "aarch64"))]
+#[cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))]
 /// works on macos 10.14+, macos arm64 starts at 11
 /// enable this on x86_64 if we're dropping support for < 10.14
 fn accent() -> Option<Color> {
@@ -21,19 +21,19 @@ fn accent() -> Option<Color> {
     .map(|accent| Color::from_rgb(accent.red as f32, accent.green as f32, accent.blue as f32))
 }
 
-#[cfg(all(target_os = "macos", not(target_arch = "aarch64")))]
+#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
 fn accent() -> Option<Color> {
     None
 }
 
-#[cfg(all(target_os = "windows", not(target_arch = "aarch64")))]
+#[cfg(target_os = "windows")]
 fn accent() -> Option<Color> {
     let argb = winsafe::DwmGetColorizationColor().ok()?;
     let [_, r, g, b] = argb.0.to_be_bytes();
     Some(Color::from_rgb8(r, g, b))
 }
 
-#[cfg(any(target_os = "linux", target_arch = "aarch64"))]
+#[cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))]
 /// works on macos 10.14+, macos arm64 starts at 11
 /// enable this on x86_64 if we're dropping support for < 10.14
 fn is_dark() -> bool {
@@ -44,9 +44,23 @@ fn is_dark() -> bool {
     .is_some_and(|prefs| prefs.color_scheme == mundy::ColorScheme::Dark)
 }
 
-#[cfg(not(any(target_os = "linux", target_arch = "aarch64")))]
+#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
 fn is_dark() -> bool {
-    dark_light::detect().is_ok_and(|mode| mode == dark_light::Mode::Dark)
+    false
+}
+
+#[cfg(target_os = "windows")]
+fn is_dark() -> bool {
+    use winsafe::{self as w, co, prelude::*};
+
+    match w::HKEY::CURRENT_USER.RegGetValue(
+        Some("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"),
+        Some("AppsUseLightTheme"),
+        co::RRF::RT_REG_DWORD,
+    ) {
+        Ok(w::RegistryValue::Dword(val)) => val == 0,
+        _ => false,
+    }
 }
 
 fn generate(palette: Palette) -> Extended {

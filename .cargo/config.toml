@@ -6,6 +6,5 @@ AWS_LC_SYS_CFLAGS = "-fno-lto"
 
 [alias]
 build-dist-appimage = "--config .cargo/dist.toml build -Z build-std=std,panic_abort --release --no-default-features --features dist-appimage"
-build-dist-windows-modern = "--config .cargo/dist.toml build -Z build-std=std,panic_abort --release --no-default-features --features dist-windows-modern"
-build-dist-windows-legacy = "--config .cargo/dist.toml build -Z build-std=std,panic_abort --release --no-default-features --features dist-windows-legacy"
+build-dist-windows = "--config .cargo/dist.toml build -Z build-std=std,panic_abort --release --no-default-features --features dist-windows"
 build-dist-macos = "--config .cargo/dist.toml build -Z build-std=std,panic_abort --release --no-default-features --features dist-macos"

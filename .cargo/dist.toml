@@ -37,8 +37,9 @@ CXXFLAGS_aarch64_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-
 
 CC_i686_win7_windows_msvc = "clang-cl"
 CXX_i686_win7_windows_msvc = "clang-cl"
-CFLAGS_i686_win7_windows_msvc = "/clang:-O3"
-CXXFLAGS_i686_win7_windows_msvc = "/clang:-O3"
+AR_aarch64_pc_windows_msvc = "llvm-lib"
+CFLAGS_i686_win7_windows_msvc = "/clang:-O3 /clang:-fuse-ld=lld-link""
+CXXFLAGS_i686_win7_windows_msvc = "/clang:-O3 /clang:-fuse-ld=lld-link""
 
 CC_x86_64_apple_darwin = "clang"
 CXX_x86_64_apple_darwin = "clang++"
@@ -68,20 +69,14 @@ rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]
 
 [target.x86_64-win7-windows-msvc]
 linker = "lld-link"
-rustflags = [
-  "-C",
-  "target-feature=+crt-static",
-  "-C",
-  "linker-plugin-lto",
-  "-C",
-  "link-arg=/FORCE:MULTIPLE",
-]
+rustflags = ["-C", "target-feature=+crt-static", "-C", "linker-plugin-lto"]
 
 [target.aarch64-pc-windows-msvc]
 linker = "lld-link"
 rustflags = ["-C", "target-feature=+crt-static", "-C", "linker-plugin-lto"]
 
 [target.i686-win7-windows-msvc]
+linker = "lld-link"
 rustflags = ["-C", "target-feature=+crt-static"]
 
 [target.x86_64-apple-darwin]
