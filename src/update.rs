@@ -4,7 +4,7 @@
 use crate::{
     config::message::ConfigMessage,
     consoles,
-    games::{ImportEntry, games_state::GamesState, txtcodes::download_cheats},
+    games::{BulkCopy, ImportEntry, games_state::GamesState, txtcodes::download_cheats},
     homebrew::homebrew_state::HomebrewState,
     jobs::Job,
     library,
@@ -16,6 +16,7 @@ use crate::{
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
+use size::Size;
 use std::time::Instant;
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking app update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
@@ -30,6 +31,7 @@ fn writes_to_drive(message: &Message) -> bool {
             | Message::InstallOscApp(_)
             | Message::DownloadTxtCodes(_)
             | Message::PickedGames(_)
+            | Message::CopyShownToDrive
             | Message::Scrub(_)
     )
 }
@@ -713,6 +715,42 @@ impl AppState {
                     Err(e) => Message::Notify(e.into()),
                 })
             }
+            Message::CopyShownToDrive => {
+                if self.config.mount_point().as_os_str().is_empty() {
+                    return Task::done(Message::Notify(Notification::warning(
+                        "Select a drive in My Consoles first",
+                    )));
+                }
+                // without the drive's list every game would be "already on the drive" one by one
+                let GamesState::Loaded(games) = &self.games else {
+                    return Task::done(Message::Notify(Notification::warning(
+                        "The games on the drive aren't read yet: try again in a moment",
+                    )));
+                };
+                let existing_ids = games.get_all_game_ids().collect::<Vec<_>>();
+
+                let (in_cloud, paths): (Vec<_>, Vec<_>) = self
+                    .library
+                    .shown_drive_games()
+                    .partition(|item| item.in_cloud);
+                if !in_cloud.is_empty() {
+                    self.notifications.push(Notification::info(format!(
+                        "{} only in the cloud, not copied: download them first",
+                        games_count(in_cloud.len())
+                    )));
+                }
+                let paths = paths
+                    .into_iter()
+                    .map(|item| item.path.clone())
+                    .collect::<Vec<_>>();
+                let mount_point = self.config.mount_point().to_path_buf();
+
+                Task::perform(
+                    async move { BulkCopy::read(paths, &existing_ids, mount_point).await },
+                    |copy| copy,
+                )
+                .then(|copy| Task::batch(bulk_copy_messages(copy).into_iter().map(Task::done)))
+            }
             Message::GotUpdate(new_version) => {
                 self.new_version = Some(new_version);
                 Task::none()
@@ -738,6 +776,92 @@ impl AppState {
                 self.start_ready_tasks()
             }
         }
+    }
+}
+
+/// What "Copy all to drive" does once it has read the discs: a warning per unreadable file, then
+/// the imports, or nothing when the drive is too small for all of them.
+fn bulk_copy_messages(copy: BulkCopy) -> Vec<Message> {
+    let mut messages = copy
+        .unreadable
+        .iter()
+        .map(|(path, e)| {
+            Message::Notify(Notification::warning(format!(
+                "{} can't be read, not copied: {e:#}",
+                path.display()
+            )))
+        })
+        .collect::<Vec<_>>();
+
+    if copy.too_big() {
+        messages.push(Message::Notify(Notification::error(format!(
+            "Copying {} needs about {}, the drive has {} free: nothing copied",
+            games_count(copy.entries.len()),
+            Size::from_bytes(copy.needed),
+            Size::from_bytes(copy.free.unwrap_or_default())
+        ))));
+    } else {
+        messages.push(Message::PickedGames(copy.entries));
+    }
+    messages
+}
+
+fn games_count(n: usize) -> String {
+    if n == 1 {
+        "1 game".to_string()
+    } else {
+        format!("{n} games")
+    }
+}
+
+#[cfg(test)]
+mod bulk_copy_tests {
+    use super::*;
+
+    fn copy(needed: u64, free: Option<u64>) -> BulkCopy {
+        BulkCopy {
+            entries: Vec::new(),
+            unreadable: vec![("/a/Broken.iso".into(), anyhow::anyhow!("invalid console"))],
+            needed,
+            free,
+        }
+    }
+
+    fn labels(messages: &[Message]) -> Vec<String> {
+        messages
+            .iter()
+            .filter_map(|m| match m {
+                Message::Notify(n) => Some(n.label().to_string()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_bulk_copy_that_fits_imports_and_names_unreadable_files() {
+        let messages = bulk_copy_messages(copy(100, Some(1000)));
+        assert_eq!(
+            labels(&messages),
+            ["/a/Broken.iso can't be read, not copied: invalid console"]
+        );
+        assert!(matches!(messages.last(), Some(Message::PickedGames(_))));
+    }
+
+    #[test]
+    fn a_bulk_copy_too_big_for_the_drive_copies_nothing() {
+        let messages = bulk_copy_messages(copy(5_000_000_000, Some(1_000_000)));
+        assert!(
+            !messages
+                .iter()
+                .any(|m| matches!(m, Message::PickedGames(_)))
+        );
+        assert!(labels(&messages)[1].ends_with("free: nothing copied"));
+    }
+
+    #[test]
+    fn a_bulk_copy_goes_ahead_when_free_space_is_unknown() {
+        let messages = bulk_copy_messages(copy(5_000_000_000, None));
+        assert!(matches!(messages.last(), Some(Message::PickedGames(_))));
     }
 }
 

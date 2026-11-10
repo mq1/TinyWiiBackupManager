@@ -29,6 +29,17 @@ pub fn library(state: &AppState) -> Element<'_, Message> {
             .width(200),
         space::horizontal(),
         library.scanning.then(|| text("Scanning…")),
+        library
+            .shown_drive_games()
+            .any(|item| !item.in_cloud && presence(item, state).is_empty())
+            .then(|| tooltip(
+                my_button::<Message>()
+                    .icon(Icon::HardDriveUpload)
+                    .label("Copy all to drive")
+                    .on_press(Message::CopyShownToDrive),
+                my_card("Copy the Wii and GameCube games shown here that aren't on the drive yet"),
+                tooltip::Position::Bottom
+            )),
         tooltip(
             my_button::<Message>()
                 .icon(Icon::RefreshCw)
@@ -232,13 +243,14 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
 
     let on = presence(item, state);
     let status: Element<'_, Message> = if on.is_empty() {
-        match (item.kind, item.platform) {
-            (ItemKind::Disc, Platform::Wii | Platform::GameCube) => my_button::<Message>()
+        if item.is_drive_game() {
+            my_button::<Message>()
                 .icon(Icon::HardDriveUpload)
                 .label("Copy to drive")
                 .on_press(Message::CopyToDrive(item.path.clone()))
-                .into(),
-            _ => space().into(),
+                .into()
+        } else {
+            space().into()
         }
     } else {
         text(format!("✓ {}", on.join(", "))).size(12).into()

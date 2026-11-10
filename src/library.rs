@@ -198,6 +198,11 @@ pub struct LibraryItem {
 }
 
 impl LibraryItem {
+    /// Whether the item is a Wii or GameCube disc, which can be copied to a drive
+    pub fn is_drive_game(&self) -> bool {
+        self.kind == ItemKind::Disc && matches!(self.platform, Platform::Wii | Platform::GameCube)
+    }
+
     /// Whether the item is a folder (an unpacked release, an SD card copy, a Wii U title), told
     /// from its kind and name so that a disk that doesn't answer isn't asked.
     fn is_folder(&self) -> bool {
@@ -521,6 +526,11 @@ impl LibraryState {
                 && (search.is_empty() || item.name.to_lowercase().contains(&search))
         })
     }
+
+    /// The shown Wii and GameCube discs, for "Copy all to drive"
+    pub fn shown_drive_games(&self) -> impl Iterator<Item = &LibraryItem> {
+        self.visible().filter(|item| item.is_drive_game())
+    }
 }
 
 /// Scans the sources one after the other; blocking. The app uses [`scan_async`].
@@ -837,6 +847,43 @@ mod tests {
             names(&result.items),
             vec![("Golden Sun".into(), 0), ("Metroid Fusion".into(), 1)]
         );
+    }
+
+    #[test]
+    fn only_shown_discs_go_to_the_drive() {
+        let item = |name: &str, platform, kind| LibraryItem {
+            path: PathBuf::from(format!("/Volumes/a/{name}")),
+            platform,
+            kind,
+            name: name.into(),
+            size: 1,
+            id: None,
+            icon: None,
+            in_cloud: false,
+            copies: Vec::new(),
+        };
+        let mut library = LibraryState {
+            items: vec![
+                item("Mario Kart Wii", Platform::Wii, ItemKind::Disc),
+                item("Mario Kart DD", Platform::GameCube, ItemKind::Disc),
+                item("Mario Kart 7", Platform::N3ds, ItemKind::Cia),
+                item("Mario Kart 8", Platform::WiiU, ItemKind::WiiUTitle),
+                item("Mario Kart Wii channel", Platform::Wii, ItemKind::Wad),
+                item("Zelda", Platform::Wii, ItemKind::Disc),
+            ],
+            search: "mario".into(),
+            ..LibraryState::default()
+        };
+        let names = |library: &LibraryState| {
+            library
+                .shown_drive_games()
+                .map(|item| item.name.clone())
+                .collect::<Vec<_>>()
+        };
+
+        assert_eq!(names(&library), ["Mario Kart Wii", "Mario Kart DD"]);
+        library.platform = Some(Platform::Wii);
+        assert_eq!(names(&library), ["Mario Kart Wii"]);
     }
 
     #[test]

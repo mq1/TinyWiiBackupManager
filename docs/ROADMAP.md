@@ -42,6 +42,9 @@ each item is ticked off here (and gets its test log entry) when done.
    message names the disc that doesn't match).
 4. **Every later M1a and M1a+ pull request**: try it on the Mac before merging (the stay-awake
    one with a long import and the Mac left alone until it would sleep).
+5. **M1c, copy all to drive** (#41): in the library search a small Wii or GameCube game that
+   isn't on WiiGames, "Copy all to drive" → one import task; search one that is there → the
+   button is gone. Test log entry.
 
 ## How the app is meant to work
 
@@ -181,6 +184,11 @@ online 3DS at once**, not one console per click.
   at a time; files over 4 GiB are always split for FAT32 (`.wbfs` + `.wbf1` …), as the drive import
   already does. Found when copying the WBFS backup to the freshly formatted WiiGames drive, where
   the Finder refuses files over 4 GiB.
+- First step (#41): "Copy all to drive" in the library's title bar copies the Wii and GameCube
+  discs shown (so a platform, or what the search finds), skipping those already on the drive and
+  those only in the cloud, naming the files it can't read, and copying nothing when the files
+  together are bigger than the drive's free space. Games already waiting in the task list are
+  skipped (#36). Still open: a selection, a whole source folder.
 
 ### M2 · Game databases (M)
 

@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 💾 A drive that doesn't answer (a hung disk, or macOS still asking for access) no longer
   empties the drive list in My Consoles: each drive is read on its own, and one that takes more
   than 5 seconds says "Doesn't answer".
+- 📚 "Copy all to drive" in the library copies every Wii and GameCube game shown (a platform, or
+  what the search finds) that isn't on the drive yet, each as its own import task; games only in
+  the cloud are left out, and nothing is copied when they don't fit.
 - 🎮 A disc that is already waiting or being imported isn't added to the queue again (the same
   game picked twice, or from two files).
 
