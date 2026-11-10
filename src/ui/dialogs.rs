@@ -79,7 +79,7 @@ pub fn init_file_dialog_task() -> Task<AsyncFileDialog> {
 
 async fn pick_folder(base: AsyncFileDialog, title: &'static str) -> Option<PathBuf> {
     #[cfg(feature = "win-xp")]
-    if !CAN_USE_RFD {
+    if !*CAN_USE_RFD {
         return smol::unblock(|| tinyfiledialogs::select_folder_dialog(title, ""))
             .await
             .map(PathBuf::from);
@@ -94,7 +94,7 @@ async fn pick_file(
     filter: (&'static [&'static str], &'static str),
 ) -> Option<PathBuf> {
     #[cfg(feature = "win-xp")]
-    if !CAN_USE_RFD {
+    if !*CAN_USE_RFD {
         return smol::unblock(move || tinyfiledialogs::open_file_dialog(title, "", Some(filter)))
             .await
             .map(PathBuf::from);
@@ -113,7 +113,7 @@ async fn pick_files(
     filter: (&'static [&'static str], &'static str),
 ) -> Vec<PathBuf> {
     #[cfg(feature = "win-xp")]
-    if !CAN_USE_RFD {
+    if !*CAN_USE_RFD {
         return smol::unblock(move || {
             tinyfiledialogs::open_file_dialog_multi(title, "", Some(filter))
         })
@@ -142,7 +142,7 @@ async fn save_file(
     #[cfg(feature = "win-xp")] tfd_filter: (&'static [&'static str], &'static str),
 ) -> Option<PathBuf> {
     #[cfg(feature = "win-xp")]
-    if !CAN_USE_RFD {
+    if !*CAN_USE_RFD {
         return smol::unblock(move || {
             tinyfiledialogs::save_file_dialog_with_filter(
                 title,
