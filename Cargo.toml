@@ -13,7 +13,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [features]
-default = ["native-tls", "static-nod", "dialogs-rfd"]
+default = ["native-tls", "static-nod"]
 
 native-tls = ["minreq/https-native-tls"]    # uses system tls
 bundled-tls = ["minreq/https-rustls-probe"] # bundled tls + os certificates
@@ -27,29 +27,15 @@ static-nod = [
   "nod/compress-zstd-static",
 ]
 
-dialogs-rfd = ["dep:rfd"]             # modern
-dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
+win-xp = ["dep:tinyfiledialogs", "winsafe/kernel"] # also uses yy-thunks
+static-vcrt = []                                   # also uses vc-ltl5
 
-yy-thunks = []
-vc-ltl5 = []
-
-dist-appimage = ["bundled-tls", "static-nod", "dialogs-rfd"]
-dist-flatpak = ["native-tls", "dialogs-rfd"]
-dist-windows-modern = [
-  "native-tls",
-  "static-nod",
-  "dialogs-rfd",
-  "yy-thunks",
-  "vc-ltl5",
-]
-dist-windows-legacy = [
-  "bundled-tls-certs",
-  "static-nod",
-  "dialogs-tfd",
-  "yy-thunks",
-  "vc-ltl5",
-]
-dist-macos = ["native-tls", "static-nod", "dialogs-rfd"]
+dist-appimage = ["bundled-tls", "static-nod"]
+dist-flatpak = ["native-tls"]
+dist-windows-x64 = ["native-tls", "static-nod", "win-xp", "static-vcrt"]
+dist-windows-arm64 = ["native-tls", "static-nod", "static-vcrt"]
+dist-windows-x86 = ["bundled-tls-certs", "static-nod", "win-xp", "static-vcrt"]
+dist-macos = ["native-tls", "static-nod"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -101,8 +87,7 @@ nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling"
 ] }
 semver = "1"
 humantime = "2"
-rfd = { version = "0.18", optional = true }
-tinyfiledialogs = { version = "3", default-features = false, optional = true }
+rfd = "0.18"
 self_cell = "1.3" # free dependency: also dependency of cosmic-text
 
 [target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
@@ -121,6 +106,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "dx12",
 ] }
 winsafe = { version = "0.0.29", features = ["dwm"] }
+tinyfiledialogs = { version = "3", default-features = false, optional = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
@@ -139,7 +125,7 @@ wgpu = { version = "27.0", default-features = false, features = [
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
 winresource = "0.1"
-sevenz-rust2 = { version = "0.24", default-features = false, features = [
+sevenz-rust2 = { version = "0.25", default-features = false, features = [
   "util",
 ] }
 zip = { version = "9", default-features = false, features = [

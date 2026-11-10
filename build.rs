@@ -6,11 +6,13 @@ use winresource::WindowsResource;
 use zip::ZipArchive;
 
 fn extract_sha1_list(dat_path: &str, list: &mut Vec<[u8; 20]>) {
+    const ANCHOR: &str = "sha1=\"";
+
     let dat = fs::read_to_string(dat_path).unwrap();
 
     let mut remaining = &dat[..];
-    while let Some(found) = remaining.find("sha1=\"") {
-        remaining = &remaining[found + 6..];
+    while let Some(found) = remaining.find(ANCHOR) {
+        remaining = &remaining[found + ANCHOR.len()..];
 
         let next_quote = remaining.find('"').unwrap();
         let sha1 = &remaining[..next_quote];
@@ -46,7 +48,7 @@ fn main() {
     fs::write(out_dir.join("sha1_list.bin"), sha1_list.as_flattened()).unwrap();
 
     // lighter and static vcruntime replacement
-    if cfg!(feature = "vc-ltl5") {
+    if cfg!(feature = "static-vcrt") {
         let vc_ltl5_dir = out_dir.join("VC-LTL-Binary");
 
         if !vc_ltl5_dir.exists() {
@@ -81,7 +83,7 @@ fn main() {
     }
 
     // old windows compatibility
-    if cfg!(feature = "yy-thunks") && target_arch != "aarch64" {
+    if cfg!(feature = "win-xp") {
         let yy_thunks_dir = out_dir.join("YY-Thunks-Objs");
 
         if !yy_thunks_dir.exists() {
@@ -100,7 +102,7 @@ fn main() {
         }
 
         let (obj_filename, arch, win_ver) = match target_arch.as_str() {
-            "x86_64" => ("YY_Thunks_for_Vista.obj", "x64", "6.00"),
+            "x86_64" => ("YY_Thunks_for_WinXP.obj", "x64", "5.02"),
             "x86" => ("YY_Thunks_for_WinXP.obj", "x86", "5.01"),
             _ => unreachable!(),
         };
@@ -113,7 +115,7 @@ fn main() {
         println!("cargo:rustc-link-arg=/SUBSYSTEM:WINDOWS,{win_ver}");
     }
 
-    if cfg!(feature = "vc-ltl5") || cfg!(feature = "yy-thunks") {
+    if cfg!(feature = "static-vcrt") || cfg!(feature = "win-xp") {
         println!("cargo:rustc-link-arg=/VERBOSE:LIB");
     }
 

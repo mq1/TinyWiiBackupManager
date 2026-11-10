@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 💬 When exporting a game, the format is now selectable in the dialog (thanks @davideme <https://github.com/PolyMeilex/rfd/pull/328>)
 
+### Changed
+
+- 💬 Windows builds now choose the best dialog backend to use at runtime (legacy on xp, modern on vista+). \
+  This makes the x64 binary work again on windows XP. This also enables modern dialogs on x86 builds.
+
 ### Fixed
 
 - 🐛 Could not export games as .gcm
