@@ -49,8 +49,10 @@ start from `main` and only see what is there, so the update goes to `main` in it
 - **Merged 2026-10-31 after review**: #20, #24, #7 (the long sleep test is still due), #35, #38,
   #40.
 - **M2, game databases** (the next milestone; built and tested in the cloud): first pull request
-  **#48** (`claude/nifty-hamilton-g6dclr`), open, CI to watch, then merge after a quick review
-  (no Mac needed; a scan of the real collection on the Mac shows whether the names appear). The
+  **#48** (`claude/nifty-hamilton-g6dclr`), open as a draft, CI green on all three systems.
+  **Left unmerged on purpose for the maintainer to look at first** (a large new feature, not
+  tried on real files); merge it (mark it ready, squash) once the maintainer says so. No Mac needed, but a scan of the real collection on the Mac shows
+  whether the release names appear (no real ROMs in cloud containers). The
   No-Intro lists of GB, GBC, GBA, NES, SNES and Mega Drive from libretro-database, compacted to
   `CRC32 \t SHA-1 \t serial \t name` in `assets/databases/no-intro/` (1.9 MB, CC BY-SA 4.0;
   `scripts/update-databases.py` refreshes them; raw.githubusercontent.com is reachable from cloud
@@ -67,7 +69,8 @@ start from `main` and only see what is there, so the update goes to `main` in it
   titles in `consoles.json`. **On top of it: #49** (`claude/m1-link-qr-install`, base #11's
   branch): the first install of vcinject Link by QR code for FBI ("Install vcinject Link" in My
   Consoles, a QR button next to every CIA), served by `src/link/serve.rs` while the window is
-  open; item 7 in "Waiting for the Mac". Merge #11 first, then retarget #49 to `main`.
+  open; item 7 in "Waiting for the Mac". CI green on both. Merge #11 first, then retarget #49 to
+  `main` (it is a draft; mark it ready after the test on the 3DS).
 - **M1a, unfinished tasks after a restart**: pull request **#13** (`claude/m1a-resume-tasks`),
   open; try again on the Mac after the review's changes. #11 and #13 both touch `jobs.rs` and
   both call their "Waiting for the Mac" item 6: the one merged second adds `SavedJob::Install`
@@ -91,10 +94,18 @@ start from `main` and only see what is there, so the update goes to `main` in it
   `config.json` there with a disk image as `mount_point` and a folder of fake discs as the only
   ROM source leaves the real library alone. Clicks and screenshots from a small Swift tool
   (`CGEvent`, `CGWindowListCopyWindowInfo`, `screencapture -l`); iced has no accessibility tree.
+- **Next in the cloud** (no Mac needed), in this order: merge #48 once the maintainer has
+  looked; then the second M2 pull request, on a new branch from `main` after #48: the app
+  checks for newer lists at run time and falls back to the shipped ones (the roadmap's "The app
+  ships the databases and updates them"), then Redump for Wii/GameCube (the DATs in `assets/`
+  are already used by `sha1_list`), GameTDB for names of Wii/GameCube/3DS/Wii U titles (the
+  ~700 entries that are only a title ID), the link to the release's entry in libretro-database.
+  RAR via 7-Zip and artwork come later in M2. Anything on the 3DS side (vcinject Link 14) waits
+  for the maintainer's decision.
 - **Branches to delete on GitHub** (cloud sessions can't): `claude/charming-clarke-dpz4xs`,
   `claude/wizardly-fermi-whgi2g`, `claude/m2b-hash-all-discs`, `claude/no-double-import`,
-  `claude/m1c-copy-many` (all merged 2026-11-10), and this pull request's
-  `claude/docs-current-state-2026-11-10` once it is merged. The local `feature/task-manager` on
+  `claude/m1c-copy-many`, `claude/docs-current-state-2026-11-10` (all merged 2026-11-10), and
+  `claude/docs-handover-2026-11-10` once it is merged. The local `feature/task-manager` on
   the Mac goes once #11 is merged. A clone in a cloud session is shallow (50 commits): `git
   fetch --unshallow origin` before comparing old branches with `main`.
 - A ROM source or drive that doesn't answer no longer holds up the library scan (#31) or the
