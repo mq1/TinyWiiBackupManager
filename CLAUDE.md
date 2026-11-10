@@ -59,9 +59,14 @@ start from `main` and only see what is there, so the update goes to `main` in it
   containers, github.com and codeload aren't), built in with `include_str!`; `src/romdb.rs`
   identifies by SHA-1, CRC32, then serial. Checksums per ROM file in `library-checksums.json`
   next to `library.json` (found again by path + size + mtime, renamed or moved files by size +
-  mtime); a zip with one ROM is that ROM; the same ROM data is one entry with copies. Next for
-  M2: the build and the app refreshing the lists, the link to the release's entry, Redump/GameTDB
-  and the other platforms, RAR via 7-Zip, artwork.
+  mtime); a zip with one ROM is that ROM; the same ROM data is one entry with copies.
+  **On top of it: #53** (`claude/kind-cori-0fsoio`, base #48's branch, draft): the app refreshes
+  the lists at run time, once a day by ETag from raw.githubusercontent.com, compacted in Rust like
+  the script (`src/romdb/update.rs`; the ignored test `compacts_the_real_dats` compares both on
+  the real DATs), kept in `databases/no-intro/` in the data folder when newer than the shipped
+  list; tested live from the container. Merge #48 first, then retarget #53 to `main` (it
+  waits for the maintainer's look like #48). Next for M2: the build refreshing the snapshot, the
+  link to the release's entry, Redump/GameTDB and the other platforms, RAR via 7-Zip, artwork.
 - **M1, install on the 3DS**: pull request **#11** (`claude/m1-3ds-install-and-consoles`), open,
   waiting for the Mac (item 6 in "Waiting for the Mac" on its branch): install a CIA as a task
   (no Pause: vcinject Link waits without a timeout), start and delete titles, "Update" vcinject
@@ -94,16 +99,14 @@ start from `main` and only see what is there, so the update goes to `main` in it
   `config.json` there with a disk image as `mount_point` and a folder of fake discs as the only
   ROM source leaves the real library alone. Clicks and screenshots from a small Swift tool
   (`CGEvent`, `CGWindowListCopyWindowInfo`, `screencapture -l`); iced has no accessibility tree.
-- **Next in the cloud** (no Mac needed), in this order: merge #48 once the maintainer has
-  looked; then the second M2 pull request, on a new branch from `main` after #48: the app
-  checks for newer lists at run time and falls back to the shipped ones (the roadmap's "The app
-  ships the databases and updates them"), then Redump for Wii/GameCube (the DATs in `assets/`
+- **Next in the cloud** (no Mac needed), in this order: merge #48 and then #53 once the
+  maintainer has looked; then Redump for Wii/GameCube (the DATs in `assets/`
   are already used by `sha1_list`), GameTDB for names of Wii/GameCube/3DS/Wii U titles (the
   ~700 entries that are only a title ID), the link to the release's entry in libretro-database.
   RAR via 7-Zip and artwork come later in M2. Anything on the 3DS side (vcinject Link 14) waits
   for the maintainer's decision.
 - **Branches**: the merged ones were deleted on GitHub 2026-11-10; only `main` and the branches
-  of the open pull requests (#11, #13, #22, #48, #49) are left. A docs branch a session merges is
+  of the open pull requests (#11, #13, #22, #48, #49, #53) are left. A docs branch a session merges is
   deleted by the maintainer afterwards. The local `feature/task-manager` on the Mac goes once #11
   is merged. A clone in a cloud session is shallow (50 commits): `git
   fetch --unshallow origin` before comparing old branches with `main`.
