@@ -36,8 +36,8 @@ each item is ticked off here (and gets its test log entry) when done.
    update partition, then cancel a second scrub (the game must still start in USB Loader GX);
    check the hash of a known good dump. Test log entry.
    Partly done 2026-10-31 (see the test log): waiting, moving earlier, cancelling and hashing
-   work, and a known good dump (Worms 3D) gives "Hash match"; still open: export, convert,
-   scrub, pause by hand.
+   work, and a known good dump (Worms 3D) gives "Hash match". Pausing an import by hand and
+   resuming it works (2026-11-09, on a FAT32 disk image). Still open: export, convert, scrub.
 4. **Every later M1a and M1a+ pull request**: try it on the Mac before merging (the stay-awake
    one with a long import and the Mac left alone until it would sleep).
 
@@ -60,6 +60,11 @@ each item is ticked off here (and gets its test log entry) when done.
 
 Each milestone ends in something usable. They are in the planned order; sizes are rough
 (S = a few hours, M = about one working session like 2026-10-28, L = several).
+
+M1b and M1d keep their names but come after M5b (decided 2026-11-09): M2b, M3, M4, M5 and M5b
+all build on M2's databases and can be built and tested mostly without the Mac, while M1b formats
+real disks and needs the Mac for almost every step; its trigger (reformatting WiiGames) is done
+by hand already. Only M6a needs M1b and M1d, so they come right before it.
 
 ### M0 · Loose ends (S) – done
 
@@ -162,109 +167,12 @@ of one task, log levels with debug lines, export.
 - Delete and launch titles from the console's title list.
 - Offer the update of vcinject Link when it is older than the app expects.
 
-### M1b · Prepare SD cards and drives (M)
-
-A wizard in My Consoles ("Prepare an SD card or drive") that makes a card or disk ready for a
-console: check it, format it if needed – with the tools the operating system brings – and lay out
-what the console expects.
-
-**1. Choose the target and the disk**
-- Target: Wii SD card, Wii/GameCube USB drive (USB loaders, Nintendont), Wii U SD card, 3DS SD
-  card. Wii U game drives are formatted by the Wii U itself (WFS); the wizard only says so.
-- Only external and removable disks are offered, never the system disk. Each shows model, size,
-  partition scheme, file system and cluster size.
-
-**2. Check what is there**
-- Wanted: MBR (not GPT) with one primary FAT32 partition; clusters of 32 KiB up to 32 GiB, 64 KiB
-  above (the rule TWBM's drive info already uses). The 3DS wants FAT32 with 64 KiB clusters too.
-- If it already fits: no formatting, go on with the layout. If not: say exactly what is wrong
-  (e.g. "NTFS: the Wii can't use it, and macOS can only read it").
-
-**3. Back up, then format (only when needed)**
-- Before formatting, offer to copy the contents into a ROM source (games, saves, `apps/`) and show
-  how much that is.
-- Formatting erases everything: the disk's name and size are shown again and must be confirmed by
-  typing its name.
-- The operating system's own tools do the work; the app builds the command, shows it and runs it
-  with the rights it needs:
-
-| OS | Partition + format | Rights |
-| --- | --- | --- |
-| macOS | `diskutil eraseDisk FAT32 <NAME> MBRFormat /dev/diskN`, then `newfs_msdos -F 32 -c <sectors per cluster> -v <NAME>` on the partition for the cluster size | `diskutil` none; `newfs_msdos` needs administrator rights (password prompt), on the unmounted raw partition `/dev/rdiskNsM`; `-c 128` = 64 KiB clusters (`diskutil` alone picks 32 KiB) |
-| Windows | `diskpart` script (`clean`, `convert mbr`, `create partition primary`, `format fs=fat32 unit=<size> quick label=<NAME>`, `assign`) | administrator (UAC prompt) |
-| Linux | `parted` (`mklabel msdos`, `mkpart primary fat32`) and `mkfs.fat -F 32 -s <sectors per cluster> -n <NAME>` | `pkexec` |
-
-- Windows refuses FAT32 above 32 GB with its own tools in older versions; newer Windows 11
-  versions are said to lift that limit for the command line. To verify; where it doesn't work, the
-  wizard explains it instead of falling back to a third-party formatter.
-
-**4. Lay out the card or drive**
-- Folders per target: `wbfs/` and `games/` (Wii/GameCube drive), `apps/` (Wii SD), `wiiu/` (Wii U
-  SD, Aroma), `3ds/`, `luma/`, `cias/` (3DS SD).
-- Optionally the usual homebrew, downloaded at that moment from its official source (Open Shop
-  Channel, Universal-DB, the projects' GitHub releases): e.g. USB Loader GX and Nintendont, Aroma,
-  Luma3DS's `boot.firm`. Nothing that isn't freely distributable is bundled.
-- Then the card or drive is remembered as a device in My Consoles, and the backup (if one was
-  made) can be copied back.
-
-**5. Safety**
-- The command is shown before it runs, and its output is kept in the app's log.
-- A disk that changed between choosing and formatting (unplugged, other disk at the same name) stops
-  the wizard.
-- Tested first with disk images (`hdiutil` on macOS, loop devices on Linux, VHDs on Windows) in CI,
-  never with a real disk.
-
 ### M1c · Copy many games to a drive (S)
 
 - "Copy to drive" in the library for a selection, a platform or a whole source folder, not one game
   at a time; files over 4 GiB are always split for FAT32 (`.wbfs` + `.wbf1` …), as the drive import
   already does. Found when copying the WBFS backup to the freshly formatted WiiGames drive, where
   the Finder refuses files over 4 GiB.
-
-### M1d · SD cards: manage, back up, set up (M)
-
-The SD card of a 3DS, a Wii or a Wii U becomes a device in My Consoles, like a drive: the app
-sees what is on it, keeps backups of it and sets up new cards. Builds on M1b (format and layout).
-
-**Recognising a card and its console**
-- By its content, not its name: 3DS (`Nintendo 3DS/`, `boot.firm`, `luma/`, `3ds/`, `cias/`),
-  Wii (`apps/`, `private/wii/`, `wad/`, BootMii's `bootmii/`), Wii U (`wiiu/`,
-  `wiiu/environments/aroma/`, `wiiu/apps/`, `wiiu/plugins/`), or a mix (a Wii U card often
-  holds vWii homebrew too).
-- The card remembers its console (name in My Consoles), so a card in the computer shows up under
-  the right console.
-
-**Managing**
-- What is on it, grouped: CFW or environment and its version (Luma3DS, Aroma), homebrew apps,
-  plugins, CIAs and WADs waiting to be installed, saves, free space; the M1b check of file system
-  and cluster size.
-- Update homebrew from its official source (Open Shop Channel, Universal-DB, the projects'
-  GitHub releases), remove apps, move games and apps between card and library.
-
-**Backing up**
-- One backup per card and date in the data folder (or a chosen folder), as a plain copy of the
-  files; restoring to the same or to a new, larger card (moving to a bigger card is the common
-  case).
-- **Irreplaceable files** are marked and their absence warned about, because without them a
-  broken console can't be restored:
-  - 3DS: the NAND backup and `essential.exefs` from GodMode9 (`gm9/out/`); the content of
-    `Nintendo 3DS/` is encrypted for this one console and only works on it.
-  - Wii: BootMii's `nand.bin` and `keys.bin`.
-  - Wii U: the NAND, `otp.bin` and `seeprom.bin` dumps.
-- These files belong to the console and stay on the computer; they are never uploaded or shared.
-
-**Setting up**
-- A new card for a console that is already modded: M1b's layout plus the homebrew the console
-  uses, or the content of a backup.
-
-**Models and revisions**
-- 3DS family: Old 3DS, Old 3DS XL and 2DS take a full-size SD card; New 3DS, New 3DS XL and
-  New 2DS XL a microSD card (behind a screwed cover on the New 3DS). The app asks for the model
-  once and remembers it with the console.
-- Wii: RVL-001 (with GameCube ports), RVL-101 "Family Edition" (no GameCube ports, so no
-  Nintendont from discs), RVL-201 Wii mini (**no SD slot**: USB only, so its "card" is a USB
-  stick).
-- Wii U: one SD slot for Wii U and vWii homebrew; game drives are WFS (see M1b).
 
 ### M2 · Game databases (M)
 
@@ -384,6 +292,103 @@ deletes files runs as a task (M1a) and shows a preview first.
 - From there: set the game's own rule, move a file to another source, mark one copy as the main one.
 - Saves come from the consoles (3DS M6, Wii M7, Wii U M8) and from save folders on drives
   and SD cards; until then the tab shows the save files found in the sources.
+
+### M1b · Prepare SD cards and drives (M) – after M5b, before M6a
+
+A wizard in My Consoles ("Prepare an SD card or drive") that makes a card or disk ready for a
+console: check it, format it if needed – with the tools the operating system brings – and lay out
+what the console expects.
+
+**1. Choose the target and the disk**
+- Target: Wii SD card, Wii/GameCube USB drive (USB loaders, Nintendont), Wii U SD card, 3DS SD
+  card. Wii U game drives are formatted by the Wii U itself (WFS); the wizard only says so.
+- Only external and removable disks are offered, never the system disk. Each shows model, size,
+  partition scheme, file system and cluster size.
+
+**2. Check what is there**
+- Wanted: MBR (not GPT) with one primary FAT32 partition; clusters of 32 KiB up to 32 GiB, 64 KiB
+  above (the rule TWBM's drive info already uses). The 3DS wants FAT32 with 64 KiB clusters too.
+- If it already fits: no formatting, go on with the layout. If not: say exactly what is wrong
+  (e.g. "NTFS: the Wii can't use it, and macOS can only read it").
+
+**3. Back up, then format (only when needed)**
+- Before formatting, offer to copy the contents into a ROM source (games, saves, `apps/`) and show
+  how much that is.
+- Formatting erases everything: the disk's name and size are shown again and must be confirmed by
+  typing its name.
+- The operating system's own tools do the work; the app builds the command, shows it and runs it
+  with the rights it needs:
+
+| OS | Partition + format | Rights |
+| --- | --- | --- |
+| macOS | `diskutil eraseDisk FAT32 <NAME> MBRFormat /dev/diskN`, then `newfs_msdos -F 32 -c <sectors per cluster> -v <NAME>` on the partition for the cluster size | `diskutil` none; `newfs_msdos` needs administrator rights (password prompt), on the unmounted raw partition `/dev/rdiskNsM`; `-c 128` = 64 KiB clusters (`diskutil` alone picks 32 KiB) |
+| Windows | `diskpart` script (`clean`, `convert mbr`, `create partition primary`, `format fs=fat32 unit=<size> quick label=<NAME>`, `assign`) | administrator (UAC prompt) |
+| Linux | `parted` (`mklabel msdos`, `mkpart primary fat32`) and `mkfs.fat -F 32 -s <sectors per cluster> -n <NAME>` | `pkexec` |
+
+- Windows refuses FAT32 above 32 GB with its own tools in older versions; newer Windows 11
+  versions are said to lift that limit for the command line. To verify; where it doesn't work, the
+  wizard explains it instead of falling back to a third-party formatter.
+
+**4. Lay out the card or drive**
+- Folders per target: `wbfs/` and `games/` (Wii/GameCube drive), `apps/` (Wii SD), `wiiu/` (Wii U
+  SD, Aroma), `3ds/`, `luma/`, `cias/` (3DS SD).
+- Optionally the usual homebrew, downloaded at that moment from its official source (Open Shop
+  Channel, Universal-DB, the projects' GitHub releases): e.g. USB Loader GX and Nintendont, Aroma,
+  Luma3DS's `boot.firm`. Nothing that isn't freely distributable is bundled.
+- Then the card or drive is remembered as a device in My Consoles, and the backup (if one was
+  made) can be copied back.
+
+**5. Safety**
+- The command is shown before it runs, and its output is kept in the app's log.
+- A disk that changed between choosing and formatting (unplugged, other disk at the same name) stops
+  the wizard.
+- Tested first with disk images (`hdiutil` on macOS, loop devices on Linux, VHDs on Windows) in CI,
+  never with a real disk.
+
+### M1d · SD cards: manage, back up, set up (M) – after M1b
+
+The SD card of a 3DS, a Wii or a Wii U becomes a device in My Consoles, like a drive: the app
+sees what is on it, keeps backups of it and sets up new cards. Builds on M1b (format and layout).
+
+**Recognising a card and its console**
+- By its content, not its name: 3DS (`Nintendo 3DS/`, `boot.firm`, `luma/`, `3ds/`, `cias/`),
+  Wii (`apps/`, `private/wii/`, `wad/`, BootMii's `bootmii/`), Wii U (`wiiu/`,
+  `wiiu/environments/aroma/`, `wiiu/apps/`, `wiiu/plugins/`), or a mix (a Wii U card often
+  holds vWii homebrew too).
+- The card remembers its console (name in My Consoles), so a card in the computer shows up under
+  the right console.
+
+**Managing**
+- What is on it, grouped: CFW or environment and its version (Luma3DS, Aroma), homebrew apps,
+  plugins, CIAs and WADs waiting to be installed, saves, free space; the M1b check of file system
+  and cluster size.
+- Update homebrew from its official source (Open Shop Channel, Universal-DB, the projects'
+  GitHub releases), remove apps, move games and apps between card and library.
+
+**Backing up**
+- One backup per card and date in the data folder (or a chosen folder), as a plain copy of the
+  files; restoring to the same or to a new, larger card (moving to a bigger card is the common
+  case).
+- **Irreplaceable files** are marked and their absence warned about, because without them a
+  broken console can't be restored:
+  - 3DS: the NAND backup and `essential.exefs` from GodMode9 (`gm9/out/`); the content of
+    `Nintendo 3DS/` is encrypted for this one console and only works on it.
+  - Wii: BootMii's `nand.bin` and `keys.bin`.
+  - Wii U: the NAND, `otp.bin` and `seeprom.bin` dumps.
+- These files belong to the console and stay on the computer; they are never uploaded or shared.
+
+**Setting up**
+- A new card for a console that is already modded: M1b's layout plus the homebrew the console
+  uses, or the content of a backup.
+
+**Models and revisions**
+- 3DS family: Old 3DS, Old 3DS XL and 2DS take a full-size SD card; New 3DS, New 3DS XL and
+  New 2DS XL a microSD card (behind a screwed cover on the New 3DS). The app asks for the model
+  once and remembers it with the console.
+- Wii: RVL-001 (with GameCube ports), RVL-101 "Family Edition" (no GameCube ports, so no
+  Nintendont from discs), RVL-201 Wii mini (**no SD slot**: USB only, so its "card" is a USB
+  stick).
+- Wii U: one SD slot for Wii U and vWii homebrew; game drives are WFS (see M1b).
 
 ### M6a · Softmod wizard (L)
 

@@ -43,6 +43,19 @@ console, a real drive or a real collection can show.
 
 ## Entries
 
+### 2026-11-09 · FAT32 disk image · no double import (#36), copy all (#41), pause by hand
+
+| | |
+| --- | --- |
+| **Device** | UGBMTEST, a 3 GB FAT32 disk image (MBR, `hdiutil`), as the drive; WiiGames wasn't connected |
+| **What** | #36 (a disc already waiting or being imported isn't added again; Retry refuses it), #41 ("Copy all to drive"), pausing an import by hand |
+| **Who** | Claude, on the maintainer's Mac, clicks and screenshots driven by a script |
+| **When** | 2026-11-09, `claude/m1c-copy-many` (a87456d6) merged locally with `claude/no-double-import` (e8d2f5a3), debug build in portable mode (own data folder), macOS |
+| **How** | Fake GameCube discs (headers only, sparse; 1.4 GB and 8 MB) as the only ROM source. Library: four "Copy to drive" clicks within a second; an import paused by hand to hold the drive, a waiting import cancelled, picked again, Retry on the cancelled one; "Copy all to drive" with a search that needs more than the free space, and with no results |
+| **Why** | Try #36 and #41 before merging, without the real drive |
+| **Result** | ✅ "Small Bravo is already being imported" (waiting) and "Big Alpha is already being imported" (running), each imported once. Retry → "Small Delta is already being imported", the task stays Cancelled. Pause and Resume work, the file is complete afterwards (1 468 006 400 bytes). "Copying 2 games needs about 2.73 GiB, the drive has 1.60 GiB free: nothing copied", the game already there not counted; no results → no button. Not tried in the window: a "Copy all" that copies (done in a test on a 40 MB FAT32 image: two games copied, the broken file named) |
+| **Follow-up** | On WiiGames with real discs (Wii too) and a split over 4 GiB; CI before merging |
+
 ### 2026-10-31 · WiiGames, gamestation · why a hash doesn't match (#38)
 
 | | |
