@@ -38,8 +38,8 @@ CXXFLAGS_aarch64_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-
 CC_i686_win7_windows_msvc = "clang-cl"
 CXX_i686_win7_windows_msvc = "clang-cl"
 AR_aarch64_pc_windows_msvc = "llvm-lib"
-CFLAGS_i686_win7_windows_msvc = "/clang:-O3 /clang:-fuse-ld=lld-link""
-CXXFLAGS_i686_win7_windows_msvc = "/clang:-O3 /clang:-fuse-ld=lld-link""
+CFLAGS_i686_win7_windows_msvc = "/clang:-O3 /clang:-fuse-ld=lld-link"
+CXXFLAGS_i686_win7_windows_msvc = "/clang:-O3 /clang:-fuse-ld=lld-link"
 
 CC_x86_64_apple_darwin = "clang"
 CXX_x86_64_apple_darwin = "clang++"
