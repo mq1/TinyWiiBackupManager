@@ -1,6 +1,6 @@
 # Roadmap
 
-The master plan for Ultimate Game Backup Manager, as of 2026-11-09. It replaces the phase list
+The master plan for Ultimate Game Backup Manager, as of 2026-11-10. It replaces the phase list
 in the README where the two differ.
 
 ## Where we are
@@ -162,6 +162,12 @@ of one task, log levels with debug lines, export.
 
 ### M1 · Install on the 3DS over Wi-Fi (M)
 
+Not built yet, and vcinject has it (compared 2026-11-10, see "From vcinject" below): **the first
+install of vcinject Link** on a 3DS that doesn't run it yet – the app serves the CIA over HTTP and
+shows a QR code that FBI scans (vcinject's `serve.py`). Without it a new 3DS still needs vcinject
+once. The same way installs any CIA on a console without vcinject Link. And **installing on every
+online 3DS at once**, not one console per click.
+
 - "Install" on a CIA in the library: choose the 3DS; it runs as a task (M1a), with progress on the
   computer and on the 3DS.
 - Delete and launch titles from the console's title list.
@@ -189,6 +195,18 @@ of one task, log levels with debug lines, export.
   handles RAR5), falling back to `unar`/`lsar` when only that is installed. The unrar library's
   license doesn't fit GPL, so it isn't linked.
 - Real names for the ~700 entries that are only a title ID today.
+- From vcinject (compared 2026-11-10), for the ROMs of the older consoles (Game Boy to Mega Drive):
+  - The library remembers each file's checksum (CRC32, SHA-1) and cartridge serial, so a renamed or
+    moved file is recognised without being read again (today: name and size), and the game info
+    shows them with a link to the release's entry in the libretro database.
+  - Zipped ROMs (one game per .zip) are read like unpacked ones.
+  - **Artwork**: box art, title screens and logos from the libretro thumbnails, matched by
+    checksum; ROM hacks and games missing there from RetroGamesNexus, Pokémon hacks by the name in
+    their own text (vcinject's `romtext.py`); GameTDB for 3DS and Wii U retail titles. Covers are
+    kept for good and refreshed by ETag; a first download of all covers shows progress and can
+    carry on at the next start.
+  - **Descriptions** in the user's language from RetroGamesNexus or Wikipedia (`about.py`), also
+    for games that are missing.
 
 ### M2b · Explain and repair bad dumps (M) – after M2
 
@@ -219,6 +237,11 @@ be fixed from a second copy, which the library knows about.
   reports a bad H3 or H0 hash in the first megabytes of almost every WBFS on WiiGames (tried on
   5 on 2026-10-31), most likely where WBFS left out unused block groups. It has to skip the
   groups the image doesn't store, or it only works on full ISO/RVZ dumps.
+- **ROMs of the handhelds** (from vcinject's `dumpdb.py`, compared 2026-11-10): besides the
+  No-Intro checksums, Game Boy, Color and Advance ROMs are checked against the database of
+  [FlashGBX](https://github.com/lesserkuma/FlashGBX) (the cartridge by its header, then CRC32 and
+  size). A ROM is *verified*, *differs from the known dump* or *unverified* (in no list: hacks,
+  translations, homebrew).
 
 ### M3 · Injects by content (M–L)
 
@@ -237,10 +260,15 @@ be fixed from a second copy, which the library knows about.
 - Game view: files, injects, where it is installed, "installable on" (GBA → 3DS, Wii U; GameCube
   → Wii with Nintendont, Wii U; Wii → Wii, Wii U; N64, DS, SNES … → Wii U).
 - Filter by target console.
+- Language versions and copies of a game are one entry too ("3 versions"), with a menu to pick
+  the one to use and the regions as small labels on the cover (DE, US/EU, JP, "DE×2"), as vcinject
+  does. Copies of the same release are flagged, bit-identical or not.
 
 ### M5 · Missing games and collections (M)
 
 - Per platform: have / missing, from the databases.
+  As in vcinject: a region filter, "owned X of Y",
+  the covers of missing games greyed out, *Owned first* and *Only series I own*.
 - Collections: their own file in the data folder with references to game IDs; create, edit, add
   games; progress per collection ("Zelda: 14 of 19").
 - Series are suggested from the database names, as vcinject's `library.series` does ("Pokemon -
@@ -270,6 +298,9 @@ deletes files runs as a task (M1a) and shows a preview first.
 - **Clean up**: find duplicates (same checksum), empty folders, leftovers (`.part`, unpacked RAR
   caches, macOS `._` files), unidentified files; each as a list to review, nothing is deleted
   silently. Deleted files go to the system's trash where there is one.
+- **From vcinject** (compared 2026-11-10): *Zip* packs every unpacked ROM into its own .zip next
+  to it (the original is deleted only after its zip was verified); *Names* renames identified ROMs
+  to their release name; a ROM can be marked as *self-dumped*.
 - The layout of devices (drives, SD cards) stays what the console expects (M1b); the layout here
   is for the collection on the computer.
 
@@ -452,6 +483,58 @@ them and copies them into the console's backups (M1d). It doesn't go on without 
 - Injector: build 3DS injects from the library, first through vcinject as a command-line sidecar,
   later ported to Rust.
 
+**From vcinject** – what it does today and this app doesn't (compared 2026-11-10 with vcinject's
+`main`, which holds all of its branches; "M1" and "M2" items are listed in those milestones):
+
+- **Status report per console** (`status.py`): Luma3DS, vcinject Link and the installed homebrew
+  against their newest releases, the sound firmware `dspfirm.cdc` (RetroArch forwarders need it),
+  free space on the SD card; *Update* per finding and *Update all*, including Luma3DS's
+  `boot.firm`. The report is mirrored on the 3DS's screen (Link's `report` command, which the
+  client has but nothing uses). After updates that need a restart the app restarts the 3DS,
+  reconnects and says whether everything worked.
+- **Saves** (`saves.py`, `disa.py`): one zip per console and title in the data folder; restore
+  picks one. Restoring is untried on hardware in vcinject too.
+- **Titles**: save a title's icon and banner; tell official Virtual Console titles and injects
+  apart from other games (open in vcinject as well).
+- **HOME Menu** (`homemenu.py`): read the layout as on the console, arrange games and apps on the
+  SD card and move them into the existing folders; *Save to 3DS* backs up the old layout, writes
+  the new one, restarts the 3DS and checks every icon. Folders, system apps and the Game Card
+  can't be written while the system runs: vcinject plans a GodMode9 script for that (its
+  `docs/TODO.md`); the dead ends it tried are written down there.
+- **Homebrew**: besides all of Universal-DB (over 200 apps with a .cia, searchable, with
+  screenshots, the version on each 3DS and one button that installs or updates), a short
+  *Recommended* list straight from the authors' GitHub releases, only projects with an open
+  licence (DSP1, FBI Reloaded, Universal-Updater, Checkpoint, PKSM, ftpd, Anemone3DS), and
+  **News**: the latest releases of those, Luma3DS and this app.
+- **Injector**, what belongs to it besides building the CIA:
+  - Systems: GBA natively (AGB_FIRM; save types detected, 1 Mbit flash), SNES (snes9x), NES
+    (VirtuaNES), Game Boy / Color and Mega Drive (RetroArch) as forwarders. Nintendo's own
+    GB/GBC emulator is experimental in vcinject (a fresh install lacks `sav.dat`), its NES one
+    planned.
+  - **VC Console Look**: the 3D banner per console with the game's picture on the cartridge, the
+    "Virtual Console" plate in the 13 console languages, the jingle and the VC icon frame
+    (`vcbanner.py`, `cgfx.py`); Game Boy looks derived from the GBA one.
+  - **Templates** come from titles the user owns, never from the app: a setup checklist that says
+    what each system needs, checks it on every start and sets up again what is missing or damaged
+    (`health.py`), and export/import of all templates as one private backup (`backup.py`).
+    vcinject's idea to read the looks from titles installed on the 3DS over Link is open there too.
+  - **Title IDs**: a register of every build so that no ID is used twice (`registry.py`); the
+    titles on every console that runs vcinject Link count as taken, and for a 3DS without it its
+    `ticket.db` can be imported (`tickets.py`). Rebuilding a game keeps its ID, so the save stays.
+  - `makerom` and `bannertool` are needed as long as vcinject is the sidecar; its installers
+    bring them along.
+  - Per build: title, publisher, release year, own icon and banner, save type, LCD ghosting,
+    brightness, plate language; a preview of the HOME Menu icon and the rotating banner.
+- **Console pictures**: a photo of the exact model in the colour chosen per console (the 3DS
+  can't tell its colour), from Wikimedia Commons, public domain or CC0, downloaded on first use
+  (`consolephotos.py`).
+- **vcinject Link's source** stays in vcinject (`companion/`, built with devkitARM); this app
+  ships the built CIA (#11). Version 13 doesn't have the [Link protocol](LINK_PROTOCOL.md)'s
+  streams (commands 19–21) and only answers the discovery query `vcinject?`: a version 14 is
+  needed for both, see "Open questions".
+- **Views**: the size of the cards changes without steps (slider, Ctrl + mouse wheel), Cover Flow
+  next to cards and table.
+
 ### M7 · Wii (L)
 
 - Companion app (libogc) speaking the Link protocol: title list, WAD install, saves.
@@ -496,6 +579,8 @@ its own.
   with the scan watching the folders for changes.
 - Tested in CI with the image started and the API called; a test log entry (see TESTLOG.md) on a
   real NAS before the first release.
+- A **command line** on the same core, for scripts without the server: vcinject has one (`build`,
+  `verify`, `library`, `doctor`, `3ds install` …), this app none.
 
 ## Open questions
 
@@ -514,3 +599,6 @@ its own.
   results about them (2026-10-30). Their pages are linked, not copied; whether short step titles
   may be shown depends on the guides' licence, to check.
 - Wii mini (M1d, M6a): the app has to handle a USB stick in place of the SD card.
+- vcinject Link (M1, M6): where its next version is developed – in vcinject's `companion/` as
+  until now, or moved here and renamed for the protocol's `ugbm?` discovery – and whether vcinject
+  itself goes on next to this app or only as the injector's sidecar.
