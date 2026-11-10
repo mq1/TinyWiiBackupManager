@@ -12,6 +12,7 @@ on:
       - "**.rs"
       - "Cargo.toml"
       - "Cargo.lock"
+      - ".cargo/*"
       - "package/**"
       - "dockerfiles/**"
       - "Justfile"
