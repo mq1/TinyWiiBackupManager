@@ -37,7 +37,9 @@ each item is ticked off here (and gets its test log entry) when done.
    check the hash of a known good dump. Test log entry.
    Partly done 2026-10-31 (see the test log): waiting, moving earlier, cancelling and hashing
    work, and a known good dump (Worms 3D) gives "Hash match". Pausing an import by hand and
-   resuming it works (2026-11-09, on a FAT32 disk image). Still open: export, convert, scrub.
+   resuming it works (2026-11-09, on a FAT32 disk image). Still open: export, convert, scrub,
+   and the hash of a GameCube game on two discs (both discs are hashed since 2026-11-09; the
+   message names the disc that doesn't match).
 4. **Every later M1a and M1a+ pull request**: try it on the Mac before merging (the stay-awake
    one with a long import and the Mac left alone until it would sleep).
 
@@ -227,6 +229,8 @@ be fixed from a second copy, which the library knows about.
   is a new dump from the disc.
 - Maybe later: put a removed update partition back from another game of the same region whose
   partition is byte-identical.
+- Both discs of a GameCube game on two discs (`game.iso` and `disc2.iso`) are hashed, and the
+  message names the disc that doesn't match (2026-11-09).
 - A Redump-exact dump does match: Worms 3D [GWME51] (GameCube ISO on WiiGames, the same as the
   Redump-named one on gamestation) gives "Hash match" (2026-10-31). Every WBFS on WiiGames tried
   gave "mismatch". Read with nod on 2026-10-31: 32 of the 48 Wii WBFS on WiiGames have no update

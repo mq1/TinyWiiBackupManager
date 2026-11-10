@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   opens the log file.
 - 🔍 "Hash mismatch" says why when it can: a Wii dump without its update partition (often removed
   when making a WBFS) can't match the disc, though that alone doesn't stop the game from working.
+- 🔍 Checking the hash of a GameCube game on two discs checks both discs; it only says "Hash
+  match" when both are known good dumps, and otherwise which disc doesn't match.
 - ☕ The computer doesn't go to sleep from idleness while games are imported, converted,
   exported, scrubbed or checked (macOS: `caffeinate`, Linux: `systemd-inhibit`, Windows:
   `SetThreadExecutionState`). The screen may still turn off.

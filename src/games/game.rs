@@ -130,6 +130,20 @@ impl Game {
             .find(|path| std::fs::metadata(path).is_ok_and(|meta| meta.is_file()))
     }
 
+    /// Every disc of the game, the first one first: a GameCube game's second disc lies next to
+    /// the first as `disc2.iso` or `disc2.ciso` (as Nintendont wants it). Empty without a disc.
+    pub fn get_disc_paths_blocking(&self) -> Vec<PathBuf> {
+        let Some(first) = self.get_disc_path_blocking() else {
+            return Vec::new();
+        };
+        let second = ["disc2.iso", "disc2.ciso"]
+            .into_iter()
+            .map(|name| self.path.join(name))
+            .find(|path| std::fs::metadata(path).is_ok_and(|meta| meta.is_file()));
+
+        std::iter::once(first).chain(second).collect()
+    }
+
     pub fn load_cover_blocking(&mut self, data_dir: &Path) {
         let cover_path = data_dir
             .join("covers")
