@@ -37,8 +37,7 @@ fn get_window_icon() -> Option<iced::window::Icon> {
     Some(icon)
 }
 
-#[cfg(target_os = "linux")]
-async fn f16_gpu_fix() {
+fn is_gpu_valid() -> bool {
     let instance = wgpu::Instance::default();
 
     let adapter_options = wgpu::RequestAdapterOptions {
@@ -48,23 +47,24 @@ async fn f16_gpu_fix() {
         force_fallback_adapter: false,
     };
 
-    let Ok(adapter) = instance.request_adapter(&adapter_options).await else {
-        return;
-    };
-
-    if !adapter.features().contains(wgpu::Features::SHADER_F16) {
-        #[allow(unsafe_code)]
-        unsafe {
-            std::env::set_var("ICED_BACKEND", "tiny-skia");
+    smol::block_on(instance.request_adapter(&adapter_options)).is_ok_and(|adapter| {
+        // https://github.com/iced-rs/iced/issues/3265
+        if cfg!(target_os = "linux") && !adapter.features().contains(wgpu::Features::SHADER_F16) {
+            return false;
         }
-    }
+
+        adapter.get_info().device_type != wgpu::DeviceType::Cpu
+    })
 }
 
 pub fn main() -> iced::Result {
     let data_dir = get_data_dir().expect("Unable to get data directory").leak();
 
-    #[cfg(target_os = "linux")]
-    smol::block_on(f16_gpu_fix());
+    if !is_gpu_valid() {
+        unsafe {
+            std::env::set_var("ICED_BACKEND", "tiny-skia");
+        }
+    }
 
     let settings = iced::Settings {
         default_text_size: 14.into(),

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- ⚡️ the tiny-skia renderer is now used instead of wgpu backed by a software rasterizer on system with unsupported gpus.
 - 💬 Windows x86 builds now use the modern (Vista+) dialogs instead of the XP ones
 - 🛜 Windows x86 builds now use the windows tls instead of a bundled one
 
