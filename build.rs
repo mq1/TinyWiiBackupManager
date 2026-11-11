@@ -89,7 +89,7 @@ fn main() {
         && target_env == "msvc"
         && (target_arch == "x86_64" || target_arch == "x86")
     {
-        let yy_thunks_dir = out_dir.join("YY-Thunks-Objs");
+        let yy_thunks_dir = out_dir.join("YY-Thunks-Lib");
 
         if !yy_thunks_dir.exists() {
             let resp = minreq::get("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.2.4-Beta.1/YY-Thunks-Lib.zip")
