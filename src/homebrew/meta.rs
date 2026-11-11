@@ -2,19 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result};
-use self_cell::self_cell;
-use std::{borrow::Cow, fs, path::Path};
-
-self_cell!(
-    pub struct OwnedHomebrewAppMeta {
-        owner: String,
-
-        #[covariant]
-        dependent: HomebrewAppMetaContent,
-    }
-
-    impl {Debug}
-);
+use std::{fs, path::Path};
 
 fn get_value<'a>(contents: &'a str, start_pattern: &str, end_pattern: &str) -> Option<&'a str> {
     let start = contents.find(start_pattern)?;
@@ -37,7 +25,7 @@ macro_rules! get_property {
     }};
 }
 
-fn parse_release_date<'a>(raw: &'a str) -> Cow<'a, str> {
+fn parse_release_date(raw: &str) -> Box<str> {
     if raw.len() >= 8 {
         let mut s = String::with_capacity(10);
 
@@ -47,87 +35,68 @@ fn parse_release_date<'a>(raw: &'a str) -> Cow<'a, str> {
         s.push('-');
         s.push_str(&raw[6..8]);
 
-        Cow::Owned(s)
+        s.into_boxed_str()
     } else {
-        Cow::Borrowed(raw)
+        raw.into()
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct HomebrewAppMetaContent<'a> {
-    name: &'a str,
-    version: &'a str,
-    coder: &'a str,
-    short_description: &'a str,
-    long_description: &'a str,
-    release_date: Cow<'a, str>,
-}
-
-#[derive(Debug)]
-pub struct HomebrewAppMeta(OwnedHomebrewAppMeta);
-
-impl Clone for HomebrewAppMeta {
-    fn clone(&self) -> Self {
-        let raw = self.0.borrow_owner().clone();
-        Self(OwnedHomebrewAppMeta::from_raw(raw).unwrap())
-    }
-}
-
-impl OwnedHomebrewAppMeta {
-    fn from_raw(raw: String) -> Result<Self> {
-        Self::try_new(raw, |raw| {
-            let root = get_property!(&raw, "app")?;
-
-            let name = get_property!(&root, "name")?;
-            let version = get_property!(&root, "version")?;
-
-            let release_date = get_property!(&root, "release_date").unwrap_or_default();
-            let coder = get_property!(&root, "coder").unwrap_or_default();
-            let short_description = get_property!(&root, "short_description").unwrap_or_default();
-            let long_description = get_property!(&root, "long_description").unwrap_or_default();
-
-            let release_date = parse_release_date(release_date);
-
-            Ok(HomebrewAppMetaContent {
-                name,
-                version,
-                release_date,
-                coder,
-                short_description,
-                long_description,
-            })
-        })
-    }
+pub struct HomebrewAppMeta {
+    name: Box<str>,
+    version: Box<str>,
+    coder: Box<str>,
+    short_description: Box<str>,
+    long_description: Box<str>,
+    release_date: Box<str>,
 }
 
 impl HomebrewAppMeta {
     pub fn parse(app_path: &Path) -> Result<Self> {
         let path = app_path.join("meta.xml");
         let raw = fs::read_to_string(&path)?;
-        OwnedHomebrewAppMeta::from_raw(raw).map(HomebrewAppMeta)
+
+        let root = get_property!(&raw, "app")?;
+
+        let name = get_property!(&root, "name")?;
+        let version = get_property!(&root, "version")?;
+
+        let release_date = get_property!(&root, "release_date").unwrap_or_default();
+        let coder = get_property!(&root, "coder").unwrap_or_default();
+        let short_description = get_property!(&root, "short_description").unwrap_or_default();
+        let long_description = get_property!(&root, "long_description").unwrap_or_default();
+
+        Ok(Self {
+            name: name.into(),
+            version: version.into(),
+            release_date: parse_release_date(release_date),
+            coder: coder.into(),
+            short_description: short_description.into(),
+            long_description: long_description.into(),
+        })
     }
 
     pub fn name(&self) -> &str {
-        self.0.borrow_dependent().name
+        &self.name
     }
 
     pub fn version(&self) -> &str {
-        self.0.borrow_dependent().version
+        &self.version
     }
 
     pub fn release_date(&self) -> &str {
-        &self.0.borrow_dependent().release_date
+        &self.release_date
     }
 
     pub fn coder(&self) -> &str {
-        self.0.borrow_dependent().coder
+        &self.coder
     }
 
     pub fn short_description(&self) -> &str {
-        self.0.borrow_dependent().short_description
+        &self.short_description
     }
 
     pub fn long_description(&self) -> &str {
-        self.0.borrow_dependent().long_description
+        &self.long_description
     }
 }

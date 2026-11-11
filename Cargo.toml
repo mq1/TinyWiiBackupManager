@@ -82,7 +82,6 @@ nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling"
 semver = "1"
 humantime = "2"
 rfd = "0.18"
-self_cell = "1.3" # free dependency: also dependency of cosmic-text
 
 [target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
