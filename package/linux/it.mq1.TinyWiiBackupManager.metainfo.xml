@@ -14,7 +14,7 @@
         <p>✨ Features</p>
         <ul>
             <li>Native app written in Rust and Iced, no Electron!</li>
-            <li>Vast platform support: Windows XP+, macOS 10.12+, Linux ~2014+</li>
+            <li>Vast platform support: Windows 7+, macOS 10.12+, Linux ~2014+</li>
         </ul>
         <p>🎮 Game Management</p>
         <ul>

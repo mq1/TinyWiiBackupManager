@@ -13,11 +13,10 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [features]
-default = ["native-tls", "static-nod", "dialogs-rfd"]
+default = ["native-tls", "static-nod"]
 
 native-tls = ["minreq/https-native-tls"]    # uses system tls
-bundled-tls = ["minreq/https-rustls-probe"] # bundled tls + os certificates
-bundled-tls-certs = ["minreq/https-rustls"] # bundled tls + bundled certificates
+bundled-tls = ["minreq/https-rustls-probe"] # uses bundled tls + os certificates
 
 # bundled compression libraries
 static-nod = [
@@ -27,29 +26,10 @@ static-nod = [
   "nod/compress-zstd-static",
 ]
 
-dialogs-rfd = ["dep:rfd"]             # modern
-dialogs-tfd = ["dep:tinyfiledialogs"] # legacy
-
-yy-thunks = []
-vc-ltl5 = []
-
-dist-appimage = ["bundled-tls", "static-nod", "dialogs-rfd"]
-dist-flatpak = ["native-tls", "dialogs-rfd"]
-dist-windows-modern = [
-  "native-tls",
-  "static-nod",
-  "dialogs-rfd",
-  "yy-thunks",
-  "vc-ltl5",
-]
-dist-windows-legacy = [
-  "bundled-tls-certs",
-  "static-nod",
-  "dialogs-tfd",
-  "yy-thunks",
-  "vc-ltl5",
-]
-dist-macos = ["native-tls", "static-nod", "dialogs-rfd"]
+dist-appimage = ["bundled-tls", "static-nod"]
+dist-flatpak = ["native-tls"]
+dist-windows = ["native-tls", "static-nod"]
+dist-macos = ["native-tls", "static-nod"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -101,18 +81,14 @@ nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling"
 ] }
 semver = "1"
 humantime = "2"
-rfd = { version = "0.18", optional = true }
-tinyfiledialogs = { version = "3", default-features = false, optional = true }
+rfd = "0.18"
 self_cell = "1.3" # free dependency: also dependency of cosmic-text
 
-[target.'cfg(any(target_os = "linux", target_arch = "aarch64"))'.dependencies]
+[target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [
   "accent-color",
   "color-scheme",
 ] }
-
-[target.'cfg(not(any(target_os = "linux", target_arch = "aarch64")))'.dependencies]
-dark-light = { version = "3", default-features = false }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
@@ -120,7 +96,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "parking_lot",
   "dx12",
 ] }
-winsafe = { version = "0.0.29", features = ["dwm"] }
+winsafe = { version = "0.0.29", features = ["dwm", "advapi"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
@@ -139,7 +115,7 @@ wgpu = { version = "27.0", default-features = false, features = [
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
 winresource = "0.1"
-sevenz-rust2 = { version = "0.24", default-features = false, features = [
+sevenz-rust2 = { version = "0.25", default-features = false, features = [
   "util",
 ] }
 zip = { version = "9", default-features = false, features = [

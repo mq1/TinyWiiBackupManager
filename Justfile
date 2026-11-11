@@ -49,17 +49,17 @@ package-linux-i686: (_package-linux "i686")
 # -------
 
 [windows]
-_build-windows target arch variant:
-    cargo build-dist-windows-{{variant}} --target {{target}}
+_build-windows target arch:
+    cargo build-dist-windows --target {{target}}
     New-Item -ItemType Directory -Force -Path out | Out-Null
     Copy-Item -Path target\{{target}}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{arch}}.exe
 
 [windows]
-build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64" "modern")
+build-windows-x64: (_build-windows "x86_64-win7-windows-msvc" "x64")
 [windows]
-build-windows-arm64: (_build-windows "aarch64-pc-windows-msvc" "arm64" "modern")
+build-windows-arm64: (_build-windows "aarch64-pc-windows-msvc" "arm64")
 [windows]
-build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86" "legacy")
+build-windows-x86: (_build-windows "i686-win7-windows-msvc" "x86")
 
 # just a copy
 [windows]

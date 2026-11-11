@@ -11,9 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 💬 When exporting a game, the format is now selectable in the dialog (thanks @davideme <https://github.com/PolyMeilex/rfd/pull/328>)
 
+### Changed
+
+- 💬 Windows x86 builds now use the modern (Vista+) dialogs instead of the XP ones
+- 🛜 Windows x86 builds now use the windows tls instead of a bundled one
+
 ### Fixed
 
 - 🐛 Could not export games as .gcm
+
+### Removed
+
+- 🔥 Since the builds don't seem to work anymore on Windows XP for some reason, I'm raising again the minimum supported windows version to Windows 7. \
+  I probably won't bother working on this by myself (as it's becoming increasingly difficult to test for me), but PRs are welcome
 
 ## [v6.1.11] - 2026-11-03
 
