@@ -49,7 +49,7 @@ package-linux-i686: (_package-linux "i686")
 # -------
 
 [windows]
-_build-windows target arch variant:
+_build-windows target arch:
     cargo build-dist-windows --target {{target}}
     New-Item -ItemType Directory -Force -Path out | Out-Null
     Copy-Item -Path target\{{target}}\release\TinyWiiBackupManager.exe -Destination out\TinyWiiBackupManager-windows-{{arch}}.exe
