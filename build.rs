@@ -118,6 +118,7 @@ fn main() {
         println!("cargo:rustc-link-arg=/LIBPATH:{}", lib_path.display());
         println!("cargo:rustc-link-search=native={}", lib_path.display());
         println!("cargo:rustc-link-arg=/DELAYLOAD:api-ms-win-core-winrt-string-l1-1-0.dll");
+        println!("cargo:rustc-link-lib=delayimp");
         println!("cargo:rustc-link-lib=ole32");
         println!("cargo:rustc-link-arg=/SUBSYSTEM:WINDOWS,6.1");
     }
