@@ -51,14 +51,12 @@ fn is_dark() -> bool {
 
 #[cfg(target_os = "windows")]
 fn is_dark() -> bool {
-    use winsafe::{self as w, co, prelude::*};
-
-    match w::HKEY::CURRENT_USER.RegGetValue(
+    match winsafe::HKEY::CURRENT_USER.RegGetValue(
         Some("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"),
         Some("AppsUseLightTheme"),
-        co::RRF::RT_REG_DWORD,
+        winsafe::co::RRF::RT_REG_DWORD,
     ) {
-        Ok(w::RegistryValue::Dword(val)) => val == 0,
+        Ok(winsafe::RegistryValue::Dword(val)) => val == 0,
         _ => false,
     }
 }
