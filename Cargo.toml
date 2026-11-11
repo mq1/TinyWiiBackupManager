@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "6.1.11"
+version = "6.2.0"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -115,18 +115,13 @@ wgpu = { version = "27.0", default-features = false, features = [
 [build-dependencies]
 hex = { version = "0.4", default-features = false }
 winresource = "0.1"
+minreq = { version = "3", features = ["https-rustls"] }
 sevenz-rust2 = { version = "0.25", default-features = false, features = [
   "util",
 ] }
 zip = { version = "9", default-features = false, features = [
   "deflate-flate2-zlib-rs",
 ] }
-
-[target.'cfg(any(target_os = "windows", target_os = "macos"))'.build-dependencies]
-minreq = { version = "3", features = ["https-native-tls"] }
-
-[target.'cfg(not(any(target_os = "windows", target_os = "macos")))'.build-dependencies]
-minreq = { version = "3", features = ["https-rustls"] }
 
 # tiny and fast
 [profile.release]
