@@ -80,7 +80,7 @@ fn main() {
             .join(arch);
         assert!(lib_path.exists());
 
-        println!("cargo:rustc-link-arg=/LIBPATH={}", lib_path.display());
+        println!("cargo:rustc-link-arg=/LIBPATH:{}", lib_path.display());
         println!("cargo:rustc-link-search=native={}", lib_path.display());
     }
 
@@ -115,7 +115,7 @@ fn main() {
         let lib_path = yy_thunks_dir.join("Lib").join("6.1.7600.0").join(arch);
         assert!(lib_path.exists());
 
-        println!("cargo:rustc-link-arg=/LIBPATH={}", lib_path.display());
+        println!("cargo:rustc-link-arg=/LIBPATH:{}", lib_path.display());
         println!("cargo:rustc-link-search=native={}", lib_path.display());
         println!("cargo:rustc-link-arg=/SUBSYSTEM:WINDOWS,6.01");
         println!("cargo:rustc-link-lib=ole32");
