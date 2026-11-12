@@ -21,6 +21,9 @@ what already exists, so no work is done twice:
   that would need to be undone that way, and use a new commit instead of amending a pushed one.
   A branch that has to go is deleted by the maintainer on GitHub. A Claude Desktop session on the
   Mac can't do it on its own either: its auto mode refused `git push --delete` (2026-11-09).
+- **`git push` to any branch but the session's own**: the git proxy refuses it ("Internal Server
+  Error", 2026-11-12). A second branch (e.g. for the `docs/` handover) is made with the GitHub
+  tools instead: `create_branch`, then `push_files` with the whole file.
 
 ## Before a session ends
 
@@ -39,7 +42,7 @@ every branch starts from the latest state:
 
 Handover between sessions; the session that changes the state updates this section. New sessions
 start from `main` and only see what is there, so the update goes to `main` in its own small
-`docs/` pull request (merged right away), not only in the feature branch. As of 2026-11-10:
+`docs/` pull request (merged right away), not only in the feature branch. As of 2026-11-12:
 
 - **CI runs again** (2026-11-10 morning, all three systems; the macOS runners were missing on
   2026-11-09 evening). Merged 2026-11-10: #45 and #47 (documentation, the comparison with
@@ -65,8 +68,16 @@ start from `main` and only see what is there, so the update goes to `main` in it
   the script (`src/romdb/update.rs`; the ignored test `compacts_the_real_dats` compares both on
   the real DATs), kept in `databases/no-intro/` in the data folder when newer than the shipped
   list; tested live from the container. Waits for the Mac like #48 (item 8 covers both);
-  merge #48 first, then retarget #53 to `main`. Next for M2: the build refreshing the snapshot, the
-  link to the release's entry, Redump/GameTDB and the other platforms, RAR via 7-Zip, artwork.
+  merge #48 first, then retarget #53 to `main`.
+  **On top of that: #56** (`claude/quick-help-dhxs0v`, base #53's branch, draft, 2026-11-12):
+  the Redump lists of Wii and GameCube from libretro-database in `assets/databases/redump/`
+  (650 KB), shipped and refreshed like No-Intro; downloaded lists now in `databases/<source>/`,
+  the state in `databases/state.json`. The library names a disc by its game ID (the code is in
+  the Redump serial, `RVL-RMGP-EUR`) without reading it (`romdb::disc_name`), the hash task names
+  the release (`romdb::disc_by_sha1`). Waits for the Mac with #48 and #53 (item 8); merge after
+  #53, retargeted to `main`. The stray branch `claude/m2-redump-names` (same commit, pushed by
+  mistake) is for the maintainer to delete. Next for M2: GameTDB, the build refreshing the
+  snapshot, the link to the release's entry, the other platforms, RAR via 7-Zip, artwork.
 - **M1, install on the 3DS**: pull request **#11** (`claude/m1-3ds-install-and-consoles`), open,
   waiting for the Mac (item 6 in "Waiting for the Mac" on its branch): install a CIA as a task
   (no Pause: vcinject Link waits without a timeout), start and delete titles, "Update" vcinject
@@ -91,7 +102,7 @@ start from `main` and only see what is there, so the update goes to `main` in it
   and the decision where Link is developed from now on ("Open questions" in the roadmap).
 - **Next on the Mac, in this order**: #13, #22, #11 and then #49 (3DS), #41 on WiiGames with
   real discs (optional), the long sleep test for #7, item 3 of "Waiting for the Mac", #48 and
-  #53 (item 8; one build of #53's branch tests both). Each one
+  #53 and #56 (item 8; one build of #56's branch tests all three). Each one
   that works is merged by Claude after a quick review, without asking (see "Merging" below).
 - **M2b** (#26): "Hash mismatch" explains a missing update partition (#38), both discs hashed
   (#46); nod's H0–H3 validation fails on WBFS as it is (see the roadmap).
@@ -100,17 +111,16 @@ start from `main` and only see what is there, so the update goes to `main` in it
   `config.json` there with a disk image as `mount_point` and a folder of fake discs as the only
   ROM source leaves the real library alone. Clicks and screenshots from a small Swift tool
   (`CGEvent`, `CGWindowListCopyWindowInfo`, `screencapture -l`); iced has no accessibility tree.
-- **Next in the cloud** (no Mac needed), in this order, on a branch from #53's branch while #48
-  and #53 wait for the Mac: Redump for Wii/GameCube (the DATs in `assets/`
-  are already used by `sha1_list`), GameTDB for names of Wii/GameCube/3DS/Wii U titles (the
-  ~700 entries that are only a title ID), the link to the release's entry in libretro-database.
-  RAR via 7-Zip and artwork come later in M2. Anything on the 3DS side (vcinject Link 14) waits
-  for the maintainer's decision.
+- **Next in the cloud** (no Mac needed), in this order, on a branch from #56's branch while #48,
+  #53 and #56 wait for the Mac: GameTDB for names of 3DS and Wii U titles (the ~700 entries that
+  are only a title ID; Wii/GameCube discs have Redump names since #56), the link to the release's
+  entry in libretro-database. RAR via 7-Zip and artwork come later in M2. Anything on the 3DS
+  side (vcinject Link 14) waits for the maintainer's decision.
 - **Branches**: the merged ones were deleted on GitHub 2026-11-10; only `main` and the branches
-  of the open pull requests (#11, #13, #22, #48, #49, #53) are left. A docs branch a session merges is
-  deleted by the maintainer afterwards. The local `feature/task-manager` on the Mac goes once #11
-  is merged. A clone in a cloud session is shallow (50 commits): `git
-  fetch --unshallow origin` before comparing old branches with `main`.
+  of the open pull requests (#11, #13, #22, #48, #49, #53, #56) are left. A docs branch a session
+  merges is deleted by the maintainer afterwards. The local `feature/task-manager` on the Mac
+  goes once #11 is merged. A clone in a cloud session is shallow (50 commits): `git fetch
+  --unshallow origin` before comparing old branches with `main`.
 - A ROM source or drive that doesn't answer no longer holds up the library scan (#31) or the
   settings (#28). Trying a build on macOS: BUILDING.md (#29).
 
