@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    library::{ItemId, ItemKind, LibraryItem, Platform},
+    library::{ItemId, ItemKind, LibraryItem, Platform, RomInfo},
     message::Message,
+    romdb::Match,
     state::AppState,
     ui::components::{
         my_button::{MyButtonKind, my_button},
@@ -240,6 +241,9 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
     if !item.copies.is_empty() {
         details.push(format!("{} copies", item.copies.len() + 1));
     }
+    if let Some(rom) = &item.rom {
+        details.push(rom_verdict(rom));
+    }
 
     let on = presence(item, state);
     let status: Element<'_, Message> = if on.is_empty() {
@@ -256,9 +260,19 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
         text(format!("✓ {}", on.join(", "))).size(12).into()
     };
 
+    let details: Element<'_, Message> = match &item.rom {
+        Some(rom) => tooltip(
+            text(details.join(" · ")).size(12),
+            my_card(text(rom_checksums(item, rom)).size(12)),
+            tooltip::Position::Bottom,
+        )
+        .into(),
+        None => text(details.join(" · ")).size(12).into(),
+    };
+
     row![
         icon,
-        column![text(&item.name), text(details.join(" · ")).size(12)]
+        column![text(item.title()), details]
             .spacing(2)
             .width(Length::Fill),
         status
@@ -266,4 +280,37 @@ fn item_row<'a>(item: &'a LibraryItem, state: &'a AppState) -> Element<'a, Messa
     .spacing(10)
     .align_y(Alignment::Center)
     .into()
+}
+
+/// What the game database says about a ROM
+fn rom_verdict(rom: &RomInfo) -> String {
+    match &rom.identified {
+        Some(found) => match found.how {
+            Match::Verified => "✓ good dump (No-Intro)".to_string(),
+            Match::Crc32 => "CRC32 in No-Intro, SHA-1 not".to_string(),
+            Match::Serial => format!(
+                "probably {} (other dump, hack or translation)",
+                found.release
+            ),
+        },
+        None => "not in No-Intro".to_string(),
+    }
+}
+
+/// The file, checksums and serial of a ROM, for the tooltip
+fn rom_checksums(item: &LibraryItem, rom: &RomInfo) -> String {
+    let file = item
+        .path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let mut lines = vec![
+        file,
+        format!("CRC32 {:08X}", rom.crc32),
+        format!("SHA-1 {}", rom.sha1),
+    ];
+    if let Some(serial) = &rom.serial {
+        lines.push(format!("Serial {serial}"));
+    }
+    lines.join("\n")
 }

@@ -41,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the cloud are left out, and nothing is copied when they don't fit.
 - 🎮 A disc that is already waiting or being imported isn't added to the queue again (the same
   game picked twice, or from two files).
+- 🗂️ ROMs of the Game Boy, Game Boy Color, Game Boy Advance, NES, SNES and Mega Drive are
+  identified by their checksum against the No-Intro lists (from libretro-database, shipped with
+  the app): the library shows the release's name and whether the file is a known good dump, and
+  the CRC32, SHA-1 and cartridge serial when the pointer rests on it. A renamed or moved ROM is
+  recognised without being read again, and the same ROM in several places (also zipped) is one
+  entry with copies.
+- 🗜️ A zip with one ROM in it is read like the unpacked ROM, also outside a platform's folder.
 
 ## [v6.1.9] - 2026-10-21
 

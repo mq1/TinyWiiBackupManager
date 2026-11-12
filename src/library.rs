@@ -3,20 +3,24 @@
 
 //! The game collection on the computer: everything found in the ROM sources
 
-use crate::n3ds::{cia, smdh};
+use crate::{
+    n3ds::{cia, smdh},
+    romdb,
+};
 use iced::widget::image;
 use smol::{Timer, future::FutureExt};
 use std::{
+    collections::HashMap,
     ffi::OsStr,
     fs::{self, File},
-    io::BufReader,
+    io::{BufReader, Read},
     path::{Path, PathBuf},
     sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
     },
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant, UNIX_EPOCH},
 };
 
 /// How deep a scan goes into a source's folders
@@ -195,9 +199,69 @@ pub struct LibraryItem {
     pub in_cloud: bool,
     /// the same file in other places (other sources, backups)
     pub copies: Vec<PathBuf>,
+    /// checksums of a ROM of a platform the app has a game database for, and what it is
+    #[serde(default)]
+    pub rom: Option<RomInfo>,
+}
+
+/// What a ROM is, from its checksums
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct RomInfo {
+    /// CRC32 of the ROM's data as No-Intro hashes it: without an iNES or copier header, and
+    /// unpacked when it is zipped
+    pub crc32: u32,
+    /// SHA-1 (hex) of the same data
+    pub sha1: String,
+    /// the cartridge serial in the ROM's header, e.g. "BPEE"
+    pub serial: Option<String>,
+    /// the release it is in the game database, if it is there
+    pub identified: Option<romdb::Identified>,
+}
+
+impl RomInfo {
+    fn new(platform: Platform, checked: &Checked) -> Self {
+        let mut info = Self {
+            crc32: checked.crc32,
+            sha1: checked.sha1.clone(),
+            serial: checked.serial.clone(),
+            identified: None,
+        };
+        info.identify(platform);
+        info
+    }
+
+    /// Looks the ROM up again, e.g. after the databases were updated
+    fn identify(&mut self, platform: Platform) {
+        self.identified = romdb::sha1_from_hex(&self.sha1).and_then(|sha1| {
+            romdb::identify(
+                platform,
+                &romdb::RomHashes {
+                    crc32: self.crc32,
+                    sha1,
+                    serial: self.serial.clone(),
+                },
+            )
+        });
+    }
+
+    /// The release's name when the checksum identified it (not only the serial)
+    pub fn release(&self) -> Option<&str> {
+        self.identified
+            .as_ref()
+            .filter(|found| found.how != romdb::Match::Serial)
+            .map(|found| found.release.as_str())
+    }
 }
 
 impl LibraryItem {
+    /// The name to show: the release's when the ROM was identified, else the file's
+    pub fn title(&self) -> &str {
+        self.rom
+            .as_ref()
+            .and_then(RomInfo::release)
+            .unwrap_or(&self.name)
+    }
+
     /// Whether the item is a Wii or GameCube disc, which can be copied to a drive
     pub fn is_drive_game(&self) -> bool {
         self.kind == ItemKind::Disc && matches!(self.platform, Platform::Wii | Platform::GameCube)
@@ -225,9 +289,10 @@ fn classify(path: &Path) -> Option<(Platform, ItemKind)> {
     let name = path.file_name()?.to_str()?.to_ascii_lowercase();
 
     Some(match ext.as_str() {
-        // archives outside of a platform's folder are rarely games (films, e-books …)
+        // archives outside of a platform's folder are rarely games (films, e-books …); a zip
+        // with one ROM in it is read anywhere ("Other" until it was looked into)
         "rar" | "zip" | "7z" => match platform_from_folders(path) {
-            Platform::Other => return None,
+            Platform::Other if ext != "zip" => return None,
             platform => (platform, ItemKind::Archive),
         },
         "cia" => (Platform::N3ds, ItemKind::Cia),
@@ -320,7 +385,162 @@ fn sd_backup_platform(dir: &Path) -> Option<Platform> {
     })
 }
 
-fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<LibraryItem> {
+/// Checksums of a ROM file as the last scans found them, to recognise a file that didn't change,
+/// or was only renamed or moved, without reading it again
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct Checked {
+    path: PathBuf,
+    size: u64,
+    /// last change, in nanoseconds since 1970
+    modified: u64,
+    crc32: u32,
+    sha1: String,
+    serial: Option<String>,
+}
+
+/// The checksums of earlier scans, by path and by size and time of the last change
+#[derive(Debug, Default)]
+struct Known {
+    by_path: HashMap<PathBuf, Checked>,
+    by_stamp: HashMap<(u64, u64), Vec<Checked>>,
+}
+
+impl Known {
+    fn new(checked: Vec<Checked>) -> Self {
+        let mut known = Self::default();
+        for c in checked {
+            known
+                .by_stamp
+                .entry((c.size, c.modified))
+                .or_default()
+                .push(c.clone());
+            known.by_path.insert(c.path.clone(), c);
+        }
+        known
+    }
+
+    /// The checksums of `path` when it is unchanged; or, when the path is new, of the file with
+    /// the same size and time of last change (renaming or moving a file keeps both). Of several
+    /// such files, the one with the same name; none when they differ, then the file is read.
+    fn lookup(&self, path: &Path, size: u64, modified: u64) -> Option<&Checked> {
+        if let Some(c) = self.by_path.get(path) {
+            return (c.size == size && c.modified == modified).then_some(c);
+        }
+
+        let candidates = self.by_stamp.get(&(size, modified))?;
+        let same_name: Vec<&Checked> = candidates
+            .iter()
+            .filter(|c| c.path.file_name() == path.file_name())
+            .collect();
+        let candidates: Vec<&Checked> = if same_name.is_empty() {
+            candidates.iter().collect()
+        } else {
+            same_name
+        };
+        let first = *candidates.first()?;
+        candidates
+            .iter()
+            .all(|c| c.sha1 == first.sha1)
+            .then_some(first)
+    }
+}
+
+/// ROMs larger than this aren't read for their checksum (none of the platforms with a database
+/// has one this big)
+const MAX_ROM_SIZE: u64 = 64 * 1024 * 1024;
+
+/// The ROM in a zip, when the zip holds exactly one (besides text files, pictures and the like):
+/// its name in the zip and platform
+fn single_rom_in_zip(path: &Path) -> Option<(String, Platform)> {
+    let mut archive = zip::ZipArchive::new(BufReader::new(File::open(path).ok()?)).ok()?;
+    let mut roms = (0..archive.len()).filter_map(|i| {
+        let entry = archive.by_index_raw(i).ok()?;
+        let name = entry.name().ok()?.into_owned();
+        let file_name = Path::new(&name).file_name()?.to_str()?;
+        if entry.is_dir() || name.starts_with("__MACOSX/") || file_name.starts_with('.') {
+            return None;
+        }
+        match classify(Path::new(&name))? {
+            (platform, ItemKind::Rom) => Some((name, platform)),
+            _ => None,
+        }
+    });
+    let rom = roms.next()?;
+    roms.next().is_none().then_some(rom)
+}
+
+/// The whole data of a ROM file, or of `member` in the zip at `path`
+fn read_rom(path: &Path, member: Option<&str>) -> Option<Vec<u8>> {
+    let mut data = Vec::new();
+    match member {
+        None => {
+            File::open(path).ok()?.read_to_end(&mut data).ok()?;
+        }
+        Some(member) => {
+            let mut archive = zip::ZipArchive::new(BufReader::new(File::open(path).ok()?)).ok()?;
+            let mut file = archive.by_name(member).ok()?;
+            if file.size() > MAX_ROM_SIZE {
+                return None;
+            }
+            file.read_to_end(&mut data).ok()?;
+        }
+    }
+    Some(data)
+}
+
+/// Last change of a file in nanoseconds since 1970
+fn modified_nanos(meta: &fs::Metadata) -> Option<u64> {
+    let since = meta.modified().ok()?.duration_since(UNIX_EPOCH).ok()?;
+    u64::try_from(since.as_nanos()).ok()
+}
+
+/// Fills in a ROM's checksums and identifies it: from `known` when the file is known, else by
+/// reading it. Returns the checksums to remember for the next scan.
+fn check_rom(
+    item: &mut LibraryItem,
+    meta: &fs::Metadata,
+    member: Option<&str>,
+    known: &Known,
+) -> Option<Checked> {
+    if !romdb::has_database(item.platform) || item.size > MAX_ROM_SIZE {
+        return None;
+    }
+    let modified = modified_nanos(meta);
+
+    let checked = match modified.and_then(|m| known.lookup(&item.path, item.size, m)) {
+        Some(c) => Checked {
+            path: item.path.clone(),
+            ..c.clone()
+        },
+        None => {
+            let data = read_rom(&item.path, member)?;
+            let hashes = romdb::hash_rom(item.platform, &data);
+            Checked {
+                path: item.path.clone(),
+                size: item.size,
+                modified: modified.unwrap_or_default(),
+                crc32: hashes.crc32,
+                sha1: hex::encode(hashes.sha1),
+                serial: hashes.serial,
+            }
+        }
+    };
+
+    let info = RomInfo::new(item.platform, &checked);
+    if let Some(found) = &info.identified {
+        item.platform = found.platform;
+    }
+    item.rom = Some(info);
+    // without the time of the last change, a file can't be told unchanged: read it every time
+    modified.map(|_| checked)
+}
+
+fn read_item(
+    path: PathBuf,
+    platform: Platform,
+    kind: ItemKind,
+    known: &Known,
+) -> Option<(LibraryItem, Option<Checked>)> {
     if kind == ItemKind::Archive && path.is_dir() {
         let size = fs::read_dir(&path)
             .ok()?
@@ -338,7 +558,7 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
                 .filter_map(|e| e.file_name().to_str().map(str::to_string))
                 .find_map(|n| id_in_name(&n))
         });
-        return Some(LibraryItem {
+        let item = LibraryItem {
             id,
             name,
             size,
@@ -347,12 +567,14 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
             icon: None,
             in_cloud: false,
             copies: Vec::new(),
+            rom: None,
             path,
-        });
+        };
+        return Some((item, None));
     }
 
     if kind == ItemKind::SdBackup {
-        return Some(LibraryItem {
+        let item = LibraryItem {
             name: display_name(&path),
             size: smol::block_on(crate::util::fs::get_dir_size(&path)),
             platform,
@@ -361,8 +583,10 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
             icon: None,
             in_cloud: false,
             copies: Vec::new(),
+            rom: None,
             path,
-        });
+        };
+        return Some((item, None));
     }
 
     let meta = fs::metadata(&path).ok()?;
@@ -377,6 +601,7 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
         icon: None,
         in_cloud,
         copies: Vec::new(),
+        rom: None,
         path,
     };
 
@@ -386,14 +611,39 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
         item.name = display_name(&folder);
         item.size = smol::block_on(crate::util::fs::get_dir_size(&folder));
         item.path = folder;
-        return Some(item);
+        return Some((item, None));
     }
 
     if in_cloud {
-        return Some(item);
+        // a zip outside a platform's folder is only a game when it holds a ROM, which can't be
+        // seen without downloading it
+        return (platform != Platform::Other).then_some((item, None));
     }
 
-    match kind {
+    // a zip with one ROM in it is that ROM
+    let mut member = None;
+    if kind == ItemKind::Archive
+        && item
+            .path
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+    {
+        match single_rom_in_zip(&item.path) {
+            Some((name, rom_platform)) => {
+                item.kind = ItemKind::Rom;
+                item.platform = rom_platform;
+                member = Some(name);
+            }
+            None if platform == Platform::Other => return None,
+            None => {}
+        }
+    }
+
+    match item.kind {
+        ItemKind::Rom => {
+            let checked = check_rom(&mut item, &meta, member.as_deref(), known);
+            return Some((item, checked));
+        }
         ItemKind::Cia => {
             if let Ok(info) = File::open(&item.path).and_then(|f| cia::read(BufReader::new(f))) {
                 item.id = Some(ItemId::Title(info.title_id));
@@ -439,7 +689,7 @@ fn read_item(path: PathBuf, platform: Platform, kind: ItemKind) -> Option<Librar
         _ => {}
     }
 
-    Some(item)
+    Some((item, None))
 }
 
 fn walk(
@@ -523,7 +773,9 @@ impl LibraryState {
         let search = self.search.to_lowercase();
         self.items.iter().filter(move |item| {
             self.platform.is_none_or(|p| item.platform == p)
-                && (search.is_empty() || item.name.to_lowercase().contains(&search))
+                && (search.is_empty()
+                    || item.name.to_lowercase().contains(&search)
+                    || item.title().to_lowercase().contains(&search))
         })
     }
 
@@ -539,51 +791,71 @@ fn scan(sources: &[PathBuf]) -> Vec<LibraryItem> {
     let progress = AtomicUsize::new(0);
     let items = sources
         .iter()
-        .flat_map(|source| scan_source(source, &progress))
+        .flat_map(|source| scan_source(source, &progress, &Known::default()).0)
         .collect();
     sort_and_merge(items)
 }
 
-/// The items of one source, each on its own, before copies are merged; blocking. Counts up
-/// `progress` for every folder and file it reads, so a caller can tell a source that doesn't answer.
-fn scan_source(source: &Path, progress: &AtomicUsize) -> Vec<LibraryItem> {
+/// The items of one source, each on its own, before copies are merged, and the checksums of its
+/// ROMs; blocking. Counts up `progress` for every folder and file it reads, so a caller can tell
+/// a source that doesn't answer.
+fn scan_source(
+    source: &Path,
+    progress: &AtomicUsize,
+    known: &Known,
+) -> (Vec<LibraryItem>, Vec<Checked>) {
     let mut found = Vec::new();
     walk(source, 0, &mut found, progress);
 
-    found
+    let mut checked = Vec::new();
+    let items = found
         .into_iter()
         .filter_map(|(path, platform, kind)| {
             progress.fetch_add(1, Ordering::Relaxed);
-            read_item(path, platform, kind)
+            let (item, c) = read_item(path, platform, kind, known)?;
+            checked.extend(c);
+            Some(item)
         })
-        .collect()
+        .collect();
+    (items, checked)
 }
 
 fn sort_and_merge(mut items: Vec<LibraryItem>) -> Vec<LibraryItem> {
     items.sort_by(|a, b| {
         a.platform
             .cmp(&b.platform)
-            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+            .then_with(|| a.title().to_lowercase().cmp(&b.title().to_lowercase()))
     });
     merge_copies(items)
 }
 
-/// One entry per file: the same file name and size in several places is one item with copies.
-/// The copy that is on this computer (not only in the cloud) leads.
+/// What makes two items copies of each other
+#[derive(Debug, PartialEq, Eq, Hash)]
+enum CopyKey {
+    /// the same ROM data, under any name, zipped or not
+    Rom(String),
+    /// the same file name and size
+    File(String, u64, bool),
+}
+
+/// One entry per file: the same ROM data, or the same file name and size, in several places is
+/// one item with copies. The copy that is on this computer (not only in the cloud) leads.
 fn merge_copies(items: Vec<LibraryItem>) -> Vec<LibraryItem> {
     let mut merged: Vec<LibraryItem> = Vec::with_capacity(items.len());
-    let mut index: std::collections::HashMap<(String, u64, bool), usize> =
-        std::collections::HashMap::new();
+    let mut index: HashMap<CopyKey, usize> = HashMap::new();
 
     for item in items {
-        let key = (
-            item.path
-                .file_name()
-                .map(|n| n.to_string_lossy().to_lowercase())
-                .unwrap_or_default(),
-            item.size,
-            item.is_folder(),
-        );
+        let key = match &item.rom {
+            Some(rom) => CopyKey::Rom(rom.sha1.clone()),
+            None => CopyKey::File(
+                item.path
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_lowercase())
+                    .unwrap_or_default(),
+                item.size,
+                item.is_folder(),
+            ),
+        };
 
         match index.get(&key) {
             Some(&i) => {
@@ -622,20 +894,26 @@ pub struct Scan {
 pub async fn scan_async(sources: Vec<PathBuf>, data_dir: &'static Path) -> Scan {
     let (sender, receiver) = smol::channel::unbounded();
     let mut pending: Vec<(PathBuf, Arc<AtomicUsize>, usize, Instant)> = Vec::new();
+    let previous_checksums = smol::unblock(move || read_checksums(data_dir)).await;
+    let known = Arc::new(Known::new(previous_checksums.clone()));
 
     for (index, source) in sources.iter().enumerate() {
         let progress = Arc::new(AtomicUsize::new(0));
         pending.push((source.clone(), progress.clone(), 0, Instant::now()));
         let sender = sender.clone();
         let source = source.clone();
+        let known = known.clone();
         thread::spawn(move || {
-            let items = scan_source(&source, &progress);
-            let _ = sender.send_blocking((index, items));
+            let (items, checked) = scan_source(&source, &progress, &known);
+            let _ = sender.send_blocking((index, items, checked));
         });
     }
     drop(sender);
+    drop(known);
 
     let mut done: Vec<Option<Vec<LibraryItem>>> = vec![None; sources.len()];
+    // the checksums each source's scan found; none for a source that was given up
+    let mut checksums: Vec<Option<Vec<Checked>>> = vec![None; sources.len()];
     let mut unanswered = Vec::new();
     // read only when a source is given up; the app may not have loaded it yet at the start
     let mut previous: Option<Vec<LibraryItem>> = None;
@@ -651,8 +929,9 @@ pub async fn scan_async(sources: Vec<PathBuf>, data_dir: &'static Path) -> Scan 
             })
             .await;
         match next {
-            Some(Ok((index, items))) => {
+            Some(Ok((index, items, checked))) => {
                 done[index] = Some(items);
+                checksums[index] = Some(checked);
                 // a source that was given up may still answer while others are scanned
                 unanswered.retain(|source| source != &sources[index]);
             }
@@ -679,6 +958,22 @@ pub async fn scan_async(sources: Vec<PathBuf>, data_dir: &'static Path) -> Scan 
             }
         }
     }
+
+    // the checksums of a source that didn't answer are kept for the next scan
+    let checksums: Vec<Checked> = checksums
+        .into_iter()
+        .zip(&sources)
+        .flat_map(|(checked, source)| {
+            checked.unwrap_or_else(|| {
+                previous_checksums
+                    .iter()
+                    .filter(|c| c.path.starts_with(source))
+                    .cloned()
+                    .collect()
+            })
+        })
+        .collect();
+    smol::unblock(move || write_checksums(data_dir, &checksums)).await;
 
     let items = done.into_iter().flatten().flatten().collect();
     Scan {
@@ -709,6 +1004,32 @@ fn previous_items_in(previous: &[LibraryItem], source: &Path) -> Vec<LibraryItem
 
 const CACHE_FILENAME: &str = "library.json";
 
+/// The checksums of every ROM file the last scan found, copies included; the library cache
+/// (`library.json`) has one entry per game, this one per file
+const CHECKSUMS_FILENAME: &str = "library-checksums.json";
+
+fn read_checksums(data_dir: &Path) -> Vec<Checked> {
+    fs::read_to_string(data_dir.join(CHECKSUMS_FILENAME))
+        .ok()
+        .and_then(|contents| serde_json::from_str(&contents).ok())
+        .unwrap_or_default()
+}
+
+/// Writes the checksums; a failure only costs reading the files again at the next scan
+fn write_checksums(data_dir: &Path, checksums: &[Checked]) {
+    if !data_dir.is_dir() {
+        return;
+    }
+    // a path that isn't UTF-8 can't be in JSON: that file is read again at the next scan
+    let checksums: Vec<&Checked> = checksums
+        .iter()
+        .filter(|c| c.path.to_str().is_some())
+        .collect();
+    if let Ok(contents) = serde_json::to_string(&checksums) {
+        let _ = fs::write(data_dir.join(CHECKSUMS_FILENAME), contents);
+    }
+}
+
 /// The last scan as saved, without icons, so no source is read; blocking.
 fn read_cache(data_dir: &Path) -> Vec<LibraryItem> {
     fs::read_to_string(data_dir.join(CACHE_FILENAME))
@@ -721,6 +1042,16 @@ fn read_cache(data_dir: &Path) -> Vec<LibraryItem> {
 pub async fn load_cache(data_dir: &'static Path) -> Vec<LibraryItem> {
     smol::unblock(move || {
         let mut items = read_cache(data_dir);
+
+        // the databases may be newer than the cache
+        for item in &mut items {
+            if let Some(rom) = &mut item.rom {
+                rom.identify(item.platform);
+                if let Some(found) = &rom.identified {
+                    item.platform = found.platform;
+                }
+            }
+        }
 
         // icons aren't cached; a CIA's are read from a few KB of it
         for item in items
@@ -829,7 +1160,7 @@ mod tests {
         fs::create_dir_all(b.path().join("GBA")).unwrap();
         fs::write(a.path().join("GBA/Metroid_Fusion.gba"), b"rom").unwrap();
         fs::write(b.path().join("GBA/Metroid_Fusion.gba"), b"rom").unwrap();
-        fs::write(b.path().join("GBA/Golden_Sun.gba"), b"rom").unwrap();
+        fs::write(b.path().join("GBA/Golden_Sun.gba"), b"other rom").unwrap();
         let sources = vec![a.path().to_path_buf(), b.path().to_path_buf()];
 
         // every source answers, so the last scan isn't read
@@ -861,6 +1192,7 @@ mod tests {
             icon: None,
             in_cloud: false,
             copies: Vec::new(),
+            rom: None,
         };
         let mut library = LibraryState {
             items: vec![
@@ -901,6 +1233,7 @@ mod tests {
                 PathBuf::from("/Volumes/b/GBA/Metroid_Fusion.gba"),
                 PathBuf::from("/Volumes/b/backup/Metroid_Fusion.gba"),
             ],
+            rom: None,
         };
 
         let from_b = previous_items_in(std::slice::from_ref(&item), Path::new("/Volumes/b"));
@@ -915,6 +1248,155 @@ mod tests {
         assert!(previous_items_in(&[item], Path::new("/Volumes/c")).is_empty());
     }
 
+    fn write_zip(path: &Path, files: &[(&str, &[u8])]) {
+        use std::io::Write;
+        let mut zip = zip::ZipWriter::new(File::create(path).unwrap());
+        for (name, data) in files {
+            zip.start_file(*name, zip::write::SimpleFileOptions::default())
+                .unwrap();
+            zip.write_all(data).unwrap();
+        }
+        zip.finish().unwrap();
+    }
+
+    /// A GBA ROM with `serial` as its game code
+    fn gba_rom(serial: &[u8; 4], fill: u8) -> Vec<u8> {
+        let mut rom = vec![fill; 0x4000];
+        rom[0xAC..0xB0].copy_from_slice(serial);
+        rom
+    }
+
+    #[test]
+    fn a_zipped_rom_is_read_like_an_unpacked_one() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        let rom = gba_rom(b"AMTE", 1);
+        fs::create_dir_all(root.join("GBA")).unwrap();
+        fs::create_dir_all(root.join("Downloads")).unwrap();
+        fs::write(root.join("GBA/Metroid_Fusion.gba"), &rom).unwrap();
+        // outside a platform's folder too, with a text file next to the ROM
+        write_zip(
+            &root.join("Downloads/Metroid Fusion (USA).zip"),
+            &[("readme.txt", b"hi"), ("Metroid Fusion (USA).gba", &rom)],
+        );
+        // two ROMs: not one game, and not in a platform's folder either
+        write_zip(
+            &root.join("Downloads/two.zip"),
+            &[("a.gba", &rom), ("b.gba", &gba_rom(b"BPEE", 2))],
+        );
+        // no ROM at all: an archive in a platform's folder, nothing elsewhere
+        write_zip(&root.join("GBA/saves.zip"), &[("a.sav", b"save")]);
+        write_zip(&root.join("Downloads/photos.zip"), &[("a.jpg", b"jpg")]);
+
+        let items = scan(&[root.to_path_buf()]);
+        let summary: Vec<_> = items.iter().map(|i| (i.kind, i.name.as_str())).collect();
+        assert_eq!(
+            summary,
+            vec![
+                (ItemKind::Rom, "Metroid Fusion"),
+                (ItemKind::Archive, "saves")
+            ]
+        );
+
+        // the same data zipped and unpacked: one game with two copies
+        let fusion = &items[0];
+        assert_eq!(fusion.copies.len(), 1);
+        let info = fusion.rom.as_ref().unwrap();
+        assert_eq!(info.crc32, crc32fast::hash(&rom));
+        assert_eq!(info.serial.as_deref(), Some("AMTE"));
+        // only the serial is known (the data isn't a real dump): the title, not a release
+        let found = info.identified.as_ref().unwrap();
+        assert_eq!(
+            (found.how, found.release.as_str()),
+            (romdb::Match::Serial, "Metroid Fusion")
+        );
+        assert_eq!(info.release(), None);
+        assert_eq!(fusion.title(), "Metroid Fusion");
+    }
+
+    #[test]
+    fn a_renamed_or_moved_rom_isnt_read_again() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        fs::create_dir_all(root.join("GBA/old")).unwrap();
+        let path = root.join("GBA/old/fusion.gba");
+        fs::write(&path, gba_rom(b"AMTE", 1)).unwrap();
+
+        let progress = AtomicUsize::new(0);
+        let (items, checked) = scan_source(root, &progress, &Known::default());
+        assert_eq!(checked.len(), 1);
+        let first = items[0].rom.clone().unwrap();
+
+        // moved and renamed; the data is changed behind the scan's back, keeping size and time,
+        // so a result from the old checksums shows the file wasn't read
+        let modified = fs::metadata(&path).unwrap().modified().unwrap();
+        fs::create_dir_all(root.join("GBA/new")).unwrap();
+        let moved = root.join("GBA/new/Metroid Fusion.gba");
+        fs::rename(&path, &moved).unwrap();
+        fs::write(&moved, gba_rom(b"BPEE", 9)).unwrap();
+        File::options()
+            .write(true)
+            .open(&moved)
+            .unwrap()
+            .set_modified(modified)
+            .unwrap();
+
+        let known = Known::new(checked);
+        let (items, checked) = scan_source(root, &progress, &known);
+        assert_eq!(items[0].rom.as_ref(), Some(&first));
+        assert_eq!(checked[0].path, moved);
+
+        // without what was known, it is read
+        let (items, _) = scan_source(root, &progress, &Known::default());
+        assert_eq!(
+            items[0].rom.as_ref().unwrap().serial.as_deref(),
+            Some("BPEE")
+        );
+
+        // a changed file is read again
+        fs::write(&moved, gba_rom(b"BPEE", 9)).unwrap();
+        File::options()
+            .write(true)
+            .open(&moved)
+            .unwrap()
+            .set_modified(modified + Duration::from_secs(2))
+            .unwrap();
+        let (items, _) = scan_source(root, &progress, &known);
+        assert_eq!(
+            items[0].rom.as_ref().unwrap().serial.as_deref(),
+            Some("BPEE")
+        );
+    }
+
+    #[test]
+    fn of_several_files_with_the_same_size_and_time_none_is_guessed() {
+        let checked = |path: &str, sha1: &str| Checked {
+            path: PathBuf::from(path),
+            size: 4,
+            modified: 7,
+            crc32: 0,
+            sha1: sha1.into(),
+            serial: None,
+        };
+        let known = Known::new(vec![
+            checked("/a/x.gb", "11"),
+            checked("/a/y.gb", "22"),
+            checked("/b/z.gb", "22"),
+        ]);
+        // same name
+        assert_eq!(
+            known
+                .lookup(Path::new("/c/x.gb"), 4, 7)
+                .map(|c| c.sha1.as_str()),
+            Some("11")
+        );
+        // renamed: two candidates with different data
+        assert_eq!(known.lookup(Path::new("/c/w.gb"), 4, 7), None);
+        // a known path that changed isn't taken from another file
+        assert_eq!(known.lookup(Path::new("/a/x.gb"), 4, 8), None);
+        assert_eq!(known.lookup(Path::new("/c/x.gb"), 5, 7), None);
+    }
+
     #[test]
     fn folders_are_told_without_the_disk() {
         let item = |path: &str, kind| LibraryItem {
@@ -927,6 +1409,7 @@ mod tests {
             icon: None,
             in_cloud: false,
             copies: Vec::new(),
+            rom: None,
         };
         assert!(item("/x/WiiU/Cars_3_EUR_WiiU-CAT", ItemKind::Archive).is_folder());
         assert!(!item("/x/WiiU/Cars 3.rar", ItemKind::Archive).is_folder());

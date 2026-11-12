@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "arrayvec",
+ "crc32fast",
  "dark-light",
  "directories",
  "fs4",
@@ -29,6 +30,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sevenz-rust2",
+ "sha1",
  "size",
  "smol",
  "split-write",

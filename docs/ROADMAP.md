@@ -45,21 +45,10 @@ each item is ticked off here (and gets its test log entry) when done.
 5. **M1c, copy all to drive** (#41): in the library search a small Wii or GameCube game that
    isn't on WiiGames, "Copy all to drive" → one import task; search one that is there → the
    button is gone. Test log entry.
-8. **M2, game databases** (#48 and #53 on top of it; numbered 8 because the branches of #11,
-   #13 and #49 bring items 6 and 7): merged only after Claude tried them on the Mac (the
-   maintainer's decision, 2026-11-10). A portable debug build of #53's branch (it has #48 too)
-   with the real ROM folder as the only ROM source; the scan only reads it.
-   - #48: the library shows release names instead of file names, "✓ good dump (No-Intro)" and
-     the checksums in the tooltip; a zip with one ROM next to the same ROM unpacked is one entry
-     with two copies; `library-checksums.json` is written, and after renaming a ROM the next
-     scan doesn't read it again (fast) and still knows it.
-   - #53: a start with the network writes `databases/no-intro/state.json` in the data folder
-     with six ETags and shows no message (libretro-database is still at the shipped version); a
-     start without the network shows nothing either; a hand-made `databases/no-intro/gba.tsv`
-     with a later version in its first line (e.g. `2099.01.01`) and one line with a real ROM's
-     checksums under a made-up name shows that name after a restart, and the real one again
-     once the file is deleted.
-   Test log entry; then Claude merges #48, retargets #53 to `main` and merges it.
+8. ~~**M2, game databases** (#48 and #53 on top of it)~~: done 2026-11-12 on Linux with the
+   real collection (gamestation, HFS+ mounted read-only; the maintainer agreed that this counts
+   in place of the Mac), see the test log. Found on the way, for later in M2: zips renamed to
+   `.gba` are read as raw ROMs (9 files), and `.7z` isn't read yet.
 
 ## How the app is meant to work
 
@@ -232,6 +221,20 @@ online 3DS at once**, not one console per click.
     carry on at the next start.
   - **Descriptions** in the user's language from RetroGamesNexus or Wikipedia (`about.py`), also
     for games that are missing.
+
+**First pull request** (2026-11-10, branch `claude/nifty-hamilton-g6dclr`): the No-Intro lists of
+Game Boy, Game Boy Color, Game Boy Advance, NES, SNES and Mega Drive from libretro-database,
+compacted to CRC32, SHA-1, serial and name (`assets/databases/no-intro/`, 1.9 MB of text for
+about 21,000 dumps, so no Git LFS; `scripts/update-databases.py` refreshes them, built into the
+app with `include_str!`). `src/romdb.rs` identifies a ROM by SHA-1, then CRC32, then serial (only
+when every dump with that serial is the same game, so placeholders like the Mega Drive's
+"00000000-00" identify nothing). The scan reads each ROM once: checksums and serial per file in
+`library-checksums.json` next to `library.json`, found again by path, size and time of the last
+change, and by size and time alone for a renamed or moved file. ROMs with the same SHA-1 are one
+entry with copies, also zipped and unzipped. A zip with exactly one ROM is that ROM. The library
+shows the release's name and "good dump", the checksums in a tooltip. Still open for M2: the
+build and the app refreshing the lists themselves, the link to the release's entry, the other
+platforms and sources (Redump, GameTDB, 3dsdb, WiiUBrew), RAR, artwork and descriptions.
 
 ### M2b · Explain and repair bad dumps (M) – after M2
 
@@ -611,7 +614,9 @@ its own.
 
 ## Open questions
 
-- How large the database snapshot gets, and whether it needs Git LFS.
+- How large the database snapshot gets, and whether it needs Git LFS: the No-Intro lists of six
+  cartridge consoles are 1.9 MB of text (2026-11-10), fine without LFS; Redump and GameTDB are
+  still to measure.
 - How collections are shared between people.
 - Whether a source for series exists that is good, open and usable offline (see M5).
 - Formatting FAT32 above 32 GB with Windows' own tools: which versions allow it (see M1b).

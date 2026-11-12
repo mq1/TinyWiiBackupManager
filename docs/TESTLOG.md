@@ -37,11 +37,24 @@ console, a real drive or a real collection can show.
 | petter1 | 3DS | runs vcinject Link |
 | Petter1 | 3DS XL | runs vcinject Link; a second console, named like the 3DS in My Consoles |
 | WiiGames | Wii/GameCube USB drive | FAT32 (was NTFS, which macOS only reads) |
-| gamestation | drive | ROM source |
+| gamestation | drive | ROM source; HFS+, read-only on Linux |
 | iCloud collection | ROM source | files only in iCloud aren't downloaded |
 | WIIRO | drive | read-only FAT32 disk image (`hdiutil attach -readonly`), for read-only tests |
 
 ## Entries
+
+### 2026-11-12 · gamestation · game databases: ROMs identified by checksum (#48, #53)
+
+| | |
+| --- | --- |
+| **Device** | gamestation, USB HDD, HFS+ (journaled), mounted read-only on Linux |
+| **What** | M2: No-Intro identification (#48) and refreshing the lists at run time (#53) |
+| **Who** | Claude, on the maintainer's Linux computer, maintainer watching |
+| **When** | 2026-11-12, build `15e00520` (#53's branch, has #48), Arch Linux, debug build |
+| **How** | Portable build (`UGBM-portable`, own data folder) with `Games/GBA` and `Games/GB(C)` of gamestation as the only ROM sources, no drive selected (162 files, 124 ROMs or archives). Then a scratch folder with copies of three ROMs: a zip next to the same ROM unpacked; a ROM renamed and made unreadable (`chmod 000`) before the second scan; a start without network (`unshare -rn`) after deleting `databases/no-intro/state.json`; a hand-made `databases/no-intro/gba.tsv` dated `2099.01.01` with Metroid Fusion's checksums under a made-up name, then deleted again. Results read from `library.json`, `library-checksums.json` and `state.json`. |
+| **Why** | #48 and #53 were merged only after a test on the real collection ("Waiting for the Mac" item 8) |
+| **Result** | ✅ The scan took a few seconds. 104 ROMs identified by SHA-1 ("good dump"), also files with free names (`kirby-the-amazing-mirror.gba` → *Kirby & The Amazing Mirror (USA)*), self-dumps and zips; 7 ROM hacks and a translation only by serial, shown as "probably Pokemon - FireRed Version (other dump, hack or translation)" and not renamed; 11 not identified, all rightly: a fan translation (`[T-En]`), two `.7z`, a `source.zip`, and 9 files that are zips renamed to `.gba`. Two `… copy.gba` were one entry with a copy, as were the zip and the unpacked ROM. The renamed unreadable ROM was still identified (not read again). With network: `state.json` with six ETags, no list kept (none newer). Without network: no message from the lists (only the app's own update check logs its error, as before), `last_check` 0 so the next start tries again. The hand-made list's name was shown after a restart, the real one again once the file was gone. |
+| **Follow-up** | M2: recognise zips by their content, not the extension; `.7z`/RAR via 7-Zip. Which file of two copies leads is the scan's order. |
 
 ### 2026-11-09 · FAT32 disk image · no double import (#36), copy all (#41), pause by hand
 

@@ -16,6 +16,7 @@ mod message;
 mod n3ds;
 mod notifications;
 mod osc;
+mod romdb;
 mod state;
 mod tasks;
 mod toolbox;
