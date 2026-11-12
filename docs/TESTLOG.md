@@ -43,6 +43,19 @@ console, a real drive or a real collection can show.
 
 ## Entries
 
+### 2026-11-13 · gamestation · zips named like a ROM (#59)
+
+| | |
+| --- | --- |
+| **Device** | gamestation, USB HDD, HFS+, mounted read-only on Linux |
+| **What** | A zip with a ROM's name (`game.gba`) read as the ROM in it (#59) |
+| **Who** | Claude, on the maintainer's Linux computer |
+| **When** | 2026-11-13, build `8442141f` (#59's branch), Arch Linux, debug build |
+| **How** | Portable build with `gamestation/Games/GBA` as the only ROM source, new data folder (nothing known yet) |
+| **Why** | 9 such files weren't identified in the test of #48 |
+| **Result** | ✅ All 9 identified by SHA-1, e.g. `mega-man-battle-network-2-gba.gba` → "Mega Man - Battle Network 2 (USA)", `spider-man-2-gba.gba` → "Spider-Man 2 (USA, Europe)" |
+| **Follow-up** | none |
+
 ### 2026-11-13 · gamestation, WiiGames · Wii and GameCube discs named from Redump (#56)
 
 | | |

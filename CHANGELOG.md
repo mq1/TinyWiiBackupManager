@@ -50,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the CRC32, SHA-1 and cartridge serial when the pointer rests on it. A renamed or moved ROM is
   recognised without being read again, and the same ROM in several places (also zipped) is one
   entry with copies.
-- 🗜️ A zip with one ROM in it is read like the unpacked ROM, also outside a platform's folder.
+- 🗜️ A zip with one ROM in it is read like the unpacked ROM, also outside a platform's folder,
+  and also when it is named like a ROM (`game.gba`).
 - 🔄 The No-Intro lists stay current without a new version of the app: once a day the app asks
   libretro-database for lists that changed (only those are downloaded) and uses a newer one in
   place of the one it ships, saying which lists got newer. Without a network it keeps the lists it

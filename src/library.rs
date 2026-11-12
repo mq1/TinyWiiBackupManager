@@ -525,7 +525,12 @@ fn check_rom(
             ..c.clone()
         },
         None => {
-            let data = read_rom(&item.path, member)?;
+            let mut data = read_rom(&item.path, member)?;
+            // a zip under a ROM's name ("game.gba"): the one ROM in it
+            if member.is_none() && data.starts_with(b"PK\x03\x04") {
+                let (member, _) = single_rom_in_zip(&item.path)?;
+                data = read_rom(&item.path, Some(&member))?;
+            }
             let hashes = romdb::hash_rom(item.platform, &data);
             Checked {
                 path: item.path.clone(),
@@ -1309,6 +1314,11 @@ mod tests {
             &root.join("Downloads/two.zip"),
             &[("a.gba", &rom), ("b.gba", &gba_rom(b"BPEE", 2))],
         );
+        // a zip under a ROM's name
+        write_zip(
+            &root.join("GBA/Metroid Fusion copy.gba"),
+            &[("Metroid Fusion (USA).gba", &rom)],
+        );
         // no ROM at all: an archive in a platform's folder, nothing elsewhere
         write_zip(&root.join("GBA/saves.zip"), &[("a.sav", b"save")]);
         write_zip(&root.join("Downloads/photos.zip"), &[("a.jpg", b"jpg")]);
@@ -1323,9 +1333,9 @@ mod tests {
             ]
         );
 
-        // the same data zipped and unpacked: one game with two copies
+        // the same data zipped, unpacked and zipped under a ROM's name: one game, two copies
         let fusion = &items[0];
-        assert_eq!(fusion.copies.len(), 1);
+        assert_eq!(fusion.copies.len(), 2);
         let info = fusion.rom.as_ref().unwrap();
         assert_eq!(info.crc32, crc32fast::hash(&rom));
         assert_eq!(info.serial.as_deref(), Some("AMTE"));
