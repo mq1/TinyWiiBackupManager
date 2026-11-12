@@ -236,6 +236,17 @@ shows the release's name and "good dump", the checksums in a tooltip. Still open
 build and the app refreshing the lists themselves, the link to the release's entry, the other
 platforms and sources (Redump, GameTDB, 3dsdb, WiiUBrew), RAR, artwork and descriptions.
 
+**Second pull request** (2026-11-10, branch `claude/kind-cori-0fsoio`, on top of the first): at
+run time the app checks for newer lists and falls back to the shipped ones. Once a day (and at
+the next start when a download failed) it asks libretro-database for the six DATs with the ETag
+of the last download, so an unchanged list costs a `304`; a changed one is compacted in Rust the
+same way as `scripts/update-databases.py` (a test compares both on the real DATs) and kept in
+`databases/no-intro/` in the data folder when its version (a date) is newer than the one in use.
+At start the app uses, per list, the newer of the shipped and the downloaded one; after an
+update it looks the library's ROMs up again and says which lists got newer. Without a network
+nothing is said. Still open: the build refreshing the snapshot (see below), the link to the
+release's entry, Redump/GameTDB and the other platforms, RAR, artwork, descriptions.
+
 ### M2b · Explain and repair bad dumps (M) – after M2
 
 Today the game info's "SHA1" button only says "Hash mismatch" (a dump's SHA-1 against the Redump

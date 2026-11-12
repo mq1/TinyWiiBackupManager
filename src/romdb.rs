@@ -2,12 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 //! Game databases for the ROMs of the older consoles: a ROM is identified by its checksum against
-//! the No-Intro lists of libretro-database, which the app ships (`assets/databases/`, refreshed
-//! with `scripts/update-databases.py`).
+//! the No-Intro lists of libretro-database. The app ships them (`assets/databases/`, refreshed
+//! with `scripts/update-databases.py`) and asks libretro-database for newer ones once a day
+//! ([`check_for_updates`]); a newer list is kept in the data folder and used in place of the
+//! shipped one.
+
+mod update;
+
+pub use update::{Updated, check_for_updates};
 
 use crate::library::Platform;
 use sha1::{Digest, Sha1};
-use std::{collections::HashMap, sync::LazyLock};
+use std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+    sync::{Arc, LazyLock, OnceLock, PoisonError, RwLock},
+};
 
 /// One No-Intro list, as compacted by `scripts/update-databases.py`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,7 +32,41 @@ enum List {
 }
 
 impl List {
-    fn text(self) -> &'static str {
+    const ALL: [Self; 6] = [
+        Self::GameBoy,
+        Self::GameBoyColor,
+        Self::GameBoyAdvance,
+        Self::Nes,
+        Self::Snes,
+        Self::MegaDrive,
+    ];
+
+    /// The list's file name, in `assets/databases/no-intro/` and in the data folder
+    fn file_name(self) -> &'static str {
+        match self {
+            Self::GameBoy => "gb.tsv",
+            Self::GameBoyColor => "gbc.tsv",
+            Self::GameBoyAdvance => "gba.tsv",
+            Self::Nes => "nes.tsv",
+            Self::Snes => "snes.tsv",
+            Self::MegaDrive => "md.tsv",
+        }
+    }
+
+    /// The DAT's name in libretro-database (`metadat/no-intro/<name>.dat`)
+    fn dat_name(self) -> &'static str {
+        match self {
+            Self::GameBoy => "Nintendo - Game Boy",
+            Self::GameBoyColor => "Nintendo - Game Boy Color",
+            Self::GameBoyAdvance => "Nintendo - Game Boy Advance",
+            Self::Nes => "Nintendo - Nintendo Entertainment System",
+            Self::Snes => "Nintendo - Super Nintendo Entertainment System",
+            Self::MegaDrive => "Sega - Mega Drive - Genesis",
+        }
+    }
+
+    /// The list the app was built with
+    fn shipped(self) -> &'static str {
         match self {
             Self::GameBoy => include_str!("../assets/databases/no-intro/gb.tsv"),
             Self::GameBoyColor => include_str!("../assets/databases/no-intro/gbc.tsv"),
@@ -54,37 +99,124 @@ impl List {
             _ => &[],
         }
     }
+}
 
-    fn database(self) -> &'static Database {
-        static DATABASES: LazyLock<[Database; 6]> = LazyLock::new(|| {
-            [
-                List::GameBoy,
-                List::GameBoyColor,
-                List::GameBoyAdvance,
-                List::Nes,
-                List::Snes,
-                List::MegaDrive,
-            ]
-            .map(|list| Database::parse(list.text()))
-        });
-        &DATABASES[self as usize]
+/// The version in a list's first line, e.g. "2026.10.07" from
+/// `# Nintendo - Game Boy (No-Intro via libretro-database, 2026.10.07); CC BY-SA 4.0`
+fn header_version(text: &str) -> Option<&str> {
+    let header = text.lines().next()?.strip_prefix('#')?;
+    let rest = header.split_once("libretro-database, ")?.1;
+    rest.split_once(')').map(|(version, _)| version)
+}
+
+/// Whether list version `a` is newer than `b`. libretro-database dates its lists
+/// ("2026.10.07"); a version that isn't a date is never newer.
+fn is_newer(a: &str, b: &str) -> bool {
+    let is_date = |v: &str| v.len() == 10 && v.bytes().all(|c| c.is_ascii_digit() || c == b'.');
+    is_date(a) && (!is_date(b) || a > b)
+}
+
+/// Where the app keeps the lists it downloaded
+fn downloaded_dir(data_dir: &Path) -> PathBuf {
+    data_dir.join("databases").join("no-intro")
+}
+
+/// The folder with downloaded lists, set once at start
+static DOWNLOADED: OnceLock<PathBuf> = OnceLock::new();
+
+/// The lists in use; replaced when newer ones were downloaded
+static ACTIVE: LazyLock<RwLock<Arc<Databases>>> =
+    LazyLock::new(|| RwLock::new(Arc::new(Databases::load(DOWNLOADED.get()))));
+
+/// Tells the databases where the data folder is, so the lists downloaded at an earlier start are
+/// used where they are newer than the shipped ones. Called once, before the first lookup.
+pub fn use_data_dir(data_dir: &Path) {
+    let _ = DOWNLOADED.set(downloaded_dir(data_dir));
+}
+
+fn active() -> Arc<Databases> {
+    ACTIVE
+        .read()
+        .unwrap_or_else(PoisonError::into_inner)
+        .clone()
+}
+
+/// Reads the lists again, after newer ones were downloaded
+fn reload() {
+    let databases = Arc::new(Databases::load(DOWNLOADED.get()));
+    *ACTIVE.write().unwrap_or_else(PoisonError::into_inner) = databases;
+}
+
+/// One list for every [`List`]
+struct Databases([Database; List::ALL.len()]);
+
+impl Databases {
+    /// The shipped lists, each replaced by the one in `downloaded` where that one is newer
+    fn load(downloaded: Option<&PathBuf>) -> Self {
+        Self(List::ALL.map(|list| {
+            let shipped = Database::parse(list.shipped());
+            downloaded
+                .and_then(|dir| fs::read_to_string(dir.join(list.file_name())).ok())
+                .map(|text| Database::parse(&text))
+                .filter(|db| !db.dumps.is_empty() && is_newer(&db.version, &shipped.version))
+                .unwrap_or(shipped)
+        }))
+    }
+
+    fn get(&self, list: List) -> &Database {
+        &self.0[list as usize]
+    }
+
+    /// Looks a ROM up in the lists of its platform: by SHA-1, then CRC32, then serial
+    fn identify(&self, platform: Platform, rom: &RomHashes) -> Option<Identified> {
+        let lists = List::for_platform(platform);
+        let found = |list: List, index: usize, how| Identified {
+            release: self.get(list).dumps[index].to_string(),
+            platform: list.platform(),
+            how,
+        };
+
+        for &list in lists {
+            if let Some(&i) = self.get(list).by_sha1.get(&rom.sha1) {
+                return Some(found(list, i, Match::Verified));
+            }
+        }
+        for &list in lists {
+            if let Some(&i) = self.get(list).by_crc32.get(&rom.crc32) {
+                return Some(found(list, i, Match::Crc32));
+            }
+        }
+        let serial = rom.serial.as_deref()?;
+        lists.iter().find_map(|&list| {
+            Some(Identified {
+                release: self.get(list).title_of_serial(serial)?.to_string(),
+                platform: list.platform(),
+                how: Match::Serial,
+            })
+        })
     }
 }
 
 #[derive(Debug, Default)]
 struct Database {
+    /// the list's version, e.g. "2026.10.07"; empty when its first line doesn't name one
+    version: String,
     /// the release name of each dump, e.g. "Metroid Fusion (USA)"
-    dumps: Vec<&'static str>,
+    dumps: Vec<Box<str>>,
     by_sha1: HashMap<[u8; 20], usize>,
     by_crc32: HashMap<u32, usize>,
-    by_serial: HashMap<&'static str, Vec<usize>>,
+    by_serial: HashMap<Box<str>, Vec<usize>>,
 }
 
 impl Database {
-    /// Lines of `CRC32 \t SHA-1 \t serial \t name`; `#` starts a comment. A line that doesn't
-    /// fit is skipped, so one bad line doesn't cost the whole list.
-    fn parse(text: &'static str) -> Self {
-        let mut db = Self::default();
+    /// Lines of `CRC32 \t SHA-1 \t serial \t name`; `#` starts a comment, the first line names
+    /// the version. A line that doesn't fit is skipped, so one bad line doesn't cost the whole
+    /// list.
+    fn parse(text: &str) -> Self {
+        let mut db = Self {
+            version: header_version(text).unwrap_or_default().to_string(),
+            ..Self::default()
+        };
         for line in text
             .lines()
             .filter(|l| !l.is_empty() && !l.starts_with('#'))
@@ -106,18 +238,18 @@ impl Database {
             db.by_sha1.entry(sha1).or_insert(index);
             db.by_crc32.entry(crc32).or_insert(index);
             if !serial.is_empty() {
-                db.by_serial.entry(serial).or_default().push(index);
+                db.by_serial.entry(serial.into()).or_default().push(index);
             }
-            db.dumps.push(name);
+            db.dumps.push(name.into());
         }
         db
     }
 
     /// The title all dumps with `serial` share, without region and other tags; none when the
     /// serial is a placeholder that several games use (Mega Drive "00000000-00" and the like)
-    fn title_of_serial(&self, serial: &str) -> Option<&'static str> {
+    fn title_of_serial(&self, serial: &str) -> Option<&str> {
         let mut titles = self.by_serial.get(serial)?.iter().map(|&i| {
-            let name = self.dumps[i];
+            let name = &*self.dumps[i];
             name.split(" (").next().unwrap_or(name)
         });
         let first = titles.next()?;
@@ -155,40 +287,7 @@ pub struct Identified {
 
 /// Looks a ROM up in the lists of its platform: by SHA-1, then CRC32, then serial
 pub fn identify(platform: Platform, rom: &RomHashes) -> Option<Identified> {
-    let lists = List::for_platform(platform);
-    let found = |list: List, index: usize, how| Identified {
-        release: list.database().dumps[index].to_string(),
-        platform: list.platform(),
-        how,
-    };
-
-    for &list in lists {
-        if let Some(&i) = list.database().by_sha1.get(&rom.sha1) {
-            return Some(found(list, i, Match::Verified));
-        }
-    }
-    for &list in lists {
-        if let Some(&i) = list.database().by_crc32.get(&rom.crc32) {
-            return Some(found(list, i, Match::Crc32));
-        }
-    }
-    let serial = rom.serial.as_deref()?;
-    lists.iter().find_map(|&list| {
-        Some(Identified {
-            release: list.database().title_of_serial(serial)?.to_string(),
-            platform: list.platform(),
-            how: Match::Serial,
-        })
-    })
-}
-
-/// Number of dumps the app knows per platform, for tests and the About page later
-#[cfg(test)]
-fn known_dumps(platform: Platform) -> usize {
-    List::for_platform(platform)
-        .iter()
-        .map(|l| l.database().dumps.len())
-        .sum()
+    active().identify(platform, rom)
 }
 
 /// Checksums and serial of a ROM, as the lists have them
@@ -262,27 +361,22 @@ mod tests {
 
     #[test]
     fn every_list_is_read() {
-        for platform in [
-            Platform::GameBoy,
-            Platform::GameBoyAdvance,
-            Platform::Nes,
-            Platform::Snes,
-            Platform::MegaDrive,
-        ] {
-            assert!(known_dumps(platform) > 1000, "{platform:?}");
-        }
-        for list in [
-            List::GameBoy,
-            List::GameBoyColor,
-            List::GameBoyAdvance,
-            List::Nes,
-            List::Snes,
-            List::MegaDrive,
-        ] {
-            let db = list.database();
+        let databases = Databases::load(None);
+        for list in List::ALL {
+            let db = databases.get(list);
+            assert!(db.dumps.len() > 1000, "{list:?}");
             assert!(db.dumps.iter().all(|name| !name.is_empty()), "{list:?}");
+            assert!(
+                is_newer(&db.version, "2026.01.01"),
+                "{list:?}: {}",
+                db.version
+            );
             // every line was read
-            let lines = list.text().lines().filter(|l| !l.starts_with('#')).count();
+            let lines = list
+                .shipped()
+                .lines()
+                .filter(|l| !l.starts_with('#'))
+                .count();
             assert_eq!(db.dumps.len(), lines, "{list:?}");
         }
     }
@@ -291,7 +385,7 @@ mod tests {
     fn a_known_dump_is_found_by_its_checksums() {
         // the list's own entry, as if a file with these checksums had been read
         let line = List::GameBoyAdvance
-            .text()
+            .shipped()
             .lines()
             .find(|l| l.ends_with("\tMetroid Fusion (USA)"))
             .expect("Metroid Fusion (USA) in the GBA list");
@@ -339,7 +433,7 @@ mod tests {
     #[test]
     fn a_game_boy_color_game_in_a_gb_file_is_found_in_the_color_list() {
         let line = List::GameBoyColor
-            .text()
+            .shipped()
             .lines()
             .find(|l| !l.starts_with('#'))
             .unwrap();

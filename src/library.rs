@@ -1038,10 +1038,25 @@ fn read_cache(data_dir: &Path) -> Vec<LibraryItem> {
         .unwrap_or_default()
 }
 
+/// Looks the ROMs up again, after the game databases changed
+pub fn reidentify(items: &mut [LibraryItem]) {
+    for item in items {
+        if let Some(rom) = &mut item.rom {
+            rom.identify(item.platform);
+            if let Some(found) = &rom.identified {
+                item.platform = found.platform;
+            }
+        }
+    }
+}
+
 /// The last scan, to show the library at once while the sources are scanned again
 pub async fn load_cache(data_dir: &'static Path) -> Vec<LibraryItem> {
     smol::unblock(move || {
         let mut items = read_cache(data_dir);
+        // the databases may be newer than the cache (and get newer while it loads: the app
+        // looks the ROMs up again when it gets the items)
+        reidentify(&mut items);
 
         // the databases may be newer than the cache
         for item in &mut items {

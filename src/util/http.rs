@@ -209,6 +209,32 @@ pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Re
     .await
 }
 
+/// A text file that changed since it was last downloaded
+pub struct Changed {
+    pub text: String,
+    /// to send along next time, so an unchanged file isn't downloaded again
+    pub etag: Option<String>,
+}
+
+/// Downloads a text file, unless it is still the one with `etag`; blocking
+pub fn get_text_if_changed(uri: &str, etag: Option<&str>) -> Result<Option<Changed>> {
+    let mut request = minreq::get(uri)
+        .with_header("User-Agent", USER_AGENT)
+        .with_timeout(timeout::GENERIC_DOWNLOAD);
+    if let Some(etag) = etag {
+        request = request.with_header("If-None-Match", etag);
+    }
+    let resp = request.send()?;
+    match resp.status_code {
+        304 => Ok(None),
+        200..=299 => Ok(Some(Changed {
+            text: resp.as_str()?.to_string(),
+            etag: resp.header("ETag").map(str::to_string),
+        })),
+        code => bail!("error downloading {uri}: {code}"),
+    }
+}
+
 pub async fn get_json<T: DeserializeOwned + Send + 'static>(uri: &'static str) -> Result<T> {
     smol::unblock(move || {
         let resp = minreq::get(uri)

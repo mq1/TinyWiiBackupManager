@@ -654,14 +654,40 @@ impl AppState {
                     },
                 )
             }
-            Message::GotCachedLibrary(items) => {
+            Message::GotCachedLibrary(mut items) => {
                 // a finished scan is newer than the cache
                 if !self.library.scanned_once {
+                    library::reidentify(&mut items);
                     self.library.items = items;
                 }
                 Task::none()
             }
-            Message::GotLibrary(items) => {
+            Message::GameDatabasesUpdated(updated) => {
+                library::reidentify(&mut self.library.items);
+                let notify = Task::done(Message::Notify(Notification::info(format!(
+                    "Game databases updated: {}",
+                    updated
+                        .iter()
+                        .map(|u| format!("{} ({})", u.list, u.version))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ))));
+                // before the first scan the items are the cache's, which a scan saves anyway
+                if !self.library.scanned_once {
+                    return notify;
+                }
+                let save = Task::perform(
+                    library::save_cache(self.data_dir, self.library.items.clone()),
+                    |res| match res {
+                        Ok(()) => Message::NoOp,
+                        Err(e) => Message::Notify(e.into()),
+                    },
+                );
+                Task::batch([save, notify])
+            }
+            Message::GotLibrary(mut items) => {
+                // the game databases may have been updated while the scan ran
+                library::reidentify(&mut items);
                 let save = Task::perform(
                     library::save_cache(self.data_dir, items.clone()),
                     |res| match res {

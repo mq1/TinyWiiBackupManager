@@ -11,6 +11,7 @@ use crate::{
     message::Message,
     notifications::{notification::Notification, notification_list::NotificationList},
     osc::{self, osc_state::OscState},
+    romdb,
     tasks::{TaskId, TaskManager},
     toolbox::{ToolContext, ToolboxItem},
     ui::{modals::Modal, pages::Page, theme},
@@ -95,6 +96,17 @@ impl AppState {
                         Ok(Some(version)) => Message::GotUpdate(version),
                         Ok(None) => Message::NoOp,
                         Err(e) => Message::Notify(e.into()),
+                    }),
+                    // without a network the app keeps its lists and says nothing
+                    Task::perform(romdb::check_for_updates(data_dir), |res| match res {
+                        Ok(updated) if !updated.is_empty() => {
+                            Message::GameDatabasesUpdated(updated)
+                        }
+                        Ok(_) => Message::NoOp,
+                        Err(e) => {
+                            eprintln!("WARNING: game databases not updated: {e:#}");
+                            Message::NoOp
+                        }
                     }),
                 ]),
             )

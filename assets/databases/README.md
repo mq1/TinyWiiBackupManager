@@ -3,6 +3,13 @@
 What the app identifies games with. Shipped with the app (built into it), so that it works
 offline; refreshed with `python3 scripts/update-databases.py` from the repository root.
 
+The app also refreshes them itself (`src/romdb/update.rs`): once a day it asks libretro-database
+for the DATs that changed since it last asked (by ETag), compacts them the same way as the script
+and keeps a list in `databases/no-intro/` in its data folder when it is newer (by the DAT's
+version, a date) than the shipped one. When the app ships a newer list later, that one is used
+again. A test checks that both give the same files:
+`UGBM_DAT_DIR=<folder with the six DATs> cargo test -- --ignored compacts_the_real_dats`.
+
 ## no-intro/
 
 The [No-Intro](https://no-intro.org) lists of the cartridge consoles, as
