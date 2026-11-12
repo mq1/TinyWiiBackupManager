@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Yanik Fuchs <yanik.fuchs@me.com>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Newer lists at run time: once a day the app asks libretro-database for the No-Intro DATs that
-//! changed since it last asked (by ETag), compacts them as `scripts/update-databases.py` does and
+//! Newer lists at run time: once a day the app asks libretro-database for the No-Intro and Redump
+//! DATs that changed since it last asked (by ETag), compacts them as `scripts/update-databases.py` does and
 //! keeps a list in the data folder when it is newer than the one in use. Without a network, or
 //! when libretro-database doesn't answer, the lists in use stay: the shipped ones, or the ones
 //! downloaded earlier.
@@ -18,8 +18,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-const BASE: &str =
-    "https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/no-intro/";
+const BASE: &str = "https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/";
 
 /// What the app remembers between checks, in the folder of the downloaded lists
 const STATE_FILE: &str = "state.json";
@@ -31,7 +30,7 @@ const CHECK_EVERY: u64 = 24 * 60 * 60;
 struct State {
     /// when every list was last asked for, in seconds since 1970
     last_check: u64,
-    /// the ETag of each list's DAT as it was last downloaded, by file name
+    /// the ETag of each list's DAT as it was last downloaded, by path (e.g. "redump/wii.tsv")
     etags: BTreeMap<String, String>,
 }
 
@@ -88,14 +87,18 @@ fn update_lists(
     let mut updated = Vec::new();
     let mut failed = None;
     for list in List::ALL {
-        let url = format!("{BASE}{}.dat", list.dat_name().replace(' ', "%20"));
-        let etag = state.etags.get(list.file_name()).map(String::as_str);
+        let url = format!(
+            "{BASE}{}/{}.dat",
+            list.source(),
+            list.dat_name().replace(' ', "%20")
+        );
+        let etag = state.etags.get(&list.path()).map(String::as_str);
         let result = fetch(&url, etag).and_then(|changed| match changed {
             Some(changed) => {
                 let version = save_if_newer(dir, list, &changed.text)?;
                 // remembered also when the list isn't newer: no need to download it again
                 if let Some(etag) = changed.etag {
-                    state.etags.insert(list.file_name().to_string(), etag);
+                    state.etags.insert(list.path(), etag);
                 }
                 Ok(version)
             }
@@ -134,7 +137,7 @@ fn save_if_newer(dir: &Path, list: List, dat: &str) -> Result<Option<String>> {
         bail!("no dumps in the downloaded list");
     }
 
-    let path = dir.join(list.file_name());
+    let path = dir.join(list.path());
     let downloaded = fs::read_to_string(&path).ok();
     let mut in_use = header_version(list.shipped()).unwrap_or_default();
     if let Some(v) = downloaded.as_deref().and_then(header_version)
@@ -146,7 +149,9 @@ fn save_if_newer(dir: &Path, list: List, dat: &str) -> Result<Option<String>> {
         return Ok(None);
     }
 
-    let mut file = tempfile::NamedTempFile::new_in(dir)?;
+    let folder = dir.join(list.source());
+    fs::create_dir_all(&folder)?;
+    let mut file = tempfile::NamedTempFile::new_in(&folder)?;
     file.write_all(to_text(list, &version, &lines).as_bytes())?;
     file.persist(&path)?;
     Ok(Some(version))
@@ -155,8 +160,9 @@ fn save_if_newer(dir: &Path, list: List, dat: &str) -> Result<Option<String>> {
 /// A list's text as `scripts/update-databases.py` writes it
 fn to_text(list: List, version: &str, lines: &[String]) -> String {
     let mut text = format!(
-        "# {} (No-Intro via libretro-database, {version}); CC BY-SA 4.0\n",
-        list.dat_name()
+        "# {} ({} via libretro-database, {version}); CC BY-SA 4.0\n",
+        list.dat_name(),
+        list.source_name()
     );
     for line in lines {
         text.push_str(line);
@@ -311,7 +317,7 @@ mod tests {
         );
     }
 
-    /// The Rust version gives the shipped lists from the DATs they were made of. Needs the six
+    /// The Rust version gives the shipped lists from the DATs they were made of. Needs the eight
     /// DATs of the shipped version in a folder:
     /// `UGBM_DAT_DIR=… cargo test -- --ignored compacts_the_real_dats`
     #[test]
@@ -390,7 +396,7 @@ mod tests {
         })
         .unwrap();
         assert!(updated.is_empty());
-        assert!(!dir.path().join("gba.tsv").exists());
+        assert!(!dir.path().join("no-intro/gba.tsv").exists());
 
         // libretro-database doesn't answer: an error, and asked again at the next start
         let failed = update_lists(dir.path(), 2_000_000, |_, _| bail!("offline"));
@@ -412,11 +418,12 @@ mod tests {
             }))
         });
         assert!(result.is_err());
-        assert!(!dir.path().join("gba.tsv").exists());
+        assert!(!dir.path().join("no-intro/gba.tsv").exists());
 
         // a downloaded list older than the shipped one (after an update of the app) isn't used
+        fs::create_dir_all(dir.path().join("no-intro")).unwrap();
         fs::write(
-            dir.path().join("gba.tsv"),
+            dir.path().join("no-intro/gba.tsv"),
             to_text(
                 List::GameBoyAdvance,
                 "2020.01.01",

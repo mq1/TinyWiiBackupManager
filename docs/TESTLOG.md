@@ -43,6 +43,19 @@ console, a real drive or a real collection can show.
 
 ## Entries
 
+### 2026-11-13 · gamestation, WiiGames · Wii and GameCube discs named from Redump (#56)
+
+| | |
+| --- | --- |
+| **Device** | gamestation, USB HDD, HFS+, mounted read-only on Linux; WiiGames (`wbfs` folder only), FAT32 |
+| **What** | M2: Redump names for Wii and GameCube discs by game ID (#56) |
+| **Who** | Claude, on the maintainer's Linux computer |
+| **When** | 2026-11-13, builds `558570e4` and `deac4056` (#56's branch), Arch Linux, debug build |
+| **How** | Portable build with `gamestation/Games` and `WiiGames/wbfs` as ROM sources (3,055 items, 133 Wii/GameCube discs and archives with a game ID); `release` in `library.json` compared with the names GameTDB gives the same game IDs. |
+| **Why** | #56 waited for a scan of the real collection |
+| **Result** | ⚠️ then ✅ The first build named 112 of 133, but 14 wrongly: custom discs and mods keep another game's code under their own maker code (`RMCE13` Wiimms MKW Fun → "Mario Kart Wii (USA)", `RQQE52` Guitar Hero III Custom: Queen → "Backyard Football '09 (USA)", `SRGP01` NSMBW 2 Reggie → "Rango (Europe)"). Fixed in `deac4056` (no Redump name when GameTDB names the whole ID differently): 98 of 133 named, exactly the 14 hacks dropped; official games keep theirs, also "Pokémon"/"PokéPark" (accents) and the Japanese Pokémon Battle Revolution. |
+| **Follow-up** | none |
+
 ### 2026-11-12 · gamestation · game databases: ROMs identified by checksum (#48, #53)
 
 | | |

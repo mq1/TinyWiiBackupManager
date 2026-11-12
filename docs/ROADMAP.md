@@ -45,10 +45,11 @@ each item is ticked off here (and gets its test log entry) when done.
 5. **M1c, copy all to drive** (#41): in the library search a small Wii or GameCube game that
    isn't on WiiGames, "Copy all to drive" → one import task; search one that is there → the
    button is gone. Test log entry.
-8. ~~**M2, game databases** (#48 and #53 on top of it)~~: done 2026-11-12 on Linux with the
-   real collection (gamestation, HFS+ mounted read-only; the maintainer agreed that this counts
-   in place of the Mac), see the test log. Found on the way, for later in M2: zips renamed to
-   `.gba` are read as raw ROMs (9 files), and `.7z` isn't read yet.
+8. ~~**M2, game databases** (#48, #53 and #56 on top of them)~~: done 2026-11-12/13 on Linux
+   with the real collection (gamestation, HFS+ mounted read-only; the maintainer agreed that this
+   counts in place of the Mac), see the test log. #56 named 14 hacks after other games; fixed
+   before merging. Found on the way, for later in M2: zips renamed to `.gba` are read as raw ROMs
+   (9 files, #59), and `.7z` isn't read yet.
 
 ## How the app is meant to work
 
@@ -246,6 +247,17 @@ At start the app uses, per list, the newer of the shipped and the downloaded one
 update it looks the library's ROMs up again and says which lists got newer. Without a network
 nothing is said. Still open: the build refreshing the snapshot (see below), the link to the
 release's entry, Redump/GameTDB and the other platforms, RAR, artwork, descriptions.
+
+**Third pull request** (#56, 2026-11-12, branch `claude/quick-help-dhxs0v`, on top of the second): the
+Redump lists of Wii and GameCube from libretro-database (`assets/databases/redump/`, 650 KB),
+shipped and refreshed like the No-Intro ones; downloaded lists now live in `databases/<source>/`
+in the data folder, the state in `databases/state.json`. Their serials carry the game code (`RVL-
+RMGP-EUR`), so the library names a Wii or GameCube disc by its game ID without reading it ("Super
+Mario Galaxy (Europe, Australia) (En,Fr,De,Es,It)"), the discs and revisions of a game as one
+name; 54 of about 5,200 game codes have several names (other regions on one code), which leave
+only the title they share, or no name for 5. The hash task names the release on a match ("SHA1 is
+well known as Worms 3D (USA) (En,Fr)"). Still open: GameTDB for the 3DS and Wii U titles, the
+link to the release's entry, the build refreshing the snapshot, RAR, artwork, descriptions.
 
 ### M2b · Explain and repair bad dumps (M) – after M2
 
@@ -626,8 +638,8 @@ its own.
 ## Open questions
 
 - How large the database snapshot gets, and whether it needs Git LFS: the No-Intro lists of six
-  cartridge consoles are 1.9 MB of text (2026-11-10), fine without LFS; Redump and GameTDB are
-  still to measure.
+  cartridge consoles are 1.9 MB of text (2026-11-10), the Redump lists of Wii and GameCube
+  0.65 MB (2026-11-12), fine without LFS; GameTDB is still to measure.
 - How collections are shared between people.
 - Whether a source for series exists that is good, open and usable offline (see M5).
 - Formatting FAT32 above 32 GB with Windows' own tools: which versions allow it (see M1b).

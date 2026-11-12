@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Refresh the game database snapshot in assets/databases/ from libretro-database.
 
-Downloads the No-Intro DATs of the systems below from libretro-database
+Downloads the No-Intro DATs of the cartridge consoles and the Redump DATs of
+the disc consoles below from libretro-database
 (https://github.com/libretro/libretro-database, CC BY-SA 4.0) and keeps only
-what the app needs to identify a ROM, one line per dump:
+what the app needs to identify a dump, one line per dump:
 
     CRC32 <tab> SHA-1 <tab> serial <tab> release name
 
@@ -22,18 +23,23 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-BASE = "https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/no-intro/"
-OUT = Path("assets/databases/no-intro")
+BASE = "https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/"
+OUT = Path("assets/databases")
 
-# file name in the app -> DAT name in libretro-database
+# (source, file name in the app) -> DAT name in libretro-database (metadat/<source>/<name>.dat)
 SYSTEMS = {
-    "gb": "Nintendo - Game Boy",
-    "gbc": "Nintendo - Game Boy Color",
-    "gba": "Nintendo - Game Boy Advance",
-    "nes": "Nintendo - Nintendo Entertainment System",
-    "snes": "Nintendo - Super Nintendo Entertainment System",
-    "md": "Sega - Mega Drive - Genesis",
+    ("no-intro", "gb"): "Nintendo - Game Boy",
+    ("no-intro", "gbc"): "Nintendo - Game Boy Color",
+    ("no-intro", "gba"): "Nintendo - Game Boy Advance",
+    ("no-intro", "nes"): "Nintendo - Nintendo Entertainment System",
+    ("no-intro", "snes"): "Nintendo - Super Nintendo Entertainment System",
+    ("no-intro", "md"): "Sega - Mega Drive - Genesis",
+    ("redump", "wii"): "Nintendo - Wii",
+    ("redump", "gc"): "Nintendo - GameCube",
 }
+
+# how the first line names a source
+SOURCE_NAMES = {"no-intro": "No-Intro", "redump": "Redump"}
 
 _GAME = re.compile(r"^game \(\n(?P<body>.*?)^\)", re.S | re.M)
 _NAME = re.compile(r'^\tname "(?P<name>(?:[^"\\]|\\.)*)"', re.M)
@@ -65,15 +71,19 @@ def compact(dat: str, system: str) -> tuple[str, list[str]]:
 
 
 def main() -> int:
-    OUT.mkdir(parents=True, exist_ok=True)
-    for key, dat_name in SYSTEMS.items():
-        url = BASE + urllib.parse.quote(dat_name) + ".dat"
+    for (source, key), dat_name in SYSTEMS.items():
+        url = f"{BASE}{source}/{urllib.parse.quote(dat_name)}.dat"
         with urllib.request.urlopen(url, timeout=60) as response:
             dat = response.read().decode("utf-8", "replace")
         version, lines = compact(dat, key)
-        header = f"# {dat_name} (No-Intro via libretro-database, {version}); CC BY-SA 4.0\n"
-        (OUT / f"{key}.tsv").write_text(header + "\n".join(lines) + "\n", encoding="utf-8")
-        print(f"{key}: {len(lines)} dumps, version {version}")
+        header = (
+            f"# {dat_name} ({SOURCE_NAMES[source]} via libretro-database, {version}); "
+            "CC BY-SA 4.0\n"
+        )
+        out = OUT / source
+        out.mkdir(parents=True, exist_ok=True)
+        (out / f"{key}.tsv").write_text(header + "\n".join(lines) + "\n", encoding="utf-8")
+        print(f"{source}/{key}: {len(lines)} dumps, version {version}")
     return 0
 
 

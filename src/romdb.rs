@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Yanik Fuchs <yanik.fuchs@me.com>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Game databases for the ROMs of the older consoles: a ROM is identified by its checksum against
-//! the No-Intro lists of libretro-database. The app ships them (`assets/databases/`, refreshed
-//! with `scripts/update-databases.py`) and asks libretro-database for newer ones once a day
+//! Game databases: a ROM of the older consoles is identified by its checksum against the
+//! No-Intro lists of libretro-database, a Wii or GameCube disc by its game ID (or its checksum)
+//! against the Redump lists. The app ships them (`assets/databases/`, refreshed with
+//! `scripts/update-databases.py`) and asks libretro-database for newer ones once a day
 //! ([`check_for_updates`]); a newer list is kept in the data folder and used in place of the
 //! shipped one.
 
@@ -20,7 +21,7 @@ use std::{
     sync::{Arc, LazyLock, OnceLock, PoisonError, RwLock},
 };
 
-/// One No-Intro list, as compacted by `scripts/update-databases.py`
+/// One No-Intro or Redump list, as compacted by `scripts/update-databases.py`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum List {
     GameBoy,
@@ -29,19 +30,40 @@ enum List {
     Nes,
     Snes,
     MegaDrive,
+    Wii,
+    GameCube,
 }
 
 impl List {
-    const ALL: [Self; 6] = [
+    const ALL: [Self; 8] = [
         Self::GameBoy,
         Self::GameBoyColor,
         Self::GameBoyAdvance,
         Self::Nes,
         Self::Snes,
         Self::MegaDrive,
+        Self::Wii,
+        Self::GameCube,
     ];
 
-    /// The list's file name, in `assets/databases/no-intro/` and in the data folder
+    /// The list's folder in libretro-database's `metadat/`, in `assets/databases/` and in the
+    /// data folder
+    fn source(self) -> &'static str {
+        match self {
+            Self::Wii | Self::GameCube => "redump",
+            _ => "no-intro",
+        }
+    }
+
+    /// How the list's first line names its source
+    fn source_name(self) -> &'static str {
+        match self.source() {
+            "redump" => "Redump",
+            _ => "No-Intro",
+        }
+    }
+
+    /// The list's file name in its source's folder
     fn file_name(self) -> &'static str {
         match self {
             Self::GameBoy => "gb.tsv",
@@ -50,10 +72,17 @@ impl List {
             Self::Nes => "nes.tsv",
             Self::Snes => "snes.tsv",
             Self::MegaDrive => "md.tsv",
+            Self::Wii => "wii.tsv",
+            Self::GameCube => "gc.tsv",
         }
     }
 
-    /// The DAT's name in libretro-database (`metadat/no-intro/<name>.dat`)
+    /// The list's path below the folder of the databases, e.g. "redump/wii.tsv"
+    fn path(self) -> String {
+        format!("{}/{}", self.source(), self.file_name())
+    }
+
+    /// The DAT's name in libretro-database (`metadat/<source>/<name>.dat`)
     fn dat_name(self) -> &'static str {
         match self {
             Self::GameBoy => "Nintendo - Game Boy",
@@ -62,6 +91,8 @@ impl List {
             Self::Nes => "Nintendo - Nintendo Entertainment System",
             Self::Snes => "Nintendo - Super Nintendo Entertainment System",
             Self::MegaDrive => "Sega - Mega Drive - Genesis",
+            Self::Wii => "Nintendo - Wii",
+            Self::GameCube => "Nintendo - GameCube",
         }
     }
 
@@ -74,6 +105,8 @@ impl List {
             Self::Nes => include_str!("../assets/databases/no-intro/nes.tsv"),
             Self::Snes => include_str!("../assets/databases/no-intro/snes.tsv"),
             Self::MegaDrive => include_str!("../assets/databases/no-intro/md.tsv"),
+            Self::Wii => include_str!("../assets/databases/redump/wii.tsv"),
+            Self::GameCube => include_str!("../assets/databases/redump/gc.tsv"),
         }
     }
 
@@ -85,6 +118,8 @@ impl List {
             Self::Nes => Platform::Nes,
             Self::Snes => Platform::Snes,
             Self::MegaDrive => Platform::MegaDrive,
+            Self::Wii => Platform::Wii,
+            Self::GameCube => Platform::GameCube,
         }
     }
 
@@ -97,6 +132,15 @@ impl List {
             Platform::Snes => &[Self::Snes],
             Platform::MegaDrive => &[Self::MegaDrive],
             _ => &[],
+        }
+    }
+
+    /// The list of a disc of `platform`
+    fn for_disc(platform: Platform) -> Option<Self> {
+        match platform {
+            Platform::Wii => Some(Self::Wii),
+            Platform::GameCube => Some(Self::GameCube),
+            _ => None,
         }
     }
 }
@@ -116,9 +160,9 @@ fn is_newer(a: &str, b: &str) -> bool {
     is_date(a) && (!is_date(b) || a > b)
 }
 
-/// Where the app keeps the lists it downloaded
+/// Where the app keeps the lists it downloaded, each in its source's folder
 fn downloaded_dir(data_dir: &Path) -> PathBuf {
-    data_dir.join("databases").join("no-intro")
+    data_dir.join("databases")
 }
 
 /// The folder with downloaded lists, set once at start
@@ -156,7 +200,7 @@ impl Databases {
         Self(List::ALL.map(|list| {
             let shipped = Database::parse(list.shipped());
             downloaded
-                .and_then(|dir| fs::read_to_string(dir.join(list.file_name())).ok())
+                .and_then(|dir| fs::read_to_string(dir.join(list.path())).ok())
                 .map(|text| Database::parse(&text))
                 .filter(|db| !db.dumps.is_empty() && is_newer(&db.version, &shipped.version))
                 .unwrap_or(shipped)
@@ -195,6 +239,19 @@ impl Databases {
             })
         })
     }
+
+    /// The release name of a disc of `platform` with the SHA-1 of the whole disc
+    fn disc_by_sha1(&self, platform: Platform, sha1: &[u8; 20]) -> Option<&str> {
+        let db = self.get(List::for_disc(platform)?);
+        db.by_sha1.get(sha1).map(|&i| &*db.dumps[i])
+    }
+
+    /// The release name of a disc of `platform` by its game ID, e.g. "RMGP01"
+    fn disc_by_game_id(&self, platform: Platform, game_id: &str) -> Option<String> {
+        let code = game_id.get(..4)?;
+        let db = self.get(List::for_disc(platform)?);
+        db.name_of_game_code(code)
+    }
 }
 
 #[derive(Debug, Default)]
@@ -206,6 +263,8 @@ struct Database {
     by_sha1: HashMap<[u8; 20], usize>,
     by_crc32: HashMap<u32, usize>,
     by_serial: HashMap<Box<str>, Vec<usize>>,
+    /// the dumps of each Wii or GameCube game code, e.g. "RMGP" (the game ID without the maker)
+    by_game_code: HashMap<[u8; 4], Vec<usize>>,
 }
 
 impl Database {
@@ -240,6 +299,9 @@ impl Database {
             if !serial.is_empty() {
                 db.by_serial.entry(serial.into()).or_default().push(index);
             }
+            if let Some(code) = game_code_of_serial(serial) {
+                db.by_game_code.entry(code).or_default().push(index);
+            }
             db.dumps.push(name.into());
         }
         db
@@ -255,6 +317,62 @@ impl Database {
         let first = titles.next()?;
         titles.all(|t| t == first).then_some(first)
     }
+
+    /// The name of the release with a Wii or GameCube game code. A game's discs and revisions
+    /// share the code, and Redump lists some discs twice (with and without the disc's revision
+    /// in the serial): without "(Disc 1)", "(Rev 2)" and the like they are one name. When they
+    /// still differ (a demo on the same code, say), only the title they share.
+    fn name_of_game_code(&self, code: &str) -> Option<String> {
+        let code: [u8; 4] = code.as_bytes().try_into().ok()?;
+        let mut names = self.by_game_code.get(&code)?.iter().map(|&i| {
+            let name = &*self.dumps[i];
+            without_disc_and_revision(name)
+        });
+        let first = names.next()?;
+        let rest = names.collect::<Vec<_>>();
+        if rest.iter().all(|n| *n == first) {
+            return Some(first);
+        }
+        let title = |n: &str| n.split(" (").next().unwrap_or(n).to_string();
+        let first_title = title(&first);
+        rest.iter()
+            .all(|n| title(n) == first_title)
+            .then_some(first_title)
+    }
+}
+
+/// The game code in a Redump serial: "RMGE" in "RVL-RMGE-USA-B0" (Wii) and "GW7P" in
+/// "DL-DOL-GW7P-EUR" (GameCube); none in the serials of other lists
+fn game_code_of_serial(serial: &str) -> Option<[u8; 4]> {
+    let rest = serial.strip_prefix("DL-").unwrap_or(serial);
+    let (prefix, rest) = rest.split_once('-')?;
+    if !matches!(prefix, "RVL" | "RVLE" | "DOL") {
+        return None;
+    }
+    let code = rest.split('-').next()?;
+    let code: [u8; 4] = code.as_bytes().try_into().ok()?;
+    code.iter()
+        .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+        .then_some(code)
+}
+
+/// A release name without its "(Disc N)" and "(Rev N)" tags
+fn without_disc_and_revision(name: &str) -> String {
+    let mut out = String::with_capacity(name.len());
+    let mut rest = name;
+    while let Some(start) = rest.find(" (") {
+        let Some(len) = rest[start..].find(')') else {
+            break;
+        };
+        let tag = &rest[start + 2..start + len];
+        out.push_str(&rest[..start]);
+        if !(tag.starts_with("Disc ") || tag.starts_with("Rev ")) {
+            out.push_str(&rest[start..=start + len]);
+        }
+        rest = &rest[start + len + 1..];
+    }
+    out.push_str(rest);
+    out
 }
 
 pub fn sha1_from_hex(hex: &str) -> Option<[u8; 20]> {
@@ -283,6 +401,62 @@ pub struct Identified {
     /// the platform of the list it is in (a `.gb` file can be a Game Boy Color game)
     pub platform: Platform,
     pub how: Match,
+}
+
+/// The Redump name of a Wii or GameCube disc by its game ID, e.g. "Super Mario Galaxy (Europe)
+/// (En,Fr,De,Es,It)" for "RMGP01"; without the disc's number and revision, which the game ID
+/// doesn't tell
+///
+/// Hacks and custom discs often keep another game's code under their own maker code
+/// ("RMCE13" is a Wiimms Mario Kart Wii mod, "RQQE52" a Guitar Hero III custom on Backyard
+/// Football's code), which the Redump serials don't have. So when GameTDB knows the whole game
+/// ID under a different name, that disc isn't the Redump release and gets no name here.
+pub fn disc_name(platform: Platform, game_id: &str) -> Option<String> {
+    let release = active().disc_by_game_id(platform, game_id)?;
+    match twbm_idmap::get_title(game_id) {
+        Some(title) if !names_the_same_game(title, &release) => None,
+        _ => Some(release),
+    }
+}
+
+/// The letter without its accent ("é" is "e"), for comparing names; other characters as they are
+fn without_accent(c: char) -> char {
+    const ACCENTED: &str = "ÀÁÂÃÄÅàáâãäåÇçÈÉÊËèéêëÌÍÎÏìíîïÑñÒÓÔÕÖØòóôõöøÙÚÛÜùúûüÝýÿ";
+    const PLAIN: &str = "AAAAAAaaaaaaCcEEEEeeeeIIIIiiiiNnOOOOOOooooooUUUUuuuuYyy";
+    ACCENTED
+        .chars()
+        .position(|a| a == c)
+        .and_then(|i| PLAIN.chars().nth(i))
+        .unwrap_or(c)
+}
+
+/// Whether GameTDB's title of a game ID and a Redump name are the same game: every word of the
+/// title (of three letters or more, or a number) is in the Redump name, regardless of case,
+/// accents and punctuation. A title without such words (Japanese) and GameTDB's placeholder
+/// "Scene release" say nothing.
+fn names_the_same_game(gametdb: &str, redump: &str) -> bool {
+    fn words(name: &str) -> Vec<String> {
+        let folded: String = name.chars().map(without_accent).collect();
+        folded
+            .split(|c: char| !c.is_ascii_alphanumeric())
+            .filter(|w| w.len() >= 3 || (!w.is_empty() && w.chars().all(|c| c.is_ascii_digit())))
+            .map(str::to_ascii_lowercase)
+            .collect()
+    }
+
+    if gametdb.to_ascii_lowercase().starts_with("scene release") {
+        return true;
+    }
+    // the Redump name without its regions and languages: "(Europe) (En,Fr,De,Es,It)"
+    let redump = redump.split(" (").next().unwrap_or(redump);
+    let redump = words(redump);
+    words(gametdb).iter().all(|word| redump.contains(word))
+}
+
+/// The Redump name of the Wii or GameCube disc with this SHA-1 (of the whole disc), when it is a
+/// known good dump
+pub fn disc_by_sha1(platform: Platform, sha1: &[u8; 20]) -> Option<String> {
+    active().disc_by_sha1(platform, sha1).map(str::to_string)
 }
 
 /// Looks a ROM up in the lists of its platform: by SHA-1, then CRC32, then serial
@@ -357,6 +531,50 @@ pub fn has_database(platform: Platform) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn a_hack_on_another_games_code_gets_no_redump_name() {
+        for (gametdb, redump) in [
+            (
+                "Mario Kart: Double Dash!!",
+                "Mario Kart - Double Dash!! (Europe, Australia)",
+            ),
+            (
+                "Pokemon Battle Revolution",
+                "Pokemon Battle Revolution (Europe, Australia)",
+            ),
+            (
+                "Die drei ???: Das verfluchte Schloss",
+                "drei Fragezeichen, Die - Das verfluchte Schloss (Germany)",
+            ),
+            (
+                "Scene release [SE8P41]",
+                "Just Dance 2018 (Europe) (En,Fr,De,Es,It,Nl)",
+            ),
+        ] {
+            assert!(names_the_same_game(gametdb, redump), "{gametdb}");
+        }
+        for (gametdb, redump) in [
+            (
+                "Wiimms MKW Fun 2012-01.ntsc",
+                "Mario Kart Wii (USA) (En,Fr,Es)",
+            ),
+            (
+                "Guitar Hero III Custom : Queen",
+                "Backyard Football '09 (USA)",
+            ),
+            (
+                "Super Mario Skyland",
+                "New Super Mario Bros. Wii (USA) (En,Fr,Es)",
+            ),
+            (
+                "Mario Kart Wii CTGP Revolution",
+                "Mario Kart Wii (USA) (En,Fr,Es)",
+            ),
+        ] {
+            assert!(!names_the_same_game(gametdb, redump), "{gametdb}");
+        }
+    }
     use super::*;
 
     #[test]
@@ -418,6 +636,51 @@ mod tests {
 
         // the GBA list isn't asked for a SNES ROM
         assert_eq!(identify(Platform::Snes, &rom), None);
+    }
+
+    #[test]
+    fn a_disc_is_named_by_its_game_id() {
+        assert_eq!(
+            disc_name(Platform::Wii, "RMGP01").as_deref(),
+            Some("Super Mario Galaxy (Europe, Australia) (En,Fr,De,Es,It)")
+        );
+        // both discs of a GameCube game share the ID
+        assert_eq!(
+            disc_name(Platform::GameCube, "GQSE01").as_deref(),
+            Some("Tales of Symphonia (USA)")
+        );
+        // the Wii list isn't asked for a GameCube game, nor for a ROM
+        assert_eq!(disc_name(Platform::GameCube, "RMGP01"), None);
+        assert_eq!(disc_name(Platform::Wii, "ZZZZ01"), None);
+        assert_eq!(disc_name(Platform::Wii, "RM"), None);
+        assert_eq!(disc_name(Platform::GameBoyAdvance, "AMTE01"), None);
+    }
+
+    #[test]
+    fn game_codes_are_read_from_redump_serials() {
+        let code =
+            |serial| game_code_of_serial(serial).map(|c| String::from_utf8_lossy(&c).into_owned());
+        assert_eq!(code("RVL-RMGE-USA-B0").as_deref(), Some("RMGE"));
+        assert_eq!(code("RVLE-SBSE-USA-B0").as_deref(), Some("SBSE"));
+        assert_eq!(code("DL-DOL-GQSE-1-USA-1").as_deref(), Some("GQSE"));
+        assert_eq!(code("DOL-GALE-USA").as_deref(), Some("GALE"));
+        // other lists' serials, and Redump's that aren't game codes
+        assert_eq!(code("AMTE"), None);
+        assert_eq!(code("T-48073-00"), None);
+        assert_eq!(code("DS000102"), None);
+    }
+
+    #[test]
+    fn disc_and_revision_are_left_out_of_a_name() {
+        assert_eq!(
+            without_disc_and_revision("Tales of Symphonia (USA) (Disc 2)"),
+            "Tales of Symphonia (USA)"
+        );
+        assert_eq!(
+            without_disc_and_revision("Mario Strikers Charged Football (Europe) (En,Fr) (Rev 2)"),
+            "Mario Strikers Charged Football (Europe) (En,Fr)"
+        );
+        assert_eq!(without_disc_and_revision("Odd (Name"), "Odd (Name");
     }
 
     #[test]

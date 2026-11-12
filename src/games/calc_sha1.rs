@@ -3,6 +3,8 @@
 
 use crate::{
     games::game::Game,
+    library::Platform,
+    romdb,
     tasks::{self, Reporter, TaskControl, WorkerEvent},
     util::sha1_list,
 };
@@ -18,8 +20,9 @@ use std::path::Path;
 /// What the hash says about a dump.
 #[derive(Debug, PartialEq, Eq)]
 enum Verdict {
-    /// The SHA-1 is in the list of known good dumps (Redump).
-    Known,
+    /// The SHA-1 is in the list of known good dumps (Redump), as this release when the list
+    /// names it.
+    Known(Option<String>),
     /// A Wii dump without its update partition (WBFS tools often drop it): it can't match the
     /// disc any more, whether or not the rest is intact.
     UpdateRemoved,
@@ -34,6 +37,7 @@ fn lacks_update_partition(kinds: &[PartitionKind]) -> bool {
 
 /// Hashes one disc image.
 fn hash_disc(
+    platform: Platform,
     disc_path: &Path,
     control: &TaskControl,
     reporter: &mut Reporter,
@@ -64,8 +68,9 @@ fn hash_disc(
     control.checkpoint()?;
     let sha1 = finalization?.sha1.context("Failed to calculate SHA1")?;
 
-    Ok(if sha1_list::is_known(&sha1) {
-        Verdict::Known
+    let release = romdb::disc_by_sha1(platform, &sha1);
+    Ok(if release.is_some() || sha1_list::is_known(&sha1) {
+        Verdict::Known(release)
     } else if lacks_update_partition(&kinds) {
         Verdict::UpdateRemoved
     } else {
@@ -84,6 +89,11 @@ fn perform_blocking(
         anyhow::bail!("disc not found");
     }
 
+    let platform = if game.is_wii() {
+        Platform::Wii
+    } else {
+        Platform::GameCube
+    };
     let count = discs.len();
     discs
         .iter()
@@ -93,7 +103,7 @@ fn perform_blocking(
                 1 => format!("Hashing {}", game.title()),
                 _ => format!("Hashing {} (disc {} of {count})", game.title(), i + 1),
             };
-            hash_disc(disc, control, reporter, message)
+            hash_disc(platform, disc, control, reporter, message)
         })
         .collect()
 }
@@ -104,14 +114,20 @@ fn outcome(title: &str, verdicts: &[Verdict]) -> Result<String, String> {
     let Some((index, verdict)) = verdicts
         .iter()
         .enumerate()
-        .find(|(_, verdict)| **verdict != Verdict::Known)
+        .find(|(_, verdict)| !matches!(verdict, Verdict::Known(_)))
     else {
         let discs = match verdicts.len() {
             1 => String::new(),
             n => format!(" (all {n} discs)"),
         };
+        // the release the first disc is, e.g. "Tales of Symphonia (USA) (Disc 1)"
+        let release = match verdicts.first() {
+            Some(Verdict::Known(Some(release))) => format!(" as {release}"),
+            _ => String::new(),
+        };
         return Ok(format!(
-            "Hash match for {title}{discs}!  -  SHA1 is well known, your dump is perfect"
+            "Hash match for {title}{discs}!  -  SHA1 is well known{release}, your dump is \
+             perfect"
         ));
     };
 
@@ -160,13 +176,11 @@ mod tests {
 
     #[test]
     fn every_disc_has_to_match() {
-        assert!(outcome("Tales", &[Verdict::Known]).is_ok_and(|m| !m.contains("discs")));
-        assert!(
-            outcome("Tales", &[Verdict::Known, Verdict::Known])
-                .is_ok_and(|m| m.contains("all 2 discs"))
-        );
+        let known = || Verdict::Known(None);
+        assert!(outcome("Tales", &[known()]).is_ok_and(|m| !m.contains("discs")));
+        assert!(outcome("Tales", &[known(), known()]).is_ok_and(|m| m.contains("all 2 discs")));
 
-        let second_bad = outcome("Tales", &[Verdict::Known, Verdict::Unknown]).unwrap_err();
+        let second_bad = outcome("Tales", &[known(), Verdict::Unknown]).unwrap_err();
         assert!(
             second_bad.starts_with("Hash mismatch on disc 2:"),
             "{second_bad}"
@@ -174,5 +188,31 @@ mod tests {
 
         let single_bad = outcome("Tales", &[Verdict::UpdateRemoved]).unwrap_err();
         assert!(single_bad.starts_with("Hash mismatch: the dump has no update partition"));
+    }
+
+    #[test]
+    fn a_match_names_the_release() {
+        let message =
+            outcome("Worms 3D", &[Verdict::Known(Some("Worms 3D (USA)".into()))]).unwrap();
+        assert!(
+            message.contains("well known as Worms 3D (USA),"),
+            "{message}"
+        );
+    }
+
+    #[test]
+    fn a_redump_sha1_names_the_disc() {
+        // Worms 3D (USA), the dump tried on the Mac on 2026-10-31
+        let line = include_str!("../../assets/databases/redump/gc.tsv")
+            .lines()
+            .find(|l| l.ends_with("\tWorms 3D (USA) (En,Fr)"))
+            .expect("Worms 3D (USA) in the GameCube list");
+        let sha1 = romdb::sha1_from_hex(line.split('\t').nth(1).unwrap()).unwrap();
+        assert!(sha1_list::is_known(&sha1));
+        assert_eq!(
+            romdb::disc_by_sha1(Platform::GameCube, &sha1).as_deref(),
+            Some("Worms 3D (USA) (En,Fr)")
+        );
+        assert_eq!(romdb::disc_by_sha1(Platform::Wii, &sha1), None);
     }
 }
