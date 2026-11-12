@@ -25,7 +25,6 @@ Linux builds can be built on manylinux2014 or newer.
 - [just](https://just.systems/)
 - [Rust 1.99](https://rust-lang.org/) with the `rust-src` component
 - [LLVM 23](https://llvm.org/)
-- [NASM](https://www.nasm.us/) (for build-windows-x86)
 - [appimagetool](https://github.com/AppImage/appimagetool) (for package-linux-*)
 - [node-appdmg](https://github.com/LinusU/node-appdmg) (for package-macos-universal)
 
