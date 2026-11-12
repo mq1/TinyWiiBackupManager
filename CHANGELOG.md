@@ -56,6 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   libretro-database for lists that changed (only those are downloaded) and uses a newer one in
   place of the one it ships, saying which lists got newer. Without a network it keeps the lists it
   has, without a message; `UGBM_DISABLE_UPDATES=1` turns the check off.
+- 🏷️ Wii and GameCube discs without a Redump name (hacks, custom discs) get GameTDB's name for
+  their game ID instead of the disc's own ("Guitar Hero III Custom : Queen" for "Guitar Hero
+  Queen"), also archives named with a game ID. A Wii U inject or forwarder that is only a title
+  ID ("0005000010104857") takes its name from the folders above it ("the legend of zelda ocarina
+  of time usa"), unless they are a platform's folder or a pack of several titles.
 
 ## [v6.1.9] - 2026-10-21
 

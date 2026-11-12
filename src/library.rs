@@ -348,9 +348,100 @@ fn display_name_of_folder(path: &Path) -> String {
     let name = name.trim();
 
     match name.split_once(' ') {
-        Some((first, rest)) if platform_of_folder(first).is_some() => rest.trim().to_string(),
+        Some((first, rest))
+            if platform_of_folder(first).is_some() || first.eq_ignore_ascii_case("wiiware") =>
+        {
+            rest.trim().to_string()
+        }
         _ => name.to_string(),
     }
+}
+
+/// Whether a name is a bare title ID (16 hex digits), maybe with an extension or RAR part
+fn is_title_id_name(name: &str) -> bool {
+    let stem = name.split('.').next().unwrap_or_default();
+    stem.len() == 16 && stem.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+/// The title ID a file or folder name starts with, e.g. "0005000010104839 - WS Patched.rar"
+fn leading_title_id(name: &str) -> Option<&str> {
+    let start = name.get(..16)?;
+    (start.chars().all(|c| c.is_ascii_hexdigit())
+        && !name[16..].starts_with(|c: char| c.is_ascii_alphanumeric()))
+    .then_some(start)
+}
+
+/// A name for an item that is only a title ID (a Wii U inject or forwarder), from the folders
+/// above it, nearest first: one that names this title ID in brackets
+/// ("SMSAdvance - Roms A-G v4 [0005000010102139]"), else one that starts with a platform
+/// ("n64_paper_mario_usa", also above "_eShop" or a variant's folder), else the nearest one that
+/// holds nothing but this title. None at a platform's folder ("N64") or at a pack of several
+/// titles ("PocketNES Pack (USB)"), where no folder names this one.
+fn name_from_folders(path: &Path, title_id: u64) -> Option<String> {
+    let id = format!("{title_id:016x}");
+    let pretty = |dir: &Path| {
+        let name = display_name_of_folder(dir);
+        let name = match name.rsplit_once(" [") {
+            Some((base, rest)) if rest.ends_with(']') => base.trim_end().to_string(),
+            _ => name,
+        };
+        (!name.is_empty()).then_some(name)
+    };
+
+    let mut fallback = None;
+    for dir in path.ancestors().skip(1).take(5) {
+        let name = dir.file_name()?.to_str()?;
+        if platform_of_folder(name).is_some() {
+            break;
+        }
+        if name.to_ascii_lowercase().contains(&format!("[{id}]")) {
+            return pretty(dir);
+        }
+
+        let names: Vec<String> = fs::read_dir(dir)
+            .ok()?
+            .flatten()
+            .filter_map(|entry| entry.file_name().into_string().ok())
+            .filter(|name| !name.starts_with('.'))
+            .collect();
+        let mut ids: Vec<String> = names
+            .iter()
+            .filter_map(|name| leading_title_id(name))
+            .map(str::to_ascii_lowercase)
+            .collect();
+        ids.sort_unstable();
+        ids.dedup();
+        if ids.len() > 1 {
+            break;
+        }
+
+        if name.starts_with('_') || is_title_id_name(name) {
+            continue;
+        }
+        if has_platform_prefix(name) {
+            return pretty(dir);
+        }
+        let only_this_title = names.iter().all(|name| {
+            leading_title_id(name).is_some()
+                || name.starts_with('_')
+                || !name.contains('.')
+                || [".sfv", ".nfo", ".txt", ".jpg", ".png"]
+                    .iter()
+                    .any(|ext| name.to_ascii_lowercase().ends_with(ext))
+        });
+        if fallback.is_none() && only_this_title {
+            fallback = pretty(dir);
+        }
+    }
+    fallback
+}
+
+/// Whether a folder's name starts with a platform, e.g. "n64_paper_mario_usa", "wiiware_fluidity"
+fn has_platform_prefix(name: &str) -> bool {
+    let name = name.replace(['_', '.'], " ");
+    name.trim().split_once(' ').is_some_and(|(first, _)| {
+        platform_of_folder(first).is_some() || first.eq_ignore_ascii_case("wiiware")
+    })
 }
 
 fn display_name(path: &Path) -> String {
@@ -630,6 +721,11 @@ fn read_item(
         // the title folder is the game: name and size are the folder's
         let folder = item.path.parent()?.to_path_buf();
         item.name = display_name(&folder);
+        if is_title_id_name(&item.name)
+            && let Ok(title_id) = u64::from_str_radix(&item.name, 16)
+        {
+            item.name = name_from_folders(&folder, title_id).unwrap_or(item.name);
+        }
         item.size = smol::block_on(crate::util::fs::get_dir_size(&folder));
         item.path = folder;
         return Some((item, None));
@@ -687,10 +783,15 @@ fn read_item(
                 } else {
                     Platform::GameCube
                 };
-                item.id = Some(ItemId::Game(disc.game_id().as_str().to_string()));
-                if !disc.game_title().is_empty() {
+                let id = disc.game_id().as_str().to_string();
+                // GameTDB's name; the disc's own is often a short internal one
+                // ("AITD5_111_080403_EU")
+                if let Some(title) = twbm_idmap::get_title(&id) {
+                    item.name = title.to_string();
+                } else if !disc.game_title().is_empty() {
                     item.name = disc.game_title().to_string();
                 }
+                item.id = Some(ItemId::Game(id));
             }
         }
         ItemKind::Archive => {
@@ -706,6 +807,19 @@ fn read_item(
                 .name
                 .rsplit_once(".part")
                 .map_or(item.name.clone(), |(name, _)| name.to_string());
+            match &item.id {
+                Some(ItemId::Game(id)) => {
+                    if let Some(title) = twbm_idmap::get_title(id) {
+                        item.name = title.to_string();
+                    }
+                }
+                Some(ItemId::Title(title_id)) if is_title_id_name(&item.name) => {
+                    if let Some(name) = name_from_folders(&item.path, *title_id) {
+                        item.name = name;
+                    }
+                }
+                _ => {}
+            }
         }
         _ => {}
     }
@@ -1110,6 +1224,54 @@ pub async fn save_cache(data_dir: &'static Path, items: Vec<LibraryItem>) -> any
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_item_that_is_only_a_title_id_is_named_after_its_folder() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("Wii U inject");
+        let write = |path: &str| {
+            let path = root.join(path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, path.to_string_lossy().as_bytes()).unwrap();
+        };
+        // the game's folder, with a patched copy next to it and the eShop's inject in "_eShop"
+        write("N64/n64/n64_paper_mario_usa/0005000010104839.rar");
+        write("N64/n64/n64_paper_mario_usa/0005000010104839 - WS Patched.rar");
+        write("N64/n64/n64_paper_mario_usa/_eShop/0005000010199700.rar");
+        write("N64/n64/n64_paper_mario_usa/_eShop/0005000010199700 - WS Patched.rar");
+        write("Wii/forwarders/wiiware_cave_story/0005000010104755.rar");
+        write("Wii/forwarders/uae_wii_forwarder/0005000010105279.rar");
+        // a title folder in a folder that names it and its ID, and two in a pack
+        write("packs/SMSAdvance - Roms A-G v4 [0005000010102139]/0005000010102139/title.tmd");
+        write("packs/PocketNES Pack (USB)/0005000010106006/title.tmd");
+        write("packs/PocketNES Pack (USB)/0005000010106007/title.tmd");
+        // straight in a platform's folder: nothing better than the ID
+        write("NDS/0005000010102044.rar");
+        // a folder of several games doesn't name one of them
+        write("N64/Injects/0005000010105317.rar");
+        write("N64/Injects/Mario.zip");
+
+        let items = scan(std::slice::from_ref(&root));
+        let mut names: Vec<_> = items.iter().map(|item| item.name.as_str()).collect();
+        names.sort_unstable();
+        assert_eq!(
+            names,
+            vec![
+                "0005000010102044",
+                "0005000010104839 - WS Patched",
+                "0005000010105317",
+                "0005000010106006",
+                "0005000010106007",
+                "0005000010199700 - WS Patched",
+                "Mario",
+                "SMSAdvance - Roms A-G v4",
+                "cave story",
+                "paper mario usa",
+                "paper mario usa",
+                "uae wii forwarder",
+            ]
+        );
+    }
 
     #[test]
     fn scans_by_extension() {

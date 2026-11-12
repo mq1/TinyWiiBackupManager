@@ -259,6 +259,17 @@ only the title they share, or no name for 5. The hash task names the release on 
 well known as Worms 3D (USA) (En,Fr)"). Still open: GameTDB for the 3DS and Wii U titles, the
 link to the release's entry, the build refreshing the snapshot, RAR, artwork, descriptions.
 
+**Fourth pull request** (#58, 2026-11-13, branch `claude/library-names`): names in the library
+for what Redump doesn't name. A Wii or GameCube disc (or an archive with a game ID) without a
+Redump name, mostly hacks and custom discs, takes GameTDB's name (`twbm_idmap`, which the
+drive's games already used) in place of the disc header's internal one ("Guitar Hero III Custom :
+Queen" for "Guitar Hero Queen"); the order is Redump, GameTDB, the disc. Items that are only a
+title ID take the name of a folder above them: one with `[<title ID>]` in its name, else one
+that starts with a platform (`n64_…`, `wiiware_…`), else the nearest one that holds only this
+title; never past a platform's folder or a pack of several titles. On the real collection
+(2026-11-13): 57 of 100 bare title IDs named, 43 left (packs and injects straight in a
+platform's folder; their names are inside the RARs).
+
 ### M2b · Explain and repair bad dumps (M) – after M2
 
 Today the game info's "SHA1" button only says "Hash mismatch" (a dump's SHA-1 against the Redump

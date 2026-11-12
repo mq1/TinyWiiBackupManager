@@ -43,6 +43,19 @@ console, a real drive or a real collection can show.
 
 ## Entries
 
+### 2026-11-13 · gamestation, WiiGames · names for discs and title IDs (#58)
+
+| | |
+| --- | --- |
+| **Device** | gamestation, USB HDD, HFS+, mounted read-only on Linux; WiiGames (`wbfs` folder only), FAT32 |
+| **What** | GameTDB names for discs without a Redump name, folder names for items that are only a title ID (#58) |
+| **Who** | Claude, on the maintainer's Linux computer |
+| **When** | 2026-11-13, #58's branch on top of #56, Arch Linux, debug build |
+| **How** | Portable build with `gamestation/Games` and `WiiGames/wbfs` as ROM sources (3,055 items); `library.json` compared with a scan of the build before #56 and #58 |
+| **Why** | Many discs showed the header's internal name ("AITD5_111_080403_EU"), 100 items only a title ID |
+| **Result** | ✅ Of 133 discs and archives with a game ID, 98 show the Redump name, 24 hacks and custom discs GameTDB's ("Guitar Hero Queen" → "Guitar Hero III Custom : Queen", "New SUPER MARIO BROS. Wii" `SMNEZY` → "Super Mario Skyland"), the rest the disc's. 57 of 100 bare title IDs named from their folders ("0005000010104857" → "the legend of zelda ocarina of time usa", "0005000010102139" → "SMSAdvance - Master System Roms A-G v4"); 43 left, in packs of several titles or straight in a platform's folder. |
+| **Follow-up** | M2: names from inside the RARs (7-Zip) |
+
 ### 2026-11-13 · gamestation · zips named like a ROM (#59)
 
 | | |
