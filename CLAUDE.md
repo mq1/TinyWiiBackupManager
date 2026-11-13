@@ -109,8 +109,9 @@ start from `main` and only see what is there, so the update goes to `main` in it
   artwork come later in M2. Anything on the 3DS side (vcinject Link 14) waits for the
   maintainer's decision.
 - **Branches**: GitHub deletes a pull request's branch when it is merged (seen 2026-11-13).
-  Left besides `main`: the branches of the open pull requests (#11, #13, #22, #49) and the stray
-  `claude/m2-redump-names` (a copy of #56, merged), for the maintainer to delete. The local `feature/task-manager` on the Mac
+  Left besides `main`: the branches of the open pull requests (#11, #13, #22, #49). A session on
+  the maintainer's Linux computer can delete a remote branch (`git push origin --delete`) when
+  the maintainer asks for it. The local `feature/task-manager` on the Mac
   goes once #11 is merged. A clone in a cloud session is shallow (50 commits): `git fetch
   --unshallow origin` before comparing old branches with `main`.
 - A ROM source or drive that doesn't answer no longer holds up the library scan (#31) or the
