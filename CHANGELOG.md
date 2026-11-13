@@ -61,6 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Queen"), also archives named with a game ID. A Wii U inject or forwarder that is only a title
   ID ("0005000010104857") takes its name from the folders above it ("the legend of zelda ocarina
   of time usa"), unless they are a platform's folder or a pack of several titles.
+- 🗜️ RAR and 7z archives are looked into with 7-Zip when it is installed (`7zz`, `7z` or `7za`;
+  also found in Homebrew's folders on macOS and in `Program Files` on Windows): one with a single
+  ROM in it is read like that ROM, and a Wii U title of a pack that is only a title ID takes the
+  name from the `meta.xml` in the pack's Loadiine archive next to it ("PocketNES: Roms S Pack 1").
+  What an archive holds is remembered (`library-archives.json`), so it is only opened again when
+  it changed. Without 7-Zip, nothing changes.
 
 ## [v6.1.9] - 2026-10-21
 

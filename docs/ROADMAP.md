@@ -49,7 +49,7 @@ each item is ticked off here (and gets its test log entry) when done.
    with the real collection (gamestation, HFS+ mounted read-only; the maintainer agreed that this
    counts in place of the Mac), see the test log. #56 named 14 hacks after other games; fixed
    before merging. Found on the way, for later in M2: zips renamed to `.gba` are read as raw ROMs
-   (9 files, #59), and `.7z` isn't read yet.
+   (9 files, #59), and `.7z` isn't read yet (read through 7-Zip since the fifth M2 pull request).
 
 ## How the app is meant to work
 
@@ -269,6 +269,20 @@ that starts with a platform (`n64_…`, `wiiware_…`), else the nearest one tha
 title; never past a platform's folder or a pack of several titles. On the real collection
 (2026-11-13): 57 of 100 bare title IDs named, 43 left (packs and injects straight in a
 platform's folder; their names are inside the RARs).
+
+**Fifth pull request** (2026-11-13, branch `claude/m2-7zip-archives`): RAR and 7z through an
+external 7-Zip (`src/library/sevenzip.rs`: `7zz`, `7z` or `7za` from `PATH`, Homebrew's folders on
+macOS, `Program Files` on Windows; listed with `l -slt`, read with `e -so -spd`, never a prompt). A
+RAR or 7z in a folder of a platform with a game database that holds exactly one ROM is that ROM
+(checksums and copies as for a zip). An item that is only a title ID, after the folders, takes the
+name from a `meta.xml` (`longname_en`) in its own archive or in an archive up to three folders up:
+the packs keep their installable titles (NUS: encrypted `.app`, no name readable) next to a
+Loadiine RAR with `meta/meta.xml` per title. Archives named after a title ID (thousands of
+injects) aren't opened for a ROM; what an archive holds is kept in `library-archives.json` by
+path, size and time of the last change. On the real collection: 42 of the 43 bare title IDs
+named, the one left an NUS inject straight in `NDS/`; the two `.7z` GBA hacks read as ROMs; 7
+archives opened. Still open: `unar`/`lsar` when 7-Zip is missing, unpacking a RAR release for
+copying or installing, checksums from the RAR headers for discs in RARs (none in the collection).
 
 ### M2b · Explain and repair bad dumps (M) – after M2
 

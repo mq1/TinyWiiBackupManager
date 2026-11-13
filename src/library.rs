@@ -9,6 +9,8 @@ use crate::{
 };
 use iced::widget::image;
 use smol::{Timer, future::FutureExt};
+mod sevenzip;
+
 use std::{
     collections::HashMap,
     ffi::OsStr,
@@ -16,7 +18,7 @@ use std::{
     io::{BufReader, Read},
     path::{Path, PathBuf},
     sync::{
-        Arc,
+        Arc, Mutex,
         atomic::{AtomicUsize, Ordering},
     },
     thread,
@@ -501,11 +503,14 @@ struct Checked {
     serial: Option<String>,
 }
 
-/// The checksums of earlier scans, by path and by size and time of the last change
+/// The checksums of earlier scans, by path and by size and time of the last change, and what
+/// the RAR and 7z archives hold
 #[derive(Debug, Default)]
 struct Known {
     by_path: HashMap<PathBuf, Checked>,
     by_stamp: HashMap<(u64, u64), Vec<Checked>>,
+    /// archives looked into, by path; true when this scan came across it
+    archives: Mutex<HashMap<PathBuf, (Peeked, bool)>>,
 }
 
 impl Known {
@@ -520,6 +525,29 @@ impl Known {
             known.by_path.insert(c.path.clone(), c);
         }
         known
+    }
+
+    /// Adds what earlier scans found in the archives
+    fn with_archives(self, peeked: Vec<Peeked>) -> Self {
+        let archives = peeked.into_iter().map(|p| (p.path.clone(), (p, false)));
+        Self {
+            archives: Mutex::new(archives.collect()),
+            ..self
+        }
+    }
+
+    /// The archives this scan came across, to remember for the next one
+    fn archives_seen(&self) -> Vec<Peeked> {
+        self.archives
+            .lock()
+            .map(|archives| {
+                archives
+                    .values()
+                    .filter(|(_, seen)| *seen)
+                    .map(|(peeked, _)| peeked.clone())
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     /// The checksums of `path` when it is unchanged; or, when the path is new, of the file with
@@ -572,12 +600,201 @@ fn single_rom_in_zip(path: &Path) -> Option<(String, Platform)> {
     roms.next().is_none().then_some(rom)
 }
 
-/// The whole data of a ROM file, or of `member` in the zip at `path`
+/// Whether a file is a zip, by its name
+fn is_zip(path: &Path) -> bool {
+    path.extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+}
+
+/// Whether a RAR file is the second or a later part of a release ("x.part02.rar")
+fn is_later_part(name: &str) -> bool {
+    let lower = name.to_ascii_lowercase();
+    let stem = lower.strip_suffix(".rar").unwrap_or(&lower);
+    stem.rsplit_once(".part").is_some_and(|(_, part)| {
+        part.chars().all(|c| c.is_ascii_digit()) && part.trim_start_matches('0') != "1"
+    })
+}
+
+/// What an archive holds, as far as the library cares
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct Contents {
+    /// the one ROM in it (its path in the archive), when it holds exactly one
+    rom: Option<String>,
+    /// Wii U titles in it in Loadiine's form (a folder with `meta/meta.xml`): title ID and name
+    titles: Vec<(u64, String)>,
+}
+
+/// What an archive held when it had this size and time of the last change
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct Peeked {
+    path: PathBuf,
+    size: u64,
+    /// last change, in nanoseconds since 1970
+    modified: u64,
+    contents: Contents,
+}
+
+/// At most this many `meta.xml` are read from one archive (a pack has up to 25 titles)
+const MAX_TITLES_IN_ARCHIVE: usize = 64;
+
+/// What is in an archive (also a zip), looked into with 7-Zip once and remembered. None without
+/// 7-Zip or when it can't be read; then it is tried again at the next scan.
+fn peek(path: &Path, known: &Known) -> Option<Contents> {
+    let meta = fs::metadata(path).ok()?;
+    let (size, modified) = (meta.len(), modified_nanos(&meta).unwrap_or_default());
+    if let Ok(mut archives) = known.archives.lock()
+        && let Some((peeked, seen)) = archives.get_mut(path)
+        && peeked.size == size
+        && peeked.modified == modified
+    {
+        *seen = true;
+        return Some(peeked.contents.clone());
+    }
+
+    let entries = sevenzip::list(path)?;
+    let files: Vec<&sevenzip::Entry> = entries.iter().filter(|e| !e.is_dir).collect();
+
+    let mut roms = files.iter().filter(|e| {
+        let name = e.slash_path();
+        let file_name = name.rsplit('/').next().unwrap_or_default();
+        !name.starts_with("__MACOSX/")
+            && !file_name.starts_with('.')
+            && matches!(classify(Path::new(&name)), Some((_, ItemKind::Rom)))
+    });
+    let rom = match (roms.next(), roms.next()) {
+        (Some(rom), None) => Some(rom.path.clone()),
+        _ => None,
+    };
+
+    let metas: Vec<&str> = files
+        .iter()
+        .filter(|e| {
+            e.size <= 64 * 1024
+                && e.slash_path()
+                    .to_ascii_lowercase()
+                    .ends_with("meta/meta.xml")
+        })
+        .take(MAX_TITLES_IN_ARCHIVE)
+        .map(|e| e.path.as_str())
+        .collect();
+    let titles = sevenzip::read(path, &metas, 4 * 1024 * 1024)
+        .map(|data| titles_in_meta_xml(&data))
+        .unwrap_or_default();
+
+    let contents = Contents { rom, titles };
+    if let Ok(mut archives) = known.archives.lock() {
+        let peeked = Peeked {
+            path: path.to_path_buf(),
+            size,
+            modified,
+            contents: contents.clone(),
+        };
+        archives.insert(path.to_path_buf(), (peeked, true));
+    }
+    Some(contents)
+}
+
+/// The text of the first `<tag …>text</tag>` in an XML document, unescaped
+fn xml_text(xml: &str, tag: &str) -> Option<String> {
+    let open = format!("<{tag}");
+    let start = xml
+        .match_indices(&open)
+        .map(|(i, _)| i + open.len())
+        .find(|&i| xml[i..].starts_with([' ', '>', '\t', '\n', '\r']))?;
+    let after = &xml[start..];
+    let text = &after[after.find('>')? + 1..];
+    let text = &text[..text.find(&format!("</{tag}>"))?];
+
+    let text = text
+        .replace("&#x0A;", " ")
+        .replace("&#x0a;", " ")
+        .replace("&#10;", " ")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&amp;", "&");
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    (!text.is_empty()).then_some(text)
+}
+
+/// The title IDs and English names in one or more `meta.xml` of Wii U titles, one after the other
+fn titles_in_meta_xml(data: &[u8]) -> Vec<(u64, String)> {
+    String::from_utf8_lossy(data)
+        .split("</menu>")
+        .filter_map(|xml| {
+            let id = u64::from_str_radix(xml_text(xml, "title_id")?.trim(), 16).ok()?;
+            let name = xml_text(xml, "longname_en").or_else(|| xml_text(xml, "shortname_en"))?;
+            Some((id, name))
+        })
+        .collect()
+}
+
+/// Archives (RAR, 7z, zip) are looked into for a title's name only this many to a folder
+const MAX_ARCHIVES_FOR_NAMES: usize = 16;
+
+/// The name of a Wii U title that is only a title ID, from a `meta.xml` in the archive itself or
+/// in an archive next to it or a few folders up (a pack's Loadiine RAR next to its folder of
+/// installable titles); never past a platform's folder
+fn name_from_archives(path: &Path, title_id: u64, known: &Known) -> Option<String> {
+    let in_archive = |archive: &Path| {
+        let contents = peek(archive, known)?;
+        contents
+            .titles
+            .into_iter()
+            .find(|(id, _)| *id == title_id)
+            .map(|(_, name)| name)
+    };
+    let is_archive = |p: &Path| {
+        let name = p.file_name().and_then(OsStr::to_str).unwrap_or_default();
+        let ext = p
+            .extension()
+            .and_then(OsStr::to_str)
+            .unwrap_or_default()
+            .to_ascii_lowercase();
+        !name.starts_with('.')
+            && matches!(ext.as_str(), "rar" | "7z" | "zip")
+            && !is_later_part(name)
+    };
+
+    if is_archive(path)
+        && let Some(name) = in_archive(path)
+    {
+        return Some(name);
+    }
+
+    for dir in path.ancestors().skip(1).take(3) {
+        let name = dir.file_name()?.to_str()?;
+        if platform_of_folder(name).is_some() {
+            break;
+        }
+        let mut archives: Vec<PathBuf> = fs::read_dir(dir)
+            .ok()?
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|p| p != path && p.is_file() && is_archive(p))
+            .collect();
+        archives.sort();
+        if let Some(name) = archives
+            .iter()
+            .take(MAX_ARCHIVES_FOR_NAMES)
+            .find_map(|archive| in_archive(archive))
+        {
+            return Some(name);
+        }
+    }
+    None
+}
+
+/// The whole data of a ROM file, or of `member` in the archive at `path`
 fn read_rom(path: &Path, member: Option<&str>) -> Option<Vec<u8>> {
     let mut data = Vec::new();
     match member {
         None => {
             File::open(path).ok()?.read_to_end(&mut data).ok()?;
+        }
+        Some(member) if !is_zip(path) => {
+            data = sevenzip::read(path, &[member], MAX_ROM_SIZE)?;
         }
         Some(member) => {
             let mut archive = zip::ZipArchive::new(BufReader::new(File::open(path).ok()?)).ok()?;
@@ -724,7 +941,9 @@ fn read_item(
         if is_title_id_name(&item.name)
             && let Ok(title_id) = u64::from_str_radix(&item.name, 16)
         {
-            item.name = name_from_folders(&folder, title_id).unwrap_or(item.name);
+            item.name = name_from_folders(&folder, title_id)
+                .or_else(|| name_from_archives(&folder, title_id, known))
+                .unwrap_or(item.name);
         }
         item.size = smol::block_on(crate::util::fs::get_dir_size(&folder));
         item.path = folder;
@@ -737,14 +956,9 @@ fn read_item(
         return (platform != Platform::Other).then_some((item, None));
     }
 
-    // a zip with one ROM in it is that ROM
+    // an archive with one ROM in it is that ROM
     let mut member = None;
-    if kind == ItemKind::Archive
-        && item
-            .path
-            .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
-    {
+    if kind == ItemKind::Archive && is_zip(&item.path) {
         match single_rom_in_zip(&item.path) {
             Some((name, rom_platform)) => {
                 item.kind = ItemKind::Rom;
@@ -754,6 +968,19 @@ fn read_item(
             None if platform == Platform::Other => return None,
             None => {}
         }
+    } else if kind == ItemKind::Archive
+        && romdb::has_database(platform)
+        && !is_later_part(&item.name)
+        // named after a title ID: a Wii U inject, not a ROM; not looked into, as there are
+        // thousands of them
+        && !is_title_id_name(&item.name)
+        && leading_title_id(&item.name).is_none()
+        && let Some(rom) = peek(&item.path, known).and_then(|contents| contents.rom)
+        && let Some((rom_platform, ItemKind::Rom)) = classify(Path::new(&rom))
+    {
+        item.kind = ItemKind::Rom;
+        item.platform = rom_platform;
+        member = Some(rom);
     }
 
     match item.kind {
@@ -814,7 +1041,9 @@ fn read_item(
                     }
                 }
                 Some(ItemId::Title(title_id)) if is_title_id_name(&item.name) => {
-                    if let Some(name) = name_from_folders(&item.path, *title_id) {
+                    if let Some(name) = name_from_folders(&item.path, *title_id)
+                        .or_else(|| name_from_archives(&item.path, *title_id, known))
+                    {
                         item.name = name;
                     }
                 }
@@ -1030,8 +1259,11 @@ pub struct Scan {
 pub async fn scan_async(sources: Vec<PathBuf>, data_dir: &'static Path) -> Scan {
     let (sender, receiver) = smol::channel::unbounded();
     let mut pending: Vec<(PathBuf, Arc<AtomicUsize>, usize, Instant)> = Vec::new();
-    let previous_checksums = smol::unblock(move || read_checksums(data_dir)).await;
-    let known = Arc::new(Known::new(previous_checksums.clone()));
+    let (previous_checksums, previous_archives) =
+        smol::unblock(move || (read_checksums(data_dir), read_archives(data_dir))).await;
+    let all_known =
+        Arc::new(Known::new(previous_checksums.clone()).with_archives(previous_archives.clone()));
+    let known = all_known.clone();
 
     for (index, source) in sources.iter().enumerate() {
         let progress = Arc::new(AtomicUsize::new(0));
@@ -1111,6 +1343,16 @@ pub async fn scan_async(sources: Vec<PathBuf>, data_dir: &'static Path) -> Scan 
         .collect();
     smol::unblock(move || write_checksums(data_dir, &checksums)).await;
 
+    // likewise what is in the archives
+    // (a source given up may still be scanning: its fresh entries count)
+    let mut archives = all_known.archives_seen();
+    let fresh: std::collections::HashSet<PathBuf> =
+        archives.iter().map(|p| p.path.clone()).collect();
+    archives.extend(previous_archives.into_iter().filter(|p| {
+        !fresh.contains(&p.path) && unanswered.iter().any(|source| p.path.starts_with(source))
+    }));
+    smol::unblock(move || write_archives(data_dir, &archives)).await;
+
     let items = done.into_iter().flatten().flatten().collect();
     Scan {
         items: smol::unblock(move || sort_and_merge(items)).await,
@@ -1163,6 +1405,30 @@ fn write_checksums(data_dir: &Path, checksums: &[Checked]) {
         .collect();
     if let Ok(contents) = serde_json::to_string(&checksums) {
         let _ = fs::write(data_dir.join(CHECKSUMS_FILENAME), contents);
+    }
+}
+
+/// What the RAR and 7z archives hold, as the last scan found it, so they aren't listed again
+const ARCHIVES_FILENAME: &str = "library-archives.json";
+
+fn read_archives(data_dir: &Path) -> Vec<Peeked> {
+    fs::read_to_string(data_dir.join(ARCHIVES_FILENAME))
+        .ok()
+        .and_then(|contents| serde_json::from_str(&contents).ok())
+        .unwrap_or_default()
+}
+
+/// Writes what is in the archives; a failure only costs listing them again at the next scan
+fn write_archives(data_dir: &Path, archives: &[Peeked]) {
+    if !data_dir.is_dir() {
+        return;
+    }
+    let archives: Vec<&Peeked> = archives
+        .iter()
+        .filter(|p| p.path.to_str().is_some())
+        .collect();
+    if let Ok(contents) = serde_json::to_string(&archives) {
+        let _ = fs::write(data_dir.join(ARCHIVES_FILENAME), contents);
     }
 }
 
@@ -1271,6 +1537,160 @@ mod tests {
                 "uae wii forwarder",
             ]
         );
+    }
+
+    #[test]
+    fn names_are_read_from_meta_xml() {
+        let xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<menu type=\"complex\">\n\
+                   <title_id type=\"hexBinary\" length=\"8\">0005000010106006</title_id>\n\
+                   <longname_ja type=\"string\" length=\"512\"></longname_ja>\n\
+                   <longname_en type=\"string\" length=\"512\">PocketNES:&#x0A;Roms S &amp; T</longname_en>\n\
+                   </menu>\n\
+                   <?xml version=\"1.0\"?>\n<menu>\n\
+                   <title_id>00050000101060FF</title_id>\n\
+                   <longname_en></longname_en>\n<shortname_en>Short</shortname_en>\n</menu>\n\
+                   <?xml version=\"1.0\"?>\n<menu><title_id>nonsense</title_id></menu>";
+        assert_eq!(
+            titles_in_meta_xml(xml.as_bytes()),
+            vec![
+                (0x0005_0000_1010_6006, "PocketNES: Roms S & T".to_string()),
+                (0x0005_0000_1010_60FF, "Short".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn later_rar_parts_are_told_apart() {
+        assert!(is_later_part("x.part02.rar"));
+        assert!(is_later_part("x.part2"));
+        assert!(!is_later_part("x.part01.rar"));
+        assert!(!is_later_part("x.part1"));
+        assert!(!is_later_part("x.rar"));
+        assert!(!is_later_part("Counterpart.rar"));
+    }
+
+    /// An archive that didn't change isn't listed again: what it held comes from the last scan
+    #[test]
+    fn an_unchanged_archive_is_remembered() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("game.7z");
+        fs::write(&path, b"not an archive at all").unwrap();
+        let meta = fs::metadata(&path).unwrap();
+        let contents = Contents {
+            rom: Some("game.gba".to_string()),
+            titles: Vec::new(),
+        };
+        let peeked = Peeked {
+            path: path.clone(),
+            size: meta.len(),
+            modified: modified_nanos(&meta).unwrap(),
+            contents: contents.clone(),
+        };
+        let known = Known::default().with_archives(vec![
+            peeked.clone(),
+            Peeked {
+                path: dir.path().join("gone.7z"),
+                ..peeked.clone()
+            },
+        ]);
+        assert_eq!(peek(&path, &known), Some(contents));
+        // only what this scan came across is kept
+        assert_eq!(known.archives_seen(), vec![peeked]);
+
+        // changed: listed again, and that fails
+        fs::write(&path, b"not an archive, and longer").unwrap();
+        assert_eq!(peek(&path, &known), None);
+    }
+
+    /// Packs 7z archives with the 7-Zip on this computer; skipped without one
+    #[test]
+    fn roms_and_names_are_found_in_7z_archives() {
+        let Some(program) = sevenzip::program() else {
+            eprintln!("no 7-Zip here: skipped");
+            return;
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("Games");
+        let pack = |archive: &Path, files: &[(&str, &[u8])]| {
+            let src = dir.path().join("src");
+            let _ = fs::remove_dir_all(&src);
+            for (name, data) in files {
+                let path = src.join(name);
+                fs::create_dir_all(path.parent().unwrap()).unwrap();
+                fs::write(path, data).unwrap();
+            }
+            fs::create_dir_all(archive.parent().unwrap()).unwrap();
+            let packed = std::process::Command::new(program)
+                .current_dir(&src)
+                .args(["a", "-bd"])
+                .arg(archive)
+                .arg(".")
+                .stdout(std::process::Stdio::null())
+                .status()
+                .unwrap();
+            assert!(packed.success());
+        };
+
+        // a hack, one ROM in a 7z, and the same ROM unpacked elsewhere
+        let rom: Vec<u8> = (0..4096u32).map(|i| (i % 251) as u8).collect();
+        pack(
+            &root.join("GBA/Pokemon GS Chronicles.7z"),
+            &[
+                ("Pokemon GS Chronicles 2.7.1.gba", &rom),
+                ("readme.txt", b"hi"),
+            ],
+        );
+        fs::write(root.join("GBA/Chronicles.gba"), &rom).unwrap();
+        // two ROMs: an archive, not a ROM
+        pack(
+            &root.join("GBA/Two.7z"),
+            &[("a.gba", b"a"), ("b.gba", b"b")],
+        );
+        // a pack: installable titles named by their ID, their names in the Loadiine archive
+        let title = "Wii U inject/gba_pocketnes_pack/PocketNES Pack (USB)/0005000010106006";
+        fs::create_dir_all(root.join(title)).unwrap();
+        fs::write(root.join(title).join("title.tmd"), b"tmd").unwrap();
+        let other = title.replace("6006", "6007");
+        fs::create_dir_all(root.join(&other)).unwrap();
+        fs::write(root.join(other).join("title.tmd"), b"tmd").unwrap();
+        let meta = b"<?xml version=\"1.0\"?><menu>\
+                     <title_id type=\"hexBinary\" length=\"8\">0005000010106006</title_id>\
+                     <longname_en type=\"string\">PocketNES: Roms S Pack 1</longname_en></menu>";
+        pack(
+            &root.join("Wii U inject/gba_pocketnes_pack/PocketNES Pack (Loadiine).7z"),
+            &[("PocketNES - Roms S 1 [PNES06]/meta/meta.xml", meta)],
+        );
+
+        let progress = AtomicUsize::new(0);
+        let known = Known::default();
+        let (items, checked) = scan_source(&root, &progress, &known);
+        let items = sort_and_merge(items);
+        let summary: Vec<_> = items
+            .iter()
+            .map(|item| (item.kind, item.name.as_str(), item.copies.len()))
+            .collect();
+        assert!(
+            summary.contains(&(ItemKind::Rom, "Chronicles", 1)),
+            "{summary:?}"
+        );
+        assert!(
+            summary.contains(&(ItemKind::Archive, "Two", 0)),
+            "{summary:?}"
+        );
+        assert!(
+            summary.contains(&(ItemKind::WiiUTitle, "PocketNES: Roms S Pack 1", 0)),
+            "{summary:?}"
+        );
+        // not in the archive: no name
+        assert!(
+            summary.contains(&(ItemKind::WiiUTitle, "0005000010106007", 0)),
+            "{summary:?}"
+        );
+        // the ROM in the 7z has the same checksums as the unpacked one
+        assert_eq!(checked.len(), 2);
+        assert_eq!(checked[0].sha1, checked[1].sha1);
+        // three archives looked into, remembered for the next scan
+        assert_eq!(known.archives_seen().len(), 3);
     }
 
     #[test]

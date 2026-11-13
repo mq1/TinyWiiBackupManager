@@ -43,6 +43,19 @@ console, a real drive or a real collection can show.
 
 ## Entries
 
+### 2026-11-13 · gamestation · RAR and 7z through 7-Zip
+
+| | |
+| --- | --- |
+| **Device** | gamestation, USB HDD, HFS+, mounted read-only on Linux |
+| **What** | ROMs in 7z/RAR, names of title IDs from the packs' Loadiine archives (`claude/m2-7zip-archives`) |
+| **Who** | Claude, on the maintainer's Linux computer |
+| **When** | 2026-11-13, Arch Linux, debug build, 7-Zip 26.06 (`/usr/bin/7z`) |
+| **How** | Portable build with `gamestation/Games` as the ROM source, started without a network; `library.json` and `library-archives.json` read after the scan |
+| **Why** | 43 items were only a title ID; their names are in the packs' Loadiine RARs |
+| **Result** | ✅ 42 of 43 named ("0005000010106006" → "PocketNES: Roms S Pack 1", all 25 Goomba Color GBC titles), from 5 Loadiine RARs; left: `NDS/0005000010102044.rar` (NUS, no readable name). Both `.7z` GBA hacks read as ROMs (checksums, serial). 7 archives opened by 7-Zip, the thousands of inject RARs named after a title ID not. |
+| **Follow-up** | `unar`/`lsar` fallback; the same on the Mac with Homebrew's `7zz` |
+
 ### 2026-11-13 · gamestation, WiiGames · names for discs and title IDs (#58)
 
 | | |
