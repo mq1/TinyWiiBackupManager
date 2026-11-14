@@ -100,7 +100,7 @@ jobs:
 
       - name: Build and package binary
         run: |
-          docker run -v ${{ github.workspace }}:/work -w /work --network none -e VERSION_NAME builder /bin/bash -c \
+          docker run -v ${{ github.workspace }}:/work -w /work -e VERSION_NAME builder /bin/bash -c \
             "just build-linux-${{ matrix.arch }} && just package-linux-${{ matrix.arch }}"
 
       - name: Upload Linux distributables
