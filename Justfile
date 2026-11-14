@@ -1,13 +1,25 @@
+set lazy
+
 [windows]
 set shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
 
 export RUSTC_BOOTSTRAP := "1"
 export VERSION := replace_regex(read("Cargo.toml"), '(?s).*?\nversion\s*=\s*"([^"]+)".*', "$1")
 version_name := env("VERSION_NAME", "dev")
-
+sysroot := `rustc --print sysroot`
 
 default:
     @just --list
+
+
+# cargo-vendor
+# ------------
+
+make-vendor-dir:
+    cargo vendor --locked --sync "{{ sysroot }}/lib/rustlib/src/rust/library/Cargo.toml"
+
+make-vendor-tarball: make-vendor-dir
+    tar caf vendor.tar.zst vendor
 
 
 # Linux

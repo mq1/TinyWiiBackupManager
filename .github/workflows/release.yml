@@ -35,6 +35,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install just
+        uses: extractions/setup-just@v4
+
       - name: Cache vendor tarball
         id: cache-vendor-tarball
         uses: actions/cache@v6
@@ -51,12 +54,7 @@ jobs:
 
       - name: Make vendor tarball
         if: steps.cache-vendor-tarball.outputs.cache-hit != 'true'
-        run: |
-          SYSROOT="$(rustc --print sysroot)"
-          cargo vendor --locked --sync "$SYSROOT/lib/rustlib/src/rust/library/Cargo.toml"
-          tar caf vendor.tar.zst vendor
-        env:
-          RUSTC_BOOTSTRAP: 1
+        run: just make-vendor-tarball
 
       - name: Upload vendor tarball artifact
         uses: actions/upload-artifact@v7
@@ -146,6 +144,7 @@ jobs:
           name: dist-vendor
 
       - name: Extract vendor tarball
+        shell: bash
         run: tar xf vendor.tar.zst
 
       - name: Build binary
