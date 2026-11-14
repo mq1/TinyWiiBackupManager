@@ -55,6 +55,8 @@ jobs:
           SYSROOT="$(rustc --print sysroot)"
           cargo vendor --locked --sync "$SYSROOT/lib/rustlib/src/rust/library/Cargo.toml"
           tar caf vendor.tar.zst vendor
+        env:
+          RUSTC_BOOTSTRAP: 1
 
       - name: Upload vendor tarball artifact
         uses: actions/upload-artifact@v7
