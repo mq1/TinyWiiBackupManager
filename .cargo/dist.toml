@@ -1,3 +1,4 @@
+# -- Environment variables (mainly for C dependencies) -- #
 [env]
 AWS_LC_SYS_NO_JITTER_ENTROPY = "1"
 AWS_LC_SYS_CFLAGS = "-fno-lto"
@@ -53,8 +54,7 @@ AR_aarch64_apple_darwin = "llvm-ar"
 CFLAGS_aarch64_apple_darwin = "-O3 -flto"
 CXXFLAGS_aarch64_apple_darwin = "-O3 -flto"
 
-# ---
-
+# -- Linker config -- #
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 rustflags = ["-C", "linker-plugin-lto", "-C", "link-arg=-fuse-ld=lld"]

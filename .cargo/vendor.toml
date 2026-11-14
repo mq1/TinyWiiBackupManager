@@ -1,0 +1,10 @@
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source."git+https://github.com/wiidev/nod.git?branch=fix-block-handling"]
+git = "https://github.com/wiidev/nod.git"
+branch = "fix-block-handling"
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
