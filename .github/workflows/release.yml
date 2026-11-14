@@ -43,6 +43,12 @@ jobs:
           key: cargo-vendor-${{ hashFiles('Cargo.lock') }}
           enableCrossOsArchive: true
 
+      - name: Install Rust
+        if: steps.cache-vendor-tarball.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@1.99
+        with:
+          components: rust-src
+
       - name: Make vendor tarball
         if: steps.cache-vendor-tarball.outputs.cache-hit != 'true'
         run: cargo vendor --locked && tar caf vendor.tar.zst vendor
