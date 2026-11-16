@@ -86,7 +86,7 @@ jobs:
         uses: extractions/setup-just@v4
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@1.99
+        uses: dtolnay/rust-toolchain@1.100
         with:
           components: rust-src
 
@@ -125,7 +125,7 @@ jobs:
         uses: extractions/setup-just@v4
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@1.99
+        uses: dtolnay/rust-toolchain@1.100
         with:
           components: rust-src
 
