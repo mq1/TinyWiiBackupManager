@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, homebrew::homebrew_app::HomebrewApp, osc::osc_state::OscAppList};
+use crate::{
+    config::SortBy, homebrew::homebrew_app::HomebrewApp, osc::osc_state::OscAppList,
+    state::LazyState,
+};
 use itertools::Either;
 use smol::{
     fs,
@@ -17,16 +20,8 @@ pub struct HomebrewAppList {
     search_term: String,
 }
 
-#[derive(Debug, Clone)]
-pub enum HomebrewState {
-    NotLoaded,
-    Loading,
-    Loaded(HomebrewAppList),
-    Errored(String),
-}
-
-impl HomebrewState {
-    pub async fn load(root_path: PathBuf) -> Self {
+impl HomebrewAppList {
+    pub async fn load(root_path: PathBuf) -> LazyState<HomebrewAppList> {
         let res = async move {
             let apps_path = root_path.join("apps");
 
@@ -54,8 +49,8 @@ impl HomebrewState {
         .await;
 
         match res {
-            Ok(app_list) => HomebrewState::Loaded(app_list),
-            Err(err) => HomebrewState::Errored(err.to_string()),
+            Ok(app_list) => LazyState::Loaded(app_list),
+            Err(err) => LazyState::Errored(err.to_string()),
         }
     }
 }

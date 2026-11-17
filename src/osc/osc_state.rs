@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{osc::osc_app::OscApp, util::http::download_file};
+use crate::{osc::osc_app::OscApp, state::LazyState, util::http::download_file};
 use smol::fs;
 use std::{
     path::Path,
@@ -17,16 +17,8 @@ pub struct OscAppList {
     search_term: String,
 }
 
-#[derive(Clone, Debug)]
-pub enum OscState {
-    NotLoaded,
-    Loading,
-    Loaded(OscAppList),
-    Errored(String),
-}
-
-impl OscState {
-    pub async fn load(data_dir: &Path, force_refresh: bool) -> Self {
+impl OscAppList {
+    pub async fn load(data_dir: &Path, force_refresh: bool) -> LazyState<OscAppList> {
         let cache_path = data_dir.join("osc-cache.json");
 
         let res = async move {
@@ -61,8 +53,8 @@ impl OscState {
         .await;
 
         match res {
-            Ok(apps) => Self::Loaded(apps),
-            Err(err) => Self::Errored(err.to_string()),
+            Ok(apps) => LazyState::Loaded(apps),
+            Err(err) => LazyState::Errored(err.to_string()),
         }
     }
 }

@@ -3,16 +3,11 @@
 
 use crate::{
     config::message::ConfigMessage,
-    games::{
-        ImportEntry, calc_sha1::calc_sha1, convert::convert_game, export::export_game,
-        games_state::GamesState, scrub::scrub_game, txtcodes::download_cheats,
-    },
-    homebrew::homebrew_state::HomebrewState,
-    long_operation::{LongOperationKind, LongOperationState},
+    games::{ImportEntry, convert::convert_game, scrub::scrub_game},
+    long_operation::LongOperationKind,
     message::Message,
     notifications::notification::Notification,
-    osc::osc_state::OscState,
-    state::AppState,
+    state::{AppState, LazyState},
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
@@ -40,16 +35,7 @@ impl AppState {
                 self.notifications.push(notification);
                 Task::none()
             }
-            Message::NavigateTo(page) => {
-                self.current_page = page;
-
-                if page == Page::Osc && matches!(self.osc_contents, OscState::Loaded(_)) {
-                    self.reload_all_osc_icons();
-                    self.download_osc_icons_task()
-                } else {
-                    Task::none()
-                }
-            }
+            Message::NavigateTo(page) => self.navigate_to_task(page),
             Message::PickMountPoint => {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_mount_point_dialog_task)
             }
@@ -57,16 +43,16 @@ impl AppState {
                 self.config
                     .update(ConfigMessage::SetMountPoint(path))
                     .map(Message::Config),
-                self.refresh_games_and_apps(),
+                self.refresh_games_and_apps_task(),
             ]),
             Message::CloseNotification(idx) => {
                 self.notifications.close(idx);
                 Task::none()
             }
-            Message::RefreshGamesAndApps => self.refresh_games_and_apps(),
+            Message::RefreshGamesAndApps => self.refresh_games_and_apps_task(),
             Message::GotConfig(config) => {
                 self.config = config;
-                self.refresh_games_and_apps()
+                self.refresh_games_and_apps_task()
             }
             Message::GotGames(games) => {
                 self.games = games;
@@ -108,18 +94,12 @@ impl AppState {
                 self.current_modal = None;
                 Task::none()
             }
-            Message::GotDiscInfo(new_meta) => {
-                if let Some(Modal::GameInfo((_, meta, _))) = &mut self.current_modal {
-                    *meta = Some(new_meta);
-                }
-
+            Message::GotDiscInfo(meta) => {
+                self.set_disc_info(meta);
                 Task::none()
             }
             Message::GotUpdatePartitionCheckResult(has_update_partition) => {
-                if let Some(Modal::GameInfo((_, _, scrubbable))) = &mut self.current_modal {
-                    *scrubbable = has_update_partition;
-                }
-
+                self.set_scrubbable(has_update_partition);
                 Task::none()
             }
             Message::AskDeleteDir(path) => {
@@ -146,47 +126,17 @@ impl AppState {
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
             Message::HomebrewAppsImported(_) => Task::none(),
-            Message::CalcGameSha1(game) => {
-                self.long_operations.set(
-                    LongOperationKind::Hash,
-                    LongOperationState::Progress(String::new()),
-                );
-
-                Task::stream(calc_sha1(game)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Hash, op_state)
-                })
-            }
-            Message::PickGames => {
-                if let GamesState::Loaded(games) = &self.games {
-                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
-
-                    dialogs::init_file_dialog_task().then(move |base| {
-                        dialogs::make_pick_games_dialog_task(base, existing_ids.clone())
-                    })
-                } else {
-                    Task::none()
-                }
-            }
-            Message::PickGamesRecursively => {
-                if let GamesState::Loaded(games) = &self.games {
-                    let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
-
-                    dialogs::init_file_dialog_task().then(move |base| {
-                        dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
-                    })
-                } else {
-                    Task::none()
-                }
-            }
+            Message::CalcGameSha1(game) => self.calc_game_sha1_task(game),
+            Message::PickGames => self.pick_games_task(),
+            Message::PickGamesRecursively => self.pick_games_recursively_task(),
             Message::PickedGames(paths) => {
                 if paths.is_empty() {
                     self.notifications
                         .push(Notification::info("No new games selected"));
                     Task::none()
                 } else {
-                    self.add_to_import_queue(paths);
-                    self.current_page = Page::ImportQueue;
-                    Task::none()
+                    self.import_queue.extend(paths);
+                    self.navigate_to_task(Page::ImportQueue)
                 }
             }
             Message::CancelImport(i) => {
@@ -213,90 +163,43 @@ impl AppState {
                 Task::none()
             }
             Message::SearchGames(search_term) => {
-                if let GamesState::Loaded(games) = &mut self.games {
-                    games.set_search_term(search_term.to_lowercase());
-                }
-
+                self.search_games(&search_term);
                 Task::none()
             }
             Message::SearchHomebrewApps(search_term) => {
-                if let HomebrewState::Loaded(apps) = &mut self.homebrew {
-                    apps.set_search_term(search_term.to_lowercase());
-                }
-
+                self.search_homebrew_apps(&search_term);
                 Task::none()
             }
             Message::ToggleShowWii(checked) => {
-                if let GamesState::Loaded(games) = &mut self.games {
-                    games.set_show_wii(checked);
-                }
-
+                self.set_show_wii(checked);
                 Task::none()
             }
             Message::ToggleShowNgc(checked) => {
-                if let GamesState::Loaded(games) = &mut self.games {
-                    games.set_show_ngc(checked);
-                }
-
+                self.set_show_ngc(checked);
                 Task::none()
             }
             Message::PickExportDest(game) => dialogs::init_file_dialog_task().then(move |base| {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
-            Message::ExportGame(game, out_path) => {
-                self.long_operations.set(
-                    LongOperationKind::Export,
-                    LongOperationState::Progress(String::new()),
-                );
-
-                Task::stream(export_game(game, out_path)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Export, op_state)
-                })
+            Message::ExportGame(game, out_path) => self.export_game_task(game, out_path),
+            Message::SetLongOperationState(kind, state) => {
+                self.set_long_operation_state_task(kind, state)
             }
-            Message::SetLongOperationState(op_kind, mut op_state) => {
-                let should_continue = op_kind == LongOperationKind::Import
-                    && matches!(
-                        op_state,
-                        LongOperationState::Finished(_) | LongOperationState::Errored(_)
-                    );
-
-                if let LongOperationState::Finished(success) = op_state {
-                    self.notifications.push(Notification::success(success));
-                    op_state = LongOperationState::Idle;
-                } else if let LongOperationState::Errored(error) = op_state {
-                    self.notifications.push(Notification::error(error));
-                    op_state = LongOperationState::Idle;
-                }
-
-                self.long_operations.set(op_kind, op_state);
-
-                if should_continue {
-                    Task::batch([
-                        self.trigger_import_task(),
-                        self.get_games_task(),
-                        self.get_drive_info_task(),
-                    ])
-                } else {
-                    Task::none()
-                }
-            }
-            Message::RunTool(tool) => self.run_tool(tool),
+            Message::RunTool(tool) => self.run_tool_task(tool),
             Message::PickFileToSendViaWiiload => dialogs::init_file_dialog_task()
                 .then(dialogs::make_pick_file_to_wiiload_dialog_task),
             Message::SendViaWiiload(path) => Task::batch([
                 self.config
                     .update(ConfigMessage::Write)
                     .map(Message::Config),
-                self.send_via_wiiload(path),
+                self.send_via_wiiload_task(path),
             ]),
-            Message::RefreshOscContents => {
-                Task::perform(OscState::load(self.data_dir, true), Message::GotOscContents)
-            }
+            Message::RefreshOscContents => self.load_osc_state_task(),
             Message::GotOscContents(contents) => {
                 self.set_osc_contents(contents);
 
                 if self.current_page == Page::Osc
-                    && matches!(self.osc_contents, OscState::Loaded(_))
+                    && matches!(self.osc_contents, LazyState::Loaded(_))
                 {
                     self.reload_all_osc_icons();
                     self.download_osc_icons_task()
@@ -305,27 +208,10 @@ impl AppState {
                 }
             }
             Message::SearchOscApps(search_term) => {
-                if let OscState::Loaded(apps) = &mut self.osc_contents {
-                    apps.set_search_term(search_term.to_lowercase());
-                }
-
+                self.search_osc_apps(&search_term);
                 Task::none()
             }
-            Message::InstallOscApp(app) => {
-                self.notifications
-                    .push(Notification::info(format!("Installing {}", app.name())));
-
-                let app_name = app.name().to_string();
-                let mount_point = self.config.mount_point().to_path_buf();
-
-                Task::perform(
-                    async move { app.install(&mount_point).await },
-                    move |res| match res {
-                        Ok(()) => Message::OscAppInstalled(Ok(app_name)),
-                        Err(e) => Message::OscAppInstalled(Err(e.to_string())),
-                    },
-                )
-            }
+            Message::InstallOscApp(app) => self.install_osc_app_task(app),
             Message::OscAppInstalled(res) => {
                 let notification = match res {
                     Ok(app_name) => Notification::success(format!("Installed {app_name}")),
@@ -335,56 +221,8 @@ impl AppState {
                 self.notifications.push(notification);
                 Task::batch([self.get_homebrew_apps_task(), self.get_drive_info_task()])
             }
-            Message::DownloadTxtCodes(game) => {
-                let game_title = game.title().to_string();
-                let config = self.config.clone();
-
-                self.notifications.push(Notification::info(format!(
-                    "Downloading cheats for {game_title}",
-                )));
-
-                Task::perform(
-                    async move { download_cheats(game.id(), &config).await },
-                    move |res| match res {
-                        Ok(()) => {
-                            Notification::success(format!("Downloaded cheats for {game_title}"))
-                        }
-                        Err(err) => Notification::error(err.to_string()),
-                    },
-                )
-                .map(Message::Notify)
-            }
-            Message::SendOscAppViaWiiload(app) => {
-                let app_name: Box<str> = app.name().into();
-                let wii_ip: Box<str> = self.config.wii_ip().into();
-
-                self.notifications.push(Notification::info(format!(
-                    "Sending {app_name} via wiiload"
-                )));
-
-                Task::batch([
-                    self.config
-                        .update(ConfigMessage::Write)
-                        .map(Message::Config),
-                    Task::perform(
-                        {
-                            let wii_ip = wii_ip.clone();
-                            async move { app.wiiload(&wii_ip).await }
-                        },
-                        move |res| match res {
-                            Ok(excluded_files) if excluded_files.is_empty() => {
-                                Notification::success(format!("Sent {app_name} to {wii_ip}"))
-                            }
-                            Ok(excluded_files) => Notification::info(format!(
-                                "Sent {app_name} to {wii_ip} ({} excluded files)",
-                                excluded_files.len()
-                            )),
-                            Err(err) => Notification::error(err.to_string()),
-                        },
-                    )
-                    .map(Message::Notify),
-                ])
-            }
+            Message::DownloadTxtCodes(game) => self.download_txt_codes_task(game),
+            Message::SendOscAppViaWiiload(app) => self.send_osc_app_via_wiiload_task(app),
             Message::PickGameToConvert => {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_in_out_dialogs_task)
             }

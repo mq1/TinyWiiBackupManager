@@ -3,8 +3,7 @@
 
 use crate::{
     message::Message,
-    osc::osc_state::OscState,
-    state::AppState,
+    state::{AppState, LazyState},
     ui::components::{
         my_button::{MyButtonKind, my_button},
         my_card::my_card,
@@ -20,11 +19,11 @@ use lucide_icons::Icon;
 pub fn refresh_osc_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
 
-    if !matches!(state.osc_contents, OscState::Loading) {
+    if !matches!(state.osc_contents, LazyState::Loading) {
         refresh_btn = refresh_btn.on_press(Message::RefreshOscContents);
     }
 
-    let tooltip_text = if let OscState::Loaded(apps) = &state.osc_contents {
+    let tooltip_text = if let LazyState::Loaded(apps) = &state.osc_contents {
         text!(
             "Refresh OSC contents cache (refreshed {} ago)",
             format_duration(apps.last_refresh())

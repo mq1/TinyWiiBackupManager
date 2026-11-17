@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::state::LazyState;
 use crate::util::fs::get_dir_size;
 use anyhow::bail;
 use arrayvec::ArrayString;
@@ -21,16 +22,8 @@ pub struct DriveInfo {
     allocation_granularity_str: ArrayString<10>,
 }
 
-#[derive(Debug, Clone)]
-pub enum DriveState {
-    NotLoaded,
-    Loading,
-    Loaded(DriveInfo),
-    Errored(String),
-}
-
-impl DriveState {
-    pub async fn load(path: PathBuf) -> Self {
+impl DriveInfo {
+    pub async fn load(path: PathBuf) -> LazyState<DriveInfo> {
         let res = async move {
             if !path.is_dir() {
                 bail!("{} is not a directory", path.display());
@@ -87,8 +80,8 @@ impl DriveState {
         .await;
 
         match res {
-            Ok(info) => DriveState::Loaded(info),
-            Err(err) => DriveState::Errored(err.to_string()),
+            Ok(info) => LazyState::Loaded(info),
+            Err(err) => LazyState::Errored(err.to_string()),
         }
     }
 }

@@ -3,9 +3,8 @@
 
 use crate::{
     config::ViewAs,
-    homebrew::homebrew_state::HomebrewState,
     message::Message,
-    state::AppState,
+    state::{AppState, LazyState},
     ui::{
         components::{
             homebrew_app_card::homebrew_app_card, homebrew_app_row::homebrew_app_row,
@@ -26,9 +25,9 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
     }
 
     match &state.homebrew {
-        HomebrewState::NotLoaded | HomebrewState::Loading => loading(),
-        HomebrewState::Errored(e) => errored(e),
-        HomebrewState::Loaded(apps) => {
+        LazyState::NotLoaded | LazyState::Loading => loading(),
+        LazyState::Errored(e) => errored(e),
+        LazyState::Loaded(apps) => {
             let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => apps
                     .iter_by(state.config.sort_by())

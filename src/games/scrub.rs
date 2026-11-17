@@ -6,7 +6,8 @@ use crate::{
         multi_disc::open_multi_disc_files,
     },
     long_operation::LongOperationState,
-    util::{drive_state::DriveState, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
+    state::LazyState,
+    util::{drive_state::DriveInfo, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
 };
 use anyhow::{Context, Result, anyhow};
 use nod::{
@@ -25,7 +26,7 @@ use which_fs::FsKind;
 fn perform_blocking(
     game: &Game,
     config: &Config,
-    drive: &DriveState,
+    drive: &LazyState<DriveInfo>,
     tx: &smol::channel::Sender<LongOperationState>,
 ) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
@@ -52,7 +53,7 @@ fn perform_blocking(
     };
 
     {
-        let is_fat32 = if let DriveState::Loaded(info) = drive {
+        let is_fat32 = if let LazyState::Loaded(info) = drive {
             info.fs_kind() == FsKind::Fat32
         } else {
             true
@@ -129,7 +130,7 @@ fn perform_blocking(
 pub fn scrub_game(
     game: Game,
     config: Config,
-    drive: DriveState,
+    drive: LazyState<DriveInfo>,
 ) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
 

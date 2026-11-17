@@ -5,7 +5,8 @@ use crate::{
     config::Config,
     games::{ImportEntry, multi_disc::open_multi_disc_files},
     long_operation::LongOperationState,
-    util::{drive_state::DriveState, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
+    state::LazyState,
+    util::{drive_state::DriveInfo, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
 };
 use anyhow::{Context, Result, anyhow};
 use nod::{
@@ -60,7 +61,7 @@ impl<'a> InputFile<'a> {
 fn perform_blocking(
     entry: &ImportEntry,
     config: &Config,
-    drive: &DriveState,
+    drive: &LazyState<DriveInfo>,
     tx: &smol::channel::Sender<LongOperationState>,
 ) -> Result<()> {
     let filename = entry
@@ -75,7 +76,7 @@ fn perform_blocking(
 
     let input_file = InputFile::new(entry.path())?;
 
-    let is_fat32 = if let DriveState::Loaded(info) = drive {
+    let is_fat32 = if let LazyState::Loaded(info) = drive {
         info.fs_kind() == FsKind::Fat32
     } else {
         true
@@ -232,7 +233,7 @@ fn perform_blocking(
 pub fn import_game(
     entry: ImportEntry,
     config: Config,
-    drive: DriveState,
+    drive: LazyState<DriveInfo>,
 ) -> impl Stream<Item = LongOperationState> {
     let (tx, rx) = smol::channel::bounded(1);
 

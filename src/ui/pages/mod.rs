@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use strum_macros::{Display, IntoStaticStr};
-
 pub mod about;
 pub mod errored;
 pub mod games;
@@ -13,16 +11,27 @@ pub mod no_drive;
 pub mod osc_apps;
 pub mod toolbox;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Display, IntoStaticStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Page {
     Games,
-    #[strum(serialize = "Homebrew Apps")]
     HomebrewApps,
-    #[strum(serialize = "Open Shop Channel")]
     Osc,
     Settings,
     Toolbox,
-    #[strum(serialize = "Import Queue")]
     ImportQueue,
     About,
+}
+
+impl Page {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Page::Games => "Games",
+            Page::HomebrewApps => "Homebrew Apps",
+            Page::Osc => "Open Shop Channel",
+            Page::Settings => "Settings",
+            Page::Toolbox => "Toolbox",
+            Page::ImportQueue => "Import Queue",
+            Page::About => "About",
+        }
+    }
 }

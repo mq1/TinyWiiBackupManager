@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::games_state::GamesState, homebrew::homebrew_state::HomebrewState, state::AppState,
-    ui::pages::Page, util::drive_state::DriveState,
+    state::{AppState, LazyState},
+    ui::pages::Page,
 };
 use std::fmt::Write;
 
@@ -21,7 +21,7 @@ pub fn title(state: &AppState) -> String {
     let label = mount_point.file_name().unwrap_or(mount_point.as_os_str());
     write!(&mut s, "{}", label.display()).unwrap();
 
-    if let DriveState::Loaded(info) = &state.drive {
+    if let LazyState::Loaded(info) = &state.drive {
         write!(
             &mut s,
             "  ({}/{})",
@@ -32,19 +32,19 @@ pub fn title(state: &AppState) -> String {
     }
 
     s.push_str("  ›  ");
-    s.push_str(state.current_page.into());
+    s.push_str(state.current_page.as_str());
 
     match state.current_page {
-        Page::Games if let GamesState::Loaded(games) = &state.games => {
+        Page::Games if let LazyState::Loaded(games) = &state.games => {
             write!(&mut s, "  (x{}", games.count()).unwrap();
-            if let DriveState::Loaded(info) = &state.drive {
+            if let LazyState::Loaded(info) = &state.drive {
                 write!(&mut s, "  ~{}", info.games_size_str()).unwrap();
             }
             s.push(')');
         }
-        Page::HomebrewApps if let HomebrewState::Loaded(apps) = &state.homebrew => {
+        Page::HomebrewApps if let LazyState::Loaded(apps) = &state.homebrew => {
             write!(&mut s, "  (x{}", apps.count()).unwrap();
-            if let DriveState::Loaded(info) = &state.drive {
+            if let LazyState::Loaded(info) = &state.drive {
                 write!(&mut s, "  ~{}", info.apps_size_str()).unwrap();
             }
             s.push(')');

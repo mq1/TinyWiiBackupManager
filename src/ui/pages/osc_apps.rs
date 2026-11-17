@@ -4,8 +4,7 @@
 use crate::{
     config::ViewAs,
     message::Message,
-    osc::osc_state::OscState,
-    state::AppState,
+    state::{AppState, LazyState},
     ui::{
         components::{
             my_card::my_card, osc_app_card::osc_app_card, osc_app_row::osc_app_row,
@@ -22,9 +21,9 @@ use itertools::Itertools;
 
 pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
     match &state.osc_contents {
-        OscState::NotLoaded | OscState::Loading => loading(),
-        OscState::Errored(e) => errored(e),
-        OscState::Loaded(apps) => {
+        LazyState::NotLoaded | LazyState::Loading => loading(),
+        LazyState::Errored(e) => errored(e),
+        LazyState::Loaded(apps) => {
             let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => apps
                     .iter()

@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, games::game::Game};
+use crate::{config::SortBy, games::game::Game, state::LazyState};
 
 use itertools::Either;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -26,16 +26,8 @@ pub struct GameList {
     filter: GameFilter,
 }
 
-#[derive(Debug, Clone)]
-pub enum GamesState {
-    NotLoaded,
-    Loading,
-    Loaded(GameList),
-    Errored(String),
-}
-
-impl GamesState {
-    pub async fn load(root_path: PathBuf) -> Self {
+impl GameList {
+    pub async fn load(root_path: &Path) -> LazyState<GameList> {
         let res = async move {
             let wii_dir = root_path.join("wbfs");
             let ngc_dir = root_path.join("games");
@@ -71,8 +63,8 @@ impl GamesState {
         .await;
 
         match res {
-            Ok(game_list) => GamesState::Loaded(game_list),
-            Err(err) => GamesState::Errored(err.to_string()),
+            Ok(game_list) => LazyState::Loaded(game_list),
+            Err(err) => LazyState::Errored(err.to_string()),
         }
     }
 }

@@ -3,12 +3,12 @@
 
 use crate::{
     message::Message,
-    state::AppState,
+    state::{AppState, LazyState},
     ui::components::{
         my_group::my_group,
         my_link::{MyLink, my_link},
     },
-    util::drive_state::{DriveInfo, DriveState},
+    util::drive_state::DriveInfo,
 };
 use iced::{
     Element,
@@ -56,15 +56,15 @@ fn drive_formatting_guide_link() -> MyLink<&'static str, &'static str> {
 pub fn drive_info(state: &AppState) -> Element<'_, Message> {
     let (content, top_right_content): (Element<'_, Message>, Element<'_, Message>) =
         match &state.drive {
-            DriveState::NotLoaded | DriveState::Loading => (
+            LazyState::NotLoaded | LazyState::Loading => (
                 text("Loading...").into(),
                 None::<Element<'_, Message>>.into(),
             ),
-            DriveState::Errored(msg) => (
+            LazyState::Errored(msg) => (
                 text(msg.as_str()).into(),
                 None::<Element<'_, Message>>.into(),
             ),
-            DriveState::Loaded(info) => {
+            LazyState::Loaded(info) => {
                 let (optimal_fs_info, fs_info_icon, fs_info_comment) = fs_info(info);
                 let (
                     optimal_allocation_granularity,

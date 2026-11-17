@@ -3,10 +3,9 @@
 
 use crate::{
     config::ViewAs,
-    games::games_state::GamesState,
     long_operation::LongOperationKind,
     message::Message,
-    state::AppState,
+    state::{AppState, LazyState},
     ui::{
         components::{
             game_card::game_card, game_row::game_row, games_titlebar::games_titlebar,
@@ -27,9 +26,9 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
     }
 
     match &state.games {
-        GamesState::NotLoaded | GamesState::Loading => loading(),
-        GamesState::Errored(e) => errored(e),
-        GamesState::Loaded(games) => {
+        LazyState::NotLoaded | LazyState::Loading => loading(),
+        LazyState::Errored(e) => errored(e),
+        LazyState::Loaded(games) => {
             let is_exporting = !state.long_operations.is_idle(LongOperationKind::Export);
 
             let content: Element<'_, Message> = match state.config.view_as() {

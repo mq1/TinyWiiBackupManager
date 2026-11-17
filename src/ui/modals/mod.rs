@@ -13,7 +13,7 @@ pub mod osc_app_info;
 #[derive(Debug, Clone)]
 pub enum Modal {
     GameInfo((Game, Option<wii_disc_info::Meta>, bool)),
-    HomebrewAppInfo(HomebrewApp),
+    HomebrewAppInfo(Box<HomebrewApp>),
     OscAppInfo(OscApp),
     DeleteDir(PathBuf),
     ConfirmScrub(Game),
