@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, long_operation::LongOperationState, util::sha1_list};
+use crate::{games::game::Game, long_operation::LongOperationState};
 use anyhow::{Context, Result};
 use nod::{
     read::{DiscOptions, DiscReader},
@@ -42,7 +42,7 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
 
     let sha1 = finalization.sha1.context("Failed to calculate SHA1")?;
 
-    let known_sha1 = sha1_list::is_known(&sha1);
+    let known_sha1 = twbm_sha1list::is_known(&sha1);
 
     Ok::<_, anyhow::Error>(known_sha1)
 }
