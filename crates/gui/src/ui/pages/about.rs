@@ -16,7 +16,10 @@ use lucide_icons::{
 };
 use std::sync::LazyLock;
 
-const ICON_BYTES: &[u8] = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
+const ICON_BYTES: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/assets/TinyWiiBackupManager-256x256.png"
+));
 const TITLE: &str = concat!("TinyWiiBackupManager v", env!("CARGO_PKG_VERSION"));
 
 static ICON: LazyLock<image::Handle> = LazyLock::new(|| image::Handle::from_bytes(ICON_BYTES));

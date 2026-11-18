@@ -4113,8 +4113,9 @@ dependencies = [
 [[package]]
 name = "twbm-idmap"
 version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b2d70cf01101938297bc356d35ecb5b493bd9e96e443244a5c70d6764452ea2"
+dependencies = [
+ "miniz_oxide 0.9.1",
+]
 
 [[package]]
 name = "typed-path"

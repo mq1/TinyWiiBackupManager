@@ -1,5 +1,9 @@
-[package]
-name = "TinyWiiBackupManager"
+[workspace]
+resolver = "3"
+members = ["crates/gui", "crates/idmap"]
+default-members = ["crates/gui"]
+
+[workspace.package]
 version = "6.2.0"
 edition = "2024"
 rust-version = "1.100"
@@ -8,121 +12,7 @@ license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
-[package.metadata.winresource]
-OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
-
-[features]
-default = ["native-tls", "static-nod"]
-
-native-tls = ["minreq/https-native-tls"]    # uses system tls
-bundled-tls = ["minreq/https-rustls-probe"] # uses bundled tls + os certificates
-
-# bundled compression libraries
-static-nod = [
-  "nod/compress-bzip2-static",
-  "nod/compress-lzma-static",
-  "nod/compress-zlib-static",
-  "nod/compress-zstd-static",
-]
-
-dist-appimage = ["bundled-tls", "static-nod"]
-dist-flatpak = ["native-tls"]
-dist-windows = ["native-tls", "static-nod"]
-dist-macos = ["native-tls", "static-nod"]
-
-[dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "crisp",
-  "linux-theme-detection",
-  "tiny-skia",
-  "wayland",
-  "wgpu-bare",
-  "x11",
-  "smol",
-  "sipper",
-  "image-without-codecs",
-  "advanced",
-] }
-iced_palace = "0.14"
-iced_aw = { version = "0.14", default-features = false, features = ["spinner"] }
-image = { version = "0.25", default-features = false, features = ["png"] }
-lucide-icons = { version = "1", features = ["iced"] }
-smol = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-directories = "6"
-sys-locale = "0.3"
-size = "0.6"
-fs4 = { version = "1", default-features = false }
-which-fs = "0.2"
-open = "5"
-wii-disc-info = { version = "0.11", features = ["async"] }
-twbm-idmap = { version = "0.7", features = ["ascii-titles", "gamehacking"] }
-itertools = "0.15"
-split-write = "0.4"
-tempfile = "3"
-arrayvec = { version = "0.7", features = ["serde"] }
-zip = { version = "9", default-features = false, features = [
-  "deflate-flate2-zlib-rs",
-] }
-strum = "0.28"
-strum_macros = "0.28"
-wiiload = { version = "0.9", features = ["async", "compression-async"] }
-anyhow = "1"
-time = { version = "0.3", features = ["local-offset"] }
-minreq = { version = "3", features = ["json-using-serde"] }
-nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling", default-features = false, features = [
-  "threading",
-  "compress-bzip2",
-  "compress-lzma",
-  "compress-zlib",
-  "compress-zstd",
-] }
-semver = "1"
-humantime = "2"
-rfd = "0.18"
-
-[target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
-mundy = { version = "0.2", default-features = false, features = [
-  "accent-color",
-  "color-scheme",
-] }
-
-[target.'cfg(target_os = "windows")'.dependencies]
-wgpu = { version = "27.0", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "dx12",
-] }
-winsafe = { version = "0.0.29", features = ["dwm", "advapi"] }
-
-[target.'cfg(target_os = "linux")'.dependencies]
-wgpu = { version = "27.0", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "vulkan",
-] }
-
-[target.'cfg(target_os = "macos")'.dependencies]
-wgpu = { version = "27.0", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "metal",
-] }
-
-[build-dependencies]
-hex = { version = "0.4", default-features = false }
-winresource = "0.1"
-minreq = { version = "3", features = ["https-rustls"] }
-sevenz-rust2 = { version = "0.25", default-features = false, features = [
-  "util",
-] }
-zip = { version = "9", default-features = false, features = [
-  "deflate-flate2-zlib-rs",
-] }
-
-# tiny and fast
+# tiny and fast release builds
 [profile.release]
 opt-level = 3
 lto = true
@@ -130,18 +20,18 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-# speed dev builds
+# faster dev builds (runtime)
 [profile.dev]
 debug = "line-tables-only"
 split-debuginfo = "unpacked"
 
-# faster dev builds
+# faster dev builds (compilation)
 [profile.dev.package."*"]
 opt-level = 3
 
-[lints.rust]
+[workspace.lints.rust]
 rust_2018_idioms = "deny"
 unstable_name_collisions = { level = "allow", priority = 100 }
 
-[lints.clippy]
+[workspace.lints.clippy]
 all = "deny"

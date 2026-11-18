@@ -20,8 +20,8 @@ target/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+crates/*/target/
 .DS_Store
-
 dist/
 out/
 VC-LTL-Binary.7z

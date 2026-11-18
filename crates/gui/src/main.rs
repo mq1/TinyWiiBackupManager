@@ -25,7 +25,7 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 #[inline]
 fn get_window_icon() -> Option<iced::window::Icon> {
     let rgba8_bytes = image::load_from_memory_with_format(
-        include_bytes!("../package/windows/TinyWiiBackupManager-64x64.png"),
+        include_bytes!("../assets/TinyWiiBackupManager-64x64.png"),
         image::ImageFormat::Png,
     )
     .expect("Failed to load app icon")

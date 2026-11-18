@@ -126,8 +126,8 @@ fn main() {
     // Generate Windows resources
     if target_os == "windows" {
         let mut res = WindowsResource::new();
-        res.set_icon("package/windows/icon.ico");
-        res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
+        res.set_icon("assets/icon.ico");
+        res.set_manifest_file("assets/TinyWiiBackupManager.exe.manifest");
         res.compile().unwrap();
     }
 }

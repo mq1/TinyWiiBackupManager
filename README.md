@@ -1,4 +1,4 @@
-<img alt="TinyWiiBackupManager Logo" width="128" src="assets/TinyWiiBackupManager-256x256.png" align="left">
+<img alt="TinyWiiBackupManager Logo" width="128" src="crates/gui/assets/TinyWiiBackupManager-256x256.png" align="left">
 
 ### `TinyWiiBackupManager`<br><sub><sup>:star: A tiny game backup and homebrew app manager for the Wii</sup></sub>
 
@@ -11,7 +11,7 @@
 > TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.
 > Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
 
-<img align="center" alt="App Screenshot" src="assets/screenshot.png">
+<img align="center" alt="App Screenshot" src="screenshot.png">
 
 ## :sparkles: Features
 
