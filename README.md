@@ -96,7 +96,7 @@ Generative AI was used in some isolated development tasks such as:
 - Troubleshooting (for ex. "why is this github workflow failing?")
 - Language learning (for ex. "is there a more idiomatic way of writing this snippet?", "Explain X")
 - Isolated snipped generation (for ex. <https://github.com/mq1/TinyWiiBackupManager/blob/main/crates/gui/src/util/split_file_reader.rs#L68-L93>)
-- Advice and research (for ex. "how do i do X in Y library/API")
+- Advice and research (for ex. "how do i do X in Y library/API", "how does this protocol work?")
 - Limited use of IDE tab completion.
 
 I used the following AI services (in order of most to least used): Google Gemini (web), Windsurf (IDE tab completion), Anthropic Claude (web), Microsoft Copilot (web)
