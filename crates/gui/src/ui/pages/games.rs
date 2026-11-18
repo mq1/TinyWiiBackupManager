@@ -3,7 +3,6 @@
 
 use crate::{
     config::ViewAs,
-    long_operation::LongOperationKind,
     message::Message,
     state::{AppState, LazyState},
     ui::{
@@ -19,6 +18,7 @@ use iced::{
     widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
+use twbm_common::Status;
 
 pub fn games(state: &AppState) -> Element<'_, Message> {
     if state.config.mount_point().as_os_str().is_empty() {
@@ -29,7 +29,7 @@ pub fn games(state: &AppState) -> Element<'_, Message> {
         LazyState::NotLoaded | LazyState::Loading => loading(),
         LazyState::Errored(e) => errored(e),
         LazyState::Loaded(games) => {
-            let is_exporting = !state.long_operations.is_idle(LongOperationKind::Export);
+            let is_exporting = !matches!(state.long_operations.export, Status::Idle);
 
             let content: Element<'_, Message> = match state.config.view_as() {
                 ViewAs::Grid => games

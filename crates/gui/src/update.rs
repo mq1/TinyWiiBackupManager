@@ -4,13 +4,14 @@
 use crate::{
     config::message::ConfigMessage,
     games::{ImportEntry, convert::convert_game, scrub::scrub_game},
-    long_operation::LongOperationKind,
+    long_operation::message::LongOperationsMessage,
     message::Message,
     notifications::notification::Notification,
     state::{AppState, LazyState},
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
+use twbm_common::Status;
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 
@@ -29,6 +30,34 @@ impl AppState {
                 }
 
                 self.config.update(message).map(Message::Config)
+            }
+            Message::LongOperations(message) => {
+                match &message {
+                    LongOperationsMessage::TriggerContinue => {
+                        return Task::batch([
+                            self.trigger_import_task(),
+                            self.get_games_task(),
+                            self.get_drive_info_task(),
+                        ]);
+                    }
+                    LongOperationsMessage::SetImport(status)
+                    | LongOperationsMessage::SetExport(status)
+                    | LongOperationsMessage::SetConvert(status)
+                    | LongOperationsMessage::SetScrub(status)
+                    | LongOperationsMessage::SetHash(status) => match status {
+                        Status::Finished(success) => {
+                            self.notifications.push(Notification::success(success));
+                        }
+                        Status::Errored(errored) => {
+                            self.notifications.push(Notification::error(errored));
+                        }
+                        _ => {}
+                    },
+                }
+
+                self.long_operations
+                    .update(message)
+                    .map(Message::LongOperations)
             }
             Message::NoOp => Task::none(),
             Message::Notify(notification) => {
@@ -148,7 +177,7 @@ impl AppState {
                 Task::none()
             }
             Message::ToggleAnimationState => {
-                if !self.long_operations.is_idle(LongOperationKind::Import) {
+                if !matches!(self.long_operations.import, Status::Idle) {
                     self.animation_state = !self.animation_state;
                 }
 
@@ -182,9 +211,6 @@ impl AppState {
                 dialogs::make_pick_export_game_dest_dialog_task(base, game.clone())
             }),
             Message::ExportGame(game, out_path) => self.export_game_task(game, out_path),
-            Message::SetLongOperationState(kind, state) => {
-                self.set_long_operation_state_task(kind, state)
-            }
             Message::RunTool(tool) => self.run_tool_task(tool),
             Message::PickFileToSendViaWiiload => dialogs::init_file_dialog_task()
                 .then(dialogs::make_pick_file_to_wiiload_dialog_task),
@@ -228,7 +254,7 @@ impl AppState {
             }
             Message::ConvertGame(disc_path, out_path) => {
                 Task::stream(convert_game(disc_path, out_path)).map(|op_state| {
-                    Message::SetLongOperationState(LongOperationKind::Convert, op_state)
+                    Message::LongOperations(LongOperationsMessage::SetConvert(op_state))
                 })
             }
             Message::GotUpdate(new_version) => {
@@ -253,7 +279,7 @@ impl AppState {
 
                 Task::stream(scrub_game(game, self.config.clone(), self.drive.clone()))
                     .map(|op_state| {
-                        Message::SetLongOperationState(LongOperationKind::Scrub, op_state)
+                        Message::LongOperations(LongOperationsMessage::SetScrub(op_state))
                     })
                     .chain(Task::done(Message::RefreshGamesAndApps))
             }

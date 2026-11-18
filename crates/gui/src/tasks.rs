@@ -8,7 +8,7 @@ use crate::{
         games_state::GameList, import::import_game, txtcodes::download_cheats,
     },
     homebrew::{self, homebrew_state::HomebrewAppList},
-    long_operation::{LongOperationKind, LongOperationState},
+    long_operation::message::LongOperationsMessage,
     message::Message,
     notifications::notification::Notification,
     osc::{self, osc_app::OscApp, osc_state::OscAppList},
@@ -33,6 +33,7 @@ use std::{
     io::SeekFrom,
     path::{Path, PathBuf},
 };
+use twbm_common::Status;
 use wiiload::WIILOAD_PORT;
 
 impl AppState {
@@ -168,13 +169,11 @@ impl AppState {
 
     pub fn trigger_import_task(&mut self) -> Task<Message> {
         if let Some(entry) = self.import_queue.pop() {
-            self.long_operations.set(
-                LongOperationKind::Import,
-                LongOperationState::Progress(format!("⤓  Importing {}", entry.meta().game_title())),
-            );
+            self.long_operations.import =
+                Status::Progress(format!("⤓  Importing {}", entry.meta().game_title()).into());
 
             Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
-                .map(|op_state| Message::SetLongOperationState(LongOperationKind::Import, op_state))
+                .map(|op_state| Message::LongOperations(LongOperationsMessage::SetImport(op_state)))
         } else {
             self.notifications
                 .push(Notification::info("Import queue is empty"));
@@ -274,13 +273,10 @@ impl AppState {
     }
 
     pub fn calc_game_sha1_task(&mut self, game: Game) -> Task<Message> {
-        self.long_operations.set(
-            LongOperationKind::Hash,
-            LongOperationState::Progress(String::new()),
-        );
+        self.long_operations.hash = Status::Progress("".into());
 
         Task::stream(calc_sha1(game))
-            .map(|op_state| Message::SetLongOperationState(LongOperationKind::Hash, op_state))
+            .map(|op_state| Message::LongOperations(LongOperationsMessage::SetHash(op_state)))
     }
 
     pub fn pick_games_recursively_task(&self) -> Task<Message> {
@@ -356,46 +352,11 @@ impl AppState {
         ])
     }
 
-    pub fn set_long_operation_state_task(
-        &mut self,
-        kind: LongOperationKind,
-        mut state: LongOperationState,
-    ) -> Task<Message> {
-        let should_continue = kind == LongOperationKind::Import
-            && matches!(
-                state,
-                LongOperationState::Finished(_) | LongOperationState::Errored(_)
-            );
-
-        if let LongOperationState::Finished(success) = state {
-            self.notifications.push(Notification::success(success));
-            state = LongOperationState::Idle;
-        } else if let LongOperationState::Errored(error) = state {
-            self.notifications.push(Notification::error(error));
-            state = LongOperationState::Idle;
-        }
-
-        self.long_operations.set(kind, state);
-
-        if should_continue {
-            Task::batch([
-                self.trigger_import_task(),
-                self.get_games_task(),
-                self.get_drive_info_task(),
-            ])
-        } else {
-            Task::none()
-        }
-    }
-
     pub fn export_game_task(&mut self, game: Game, out_path: PathBuf) -> Task<Message> {
-        self.long_operations.set(
-            LongOperationKind::Export,
-            LongOperationState::Progress(String::new()),
-        );
+        self.long_operations.export = Status::Progress("".into());
 
         Task::stream(export_game(game, out_path))
-            .map(|op_state| Message::SetLongOperationState(LongOperationKind::Export, op_state))
+            .map(|op_state| Message::LongOperations(LongOperationsMessage::SetExport(op_state)))
     }
 
     pub fn install_osc_app_task(&mut self, app: OscApp) -> Task<Message> {

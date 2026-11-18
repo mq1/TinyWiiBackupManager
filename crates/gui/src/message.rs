@@ -5,7 +5,7 @@ use crate::{
     config::{Config, message::ConfigMessage},
     games::{ImportEntry, game::Game, games_state::GameList},
     homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewAppList},
-    long_operation::{LongOperationKind, LongOperationState},
+    long_operation::message::LongOperationsMessage,
     notifications::notification::Notification,
     osc::{osc_app::OscApp, osc_state::OscAppList},
     state::LazyState,
@@ -21,6 +21,7 @@ use wii_disc_info::game_id::GameID;
 #[derive(Debug, Clone)]
 pub enum Message {
     Config(ConfigMessage),
+    LongOperations(LongOperationsMessage),
 
     NoOp,
     NavigateTo(Page),
@@ -44,7 +45,6 @@ pub enum Message {
     PickHomebrewApps,
     ImportHomebrewApps(Vec<PathBuf>),
     HomebrewAppsImported(usize),
-    SetLongOperationState(LongOperationKind, LongOperationState),
     CalcGameSha1(Game),
     PickGames,
     PickGamesRecursively,

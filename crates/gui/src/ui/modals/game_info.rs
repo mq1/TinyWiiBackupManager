@@ -3,7 +3,6 @@
 
 use crate::{
     games::game::Game,
-    long_operation::LongOperationKind,
     message::Message,
     state::AppState,
     ui::components::{
@@ -20,6 +19,7 @@ use lucide_icons::{
     Icon,
     iced::{icon_file_question, icon_gamepad, icon_globe, icon_notebook_pen, icon_pin, icon_tag},
 };
+use twbm_common::Status;
 
 pub fn game_info<'a>(
     game: &'a Game,
@@ -78,7 +78,7 @@ pub fn game_info<'a>(
             .icon(Icon::Shredder)
             .kind(MyButtonKind::Secondary);
 
-        if state.long_operations.is_idle(LongOperationKind::Scrub) {
+        if matches!(state.long_operations.scrub, Status::Idle) {
             btn = btn.on_press_with(|| Message::AskConfirmScrub(game.clone()));
         }
 

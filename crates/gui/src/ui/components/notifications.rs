@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    long_operation::LongOperationState,
     message::Message,
     notifications::notification::{Notification, NotificationLevel},
     state::AppState,
@@ -15,6 +14,7 @@ use iced::{
 use itertools::Either;
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
 use std::iter::{empty, once};
+use twbm_common::Status;
 
 fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     let icon = match notification.level() {
@@ -52,10 +52,10 @@ fn item((i, notification): (usize, &Notification)) -> Element<'_, Message> {
     .into()
 }
 
-fn progress(op_state: &LongOperationState) -> impl Iterator<Item = Element<'_, Message>> {
+fn progress(op_state: &Status) -> impl Iterator<Item = Element<'_, Message>> {
     match op_state {
-        LongOperationState::Progress(progress) => {
-            Either::Left(once(Element::from(my_card(text(progress.as_str())))))
+        Status::Progress(progress) => {
+            Either::Left(once(Element::from(my_card(text(progress.as_ref())))))
         }
         _ => Either::Right(empty()),
     }

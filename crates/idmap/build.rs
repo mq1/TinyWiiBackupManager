@@ -100,7 +100,7 @@ impl<'a> Data<'a> {
         }
 
         // pad the titles to 4 bytes
-        while all_titles.len() % 4 != 0 {
+        while !all_titles.len().is_multiple_of(4) {
             all_titles.push('\0');
         }
 

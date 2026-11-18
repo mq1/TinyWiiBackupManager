@@ -4,7 +4,6 @@
 use crate::{
     config::Config,
     games::{ImportEntry, multi_disc::open_multi_disc_files},
-    long_operation::LongOperationState,
     state::LazyState,
     util::{drive_state::DriveInfo, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
 };
@@ -24,6 +23,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tempfile::tempfile;
+use twbm_common::Status;
 use which_fs::FsKind;
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
@@ -62,7 +62,7 @@ fn perform_blocking(
     entry: &ImportEntry,
     config: &Config,
     drive: &LazyState<DriveInfo>,
-    tx: &smol::channel::Sender<LongOperationState>,
+    tx: &smol::channel::Sender<Status>,
 ) -> Result<()> {
     let filename = entry
         .path()
@@ -70,9 +70,7 @@ fn perform_blocking(
         .and_then(OsStr::to_str)
         .context("invalid filename")?;
 
-    tx.send_blocking(LongOperationState::Progress(format!(
-        "›  Opening {filename}"
-    )))?;
+    tx.send_blocking(Status::Progress(format!("›  Opening {filename}").into()))?;
 
     let input_file = InputFile::new(entry.path())?;
 
@@ -149,10 +147,13 @@ fn perform_blocking(
 
                 let progress_percentage = written * 100 / to_write;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(LongOperationState::Progress(format!(
-                        "⤓  Importing {}  {progress_percentage:02}%",
-                        entry.meta().game_title()
-                    )));
+                    let _ = tx.try_send(Status::Progress(
+                        format!(
+                            "⤓  Importing {}  {progress_percentage:02}%",
+                            entry.meta().game_title()
+                        )
+                        .into(),
+                    ));
 
                     prev_percentage = progress_percentage;
                 }
@@ -201,10 +202,13 @@ fn perform_blocking(
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(LongOperationState::Progress(format!(
-                        "⤓  Importing {}  {progress_percentage:02}%",
-                        entry.meta().game_title()
-                    )));
+                    let _ = tx.try_send(Status::Progress(
+                        format!(
+                            "⤓  Importing {}  {progress_percentage:02}%",
+                            entry.meta().game_title()
+                        )
+                        .into(),
+                    ));
 
                     prev_percentage = progress_percentage;
                 }
@@ -234,16 +238,13 @@ pub fn import_game(
     entry: ImportEntry,
     config: Config,
     drive: LazyState<DriveInfo>,
-) -> impl Stream<Item = LongOperationState> {
+) -> impl Stream<Item = Status> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&entry, &config, &drive, &tx) {
-            Ok(()) => {
-                LongOperationState::Finished(format!("Imported {}", entry.meta().game_title()))
-            }
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
+        let exit = perform_blocking(&entry, &config, &drive, &tx)
+            .map(|()| format!("Imported {}", entry.meta().game_title()))
+            .into();
 
         tx.send_blocking(exit).expect("Channel should be open");
     });

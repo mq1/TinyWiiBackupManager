@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::export::ext_to_format, long_operation::LongOperationState, util::misc::OPTIMAL_THREADS,
-};
+use crate::{games::export::ext_to_format, util::misc::OPTIMAL_THREADS};
 use anyhow::{Context, Result};
 use nod::{
     read::{DiscOptions, DiscReader},
@@ -16,12 +14,13 @@ use std::{
     io::{BufWriter, Seek, Write},
     path::PathBuf,
 };
+use twbm_common::Status;
 
 fn perform_blocking(
     disc_path: PathBuf,
     out_path: PathBuf,
-    tx: &smol::channel::Sender<LongOperationState>,
-) -> Result<String> {
+    tx: &smol::channel::Sender<Status>,
+) -> Result<Box<str>> {
     let filename = out_path
         .file_name()
         .and_then(OsStr::to_str)
@@ -56,9 +55,10 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(LongOperationState::Progress(format!(
-                    "LongOperationState into {filename}  {progress_percentage:02}%",
-                )));
+                let _ = tx.try_send(Status::Progress(
+                    format!("LongOperationState into {filename}  {progress_percentage:02}%",)
+                        .into(),
+                ));
 
                 prev_percentage = progress_percentage;
             }
@@ -81,20 +81,16 @@ fn perform_blocking(
     }
 
     out_writer.flush()?;
-    Ok(filename.to_string())
+    Ok(filename.into())
 }
 
-pub fn convert_game(
-    disc_path: PathBuf,
-    out_path: PathBuf,
-) -> impl Stream<Item = LongOperationState> {
+pub fn convert_game(disc_path: PathBuf, out_path: PathBuf) -> impl Stream<Item = Status> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(disc_path, out_path, &tx) {
-            Ok(filename) => LongOperationState::Finished(format!("Converted {filename}")),
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
+        let exit = perform_blocking(disc_path, out_path, &tx)
+            .map(|filename| format!("Converted {filename}"))
+            .into();
 
         tx.send_blocking(exit).expect("Channel should be open");
     });

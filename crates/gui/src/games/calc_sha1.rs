@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, long_operation::LongOperationState};
+use crate::games::game::Game;
 use anyhow::{Context, Result};
 use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
 use smol::stream::Stream;
+use twbm_common::Status;
 
-fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>) -> Result<bool> {
+fn perform_blocking(game: &Game, tx: &smol::channel::Sender<Status>) -> Result<bool> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
     let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
@@ -27,10 +28,9 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
             let progress_percentage = progress * 100 / total;
 
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(LongOperationState::Progress(format!(
-                    "✓  Hashing {}  {progress_percentage:02}%",
-                    game.title()
-                )));
+                let _ = tx.try_send(Status::Progress(
+                    format!("✓  Hashing {}  {progress_percentage:02}%", game.title()).into(),
+                ));
 
                 prev_percentage = progress_percentage;
             }
@@ -47,18 +47,22 @@ fn perform_blocking(game: &Game, tx: &smol::channel::Sender<LongOperationState>)
     Ok::<_, anyhow::Error>(known_sha1)
 }
 
-pub fn calc_sha1(game: Game) -> impl Stream<Item = LongOperationState> {
+pub fn calc_sha1(game: Game) -> impl Stream<Item = Status> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, &tx) {
-            Ok(true) => LongOperationState::Finished(format!(
-                "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
-                game.title()
-            )),
-            Ok(false) => LongOperationState::Errored(format!("Hash mismatch for {}", game.title())),
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
+        let exit = perform_blocking(&game, &tx)
+            .map(|known_sha1| {
+                if known_sha1 {
+                    format!(
+                        "Hash match for {}!  -  SHA1 is well known, your dump is perfect",
+                        game.title()
+                    )
+                } else {
+                    format!("Hash mismatch for {}", game.title())
+                }
+            })
+            .into();
 
         tx.send_blocking(exit).expect("Channel should be open");
     });

@@ -5,7 +5,6 @@ use crate::{
         import::{BUF_SIZE, SPLIT_SIZE, get_filename},
         multi_disc::open_multi_disc_files,
     },
-    long_operation::LongOperationState,
     state::LazyState,
     util::{drive_state::DriveInfo, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
 };
@@ -21,13 +20,14 @@ use std::{
     ffi::OsStr,
     io::{BufWriter, Write},
 };
+use twbm_common::Status;
 use which_fs::FsKind;
 
 fn perform_blocking(
     game: &Game,
     config: &Config,
     drive: &LazyState<DriveInfo>,
-    tx: &smol::channel::Sender<LongOperationState>,
+    tx: &smol::channel::Sender<Status>,
 ) -> Result<()> {
     let disc_path = game.get_disc_path_blocking().context("disc not found")?;
 
@@ -99,10 +99,9 @@ fn perform_blocking(
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(LongOperationState::Progress(format!(
-                        "Scrubbing {}  {progress_percentage:02}%",
-                        game.title()
-                    )));
+                    let _ = tx.try_send(Status::Progress(
+                        format!("Scrubbing {}  {progress_percentage:02}%", game.title()).into(),
+                    ));
 
                     prev_percentage = progress_percentage;
                 }
@@ -131,14 +130,13 @@ pub fn scrub_game(
     game: Game,
     config: Config,
     drive: LazyState<DriveInfo>,
-) -> impl Stream<Item = LongOperationState> {
+) -> impl Stream<Item = Status> {
     let (tx, rx) = smol::channel::bounded(1);
 
     let _ = std::thread::spawn(move || {
-        let exit = match perform_blocking(&game, &config, &drive, &tx) {
-            Ok(()) => LongOperationState::Finished(format!("Scrubbed {}", game.title())),
-            Err(e) => LongOperationState::Errored(e.to_string()),
-        };
+        let exit = perform_blocking(&game, &config, &drive, &tx)
+            .map(|()| format!("Scrubbed {}", game.title()))
+            .into();
 
         tx.send_blocking(exit).expect("Channel should be open");
     });
