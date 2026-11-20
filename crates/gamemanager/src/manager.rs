@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::game::Game;
-use anyhow::Result;
 use itertools::Either;
-use std::{fs, path::Path};
+use std::{fs, io, path::Path};
 use twbm_common::config_contents::SortBy;
 use wii_disc_info::game_id::GameID;
 
@@ -37,11 +36,15 @@ impl GameManager {
 
         let mut games = Vec::new();
 
-        if let Err(e) = scan_dir(&wii_dir, true, &mut games, data_dir) {
+        if let Err(e) = scan_dir(&wii_dir, true, &mut games, data_dir)
+            && e.kind() != io::ErrorKind::NotFound
+        {
             return Self::Errored(e.to_string());
         }
 
-        if let Err(e) = scan_dir(&ngc_dir, false, &mut games, data_dir) {
+        if let Err(e) = scan_dir(&ngc_dir, false, &mut games, data_dir)
+            && e.kind() != io::ErrorKind::NotFound
+        {
             return Self::Errored(e.to_string());
         }
 
@@ -142,7 +145,7 @@ pub fn scan_dir(
     is_wii: bool,
     games: &mut Vec<Game>,
     data_dir: &Path,
-) -> Result<()> {
+) -> io::Result<()> {
     for entry in fs::read_dir(dir_path)? {
         if let Ok(game) = Game::try_from_path(entry?.path(), is_wii, data_dir) {
             games.push(game);
