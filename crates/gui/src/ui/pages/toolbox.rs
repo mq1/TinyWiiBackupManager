@@ -16,7 +16,7 @@ use iced::{
 use lucide_icons::Icon;
 
 pub fn toolbox(state: &AppState) -> Element<'_, Message> {
-    let has_drive = !state.config.mount_point().as_os_str().is_empty();
+    let has_drive = state.config.contents.mount_point.is_some();
 
     let tool_groups = crate::toolbox::all()
         .map(|tool_group| {

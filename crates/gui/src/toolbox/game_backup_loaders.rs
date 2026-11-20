@@ -9,7 +9,7 @@ use crate::{
     toolbox::{ToolboxGroup, ToolboxItem},
     util::http::download_and_extract_zip,
 };
-use anyhow::anyhow;
+use anyhow::{Context, anyhow};
 use itertools::Itertools;
 use lucide_icons::Icon;
 
@@ -36,7 +36,14 @@ pub const ALL: &[ToolboxGroup] = {
                 label: "Download banners for USB Loader GX (GameCube)",
                 run_fn: |ctx| {
                     Box::pin(async move {
-                        match download_all_banners(ctx.game_ids, ctx.config.mount_point()).await {
+                        let mount_point = ctx
+                            .config
+                            .contents
+                            .mount_point
+                            .as_deref()
+                            .context("Invalid mount point")?;
+
+                        match download_all_banners(ctx.game_ids, mount_point).await {
                             errored if !errored.is_empty() => Err(anyhow!(
                                 "Finished downloading banners: Failed: {}",
                                 errored.iter().format(", ")
@@ -50,11 +57,17 @@ pub const ALL: &[ToolboxGroup] = {
                 label: "Download wiitdb.xml for USB Loader GX",
                 run_fn: |ctx| {
                     Box::pin(async move {
-                        download_and_extract_zip(
-                            "https://www.gametdb.com/wiitdb.zip",
-                            &ctx.config.mount_point().join("apps").join("usbloader_gx"),
-                        )
-                        .await?;
+                        let mount_point = ctx
+                            .config
+                            .contents
+                            .mount_point
+                            .as_deref()
+                            .context("Invalid mount point")?;
+
+                        let dest = mount_point.join("apps").join("usbloader_gx");
+
+                        download_and_extract_zip("https://www.gametdb.com/wiitdb.zip", &dest)
+                            .await?;
 
                         Ok("wiitdb.xml successfully downloaded".to_string())
                     })

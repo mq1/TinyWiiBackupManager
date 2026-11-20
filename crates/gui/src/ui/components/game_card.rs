@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::game::Game,
     message::Message,
     ui::components::{my_button::my_button, my_card::my_card},
 };
@@ -12,6 +11,7 @@ use iced::{
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
+use twbm_gamemanager::game::Game;
 
 pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     let cover: Element<'_, Message> = match game.cover() {
@@ -31,7 +31,7 @@ pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
                 icon_tag(),
                 text(game.id_str()),
                 space::horizontal(),
-                text(game.size_str())
+                text!("{}", game.size().unwrap_or_default())
             ]
             .spacing(5),
             cover,

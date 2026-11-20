@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    long_operation::Status,
     message::Message,
     state::AppState,
     ui::components::my_button::{MyButtonKind, my_button},
@@ -11,7 +12,6 @@ use iced::{
     widget::{row, space},
 };
 use lucide_icons::Icon;
-use twbm_common::Status;
 
 pub fn import_queue_titlebar(state: &AppState) -> Element<'_, Message> {
     let mut import_btn = my_button()

@@ -3,11 +3,10 @@
 
 use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 use anyhow::Result;
-use arrayvec::ArrayString;
 use iced::widget::image;
 use serde::Deserialize;
 use size::Size;
-use std::{fmt::Write, path::Path};
+use std::path::Path;
 use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -34,7 +33,7 @@ pub struct OscAppMeta {
     author: Box<str>,
     version: Box<str>,
     assets: OscAppAssets,
-    uncompressed_size: u64,
+    uncompressed_size: Size,
     release_date: i64,
     description: OscAppDescription,
 }
@@ -43,9 +42,8 @@ pub struct OscAppMeta {
 pub struct OscApp {
     meta: OscAppMeta,
     icon: Option<image::Handle>,
-    uncompressed_size_str: ArrayString<10>,
     search_term_lowercase: Box<str>,
-    release_date_str: ArrayString<10>,
+    release_date_str: Option<Box<str>>,
     osc_url: Box<str>,
 }
 
@@ -56,34 +54,19 @@ impl<'de> serde::Deserialize<'de> for OscApp {
     {
         let meta = OscAppMeta::deserialize(deserializer)?;
 
-        let mut uncompressed_size_str = ArrayString::new();
-        let _ = write!(
-            &mut uncompressed_size_str,
-            "{}",
-            Size::from_bytes(meta.uncompressed_size)
-        );
-
         let search_term_lowercase = format!("{}\0{}", meta.name, meta.slug)
             .to_lowercase()
             .into_boxed_str();
 
-        let mut release_date_str = ArrayString::new();
-        if let Ok(dt) = OffsetDateTime::from_unix_timestamp(meta.release_date) {
-            let _ = write!(
-                &mut release_date_str,
-                "{:04}-{:02}-{:02}",
-                dt.year(),
-                dt.month(),
-                dt.day()
-            );
-        }
+        let release_date_str = OffsetDateTime::from_unix_timestamp(meta.release_date)
+            .ok()
+            .map(|dt| format!("{:04}-{:02}-{:02}", dt.year(), dt.month(), dt.day()).into());
 
         let osc_url = format!("https://oscwii.org/library/app/{}", meta.slug).into_boxed_str();
 
         Ok(OscApp {
             meta,
             icon: None,
-            uncompressed_size_str,
             search_term_lowercase,
             release_date_str,
             osc_url,
@@ -122,12 +105,8 @@ impl OscApp {
         &self.meta.version
     }
 
-    pub fn size(&self) -> u64 {
+    pub fn size(&self) -> Size {
         self.meta.uncompressed_size
-    }
-
-    pub fn size_str(&self) -> &str {
-        &self.uncompressed_size_str
     }
 
     pub fn name(&self) -> &str {
@@ -150,8 +129,8 @@ impl OscApp {
         &self.meta.slug
     }
 
-    pub fn release_date_str(&self) -> &str {
-        &self.release_date_str
+    pub fn release_date_str(&self) -> Option<&str> {
+        self.release_date_str.as_deref()
     }
 
     pub fn coder(&self) -> &str {

@@ -1,59 +1,40 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::{game::Game, multi_disc::open_multi_disc_files},
-    util::{misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
-};
 use anyhow::{Context, Result};
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use smol::stream::Stream;
+use split_read::SplitFileReader;
 use std::{
-    ffi::OsStr,
     fs::File,
     io::{BufWriter, Seek, Write},
-    path::PathBuf,
+    path::Path,
 };
-use twbm_common::Status;
 
-pub fn ext_to_format(ext: &str) -> Option<Format> {
-    match ext {
-        "iso" | "ISO" | "gcm" | "GCM" => Some(Format::Iso),
-        "ciso" | "CISO" => Some(Format::Ciso),
-        "gcz" | "CGZ" => Some(Format::Gcz),
-        "rvz" | "RVZ" => Some(Format::Rvz),
-        "wbfs" | "WBFS" => Some(Format::Wbfs),
-        "wia" | "WIA" => Some(Format::Wia),
-        "tgc" | "TGC" => Some(Format::Tgc),
-        _ => None,
-    }
-}
+use crate::{
+    FromExt, OPTIMAL_THREADS, disc_stream::SplitFileDiscStream, game::Game,
+    multi_disc::open_multi_disc_files,
+};
 
-fn perform_blocking(
-    game: &Game,
-    out_path: PathBuf,
-    tx: &smol::channel::Sender<Status>,
-) -> Result<()> {
+pub fn export_game(game: &Game, out_path: &Path, send_progress: impl Fn(String)) -> Result<String> {
     let disc_reader = {
         let disc_opts = DiscOptions {
             preloader_threads: OPTIMAL_THREADS.preloader,
             ..Default::default()
         };
 
-        let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+        let disc_path = game.get_disc_path().context("disc not found")?;
         let disc_files = open_multi_disc_files(&disc_path)?;
         let disc_files_reader = SplitFileReader::new(disc_files)?;
-        DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?
+        DiscReader::new_stream(Box::new(SplitFileDiscStream(disc_files_reader)), &disc_opts)?
     };
 
     let ext = out_path
         .extension()
-        .and_then(OsStr::to_str)
-        .and_then(ext_to_format)
+        .and_then(Format::from_ext)
         .context("invalid extension")?;
 
     let format_opts = FormatOptions::new(ext);
@@ -71,8 +52,9 @@ fn perform_blocking(
 
             let progress_percentage = progress * 100 / total;
             if progress_percentage != prev_percentage {
-                let _ = tx.try_send(Status::Progress(
-                    format!("⤓  Exporting {}  {progress_percentage:02}%", game.title()).into(),
+                send_progress(format!(
+                    "⤓  Exporting {}  {progress_percentage:02}%",
+                    game.title()
                 ));
 
                 prev_percentage = progress_percentage;
@@ -96,19 +78,6 @@ fn perform_blocking(
     }
 
     out_writer.flush()?;
-    Ok(())
-}
 
-pub fn export_game(game: Game, out_path: PathBuf) -> impl Stream<Item = Status> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = perform_blocking(&game, out_path, &tx)
-            .map(|()| format!("Exported {}", game.title()))
-            .into();
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+    Ok(format!("Exported {}", game.title()))
 }

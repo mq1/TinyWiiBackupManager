@@ -4,7 +4,14 @@
 pub mod message;
 pub mod update;
 
-use twbm_common::Status;
+#[derive(Debug, Clone, Default)]
+pub enum Status {
+    #[default]
+    Idle,
+    Progress(String),
+    Finished(String),
+    Errored(String),
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct LongOperations {

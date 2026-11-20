@@ -1,16 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    config::SortBy, homebrew::homebrew_app::HomebrewApp, osc::osc_state::OscAppList,
-    state::LazyState,
-};
+use crate::{homebrew::homebrew_app::HomebrewApp, osc::osc_state::OscAppList, state::LazyState};
 use itertools::Either;
 use smol::{
     fs,
     stream::{self, Stream, StreamExt},
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use twbm_common::config_contents::SortBy;
 
 #[derive(Debug, Clone)]
 pub struct HomebrewAppList {
@@ -21,7 +19,7 @@ pub struct HomebrewAppList {
 }
 
 impl HomebrewAppList {
-    pub async fn load(root_path: PathBuf) -> LazyState<HomebrewAppList> {
+    pub async fn load(root_path: &Path) -> LazyState<HomebrewAppList> {
         let res = async move {
             let apps_path = root_path.join("apps");
 

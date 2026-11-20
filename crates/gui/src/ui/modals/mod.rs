@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, homebrew::homebrew_app::HomebrewApp, osc::osc_app::OscApp};
+use crate::{homebrew::homebrew_app::HomebrewApp, osc::osc_app::OscApp};
 use std::path::PathBuf;
+use twbm_gamemanager::game::Game;
 
 pub mod confirm_scub;
 pub mod delete_dir;

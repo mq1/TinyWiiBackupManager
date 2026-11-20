@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::ViewAs,
     message::Message,
     state::{AppState, LazyState},
     ui::{
@@ -18,9 +17,10 @@ use iced::{
     widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
+use twbm_common::config_contents::ViewAs;
 
 pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
-    if state.config.mount_point().as_os_str().is_empty() {
+    if state.config.contents.mount_point.is_none() {
         return no_drive();
     }
 
@@ -28,9 +28,9 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
         LazyState::NotLoaded | LazyState::Loading => loading(),
         LazyState::Errored(e) => errored(e),
         LazyState::Loaded(apps) => {
-            let content: Element<'_, Message> = match state.config.view_as() {
+            let content: Element<'_, Message> = match state.config.contents.view_as {
                 ViewAs::Grid => apps
-                    .iter_by(state.config.sort_by())
+                    .iter_by(state.config.contents.sort_by)
                     .map(homebrew_app_card)
                     .collect::<Row<'_, _>>()
                     .spacing(10)
@@ -38,7 +38,7 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
                     .into(),
 
                 ViewAs::Table => my_card(
-                    apps.iter_by(state.config.sort_by())
+                    apps.iter_by(state.config.contents.sort_by)
                         .map(homebrew_app_row)
                         .intersperse_with(|| rule::horizontal(1).into())
                         .collect::<Column<'_, _>>(),

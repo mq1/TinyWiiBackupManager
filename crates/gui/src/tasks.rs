@@ -3,12 +3,9 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    games::{
-        calc_sha1::calc_sha1, covers::download_ui_covers, export::export_game, game::Game,
-        games_state::GameList, import::import_game, txtcodes::download_cheats,
-    },
+    games::{covers::download_ui_covers, txtcodes::download_cheats},
     homebrew::{self, homebrew_state::HomebrewAppList},
-    long_operation::message::LongOperationsMessage,
+    long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
     osc::{self, osc_app::OscApp, osc_state::OscAppList},
@@ -19,21 +16,21 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use iced::Task;
-use nod::{
-    common::PartitionKind,
-    read::{DiscOptions, DiscReader},
-};
 use smol::{
+    channel::bounded,
     fs::{self, File},
-    io::{AsyncSeekExt, BufReader},
+    io::BufReader,
     net::TcpStream,
+    unblock,
 };
 use std::{
     ffi::OsStr,
-    io::SeekFrom,
     path::{Path, PathBuf},
 };
-use twbm_common::Status;
+use twbm_gamemanager::{
+    calc_sha1::calc_sha1, export::export_game, game::Game,
+    has_update_partition::has_update_partition, import::import_game, manager::GameManager,
+};
 use wiiload::WIILOAD_PORT;
 
 impl AppState {
@@ -53,19 +50,24 @@ impl AppState {
     }
 
     pub fn get_games_task(&mut self) -> Task<Message> {
-        self.games = LazyState::Loading;
-        let mount_point: Box<Path> = self.config.mount_point().into();
+        let Some(mount_point) = self.config.contents.mount_point.as_deref() else {
+            return Task::none();
+        };
+
+        let mount_point = <Box<Path>>::from(mount_point);
+        let data_dir = self.data_dir;
+        self.game_manager = GameManager::Loading;
 
         Task::perform(
-            async move { GameList::load(&mount_point).await },
+            smol::unblock(move || GameManager::load(&mount_point, data_dir)),
             Message::GotGames,
         )
     }
 
     pub fn download_ui_covers_task(&mut self) -> Task<Message> {
-        if let LazyState::Loaded(games) = &self.games {
+        if let GameManager::Loaded(games) = &self.game_manager {
             let ids = games.get_all_game_ids().collect::<Box<[_]>>();
-            let preferred_language = self.config.preferred_language();
+            let preferred_language = self.config.contents.preferred_language;
 
             Task::stream(download_ui_covers(ids, self.data_dir, preferred_language))
                 .map(Message::ReloadCover)
@@ -84,59 +86,43 @@ impl AppState {
     }
 
     pub fn get_homebrew_apps_task(&mut self) -> Task<Message> {
+        let Some(mount_point) = self.config.contents.mount_point.as_deref() else {
+            return Task::none();
+        };
+
+        let mount_point = <Box<Path>>::from(mount_point);
         self.set_homebrew_apps(LazyState::Loading);
-        let mount_point = self.config.mount_point().to_path_buf();
-        Task::perform(HomebrewAppList::load(mount_point), Message::GotHomebrew)
+
+        Task::perform(
+            async move { HomebrewAppList::load(&mount_point).await },
+            Message::GotHomebrew,
+        )
     }
 
     pub fn get_drive_info_task(&mut self) -> Task<Message> {
-        let mount_point = self.config.mount_point();
-        if mount_point.as_os_str().is_empty() {
+        let Some(mount_point) = self.config.contents.mount_point.as_deref() else {
             return Task::none();
-        }
+        };
 
+        let mount_point = <Box<Path>>::from(mount_point);
         self.drive = LazyState::Loading;
-        let mount_point = mount_point.to_path_buf();
-        Task::perform(DriveInfo::load(mount_point), Message::GotDrive)
+
+        Task::perform(
+            async move { DriveInfo::load(&mount_point).await },
+            Message::GotDrive,
+        )
     }
 
     pub fn get_disc_info_task(&self, game: Game) -> Task<Message> {
-        Task::perform(
-            async move {
-                let disc_path = game.get_disc_path().await.context("disc not found")?;
-                let mut file = File::open(&disc_path).await?;
-                let meta = wii_disc_info::Meta::read_async(&mut file).await?;
-                Ok::<_, anyhow::Error>(meta)
-            },
-            |res| match res {
-                Ok(meta) => Message::GotDiscInfo(meta),
-                Err(e) => Message::Notify(Notification::error(e.to_string())),
-            },
-        )
+        Task::perform(unblock(move || game.get_disc_info()), |res| match res {
+            Ok(meta) => Message::GotDiscInfo(meta),
+            Err(e) => Message::Notify(Notification::error(e.to_string())),
+        })
     }
 
     pub fn check_if_has_update_partition_task(&mut self, game: Game) -> Task<Message> {
         Task::perform(
-            async move {
-                smol::unblock(move || {
-                    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
-                    let disc_reader = DiscReader::new(
-                        disc_path,
-                        &DiscOptions {
-                            preloader_threads: 0,
-                            ..Default::default()
-                        },
-                    )?;
-
-                    let has_update_partition = disc_reader
-                        .partitions()
-                        .iter()
-                        .any(|partition| partition.kind == PartitionKind::Update);
-
-                    Ok(has_update_partition)
-                })
-                .await
-            },
+            smol::unblock(move || has_update_partition(&game)),
             |res: Result<bool>| match res {
                 Ok(has_update_partition) => {
                     Message::GotUpdatePartitionCheckResult(has_update_partition)
@@ -155,11 +141,15 @@ impl AppState {
     }
 
     pub fn import_homebrew_apps_task(&self, paths: Vec<PathBuf>) -> Task<Message> {
-        let mount_point = self.config.mount_point().to_path_buf();
-        let remove_sources = self.config.remove_sources_apps();
+        let Some(mount_point) = self.config.contents.mount_point.as_deref() else {
+            return Task::none();
+        };
+
+        let mount_point = <Box<Path>>::from(mount_point);
+        let remove_sources = self.config.contents.remove_sources_apps;
 
         Task::perform(
-            homebrew::import(mount_point, paths, remove_sources),
+            async move { homebrew::import(&mount_point, &paths, remove_sources).await },
             |res| match res {
                 Ok(n) => Message::HomebrewAppsImported(n),
                 Err(e) => Message::Notify(e.into()),
@@ -170,10 +160,22 @@ impl AppState {
     pub fn trigger_import_task(&mut self) -> Task<Message> {
         if let Some(entry) = self.import_queue.pop() {
             self.long_operations.import =
-                Status::Progress(format!("⤓  Importing {}", entry.meta().game_title()).into());
+                Status::Progress(format!("⤓  Importing {}", entry.meta().game_title()));
 
-            Task::stream(import_game(entry, self.config.clone(), self.drive.clone()))
-                .map(|op_state| Message::LongOperations(LongOperationsMessage::SetImport(op_state)))
+            let (tx, rx) = bounded(1);
+            let config = self.config.contents.clone();
+
+            let _ = std::thread::spawn(move || {
+                let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
+                let _ = tx.send_blocking(match import_game(&entry, &config, send_progress) {
+                    Ok(msg) => Status::Finished(msg),
+                    Err(e) => Status::Errored(e.to_string()),
+                });
+            });
+
+            Task::stream(rx)
+                .map(LongOperationsMessage::SetImport)
+                .map(Message::LongOperations)
         } else {
             self.notifications
                 .push(Notification::info("Import queue is empty"));
@@ -182,8 +184,8 @@ impl AppState {
     }
 
     pub fn run_tool_task(&mut self, tool: &'static ToolboxItem) -> Task<Message> {
-        let game_ids = match &self.games {
-            LazyState::Loaded(games) => games.get_all_game_ids().collect::<Box<[_]>>(),
+        let game_ids = match &self.game_manager {
+            GameManager::Loaded(games) => games.get_all_game_ids().collect::<Box<[_]>>(),
             _ => Box::new([]),
         };
 
@@ -201,7 +203,7 @@ impl AppState {
     }
 
     pub fn send_via_wiiload_task(&self, path: PathBuf) -> Task<Message> {
-        let wii_ip: Box<str> = self.config.wii_ip().into();
+        let wii_ip: Box<str> = self.config.contents.wii_ip.as_str().into();
 
         Task::perform(
             async move {
@@ -218,16 +220,13 @@ impl AppState {
                 let mut conn = TcpStream::connect((wii_ip.as_ref(), WIILOAD_PORT)).await?;
 
                 let msg = if is_zip {
-                    let (file, excluded_files) = smol::unblock(move || {
-                        let file = std::fs::File::open(path)?;
-                        util::wiiload::rebuild_zip(file)
+                    let (data, excluded_files) = smol::unblock(move || {
+                        let mut file = std::fs::File::open(path)?;
+                        util::wiiload::rebuild_zip(&mut file)
                     })
                     .await?;
 
-                    let mut file = File::from(file);
-                    file.seek(SeekFrom::Start(0)).await?;
-                    let size = file.metadata().await?.len().try_into()?;
-                    wiiload::send_async(&mut conn, &filename, &mut file, size).await?;
+                    wiiload::send_slice_async(&mut conn, &filename, &data[..]).await?;
 
                     format!(
                         "Sent {filename} to {wii_ip} ({} excluded files)",
@@ -275,12 +274,23 @@ impl AppState {
     pub fn calc_game_sha1_task(&mut self, game: Game) -> Task<Message> {
         self.long_operations.hash = Status::Progress("".into());
 
-        Task::stream(calc_sha1(game))
-            .map(|op_state| Message::LongOperations(LongOperationsMessage::SetHash(op_state)))
+        let (tx, rx) = bounded(1);
+
+        let _ = std::thread::spawn(move || {
+            let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
+            let _ = tx.send_blocking(match calc_sha1(&game, send_progress) {
+                Ok(msg) => Status::Finished(msg),
+                Err(e) => Status::Errored(e.to_string()),
+            });
+        });
+
+        Task::stream(rx)
+            .map(LongOperationsMessage::SetHash)
+            .map(Message::LongOperations)
     }
 
     pub fn pick_games_recursively_task(&self) -> Task<Message> {
-        if let LazyState::Loaded(games) = &self.games {
+        if let GameManager::Loaded(games) = &self.game_manager {
             let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
 
             dialogs::init_file_dialog_task().then(move |base| {
@@ -292,7 +302,7 @@ impl AppState {
     }
 
     pub fn pick_games_task(&self) -> Task<Message> {
-        if let LazyState::Loaded(games) = &self.games {
+        if let GameManager::Loaded(games) = &self.game_manager {
             let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
 
             dialogs::init_file_dialog_task()
@@ -322,7 +332,7 @@ impl AppState {
 
     pub fn send_osc_app_via_wiiload_task(&mut self, app: OscApp) -> Task<Message> {
         let app_name: Box<str> = app.name().into();
-        let wii_ip: Box<str> = self.config.wii_ip().into();
+        let wii_ip: Box<str> = self.config.contents.wii_ip.as_str().into();
 
         self.notifications.push(Notification::info(format!(
             "Sending {app_name} via wiiload"
@@ -355,16 +365,31 @@ impl AppState {
     pub fn export_game_task(&mut self, game: Game, out_path: PathBuf) -> Task<Message> {
         self.long_operations.export = Status::Progress("".into());
 
-        Task::stream(export_game(game, out_path))
-            .map(|op_state| Message::LongOperations(LongOperationsMessage::SetExport(op_state)))
+        let (tx, rx) = bounded(1);
+
+        let _ = std::thread::spawn(move || {
+            let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
+            let _ = tx.send_blocking(match export_game(&game, &out_path, send_progress) {
+                Ok(msg) => Status::Finished(msg),
+                Err(e) => Status::Errored(e.to_string()),
+            });
+        });
+
+        Task::stream(rx)
+            .map(LongOperationsMessage::SetExport)
+            .map(Message::LongOperations)
     }
 
     pub fn install_osc_app_task(&mut self, app: OscApp) -> Task<Message> {
+        let Some(mount_point) = self.config.contents.mount_point.as_deref() else {
+            return Task::none();
+        };
+
         self.notifications
             .push(Notification::info(format!("Installing {}", app.name())));
 
         let app_name = app.name().into();
-        let mount_point: Box<Path> = self.config.mount_point().into();
+        let mount_point = <Box<Path>>::from(mount_point);
 
         Task::perform(
             async move { app.install(&mount_point).await },

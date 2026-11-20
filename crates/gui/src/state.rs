@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{Config, ThemePreference},
-    games::{ImportEntry, games_state::GameList},
+    config::Config,
     homebrew::homebrew_state::HomebrewAppList,
     long_operation::LongOperations,
     message::Message,
@@ -18,6 +17,8 @@ use iced::{
 };
 use semver::Version;
 use std::path::Path;
+use twbm_common::config_contents::ThemePreference;
+use twbm_gamemanager::{import_entry::ImportEntry, manager::GameManager};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -33,7 +34,7 @@ pub struct AppState {
     pub data_dir: &'static Path,
     pub notifications: NotificationList,
     pub drive: LazyState<DriveInfo>,
-    pub games: LazyState<GameList>,
+    pub game_manager: GameManager,
     pub homebrew: LazyState<HomebrewAppList>,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
@@ -52,7 +53,7 @@ impl AppState {
                 config: Config::default(),
                 notifications: NotificationList::new(data_dir),
                 drive: LazyState::NotLoaded,
-                games: LazyState::NotLoaded,
+                game_manager: GameManager::Loading,
                 homebrew: LazyState::NotLoaded,
                 current_page: Page::Games,
                 current_modal: None,
@@ -83,7 +84,7 @@ impl AppState {
     }
 
     pub fn theme(&self) -> Option<Theme> {
-        match self.config.theme_preference() {
+        match self.config.contents.theme_preference {
             ThemePreference::System => theme::system(),
             ThemePreference::Light => Some(theme::light()),
             ThemePreference::Dark => Some(theme::dark()),
@@ -91,13 +92,13 @@ impl AppState {
     }
 
     pub fn reload_cover(&mut self, game_id: GameID) {
-        if let LazyState::Loaded(games) = &mut self.games {
+        if let GameManager::Loaded(games) = &mut self.game_manager {
             games.reload_cover(game_id, self.data_dir);
         }
     }
 
     pub fn reload_all_covers(&mut self) {
-        if let LazyState::Loaded(games) = &mut self.games {
+        if let GameManager::Loaded(games) = &mut self.game_manager {
             games.reload_all_covers(self.data_dir);
         }
     }
@@ -135,7 +136,7 @@ impl AppState {
     }
 
     pub fn search_games(&mut self, search_term: &str) {
-        if let LazyState::Loaded(games) = &mut self.games {
+        if let GameManager::Loaded(games) = &mut self.game_manager {
             games.set_search_term(search_term.to_lowercase());
         }
     }
@@ -165,13 +166,13 @@ impl AppState {
     }
 
     pub fn set_show_wii(&mut self, show_wii: bool) {
-        if let LazyState::Loaded(games) = &mut self.games {
+        if let GameManager::Loaded(games) = &mut self.game_manager {
             games.set_show_wii(show_wii)
         }
     }
 
     pub fn set_show_ngc(&mut self, show_ngc: bool) {
-        if let LazyState::Loaded(games) = &mut self.games {
+        if let GameManager::Loaded(games) = &mut self.game_manager {
             games.set_show_wii(show_ngc)
         }
     }

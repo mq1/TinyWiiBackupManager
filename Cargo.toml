@@ -1,6 +1,13 @@
 [workspace]
 resolver = "3"
-members = ["crates/common","crates/gui", "crates/idmap", "crates/sha1list"]
+members = [
+  "crates/common",
+  "crates/gamemanager",
+  "crates/gui",
+  "crates/idmap",
+  "crates/sha1list",
+  "crates/split-read",
+]
 default-members = ["crates/gui"]
 
 [workspace.package]
@@ -11,6 +18,23 @@ authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
+
+[workspace.dependencies]
+anyhow = "1"
+wii-disc-info = { version = "0.11", features = ["async"] }
+itertools = "0.15"
+serde = { version = "1", features = ["derive"] }
+size = { version = "0.6", features = ["serde"] }
+zip = { version = "9", default-features = false, features = [
+  "deflate-flate2-zlib-rs",
+] }
+which-fs = "0.2"
+twbm-idmap = { path = "crates/idmap", features = [
+  "ascii-titles",
+  "gamehacking",
+] }
+strum = "0.28"
+strum_macros = "0.28"
 
 # tiny and fast release builds
 [profile.release]

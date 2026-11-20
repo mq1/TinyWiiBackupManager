@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
-    games::{ImportEntry, multi_disc::open_multi_disc_files},
-    state::LazyState,
-    util::{drive_state::DriveInfo, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
+    FromExt, OPTIMAL_THREADS, disc_stream::SplitFileDiscStream, import_entry::ImportEntry,
+    multi_disc::open_multi_disc_files,
 };
 use anyhow::{Context, Result, anyhow};
 use nod::{
@@ -13,17 +11,17 @@ use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use smol::stream::Stream;
+use split_read::SplitFileReader;
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
-    fs::File,
+    fs::{self, File},
     io::{self, BufWriter, Read, Write},
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
 use tempfile::tempfile;
-use twbm_common::Status;
+use twbm_common::config_contents::ConfigContents;
 use which_fs::FsKind;
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
@@ -32,7 +30,7 @@ pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); 
 pub const BUF_SIZE: usize = 4 * 1024 * 1024; // 4 MiB
 
 enum InputFile<'a> {
-    Disc(&'a Path),
+    DiscPath(&'a Path),
     Zip(File),
 }
 
@@ -51,36 +49,39 @@ impl<'a> InputFile<'a> {
 
             Self::Zip(tmp)
         } else {
-            Self::Disc(path)
+            Self::DiscPath(path)
         };
 
         Ok(input_file)
     }
 }
 
-fn perform_blocking(
+pub fn is_fat32(path: &Path) -> bool {
+    match which_fs::FsKind::try_from_path(path) {
+        Ok(FsKind::Fat32) => true,
+        Ok(_) => false,
+        Err(_) => true, // just in case
+    }
+}
+
+pub fn import_game(
     entry: &ImportEntry,
-    config: &Config,
-    drive: &LazyState<DriveInfo>,
-    tx: &smol::channel::Sender<Status>,
-) -> Result<()> {
+    config: &ConfigContents,
+    send_progress: impl Fn(String),
+) -> Result<String> {
     let filename = entry
         .path()
         .file_name()
         .and_then(OsStr::to_str)
         .context("invalid filename")?;
 
-    tx.send_blocking(Status::Progress(format!("›  Opening {filename}").into()))?;
+    let mount_point = config.mount_point.as_ref().context("No mount point")?;
+
+    send_progress(format!("›  Opening {filename}"));
 
     let input_file = InputFile::new(entry.path())?;
 
-    let is_fat32 = if let LazyState::Loaded(info) = drive {
-        info.fs_kind() == FsKind::Fat32
-    } else {
-        true
-    };
-
-    let must_split = entry.meta().is_wii() && (is_fat32 || config.always_split());
+    let must_split = entry.meta().is_wii() && (config.always_split || is_fat32(mount_point));
     let split_size = must_split.then_some(SPLIT_SIZE);
 
     let parent_dir_name = if entry.meta().is_wii() {
@@ -89,7 +90,7 @@ fn perform_blocking(
         "games"
     };
 
-    let parent_dir = config.mount_point().join(parent_dir_name);
+    let parent_dir = mount_point.join(parent_dir_name);
     let game_dir = make_game_dir(
         &parent_dir,
         entry.meta().game_id(),
@@ -104,25 +105,27 @@ fn perform_blocking(
                 entry.meta().is_wii(),
                 part,
                 entry.meta.disc_number(),
-                config.wii_output_format(),
-                config.gc_output_format(),
+                &config.wii_output_format,
+                &config.gc_output_format,
                 must_split,
             )
         },
         split_size,
     )?;
 
-    let out_format = if entry.meta().is_wii() {
-        config.wii_output_format()
+    let out_format_str = if entry.meta().is_wii() {
+        config.wii_output_format.as_str()
     } else {
-        config.gc_output_format()
+        config.gc_output_format.as_str()
     };
 
-    if out_format == wii_disc_info_to_nod_format(entry.meta().format()) {
+    let out_format = Format::from_ext(out_format_str).context("Invalid output format")?;
+
+    if out_format_str.eq_ignore_ascii_case(entry.meta().format().as_str()) {
         // if the input is already in the right format, just copy it
 
         let mut files = match input_file {
-            InputFile::Disc(path) => open_multi_disc_files(path)?,
+            InputFile::DiscPath(path) => open_multi_disc_files(path)?,
             InputFile::Zip(file) => std::iter::once(file).collect(),
         };
 
@@ -147,12 +150,9 @@ fn perform_blocking(
 
                 let progress_percentage = written * 100 / to_write;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(Status::Progress(
-                        format!(
-                            "⤓  Importing {}  {progress_percentage:02}%",
-                            entry.meta().game_title()
-                        )
-                        .into(),
+                    send_progress(format!(
+                        "⤓  Importing {}  {progress_percentage:02}%",
+                        entry.meta().game_title()
                     ));
 
                     prev_percentage = progress_percentage;
@@ -169,14 +169,14 @@ fn perform_blocking(
             };
 
             let disc_files_reader = match input_file {
-                InputFile::Disc(path) => {
+                InputFile::DiscPath(path) => {
                     let disc_files = open_multi_disc_files(path)?;
                     SplitFileReader::new(disc_files)?
                 }
                 InputFile::Zip(file) => SplitFileReader::new(std::iter::once(file))?,
             };
 
-            DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?
+            DiscReader::new_stream(Box::new(SplitFileDiscStream(disc_files_reader)), &disc_opts)?
         };
 
         let mut out_writer = BufWriter::with_capacity(BUF_SIZE, out_writer);
@@ -184,7 +184,7 @@ fn perform_blocking(
 
         let options = ProcessOptions {
             processor_threads: OPTIMAL_THREADS.processor,
-            scrub: if config.scrub_update_partition() {
+            scrub: if config.scrub_update_partition {
                 ScrubLevel::UpdatePartition
             } else {
                 ScrubLevel::None
@@ -202,12 +202,9 @@ fn perform_blocking(
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(Status::Progress(
-                        format!(
-                            "⤓  Importing {}  {progress_percentage:02}%",
-                            entry.meta().game_title()
-                        )
-                        .into(),
+                    send_progress(format!(
+                        "⤓  Importing {}  {progress_percentage:02}%",
+                        entry.meta().game_title()
                     ));
 
                     prev_percentage = progress_percentage;
@@ -227,29 +224,11 @@ fn perform_blocking(
         }
     }
 
-    if config.remove_sources_games() {
-        std::fs::remove_file(entry.path())?;
+    if config.remove_sources_games {
+        fs::remove_file(entry.path())?;
     }
 
-    Ok(())
-}
-
-pub fn import_game(
-    entry: ImportEntry,
-    config: Config,
-    drive: LazyState<DriveInfo>,
-) -> impl Stream<Item = Status> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = perform_blocking(&entry, &config, &drive, &tx)
-            .map(|()| format!("Imported {}", entry.meta().game_title()))
-            .into();
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+    Ok(format!("Imported {}", entry.meta().game_title()))
 }
 
 pub fn get_filename(
@@ -257,13 +236,13 @@ pub fn get_filename(
     is_wii: bool,
     part: usize,
     disc_num: u8,
-    wii_output_format: Format,
-    gc_output_format: Format,
+    wii_output_format: &str,
+    gc_output_format: &str,
     must_split: bool,
 ) -> String {
     if is_wii {
         match wii_output_format {
-            Format::Iso => {
+            "iso" => {
                 if must_split {
                     format!("{game_id}.part{part}.iso")
                 } else {
@@ -277,7 +256,7 @@ pub fn get_filename(
         }
     } else {
         match gc_output_format {
-            Format::Ciso => match disc_num {
+            "ciso" => match disc_num {
                 0 => "game.ciso".to_string(),
                 n => format!("disc{}.ciso", n + 1),
             },
@@ -324,18 +303,6 @@ fn make_game_dir(base_dir: &Path, game_id: GameID, fallback_title: &str) -> Resu
     let dir_name = make_game_dir_name(game_id, fallback_title);
     let path = base_dir.join(dir_name);
 
-    std::fs::create_dir_all(&path)?;
+    fs::create_dir_all(&path)?;
     Ok(path)
-}
-
-fn wii_disc_info_to_nod_format(format: wii_disc_info::Format) -> Format {
-    match format {
-        wii_disc_info::Format::Wbfs => Format::Wbfs,
-        wii_disc_info::Format::Ciso => Format::Ciso,
-        wii_disc_info::Format::Iso => Format::Iso,
-        wii_disc_info::Format::Rvz => Format::Rvz,
-        wii_disc_info::Format::Wia => Format::Wia,
-        wii_disc_info::Format::Gcz => Format::Gcz,
-        wii_disc_info::Format::Tgc => Format::Tgc,
-    }
 }

@@ -9,6 +9,10 @@ repository.workspace = true
 description.workspace = true
 
 [dependencies]
+sys-locale = "0.3"
+serde = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 [lints]
 workspace = true

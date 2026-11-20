@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::games_state::GameList, message::Message, ui::components::my_card::my_card};
+use crate::{message::Message, ui::components::my_card::my_card};
 use iced::{
     Element, Length,
     widget::{checkbox, container, row, rule, text, tooltip},
 };
+use twbm_gamemanager::manager::GameList;
 
 fn filter<'a, T>(label: &'a str, desc: &'a str, active: bool, on_toggle: T) -> Element<'a, Message>
 where

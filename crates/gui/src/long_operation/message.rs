@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use twbm_common::Status;
+use crate::long_operation::Status;
 
 #[derive(Debug, Clone)]
 pub enum LongOperationsMessage {

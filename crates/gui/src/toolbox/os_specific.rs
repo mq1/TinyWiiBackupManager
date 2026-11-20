@@ -6,7 +6,7 @@ use crate::toolbox::ToolboxGroup;
 #[cfg(target_os = "macos")]
 pub const ALL: &[ToolboxGroup] = {
     use crate::toolbox::ToolboxItem;
-    use anyhow::anyhow;
+    use anyhow::{Context, anyhow};
     use lucide_icons::Icon;
     use smol::process::Command;
 
@@ -17,9 +17,15 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Run dot_clean (removes ._ files)",
             run_fn: |ctx| {
                 Box::pin(async move {
+                    let mount_point = ctx
+                        .config
+                        .contents
+                        .mount_point
+                        .context("Invalid mount point")?;
+
                     let status = Command::new("dot_clean")
                         .arg("-m")
-                        .arg(ctx.config.mount_point())
+                        .arg(mount_point)
                         .status()
                         .await?;
 

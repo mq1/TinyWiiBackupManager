@@ -6,6 +6,5 @@ pub mod drive_state;
 pub mod fs;
 pub mod http;
 pub mod misc;
-pub mod split_file_reader;
 pub mod updates;
 pub mod wiiload;

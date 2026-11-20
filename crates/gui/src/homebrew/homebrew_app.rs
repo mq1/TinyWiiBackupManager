@@ -4,14 +4,11 @@
 use crate::{
     homebrew::meta::HomebrewAppMeta,
     osc::{osc_app::OscApp, osc_state::OscAppList},
-    util::fs::get_dir_size,
 };
 use anyhow::{Context, Result, bail};
-use arrayvec::ArrayString;
 use iced::widget::image;
 use size::Size;
-use smol::fs;
-use std::fmt::Write;
+use smol::{fs, unblock};
 use std::{
     ffi::{OsStr, OsString},
     path::Path,
@@ -31,8 +28,7 @@ pub fn make_osc_url(path: &Path) -> OsString {
 pub struct HomebrewApp {
     path: Box<Path>,
     meta: HomebrewAppMeta,
-    size: u64,
-    size_str: ArrayString<10>,
+    size: Option<Size>,
     icon: Option<image::Handle>,
     osc_url: OsString,
     osc_app: Option<OscApp>,
@@ -60,10 +56,13 @@ impl HomebrewApp {
 
         let meta = HomebrewAppMeta::parse(&path)?;
 
-        let size = get_dir_size(&path).await;
-
-        let mut size_str = ArrayString::new();
-        let _ = write!(&mut size_str, "{}", Size::from_bytes(size));
+        let size = unblock({
+            let path = path.clone();
+            move || fs_extra::dir::get_size(path)
+        })
+        .await
+        .ok()
+        .map(Size::from_bytes);
 
         let icon_path = path.join("icon.png");
         let icon = fs::read(icon_path)
@@ -81,7 +80,6 @@ impl HomebrewApp {
             path,
             meta,
             size,
-            size_str,
             icon,
             osc_url,
             osc_app: None,
@@ -93,12 +91,8 @@ impl HomebrewApp {
         self.search_term_lowercase.contains(search_term)
     }
 
-    pub fn size(&self) -> u64 {
+    pub fn size(&self) -> Option<Size> {
         self.size
-    }
-
-    pub fn size_str(&self) -> &str {
-        &self.size_str
     }
 
     pub fn name(&self) -> &str {

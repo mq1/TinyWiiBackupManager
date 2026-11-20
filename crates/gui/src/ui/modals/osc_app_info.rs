@@ -25,7 +25,10 @@ pub fn osc_app_info(app: &OscApp) -> Element<'_, Message> {
             row![icon_tag(), text!("Version: {}", app.version())].spacing(5),
             row![
                 icon_calendar(),
-                text!("Release date: {}", app.release_date_str())
+                text!(
+                    "Release date: {}",
+                    app.release_date_str().unwrap_or("Unknown")
+                )
             ]
             .spacing(5),
             row![get_dev_icon(app.coder()), text!("Coder: {}", app.coder())].spacing(5),

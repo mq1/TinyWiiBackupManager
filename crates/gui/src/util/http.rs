@@ -6,17 +6,15 @@ use anyhow::{Context, Result, bail};
 use serde::de::DeserializeOwned;
 use smol::{
     Timer,
-    fs::{self, File},
+    fs::{self},
     future::FutureExt,
     net::TcpStream,
 };
 use std::{
-    ffi::OsStr,
-    io::{self, Seek},
+    io::{self, Cursor},
     path::Path,
     time::Duration,
 };
-use tempfile::tempfile;
 use wiiload::WIILOAD_PORT;
 use zip::ZipArchive;
 
@@ -33,11 +31,6 @@ mod timeout {
 /// Downloads a file, creating the parent directory if needed
 /// Skips if the file already exists
 pub async fn download_file(uri: &str, dest: &Path) -> Result<()> {
-    let dest_filename = dest
-        .file_name()
-        .and_then(OsStr::to_str)
-        .context("invalid filename")?;
-
     if fs::symlink_metadata(&dest).await.is_ok() {
         println!("INFO: {} already exists, skipping", dest.display());
         return Ok(());
@@ -46,33 +39,21 @@ pub async fn download_file(uri: &str, dest: &Path) -> Result<()> {
     let dest_parent = dest.parent().context("invalid path")?;
     fs::create_dir_all(dest_parent).await?;
 
-    smol::unblock({
-        let uri = uri.to_string();
-        let dest = dest.to_path_buf();
-        let dest_filename = dest_filename.to_string();
-        let dest_parent = dest_parent.to_path_buf();
+    let dest = <Box<Path>>::from(dest);
+    let uri = <Box<str>>::from(uri);
 
-        move || {
-            let mut out = tempfile::Builder::new()
-                .prefix(&dest_filename)
-                .suffix(".part")
-                .rand_bytes(0)
-                .tempfile_in(dest_parent)?;
+    smol::unblock(move || {
+        let resp = minreq::get(uri.as_ref())
+            .with_header("User-Agent", USER_AGENT)
+            .with_timeout(timeout::GENERIC_DOWNLOAD)
+            .send()?;
 
-            let mut resp = minreq::get(&uri)
-                .with_header("User-Agent", USER_AGENT)
-                .with_timeout(timeout::GENERIC_DOWNLOAD)
-                .send_lazy()?;
-            if resp.status_code >= 400 {
-                bail!("error downloading {}: {}", uri, resp.status_code);
-            }
-
-            std::io::copy(&mut resp, &mut out)?;
-
-            out.persist(&dest)?;
-
-            Ok(())
+        if resp.status_code >= 400 {
+            bail!("error downloading {}: {}", uri, resp.status_code);
         }
+
+        std::fs::write(dest, resp.as_bytes())?;
+        Ok(())
     })
     .await
 }
@@ -86,30 +67,25 @@ pub async fn download_file_with_fallback(uri: &str, dest: &Path, fallback: &str)
 }
 
 pub async fn download_and_extract_zip(uri: &str, dest: &Path) -> Result<()> {
-    smol::unblock({
-        let uri = uri.to_string();
-        let dest = dest.to_path_buf();
+    let dest = <Box<Path>>::from(dest);
+    let uri = <Box<str>>::from(uri);
 
-        move || {
-            let mut tmp = tempfile()?;
+    smol::unblock(move || {
+        let resp = minreq::get(uri.as_ref())
+            .with_header("User-Agent", USER_AGENT)
+            .with_timeout(timeout::GENERIC_DOWNLOAD)
+            .send()?;
 
-            let mut resp = minreq::get(&uri)
-                .with_header("User-Agent", USER_AGENT)
-                .with_timeout(timeout::GENERIC_DOWNLOAD)
-                .send_lazy()?;
-            if resp.status_code >= 400 {
-                bail!("error downloading {}: {}", uri, resp.status_code);
-            }
-
-            std::io::copy(&mut resp, &mut tmp)?;
-
-            tmp.rewind()?;
-            let mut archive = ZipArchive::new(&mut tmp)?;
-            std::fs::create_dir_all(&dest)?;
-            archive.extract(dest)?;
-
-            Ok(())
+        if resp.status_code >= 400 {
+            bail!("error downloading {}: {}", uri, resp.status_code);
         }
+
+        let mut cursor = Cursor::new(resp.as_bytes());
+        let mut archive = ZipArchive::new(&mut cursor)?;
+        std::fs::create_dir_all(&dest)?;
+        archive.extract(dest)?;
+
+        Ok(())
     })
     .await
 }
@@ -121,30 +97,22 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
         .and_then(|s| s.strip_suffix(".zip"))
         .context("invalid filename")?;
 
-    let (file, excluded_files) = smol::unblock({
-        let uri = uri.to_string();
+    let uri = <Box<str>>::from(uri);
 
-        move || {
-            let mut og_app = tempfile()?;
+    let (data, excluded_files) = smol::unblock(move || {
+        let resp = minreq::get(uri.as_ref())
+            .with_header("User-Agent", USER_AGENT)
+            .with_timeout(timeout::GENERIC_DOWNLOAD)
+            .send()?;
 
-            let mut resp = minreq::get(&uri)
-                .with_header("User-Agent", USER_AGENT)
-                .with_timeout(timeout::GENERIC_DOWNLOAD)
-                .send_lazy()?;
-            if resp.status_code >= 400 {
-                bail!("error downloading {}: {}", uri, resp.status_code);
-            }
-
-            std::io::copy(&mut resp, &mut og_app)?;
-
-            og_app.rewind()?;
-            util::wiiload::rebuild_zip(og_app)
+        if resp.status_code >= 400 {
+            bail!("error downloading {}: {}", uri, resp.status_code);
         }
+
+        let mut cursor = Cursor::new(resp.as_bytes());
+        util::wiiload::rebuild_zip(&mut cursor)
     })
     .await?;
-
-    let mut file = File::from(file); // make it async
-    let size = file.metadata().await?.len() as usize;
 
     let mut conn = TcpStream::connect((wii_ip, WIILOAD_PORT))
         .or(async {
@@ -153,7 +121,7 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
         })
         .await?;
 
-    wiiload::send_async(&mut conn, filename, &mut file, size)
+    wiiload::send_slice_async(&mut conn, filename, &data[..])
         .or(async {
             Timer::after(Duration::from_secs(timeout::SEND_TO_WII)).await;
             Err(io::ErrorKind::TimedOut.into())
@@ -164,11 +132,6 @@ pub async fn download_and_send_via_wiiload(uri: &str, wii_ip: &str) -> Result<Ve
 }
 
 pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Result<()> {
-    let dest_filename = dest
-        .file_name()
-        .and_then(OsStr::to_str)
-        .context("invalid filename")?;
-
     if fs::symlink_metadata(&dest).await.is_ok() {
         println!("INFO: {} already exists, skipping", dest.display());
         return Ok(());
@@ -177,34 +140,23 @@ pub async fn post_then_download_file(uri: &str, data: String, dest: &Path) -> Re
     let dest_parent = dest.parent().context("invalid path")?;
     fs::create_dir_all(dest_parent).await?;
 
-    smol::unblock({
-        let uri = uri.to_string();
-        let dest = dest.to_path_buf();
-        let dest_filename = dest_filename.to_string();
-        let dest_parent = dest_parent.to_path_buf();
+    let dest = <Box<Path>>::from(dest);
+    let uri = <Box<str>>::from(uri);
 
-        move || {
-            let mut out = tempfile::Builder::new()
-                .prefix(&dest_filename)
-                .suffix(".part")
-                .rand_bytes(0)
-                .tempfile_in(dest_parent)?;
+    smol::unblock(move || {
+        let resp = minreq::post(uri.as_ref())
+            .with_header("User-Agent", USER_AGENT)
+            .with_timeout(timeout::GENERIC_DOWNLOAD)
+            .with_body(data)
+            .send()?;
 
-            let mut resp = minreq::post(&uri)
-                .with_header("User-Agent", USER_AGENT)
-                .with_timeout(timeout::GENERIC_DOWNLOAD)
-                .with_body(data)
-                .send_lazy()?;
-            if resp.status_code >= 400 {
-                bail!("error downloading {}: {}", uri, resp.status_code);
-            }
-
-            std::io::copy(&mut resp, &mut out)?;
-
-            out.persist(&dest)?;
-
-            Ok(())
+        if resp.status_code >= 400 {
+            bail!("error downloading {}: {}", uri, resp.status_code);
         }
+
+        std::fs::write(dest, resp.as_bytes())?;
+
+        Ok(())
     })
     .await
 }

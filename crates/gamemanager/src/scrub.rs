@@ -1,35 +1,32 @@
-use crate::{
-    config::Config,
-    games::{
-        game::Game,
-        import::{BUF_SIZE, SPLIT_SIZE, get_filename},
-        multi_disc::open_multi_disc_files,
-    },
-    state::LazyState,
-    util::{drive_state::DriveInfo, misc::OPTIMAL_THREADS, split_file_reader::SplitFileReader},
-};
 use anyhow::{Context, Result, anyhow};
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use smol::stream::Stream;
+use split_read::SplitFileReader;
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
+    fs,
     io::{BufWriter, Write},
 };
-use twbm_common::Status;
-use which_fs::FsKind;
+use twbm_common::config_contents::ConfigContents;
 
-fn perform_blocking(
+use crate::{
+    OPTIMAL_THREADS,
+    disc_stream::SplitFileDiscStream,
+    game::Game,
+    import::{BUF_SIZE, SPLIT_SIZE, get_filename, is_fat32},
+    multi_disc::open_multi_disc_files,
+};
+
+pub fn scrub_game(
     game: &Game,
-    config: &Config,
-    drive: &LazyState<DriveInfo>,
-    tx: &smol::channel::Sender<Status>,
-) -> Result<()> {
-    let disc_path = game.get_disc_path_blocking().context("disc not found")?;
+    config: &ConfigContents,
+    send_progress: impl Fn(String),
+) -> Result<String> {
+    let disc_path = game.get_disc_path().context("disc not found")?;
 
     let game_dir_name = game
         .path()
@@ -39,7 +36,7 @@ fn perform_blocking(
 
     let tmp_game_dir_name = format!("{game_dir_name} SCRUB");
     let tmp_game_dir = game.path().with_file_name(tmp_game_dir_name);
-    std::fs::create_dir(&tmp_game_dir)?;
+    fs::create_dir(&tmp_game_dir)?;
 
     let format_opts = FormatOptions::new(Format::Wbfs);
 
@@ -53,13 +50,7 @@ fn perform_blocking(
     };
 
     {
-        let is_fat32 = if let LazyState::Loaded(info) = drive {
-            info.fs_kind() == FsKind::Fat32
-        } else {
-            true
-        };
-
-        let must_split = is_fat32 || config.always_split();
+        let must_split = config.always_split || is_fat32(game.path());
         let split_size = must_split.then_some(SPLIT_SIZE);
 
         let disc_reader = {
@@ -70,24 +61,14 @@ fn perform_blocking(
 
             let disc_files = open_multi_disc_files(&disc_path)?;
             let disc_files_reader = SplitFileReader::new(disc_files)?;
-            DiscReader::new_stream(Box::new(disc_files_reader), &disc_opts)?
+            DiscReader::new_stream(Box::new(SplitFileDiscStream(disc_files_reader)), &disc_opts)?
         };
 
         let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
 
         let out_writer = SplitWriter::create(
             &tmp_game_dir,
-            |part| {
-                get_filename(
-                    game.id(),
-                    true,
-                    part,
-                    0,
-                    Format::Wbfs,
-                    Format::Iso,
-                    must_split,
-                )
-            },
+            |part| get_filename(game.id(), true, part, 0, "wbfs", "iso", must_split),
             split_size,
         )?;
         let mut out_writer = BufWriter::with_capacity(BUF_SIZE, out_writer);
@@ -99,8 +80,9 @@ fn perform_blocking(
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let _ = tx.try_send(Status::Progress(
-                        format!("Scrubbing {}  {progress_percentage:02}%", game.title()).into(),
+                    send_progress(format!(
+                        "Scrubbing {}  {progress_percentage:02}%",
+                        game.title()
                     ));
 
                     prev_percentage = progress_percentage;
@@ -120,26 +102,8 @@ fn perform_blocking(
         }
     }
 
-    std::fs::remove_dir_all(game.path())?;
-    std::fs::rename(tmp_game_dir, game.path())?;
+    fs::remove_dir_all(game.path())?;
+    fs::rename(tmp_game_dir, game.path())?;
 
-    Ok(())
-}
-
-pub fn scrub_game(
-    game: Game,
-    config: Config,
-    drive: LazyState<DriveInfo>,
-) -> impl Stream<Item = Status> {
-    let (tx, rx) = smol::channel::bounded(1);
-
-    let _ = std::thread::spawn(move || {
-        let exit = perform_blocking(&game, &config, &drive, &tx)
-            .map(|()| format!("Scrubbed {}", game.title()))
-            .into();
-
-        tx.send_blocking(exit).expect("Channel should be open");
-    });
-
-    rx
+    Ok(format!("Scrubbed {}", game.title()))
 }
