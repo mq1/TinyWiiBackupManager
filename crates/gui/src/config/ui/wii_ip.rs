@@ -10,7 +10,7 @@ use iced::{
 pub fn wii_ip(config: &Config) -> Element<'_, ConfigMessage> {
     row![
         "Wii IP →",
-        text_input("192.168.1.100", config.wii_ip())
+        text_input("192.168.1.100", &config.contents.wii_ip)
             .on_input(ConfigMessage::SetWiiIp)
             .width(150)
     ]

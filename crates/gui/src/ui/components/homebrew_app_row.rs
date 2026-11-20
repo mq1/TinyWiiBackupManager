@@ -47,7 +47,7 @@ pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
         text!("{} ({})", app.name(), app.version()),
         version_icon,
         space::horizontal(),
-        text(app.size_str()),
+        text!("{}", app.size().unwrap_or_default()),
         rule::vertical(1),
         row_button(
             Icon::Trash,

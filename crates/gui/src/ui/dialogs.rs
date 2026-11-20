@@ -1,15 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::{game::Game, import::sanitize_title, keep_valid_games},
-    message::Message,
-    util::fs::recursive_file_scan,
-};
+use crate::{message::Message, util::fs::recursive_file_scan};
 use iced::Task;
 use rfd::AsyncFileDialog;
-use smol::stream;
+use smol::unblock;
 use std::{ffi::OsStr, path::PathBuf};
+use twbm_gamemanager::{game::Game, import::sanitize_title, import_entry::keep_valid_games};
 use wii_disc_info::game_id::GameID;
 
 struct Filter<'a> {
@@ -170,8 +167,7 @@ pub fn make_pick_games_dialog_task(
     Task::perform(
         async move {
             let paths = pick_files(base, "Select Game(s) to import", IN_GAME_FILTER_WITH_ZIP).await;
-
-            keep_valid_games(stream::iter(paths), &existing_ids).await
+            unblock(move || keep_valid_games(paths, &existing_ids)).await
         },
         Message::PickedGames,
     )
@@ -186,9 +182,11 @@ pub fn make_pick_games_recursively_dialog_task(
             let res = pick_folder(base, "Select a directory containing game(s) to import").await;
 
             if let Some(path) = res {
-                let games = recursive_file_scan(path, IN_GAME_FILTER_WITH_ZIP.extensions);
-
-                keep_valid_games(games, &existing_ids).await
+                unblock(move || {
+                    let games = recursive_file_scan(&path, IN_GAME_FILTER_WITH_ZIP.extensions);
+                    keep_valid_games(games, &existing_ids)
+                })
+                .await
             } else {
                 Vec::new()
             }

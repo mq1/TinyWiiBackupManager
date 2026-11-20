@@ -24,7 +24,7 @@ const VIEW_AS_TABLE: DualToggleItem<'static, ConfigMessage> = DualToggleItem {
 
 pub fn view_as(config: &Config) -> Element<'_, ConfigMessage> {
     dual_toggle([
-        VIEW_AS_GRID.active(config.view_as() == ViewAs::Grid),
-        VIEW_AS_TABLE.active(config.view_as() == ViewAs::Table),
+        VIEW_AS_GRID.active(config.contents.view_as == ViewAs::Grid),
+        VIEW_AS_TABLE.active(config.contents.view_as == ViewAs::Table),
     ])
 }

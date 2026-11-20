@@ -4,11 +4,11 @@
 use crate::config::message::ConfigMessage;
 use anyhow::Result;
 use iced::{Task, futures::TryFutureExt};
-use nod::common::Format;
-use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::path::{Path, PathBuf};
-use strum_macros::{EnumIter, IntoStaticStr};
+use twbm_common::config_contents::{
+    ConfigContents, PreferredLanguage, SortBy, ThemePreference, TxtCodesSource, ViewAs,
+};
 
 pub mod message;
 pub mod ui;
@@ -17,58 +17,7 @@ pub mod update;
 #[derive(Debug, Clone, Default)]
 pub struct Config {
     path: PathBuf,
-    contents: ConfigContents,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigContents {
-    #[serde(default)]
-    always_split: bool,
-
-    #[serde(default)]
-    mount_point: PathBuf,
-
-    #[serde(default)]
-    remove_sources_apps: bool,
-
-    #[serde(default)]
-    remove_sources_games: bool,
-
-    #[serde(default)]
-    scrub_update_partition: bool,
-
-    #[serde(default)]
-    sort_by: SortBy,
-
-    #[serde(default)]
-    view_as: ViewAs,
-
-    #[serde(default = "yes")]
-    show_wii: bool,
-
-    #[serde(default = "yes")]
-    show_gc: bool,
-
-    #[serde(default = "default_wii_ip")]
-    wii_ip: String,
-
-    #[serde(default)]
-    txt_codes_source: TxtCodesSource,
-
-    #[serde(default)]
-    theme_preference: ThemePreference,
-
-    #[serde(with = "serde_format", default = "wbfs")]
-    wii_output_format: Format,
-
-    #[serde(with = "serde_format", default = "iso")]
-    gc_output_format: Format,
-
-    #[serde(default)]
-    known_drives: Vec<PathBuf>,
-
-    #[serde(default = "system_language")]
-    preferred_language: PreferredLanguage,
+    pub contents: ConfigContents,
 }
 
 impl Config {
@@ -80,10 +29,12 @@ impl Config {
             .ok()
             .and_then(|s| serde_json::from_str::<ConfigContents>(&s).ok())
             .map(|mut contents| async move {
-                if !contents.mount_point.as_os_str().is_empty()
-                    && fs::read_dir(&contents.mount_point).await.is_err()
+                // invalidate mount point if it doesn't exist anymore
+                if let Some(mount_point) = &contents.mount_point
+                    && (mount_point.as_os_str().is_empty()
+                        || fs::read_dir(mount_point).await.is_err())
                 {
-                    contents.mount_point = PathBuf::new();
+                    contents.mount_point = None;
                 }
 
                 contents
@@ -112,278 +63,14 @@ impl Config {
         )
     }
 
-    /// Returns true if the notification should be shown
     pub fn set_mount_point(&mut self, path: PathBuf) -> Task<ConfigMessage> {
-        self.contents.mount_point = path;
+        let is_new = self.contents.known_drives.insert(path.clone());
+        self.contents.mount_point = Some(path);
 
-        if self.contents.mount_point.as_os_str().is_empty() {
-            return self.write();
-        }
-
-        let new = self
-            .contents
-            .known_drives
-            .iter()
-            .all(|p| p != &self.contents.mount_point);
-
-        if new {
-            self.contents
-                .known_drives
-                .push(self.contents.mount_point.clone());
-
+        if is_new {
             Task::batch([self.write(), Task::done(ConfigMessage::NewMountPoint)])
         } else {
             self.write()
-        }
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn always_split(&self) -> bool {
-        self.contents.always_split
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn mount_point(&self) -> &Path {
-        &self.contents.mount_point
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn remove_sources_apps(&self) -> bool {
-        self.contents.remove_sources_apps
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn remove_sources_games(&self) -> bool {
-        self.contents.remove_sources_games
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn scrub_update_partition(&self) -> bool {
-        self.contents.scrub_update_partition
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn sort_by(&self) -> SortBy {
-        self.contents.sort_by
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn view_as(&self) -> ViewAs {
-        self.contents.view_as
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn show_wii(&self) -> bool {
-        self.contents.show_wii
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn show_gc(&self) -> bool {
-        self.contents.show_gc
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn wii_ip(&self) -> &str {
-        &self.contents.wii_ip
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn txt_codes_source(&self) -> TxtCodesSource {
-        self.contents.txt_codes_source
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn theme_preference(&self) -> ThemePreference {
-        self.contents.theme_preference
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn wii_output_format(&self) -> Format {
-        self.contents.wii_output_format
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn gc_output_format(&self) -> Format {
-        self.contents.gc_output_format
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn preferred_language(&self) -> PreferredLanguage {
-        self.contents.preferred_language
-    }
-}
-
-impl Default for ConfigContents {
-    fn default() -> Self {
-        Self {
-            always_split: false,
-            mount_point: PathBuf::new(),
-            remove_sources_apps: false,
-            remove_sources_games: false,
-            scrub_update_partition: false,
-            sort_by: SortBy::NameDescending,
-            view_as: ViewAs::Grid,
-            wii_ip: default_wii_ip(),
-            txt_codes_source: TxtCodesSource::WebArchive,
-            theme_preference: ThemePreference::System,
-            wii_output_format: Format::Wbfs,
-            gc_output_format: Format::Iso,
-            show_wii: true,
-            show_gc: true,
-            known_drives: Vec::new(),
-            preferred_language: system_language(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "snake_case")]
-pub enum SortBy {
-    #[default]
-    NameDescending,
-    NameAscending,
-    SizeDescending,
-    SizeAscending,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum ViewAs {
-    #[default]
-    Grid,
-    Table,
-}
-
-#[derive(
-    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, EnumIter, IntoStaticStr,
-)]
-#[serde(rename_all = "lowercase")]
-pub enum ThemePreference {
-    #[default]
-    System,
-    Light,
-    Dark,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "snake_case")]
-pub enum TxtCodesSource {
-    #[default]
-    WebArchive,
-    GameHacking,
-    Rc24,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, EnumIter, IntoStaticStr)]
-#[serde(rename_all = "lowercase")]
-pub enum PreferredLanguage {
-    English,
-    French,
-    German,
-    Spanish,
-    Italian,
-    Dutch,
-    Portuguese,
-    Swedish,
-    Danish,
-    Finnish,
-}
-
-fn system_language() -> PreferredLanguage {
-    let locale = sys_locale::get_locale();
-
-    match locale.as_ref().and_then(|l| l.get(..2)) {
-        Some("fr") => PreferredLanguage::French,
-        Some("de") => PreferredLanguage::German,
-        Some("es") => PreferredLanguage::Spanish,
-        Some("it") => PreferredLanguage::Italian,
-        Some("nl") => PreferredLanguage::Dutch,
-        Some("pt") => PreferredLanguage::Portuguese,
-        Some("sv") => PreferredLanguage::Swedish,
-        Some("da") => PreferredLanguage::Danish,
-        Some("fi") => PreferredLanguage::Finnish,
-        _ => PreferredLanguage::English,
-    }
-}
-
-impl PreferredLanguage {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            PreferredLanguage::English => "EN",
-            PreferredLanguage::French => "FR",
-            PreferredLanguage::German => "DE",
-            PreferredLanguage::Spanish => "ES",
-            PreferredLanguage::Italian => "IT",
-            PreferredLanguage::Dutch => "NL",
-            PreferredLanguage::Portuguese => "PT",
-            PreferredLanguage::Swedish => "SW",
-            PreferredLanguage::Danish => "DK",
-            PreferredLanguage::Finnish => "FI",
-        }
-    }
-}
-
-#[inline]
-fn default_wii_ip() -> String {
-    String::from("192.168.1.100")
-}
-
-#[inline]
-fn yes() -> bool {
-    true
-}
-
-#[inline]
-fn wbfs() -> Format {
-    Format::Wbfs
-}
-
-#[inline]
-fn iso() -> Format {
-    Format::Iso
-}
-
-mod serde_format {
-    use arrayvec::ArrayString;
-    use nod::common::Format;
-    use serde::Deserialize;
-
-    pub fn serialize<S>(format: &Format, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match format {
-            Format::Wbfs => serializer.serialize_str("wbfs"),
-            Format::Ciso => serializer.serialize_str("ciso"),
-            _ => serializer.serialize_str("iso"),
-        }
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Format, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = ArrayString::<4>::deserialize(deserializer)?;
-
-        match s.as_str() {
-            "wbfs" => Ok(Format::Wbfs),
-            "ciso" => Ok(Format::Ciso),
-            _ => Ok(Format::Iso),
         }
     }
 }

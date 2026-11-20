@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::config::{PreferredLanguage, SortBy, ThemePreference, TxtCodesSource, ViewAs};
-use nod::common::Format;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -19,8 +18,8 @@ pub enum ConfigMessage {
     SetScrubUpdatePartition(bool),
     SetTxtCodesSource(TxtCodesSource),
     SetThemePreference(ThemePreference),
-    SetWiiOutputFormat(Format),
-    SetGcOutputFormat(Format),
+    SetWiiOutputFormat(String),
+    SetGcOutputFormat(String),
     SetPreferredLanguage(PreferredLanguage),
     NewMountPoint,
     Write,

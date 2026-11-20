@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{Config, PreferredLanguage, ThemePreference, TxtCodesSource, message::ConfigMessage},
+    config::{Config, message::ConfigMessage},
     ui::components::my_group::my_group,
 };
 use iced::{
@@ -10,8 +10,8 @@ use iced::{
     widget::{Column, column, radio, scrollable},
 };
 use lucide_icons::Icon;
-use nod::common::Format;
 use strum::IntoEnumIterator;
+use twbm_common::config_contents::{PreferredLanguage, ThemePreference, TxtCodesSource};
 
 fn setting<T: Eq + Copy>(
     label: &'static str,
@@ -35,25 +35,22 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
             setting(
                 "Wii output format",
                 Icon::Disc3,
-                [
-                    (Format::Wbfs, "WBFS (Recommended)"),
-                    (Format::Iso, "ISO (very large)"),
-                ],
-                config.wii_output_format(),
-                ConfigMessage::SetWiiOutputFormat
+                [("wbfs", "WBFS (Recommended)"), ("iso", "ISO (very large)")],
+                &config.contents.wii_output_format,
+                |s| ConfigMessage::SetWiiOutputFormat(s.into())
             ),
             setting(
                 "GameCube output format",
                 Icon::Disc3,
                 [
-                    (Format::Iso, "ISO (Recommended)"),
+                    ("iso", "ISO (Recommended)"),
                     (
-                        Format::Ciso,
+                        "ciso",
                         "CISO (much smaller, slightly slower, less metadata in game loaders)"
                     ),
                 ],
-                config.gc_output_format(),
-                ConfigMessage::SetGcOutputFormat
+                &config.contents.gc_output_format,
+                |s| ConfigMessage::SetGcOutputFormat(s.into())
             ),
             setting(
                 "Split output",
@@ -62,7 +59,7 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
                     (false, "Only when needed (recommended)"),
                     (true, "Always 4GB-32KB"),
                 ],
-                config.always_split(),
+                config.contents.always_split,
                 ConfigMessage::SetAlwaysSplit
             ),
             setting(
@@ -75,21 +72,21 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
                         "Yes (saves some space; update partition is zeroed, but still there)"
                     ),
                 ],
-                config.scrub_update_partition(),
+                config.contents.scrub_update_partition,
                 ConfigMessage::SetScrubUpdatePartition
             ),
             setting(
                 "Delete sources when adding games",
                 Icon::Trash,
                 [(false, "No (recommended)"), (true, "Yes")],
-                config.remove_sources_games(),
+                config.contents.remove_sources_games,
                 ConfigMessage::SetRemoveSourcesGames
             ),
             setting(
                 "Delete sources when adding apps",
                 Icon::Trash,
                 [(false, "No (recommended)"), (true, "Yes")],
-                config.remove_sources_apps(),
+                config.contents.remove_sources_apps,
                 ConfigMessage::SetRemoveSourcesApps
             ),
             setting(
@@ -103,21 +100,21 @@ pub fn settings(config: &Config) -> Element<'_, ConfigMessage> {
                     (TxtCodesSource::GameHacking, "gamehacking.org (up to date)"),
                     (TxtCodesSource::Rc24, "codes.rc24.xyz"),
                 ],
-                config.txt_codes_source(),
+                config.contents.txt_codes_source,
                 ConfigMessage::SetTxtCodesSource
             ),
             setting(
                 "Theme",
                 Icon::SunMoon,
                 ThemePreference::iter().map(|l| (l, l.into())),
-                config.theme_preference(),
+                config.contents.theme_preference,
                 ConfigMessage::SetThemePreference
             ),
             setting(
                 "Preferred language for PAL covers",
                 Icon::ImageDown,
                 PreferredLanguage::iter().map(|l| (l, l.into())),
-                config.preferred_language(),
+                config.contents.preferred_language,
                 ConfigMessage::SetPreferredLanguage
             )
         ]

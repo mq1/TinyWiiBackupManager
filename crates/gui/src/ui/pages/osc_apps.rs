@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::ViewAs,
     message::Message,
     state::{AppState, LazyState},
     ui::{
@@ -18,13 +17,14 @@ use iced::{
     widget::{Column, Row, column, container, rule, scrollable},
 };
 use itertools::Itertools;
+use twbm_common::config_contents::ViewAs;
 
 pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
     match &state.osc_contents {
         LazyState::NotLoaded | LazyState::Loading => loading(),
         LazyState::Errored(e) => errored(e),
         LazyState::Loaded(apps) => {
-            let content: Element<'_, Message> = match state.config.view_as() {
+            let content: Element<'_, Message> = match state.config.contents.view_as {
                 ViewAs::Grid => apps
                     .iter()
                     .map(osc_app_card)

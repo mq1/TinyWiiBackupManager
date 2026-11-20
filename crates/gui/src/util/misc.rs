@@ -5,32 +5,8 @@ use anyhow::Result;
 use std::{
     fs::{self, File},
     path::PathBuf,
-    sync::LazyLock,
 };
 use zip::ZipArchive;
-
-pub struct OptimalThreads {
-    pub preloader: usize,
-    pub processor: usize,
-}
-
-pub static OPTIMAL_THREADS: LazyLock<OptimalThreads> = LazyLock::new(|| {
-    let cores = std::thread::available_parallelism().map_or(0, |n| n.get());
-
-    let preloader = match cores {
-        0 | 1 => 0,
-        2..=4 => 1,
-        5..=8 => 2,
-        _ => 4,
-    };
-
-    let processor = cores - preloader;
-
-    OptimalThreads {
-        preloader,
-        processor,
-    }
-});
 
 pub async fn unzip(src: impl Into<PathBuf>, dst: impl Into<PathBuf>) -> Result<()> {
     let src = src.into();

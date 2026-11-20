@@ -9,7 +9,7 @@ use iced::Element;
 use lucide_icons::Icon;
 
 fn sort_by_name(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
-    let current_sort_by = config.sort_by();
+    let current_sort_by = config.contents.sort_by;
 
     let icon = match current_sort_by {
         SortBy::NameDescending => Icon::ArrowUpAZ,
@@ -35,7 +35,7 @@ fn sort_by_name(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
 }
 
 fn sort_by_size(config: &Config) -> DualToggleItem<'static, ConfigMessage> {
-    let current_sort_by = config.sort_by();
+    let current_sort_by = config.contents.sort_by;
 
     let icon = match current_sort_by {
         SortBy::SizeDescending => Icon::ArrowUp01,

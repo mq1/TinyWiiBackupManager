@@ -27,7 +27,7 @@ pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
                     .wrapping(text::Wrapping::None)
                     .width(60),
                 space::horizontal(),
-                text(app.size_str()).wrapping(text::Wrapping::None)
+                text!("{}", app.size()).wrapping(text::Wrapping::None)
             ]
             .spacing(5),
             icon,

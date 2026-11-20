@@ -64,7 +64,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
                     .wrapping(text::Wrapping::None)
                     .width(60),
                 space::horizontal(),
-                text(app.size_str()).wrapping(text::Wrapping::None)
+                text!("{}", app.size().unwrap_or_default()).wrapping(text::Wrapping::None)
             ]
             .spacing(5),
             icon,

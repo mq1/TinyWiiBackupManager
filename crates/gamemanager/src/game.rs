@@ -1,13 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::fs::get_dir_size;
 use anyhow::{Context, Result, bail};
-use arrayvec::ArrayString;
-use iced::widget::image;
 use size::Size;
-use smol::fs;
-use std::fmt::Write;
+use std::fs::{self, File};
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -40,20 +36,19 @@ pub struct Game {
     path: Box<Path>,
     id: GameID,
     title: GameTitle,
-    size: u64,
-    size_str: ArrayString<10>,
+    size: Option<Size>,
     is_wii: bool,
-    cover: Option<image::Handle>,
+    cover: Option<Box<Path>>,
     search_term_lowercase: Box<str>,
     gametdb_url: Box<str>,
 }
 
 impl Game {
-    pub async fn try_from_path(path: impl Into<Box<Path>>, is_wii: bool) -> Result<Self> {
-        let path = path.into();
+    pub fn try_from_path(path: impl AsRef<Path>, is_wii: bool, data_dir: &Path) -> Result<Self> {
+        let path = path.as_ref();
 
         // Check if the path is a directory
-        if !fs::metadata(&path).await?.is_dir() {
+        if !fs::metadata(path)?.is_dir() {
             bail!("{} is not a directory", path.display());
         }
 
@@ -81,23 +76,28 @@ impl Game {
             None => GameTitle::FromFileName(title_raw.trim().into()),
         };
 
-        let size = get_dir_size(&path).await;
+        let size = fs_extra::dir::get_size(path).ok().map(Size::from_bytes);
 
-        let mut size_str = ArrayString::new();
-        let _ = write!(&mut size_str, "{}", Size::from_bytes(size));
-
-        let search_term_lowercase = format!("{}\0{}", title, id).to_lowercase().into_boxed_str();
+        let search_term_lowercase = format!("{title}\0{id}").to_lowercase().into_boxed_str();
 
         let gametdb_url = format!("https://www.gametdb.com/Wii/{id}").into_boxed_str();
 
+        let cover_path = data_dir
+            .join("covers")
+            .join(id.as_str())
+            .with_extension("png");
+
+        let cover = fs::exists(&cover_path)
+            .unwrap_or(false)
+            .then(|| cover_path.into_boxed_path());
+
         Ok(Self {
-            path,
+            path: path.into(),
             id,
             title,
             size,
-            size_str,
             is_wii,
-            cover: None,
+            cover,
             search_term_lowercase,
             gametdb_url,
         })
@@ -115,42 +115,17 @@ impl Game {
         .map(|filename| self.path.join(filename))
     }
 
-    pub async fn get_disc_path(&self) -> Option<PathBuf> {
-        for path in self.get_possible_disc_paths() {
-            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_file()) {
-                return Some(path);
-            }
-        }
-
-        None
-    }
-
-    pub fn get_disc_path_blocking(&self) -> Option<PathBuf> {
+    pub fn get_disc_path(&self) -> Option<PathBuf> {
         self.get_possible_disc_paths()
-            .find(|path| std::fs::metadata(path).is_ok_and(|meta| meta.is_file()))
-    }
-
-    pub fn load_cover_blocking(&mut self, data_dir: &Path) {
-        let cover_path = data_dir
-            .join("covers")
-            .join(self.id.as_str())
-            .with_extension("png");
-
-        self.cover = std::fs::read(cover_path)
-            .map(image::Handle::from_bytes)
-            .ok();
+            .find(|path| fs::metadata(path).is_ok_and(|meta| meta.is_file()))
     }
 
     pub fn matches_search(&self, search_term: &str) -> bool {
         self.search_term_lowercase.contains(search_term)
     }
 
-    pub fn size(&self) -> u64 {
+    pub fn size(&self) -> Option<Size> {
         self.size
-    }
-
-    pub fn size_str(&self) -> &str {
-        &self.size_str
     }
 
     pub fn title(&self) -> &str {
@@ -177,12 +152,30 @@ impl Game {
         &self.path
     }
 
-    pub fn cover(&self) -> Option<&image::Handle> {
-        self.cover.as_ref()
+    pub fn cover(&self) -> Option<&Path> {
+        self.cover.as_deref()
     }
 
     pub fn gametdb_url(&self) -> &str {
         &self.gametdb_url
+    }
+
+    pub fn reset_cover_path(&mut self, data_dir: &Path) {
+        let cover_path = data_dir
+            .join("covers")
+            .join(self.id.as_str())
+            .with_extension("png");
+
+        self.cover = fs::exists(&cover_path)
+            .unwrap_or(false)
+            .then(|| cover_path.into_boxed_path())
+    }
+
+    pub fn get_disc_info(&self) -> Result<wii_disc_info::Meta> {
+        let disc_path = self.get_disc_path().context("Disc not found")?;
+        let mut file = File::open(&disc_path)?;
+        let meta = wii_disc_info::Meta::read(&mut file)?;
+        Ok(meta)
     }
 }
 

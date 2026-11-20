@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{Config, PreferredLanguage},
+    config::Config,
     util::http::{download_file, download_file_with_fallback},
 };
 use anyhow::Result;
@@ -10,24 +10,35 @@ use itertools::Itertools;
 use smol::stream::{self, Stream, StreamExt};
 use std::{
     convert::identity,
+    fmt,
     path::{Path, PathBuf},
 };
-use strum_macros::Display;
+use twbm_common::config_contents::PreferredLanguage;
 use wii_disc_info::{RegionCode, game_id::GameID};
 
-#[derive(Debug, Clone, Copy, Display)]
+#[derive(Debug, Clone, Copy)]
 pub enum CoverType {
-    #[strum(serialize = "cover3D")]
     Cover3D,
-
-    #[strum(serialize = "cover")]
     Cover2D,
-
-    #[strum(serialize = "coverfull")]
     CoverFull,
-
-    #[strum(serialize = "disc")]
     Disc,
+}
+
+impl CoverType {
+    fn into_str(self) -> &'static str {
+        match self {
+            CoverType::Cover3D => "cover3D",
+            CoverType::Cover2D => "cover",
+            CoverType::CoverFull => "coverfull",
+            CoverType::Disc => "disc",
+        }
+    }
+}
+
+impl fmt::Display for CoverType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.into_str().fmt(f)
+    }
 }
 
 #[must_use]
@@ -38,22 +49,22 @@ fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
         RegionCode::Germany => "DE",
         RegionCode::USA => "US",
         RegionCode::France => "FR",
-        RegionCode::NetherlandsEuropeAlternateLanguages => preferred.as_str(),
+        RegionCode::NetherlandsEuropeAlternateLanguages => preferred.into_str(),
         RegionCode::Italy => "IT",
         RegionCode::Japan => "JA",
         RegionCode::Korea => "KO",
-        RegionCode::JapaneseImportToEuropeAustraliaAndOtherPALRegions => preferred.as_str(),
-        RegionCode::AmericanImportToEuropeAustraliaAndOtherPALRegions => preferred.as_str(),
+        RegionCode::JapaneseImportToEuropeAustraliaAndOtherPALRegions => preferred.into_str(),
+        RegionCode::AmericanImportToEuropeAustraliaAndOtherPALRegions => preferred.into_str(),
         RegionCode::JapaneseImportToUSAAndOtherNTSCRegions => "US",
-        RegionCode::EuropeAndOtherPALRegionsSuchAsAustralia => preferred.as_str(),
+        RegionCode::EuropeAndOtherPALRegionsSuchAsAustralia => preferred.into_str(),
         RegionCode::JapaneseVirtualConsoleImportToKorea => "KO",
         RegionCode::Russia => "RU",
         RegionCode::Spain => "ES",
         RegionCode::AmericanVirtualConsoleImportToKorea => "KO",
-        RegionCode::AustraliaEuropeAlternateLanguages => preferred.as_str(),
-        RegionCode::Scandinavia => preferred.as_str(),
+        RegionCode::AustraliaEuropeAlternateLanguages => preferred.into_str(),
+        RegionCode::Scandinavia => preferred.into_str(),
         RegionCode::RepublicOfChinaTaiwanHongKongMacau => "ZH",
-        RegionCode::EuropeAlternateLanguagesUSSpecialReleases => preferred.as_str(),
+        RegionCode::EuropeAlternateLanguagesUSSpecialReleases => preferred.into_str(),
         RegionCode::Unknown => "EN",
     }
 }
@@ -109,10 +120,15 @@ async fn download_all_covers(
 
     stream::iter(it)
         .then(|(game_id, (dir, cover_type))| async move {
-            download_cover(game_id, *cover_type, dir, config.preferred_language())
-                .await
-                .is_err()
-                .then_some(game_id)
+            download_cover(
+                game_id,
+                *cover_type,
+                dir,
+                config.contents.preferred_language,
+            )
+            .await
+            .is_err()
+            .then_some(game_id)
         })
         .filter_map(identity)
         .collect::<Vec<_>>()
@@ -123,11 +139,11 @@ pub async fn download_all_covers_for_usbloadergx(
     ids: impl IntoIterator<Item = GameID>,
     config: &Config,
 ) -> Vec<GameID> {
-    let covers_dir = config
-        .mount_point()
-        .join("apps")
-        .join("usbloader_gx")
-        .join("images");
+    let Some(mount_point) = config.contents.mount_point.as_deref() else {
+        return Vec::new();
+    };
+
+    let covers_dir = mount_point.join("apps").join("usbloader_gx").join("images");
 
     let pairs = [
         (covers_dir.clone(), CoverType::Cover3D),
@@ -143,7 +159,11 @@ pub async fn download_all_covers_for_wiiflow(
     ids: impl IntoIterator<Item = GameID>,
     config: &Config,
 ) -> Vec<GameID> {
-    let covers_dir = config.mount_point().join("wiiflow");
+    let Some(mount_point) = config.contents.mount_point.as_deref() else {
+        return Vec::new();
+    };
+
+    let covers_dir = mount_point.join("wiiflow");
 
     let pairs = [
         (covers_dir.join("boxcovers"), CoverType::CoverFull),

@@ -1,11 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::import::make_game_dir_name,
-    toolbox::{ToolboxGroup, ToolboxItem},
-};
-use anyhow::{Result, bail};
+use crate::toolbox::{ToolboxGroup, ToolboxItem};
+use anyhow::{Context, Result, bail};
 use lucide_icons::Icon;
 use smol::{
     fs::{self, DirEntry, File},
@@ -16,6 +13,7 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
+use twbm_gamemanager::import::make_game_dir_name;
 
 async fn scan_dir_for_discs(
     path: &Path,
@@ -212,23 +210,26 @@ pub const ALL: &[ToolboxGroup] = {
             label: "Normalize paths (makes the game directories' layouts consistent)",
             run_fn: |ctx| {
                 Box::pin(async move {
-                    stream::iter([
-                        ctx.config.mount_point().join("wbfs"),
-                        ctx.config.mount_point().join("games"),
-                    ])
-                    .then(|path| async move {
-                        if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
-                            adopt_orphaned_discs(&path).await?;
-                            readopt_parented_discs(&path).await?;
-                        }
+                    let mount_point = ctx
+                        .config
+                        .contents
+                        .mount_point
+                        .context("Invalid mount point")?;
 
-                        Ok(())
-                    })
-                    .collect::<Vec<_>>()
-                    .await
-                    .into_iter()
-                    .collect::<Result<Vec<_>, _>>()
-                    .map(|_| "Paths successfully normalized".to_string())
+                    stream::iter([mount_point.join("wbfs"), mount_point.join("games")])
+                        .then(|path| async move {
+                            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
+                                adopt_orphaned_discs(&path).await?;
+                                readopt_parented_discs(&path).await?;
+                            }
+
+                            Ok(())
+                        })
+                        .collect::<Vec<_>>()
+                        .await
+                        .into_iter()
+                        .collect::<Result<Vec<_>, _>>()
+                        .map(|_| "Paths successfully normalized".to_string())
                 })
             },
         }],

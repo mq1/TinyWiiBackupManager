@@ -1,0 +1,43 @@
+[package]
+name = "twbm-gamemanager"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description.workspace = true
+
+[features]
+# bundled compression libraries
+static-nod = [
+  "nod/compress-bzip2-static",
+  "nod/compress-lzma-static",
+  "nod/compress-zlib-static",
+  "nod/compress-zstd-static",
+]
+
+[dependencies]
+anyhow = { workspace = true }
+wii-disc-info = { workspace = true }
+itertools = { workspace = true }
+size = { workspace = true }
+zip = { workspace = true }
+twbm-idmap = { workspace = true }
+twbm-common = { path = "../common" }
+fs_extra = "1"
+which-fs = { workspace = true }
+split-write = "0.4"
+split-read = { path = "../split-read" }
+twbm-sha1list = { path = "../sha1list" }
+nod = { git = "https://github.com/wiidev/nod.git", branch = "fix-block-handling", default-features = false, features = [
+  "threading",
+  "compress-bzip2",
+  "compress-lzma",
+  "compress-zlib",
+  "compress-zstd",
+] }
+tempfile = "3"
+
+[lints]
+workspace = true

@@ -18,7 +18,7 @@ use lucide_icons::Icon;
 use which_fs::FsKind;
 
 fn fs_info(info: &DriveInfo) -> (bool, Icon, &'static str) {
-    match info.fs_kind() {
+    match info.fs_kind {
         FsKind::Fat32 => (
             true,
             Icon::Check,
@@ -79,14 +79,14 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
                 let content = column![
                     row![
                         fs_info_icon.widget(),
-                        text!("Filesystem: {}  ({})", info.fs_kind(), fs_info_comment)
+                        text!("Filesystem: {}  ({})", info.fs_kind, fs_info_comment)
                     ]
                     .spacing(5),
                     row![
                         allocation_granularity_icon.widget(),
                         text!(
                             "Allocation granularity: {}  ({})",
-                            info.allocation_granularity_str(),
+                            info.allocation_granularity,
                             allocation_granularity_comment
                         )
                     ]

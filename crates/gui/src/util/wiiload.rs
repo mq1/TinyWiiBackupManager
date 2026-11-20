@@ -4,9 +4,8 @@
 use anyhow::{Context, Result};
 use std::{
     borrow::Cow,
-    io::{Seek, Write},
+    io::{Cursor, Read, Seek},
 };
-use tempfile::tempfile;
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
 fn is_app_main_file(filename: &str) -> bool {
@@ -23,8 +22,8 @@ fn find_app_main_file(
         .map(Cow::into_owned)
 }
 
-pub fn rebuild_zip(in_file: std::fs::File) -> Result<(std::fs::File, Vec<String>)> {
-    let mut archive = ZipArchive::new(in_file)?;
+pub fn rebuild_zip<R: Read + Seek>(reader: &mut R) -> Result<(Vec<u8>, Vec<String>)> {
+    let mut archive = ZipArchive::new(reader)?;
 
     let options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::Deflated)
@@ -37,7 +36,7 @@ pub fn rebuild_zip(in_file: std::fs::File) -> Result<(std::fs::File, Vec<String>
 
     let (_, app_name) = app_dir.rsplit_once('/').context("Failed to get app name")?;
 
-    let mut writer = ZipWriter::new(tempfile()?);
+    let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
     let mut excluded_files = Vec::with_capacity(archive.len());
 
     for i in 0..archive.len() {
@@ -58,9 +57,7 @@ pub fn rebuild_zip(in_file: std::fs::File) -> Result<(std::fs::File, Vec<String>
         }
     }
 
-    let mut out_file = writer.finish()?;
-    out_file.flush()?;
-    out_file.rewind()?;
+    let data = writer.finish()?.into_inner();
 
-    Ok((out_file, excluded_files))
+    Ok((data, excluded_files))
 }

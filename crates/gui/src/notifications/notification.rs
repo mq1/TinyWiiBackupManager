@@ -1,15 +1,32 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use strum_macros::Display;
+use std::fmt;
 use time::OffsetDateTime;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NotificationLevel {
     Info,
     Warning,
     Error,
     Success,
+}
+
+impl NotificationLevel {
+    pub fn into_str(self) -> &'static str {
+        match self {
+            NotificationLevel::Info => "Info",
+            NotificationLevel::Warning => "Warning",
+            NotificationLevel::Error => "Error",
+            NotificationLevel::Success => "Success",
+        }
+    }
+}
+
+impl fmt::Display for NotificationLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.into_str().fmt(f)
+    }
 }
 
 #[derive(Debug, Clone)]

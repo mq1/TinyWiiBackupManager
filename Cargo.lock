@@ -7,9 +7,9 @@ name = "TinyWiiBackupManager"
 version = "6.2.0"
 dependencies = [
  "anyhow",
- "arrayvec",
  "directories",
  "fs4",
+ "fs_extra",
  "humantime",
  "iced",
  "iced_aw",
@@ -19,7 +19,6 @@ dependencies = [
  "lucide-icons",
  "minreq",
  "mundy",
- "nod",
  "open",
  "rfd",
  "semver",
@@ -28,15 +27,13 @@ dependencies = [
  "sevenz-rust2",
  "size",
  "smol",
- "split-write",
  "strum",
  "strum_macros",
- "sys-locale",
- "tempfile",
  "time",
  "twbm-common",
+ "twbm-gamemanager",
  "twbm-idmap",
- "twbm-sha1list",
+ "walkdir",
  "wgpu",
  "which-fs",
  "wii-disc-info",
@@ -158,9 +155,6 @@ name = "arrayvec"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "as-raw-xcb-connection"
@@ -2106,9 +2100,9 @@ dependencies = [
 
 [[package]]
 name = "lucide-icons"
-version = "1.73.0"
+version = "1.76.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c54114e039d68d862d3831acca8a658f091ff6d5600dcb0208cf3c339104a14f"
+checksum = "40f35f3da7281e838200822b35fff0254e7faf1895559ee7ebc38397170e7659"
 dependencies = [
  "iced",
 ]
@@ -3631,6 +3625,9 @@ name = "size"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c48f464f8e2766494cb2223d1683ff6801dd56f0d07298500f9c970de2571cf0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "skrifa"
@@ -3801,6 +3798,10 @@ checksum = "eda41003dc44290527a59b13432d4a0379379fa074b70174882adfbdfd917844"
 dependencies = [
  "bitflags 2.13.2",
 ]
+
+[[package]]
+name = "split-read"
+version = "6.2.0"
 
 [[package]]
 name = "split-write"
@@ -4114,6 +4115,32 @@ dependencies = [
 [[package]]
 name = "twbm-common"
 version = "6.2.0"
+dependencies = [
+ "serde",
+ "strum",
+ "strum_macros",
+ "sys-locale",
+]
+
+[[package]]
+name = "twbm-gamemanager"
+version = "6.2.0"
+dependencies = [
+ "anyhow",
+ "fs_extra",
+ "itertools 0.15.0",
+ "nod",
+ "size",
+ "split-read",
+ "split-write",
+ "tempfile",
+ "twbm-common",
+ "twbm-idmap",
+ "twbm-sha1list",
+ "which-fs",
+ "wii-disc-info",
+ "zip",
+]
 
 [[package]]
 name = "twbm-idmap"

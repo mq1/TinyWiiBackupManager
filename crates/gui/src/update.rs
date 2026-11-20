@@ -3,15 +3,15 @@
 
 use crate::{
     config::message::ConfigMessage,
-    games::{ImportEntry, convert::convert_game, scrub::scrub_game},
-    long_operation::message::LongOperationsMessage,
+    long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
     state::{AppState, LazyState},
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
-use twbm_common::Status;
+use smol::{channel::bounded, unblock};
+use twbm_gamemanager::{convert::convert_game, import_entry::ImportEntry, scrub::scrub_game};
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 
@@ -83,8 +83,8 @@ impl AppState {
                 self.config = config;
                 self.refresh_games_and_apps_task()
             }
-            Message::GotGames(games) => {
-                self.games = games;
+            Message::GotGames(game_manager) => {
+                self.game_manager = game_manager;
                 self.reload_all_covers();
                 self.download_ui_covers_task()
             }
@@ -178,7 +178,7 @@ impl AppState {
             }
             Message::ToggleAnimationState => {
                 if !matches!(self.long_operations.import, Status::Idle) {
-                    self.animation_state = !self.animation_state;
+                    self.animation_state.toggle();
                 }
 
                 Task::none()
@@ -253,9 +253,21 @@ impl AppState {
                 dialogs::init_file_dialog_task().then(dialogs::make_pick_in_out_dialogs_task)
             }
             Message::ConvertGame(disc_path, out_path) => {
-                Task::stream(convert_game(disc_path, out_path)).map(|op_state| {
-                    Message::LongOperations(LongOperationsMessage::SetConvert(op_state))
-                })
+                let (tx, rx) = bounded(1);
+
+                let _ = std::thread::spawn(move || {
+                    let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
+                    let _ = tx.send_blocking(
+                        match convert_game(&disc_path, &out_path, send_progress) {
+                            Ok(msg) => Status::Finished(msg),
+                            Err(e) => Status::Errored(e.to_string()),
+                        },
+                    );
+                });
+
+                Task::stream(rx)
+                    .map(LongOperationsMessage::SetConvert)
+                    .map(Message::LongOperations)
             }
             Message::GotUpdate(new_version) => {
                 self.new_version = Some(new_version);
@@ -263,10 +275,12 @@ impl AppState {
             }
             Message::TriggerImport => self.trigger_import_task(),
             Message::FileDropped(path) => match self.current_page {
-                Page::Games => Task::perform(ImportEntry::new(path), |res| match res {
-                    Ok(entry) => Message::PickedGames(vec![entry]),
-                    Err(e) => Message::Notify(e.into()),
-                }),
+                Page::Games => {
+                    Task::perform(unblock(move || ImportEntry::new(path)), |res| match res {
+                        Ok(entry) => Message::PickedGames(vec![entry]),
+                        Err(e) => Message::Notify(e.into()),
+                    })
+                }
                 Page::HomebrewApps => Task::done(Message::ImportHomebrewApps(vec![path])),
                 _ => Task::none(),
             },
@@ -276,11 +290,21 @@ impl AppState {
             }
             Message::Scrub(game) => {
                 self.current_modal = None;
+                let config = self.config.contents.clone();
 
-                Task::stream(scrub_game(game, self.config.clone(), self.drive.clone()))
-                    .map(|op_state| {
-                        Message::LongOperations(LongOperationsMessage::SetScrub(op_state))
-                    })
+                let (tx, rx) = bounded(1);
+
+                let _ = std::thread::spawn(move || {
+                    let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
+                    let _ = tx.send_blocking(match scrub_game(&game, &config, send_progress) {
+                        Ok(msg) => Status::Finished(msg),
+                        Err(e) => Status::Errored(e.to_string()),
+                    });
+                });
+
+                Task::stream(rx)
+                    .map(LongOperationsMessage::SetScrub)
+                    .map(Message::LongOperations)
                     .chain(Task::done(Message::RefreshGamesAndApps))
             }
         }

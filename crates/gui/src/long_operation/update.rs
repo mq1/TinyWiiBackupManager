@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::long_operation::{LongOperations, message::LongOperationsMessage};
+use crate::long_operation::{LongOperations, Status, message::LongOperationsMessage};
 use iced::Task;
-use twbm_common::Status;
 
 fn get_final_status(status: Status) -> Status {
     match status {

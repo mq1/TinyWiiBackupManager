@@ -11,11 +11,12 @@ use crate::{
 };
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
+use twbm_gamemanager::manager::GameManager;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);
 
-    if !matches!(state.games, LazyState::Loading)
+    if !matches!(state.game_manager, GameManager::Loading)
         && !matches!(state.homebrew, LazyState::Loading)
         && !matches!(state.drive, LazyState::Loading)
     {

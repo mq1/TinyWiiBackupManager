@@ -12,7 +12,7 @@ pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
     row![
         text!("{} ({})", app.name(), app.version()),
         space::horizontal(),
-        text(app.size_str()),
+        text!("{}", app.size()),
         rule::vertical(1),
         row_button(
             Icon::CloudDownload,

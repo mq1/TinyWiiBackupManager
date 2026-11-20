@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::game::Game,
     message::Message,
     ui::components::{my_card::my_card, row_button::row_button},
 };
@@ -14,6 +13,7 @@ use lucide_icons::{
     Icon,
     iced::{icon_box, icon_pointer},
 };
+use twbm_gamemanager::game::Game;
 
 pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![
@@ -28,7 +28,7 @@ pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
         ),
         text!("{} [{}]", game.title(), game.id()),
         space::horizontal(),
-        text(game.size_str()),
+        text!("{}", game.size().unwrap_or_default()),
         rule::vertical(1),
         row_button(
             Icon::Trash,

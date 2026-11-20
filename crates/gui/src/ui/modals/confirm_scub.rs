@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::game::Game,
     message::Message,
     ui::components::{
         my_button::{MyButtonKind, my_button},
@@ -13,6 +12,7 @@ use iced::{
     Element, Length,
     widget::{column, container, row, rule, space, text},
 };
+use twbm_gamemanager::game::Game;
 
 pub fn confirm_scrub(game: &Game) -> Element<'_, Message> {
     my_card(
