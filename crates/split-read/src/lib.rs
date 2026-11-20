@@ -56,7 +56,7 @@ impl SplitFileReader {
         self.total_size
     }
 
-    pub fn read_at(&mut self, buf: &mut [u8], mut offset: u64) -> io::Result<usize> {
+    pub fn read_at(&self, buf: &mut [u8], mut offset: u64) -> io::Result<usize> {
         if buf.is_empty() {
             return Ok(0);
         }
@@ -73,7 +73,7 @@ impl SplitFileReader {
         Err(io::ErrorKind::UnexpectedEof.into())
     }
 
-    pub fn read_exact_at(&mut self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
+    pub fn read_exact_at(&self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
         if buf.is_empty() {
             return Ok(());
         }
