@@ -16,6 +16,6 @@ impl DiscStream for SplitFileDiscStream {
 
     #[inline]
     fn stream_len(&mut self) -> io::Result<u64> {
-        self.0.stream_len()
+        Ok(self.0.total_size())
     }
 }

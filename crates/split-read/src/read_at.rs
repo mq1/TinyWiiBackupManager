@@ -3,12 +3,18 @@
 
 use std::{fs::File, io};
 
-pub trait ReadExactAt {
+pub trait ReadAt {
+    fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize>;
     fn read_exact_at(&self, buf: &mut [u8], offset: u64) -> io::Result<()>;
 }
 
 #[cfg(unix)]
-impl ReadExactAt for File {
+impl ReadAt for File {
+    #[inline]
+    fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
+        std::os::unix::fs::FileExt::read_at(self, buf, offset)
+    }
+
     #[inline]
     fn read_exact_at(&self, buf: &mut [u8], offset: u64) -> io::Result<()> {
         std::os::unix::fs::FileExt::read_exact_at(self, buf, offset)
@@ -16,7 +22,12 @@ impl ReadExactAt for File {
 }
 
 #[cfg(windows)]
-impl ReadExactAt for File {
+impl ReadAt for File {
+    #[inline]
+    fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
+        std::os::windows::fs::FileExt::seek_read(self, buf, offset)
+    }
+
     #[inline]
     fn read_exact_at(&self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
         while !buf.is_empty() {

@@ -16,7 +16,8 @@ use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
     fs::{self, File},
-    io::{self, BufWriter, Read, Write},
+    io::{self, BufRead, BufReader, BufWriter, Write},
+    iter::once,
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
@@ -29,31 +30,26 @@ use zip::ZipArchive;
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 pub const BUF_SIZE: usize = 4 * 1024 * 1024; // 4 MiB
 
-enum InputFile<'a> {
-    DiscPath(&'a Path),
-    Zip(File),
-}
+fn make_disc_file_reader(path: &Path) -> Result<SplitFileReader> {
+    let is_zip = path
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
 
-impl<'a> InputFile<'a> {
-    fn new(path: &'a Path) -> Result<Self> {
-        let is_zip = path
-            .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
+    let reader = if is_zip {
+        let mut f = File::open(path)?;
+        let mut zip = ZipArchive::new(&mut f)?;
+        let mut entry = zip.by_index(0)?;
 
-        let input_file = if is_zip {
-            let mut zip = ZipArchive::new(File::open(path)?)?;
-            let mut entry = zip.by_index(0)?;
+        let mut tmp = tempfile()?;
+        io::copy(&mut entry, &mut tmp)?;
 
-            let mut tmp = tempfile()?;
-            io::copy(&mut entry, &mut tmp)?;
+        SplitFileReader::new(once(tmp))?
+    } else {
+        let paths = open_multi_disc_files(path)?;
+        SplitFileReader::new(paths)?
+    };
 
-            Self::Zip(tmp)
-        } else {
-            Self::DiscPath(path)
-        };
-
-        Ok(input_file)
-    }
+    Ok(reader)
 }
 
 pub fn is_fat32(path: &Path) -> bool {
@@ -79,7 +75,7 @@ pub fn import_game(
 
     send_progress(format!("›  Opening {filename}"));
 
-    let input_file = InputFile::new(entry.path())?;
+    let disc_file_reader = make_disc_file_reader(entry.path())?;
 
     let must_split = entry.meta().is_wii() && (config.always_split || is_fat32(mount_point));
     let split_size = must_split.then_some(SPLIT_SIZE);
@@ -124,39 +120,31 @@ pub fn import_game(
     if out_format_str.eq_ignore_ascii_case(entry.meta().format().as_str()) {
         // if the input is already in the right format, just copy it
 
-        let mut files = match input_file {
-            InputFile::DiscPath(path) => open_multi_disc_files(path)?,
-            InputFile::Zip(file) => std::iter::once(file).collect(),
-        };
-
-        let mut to_write = 0;
-        for file in &files {
-            to_write += file.metadata()?.len();
-        }
-
+        let total_size = disc_file_reader.total_size();
+        let mut reader = BufReader::with_capacity(BUF_SIZE, disc_file_reader);
         let mut written = 0;
         let mut prev_percentage = 100;
-        let mut buf = vec![0; BUF_SIZE];
 
-        for file in &mut files {
-            loop {
-                let n = file.read(&mut buf)?;
-                if n == 0 {
-                    break;
-                }
+        loop {
+            let buf = reader.fill_buf()?;
+            let buf_len = buf.len();
+            if buf_len == 0 {
+                break;
+            }
 
-                out_writer.write_all(&buf[..n])?;
-                written += n as u64;
+            out_writer.write_all(buf)?;
 
-                let progress_percentage = written * 100 / to_write;
-                if progress_percentage != prev_percentage {
-                    send_progress(format!(
-                        "⤓  Importing {}  {progress_percentage:02}%",
-                        entry.meta().game_title()
-                    ));
+            reader.consume(buf_len);
+            written += buf_len as u64;
 
-                    prev_percentage = progress_percentage;
-                }
+            let progress_percentage = written * 100 / total_size;
+            if progress_percentage != prev_percentage {
+                send_progress(format!(
+                    "⤓  Importing {}  {progress_percentage:02}%",
+                    entry.meta().game_title()
+                ));
+
+                prev_percentage = progress_percentage;
             }
         }
 
@@ -168,15 +156,8 @@ pub fn import_game(
                 ..Default::default()
             };
 
-            let disc_files_reader = match input_file {
-                InputFile::DiscPath(path) => {
-                    let disc_files = open_multi_disc_files(path)?;
-                    SplitFileReader::new(disc_files)?
-                }
-                InputFile::Zip(file) => SplitFileReader::new(std::iter::once(file))?,
-            };
-
-            DiscReader::new_stream(Box::new(SplitFileDiscStream(disc_files_reader)), &disc_opts)?
+            let stream = SplitFileDiscStream(disc_file_reader);
+            DiscReader::new_stream(Box::new(stream), &disc_opts)?
         };
 
         let mut out_writer = BufWriter::with_capacity(BUF_SIZE, out_writer);
