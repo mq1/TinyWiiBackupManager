@@ -7,7 +7,7 @@ use iced::{
     widget::{row, space, text},
 };
 use lucide_icons::Icon;
-use twbm_gamemanager::import_entry::ImportEntry;
+use twbm_games::import_entry::ImportEntry;
 
 pub fn queued_import_row((i, entry): (usize, &ImportEntry)) -> Element<'_, Message> {
     row![

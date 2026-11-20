@@ -13,7 +13,7 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
-use twbm_gamemanager::import::make_game_dir_name;
+use twbm_games::import::make_game_dir_name;
 
 async fn scan_dir_for_discs(
     path: &Path,

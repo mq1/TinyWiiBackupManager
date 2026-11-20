@@ -18,7 +18,7 @@ use iced::{
     widget::{row, space, tooltip},
 };
 use lucide_icons::Icon;
-use twbm_gamemanager::manager::GameList;
+use twbm_games::manager::GameList;
 
 pub fn games_titlebar<'a>(games: &'a GameList, state: &'a AppState) -> Element<'a, Message> {
     row![

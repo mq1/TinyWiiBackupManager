@@ -31,7 +31,7 @@ dependencies = [
  "strum_macros",
  "time",
  "twbm-common",
- "twbm-gamemanager",
+ "twbm-games",
  "twbm-idmap",
  "walkdir",
  "wgpu",
@@ -4123,7 +4123,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "twbm-gamemanager"
+name = "twbm-games"
 version = "6.2.0"
 dependencies = [
  "anyhow",

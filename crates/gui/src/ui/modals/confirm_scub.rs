@@ -12,7 +12,7 @@ use iced::{
     Element, Length,
     widget::{column, container, row, rule, space, text},
 };
-use twbm_gamemanager::game::Game;
+use twbm_games::game::Game;
 
 pub fn confirm_scrub(game: &Game) -> Element<'_, Message> {
     my_card(

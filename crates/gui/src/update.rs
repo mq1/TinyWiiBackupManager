@@ -11,7 +11,7 @@ use crate::{
 };
 use iced::Task;
 use smol::{channel::bounded, unblock};
-use twbm_gamemanager::{convert::convert_game, import_entry::ImportEntry, scrub::scrub_game};
+use twbm_games::{convert::convert_game, import_entry::ImportEntry, scrub::scrub_game};
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 

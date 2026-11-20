@@ -2,7 +2,7 @@
 resolver = "3"
 members = [
   "crates/common",
-  "crates/gamemanager",
+  "crates/games",
   "crates/gui",
   "crates/idmap",
   "crates/sha1list",

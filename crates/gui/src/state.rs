@@ -18,7 +18,7 @@ use iced::{
 use semver::Version;
 use std::path::Path;
 use twbm_common::config_contents::ThemePreference;
-use twbm_gamemanager::{import_entry::ImportEntry, manager::GameManager};
+use twbm_games::{import_entry::ImportEntry, manager::GameManager};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]

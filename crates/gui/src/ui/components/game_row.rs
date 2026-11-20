@@ -13,7 +13,7 @@ use lucide_icons::{
     Icon,
     iced::{icon_box, icon_pointer},
 };
-use twbm_gamemanager::game::Game;
+use twbm_games::game::Game;
 
 pub fn game_row(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     row![

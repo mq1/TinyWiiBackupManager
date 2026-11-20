@@ -15,7 +15,7 @@ use crate::{
 
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
-use twbm_gamemanager::{game::Game, import_entry::ImportEntry, manager::GameManager};
+use twbm_games::{game::Game, import_entry::ImportEntry, manager::GameManager};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]

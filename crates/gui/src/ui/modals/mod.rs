@@ -3,7 +3,7 @@
 
 use crate::{homebrew::homebrew_app::HomebrewApp, osc::osc_app::OscApp};
 use std::path::PathBuf;
-use twbm_gamemanager::game::Game;
+use twbm_games::game::Game;
 
 pub mod confirm_scub;
 pub mod delete_dir;

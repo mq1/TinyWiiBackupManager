@@ -15,15 +15,15 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [features]
-default = ["native-tls", "twbm-gamemanager/static-nod"]
+default = ["native-tls", "twbm-games/static-nod"]
 
 native-tls = ["minreq/https-native-tls"]    # uses system tls
 bundled-tls = ["minreq/https-rustls-probe"] # uses bundled tls + os certificates
 
-dist-appimage = ["bundled-tls", "twbm-gamemanager/static-nod"]
+dist-appimage = ["bundled-tls", "twbm-games/static-nod"]
 dist-flatpak = ["native-tls"]
-dist-windows = ["native-tls", "twbm-gamemanager/static-nod"]
-dist-macos = ["native-tls", "twbm-gamemanager/static-nod"]
+dist-windows = ["native-tls", "twbm-games/static-nod"]
+dist-macos = ["native-tls", "twbm-games/static-nod"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -52,7 +52,7 @@ which-fs = { workspace = true }
 open = "5"
 wii-disc-info = { workspace = true }
 twbm-common = { path = "../common" }
-twbm-gamemanager = { path = "../gamemanager" }
+twbm-games = { path = "../games" }
 twbm-idmap = { workspace = true }
 itertools = { workspace = true }
 zip = { workspace = true }

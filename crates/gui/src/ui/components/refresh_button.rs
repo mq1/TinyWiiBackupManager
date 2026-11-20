@@ -11,7 +11,7 @@ use crate::{
 };
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
-use twbm_gamemanager::manager::GameManager;
+use twbm_games::manager::GameManager;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);

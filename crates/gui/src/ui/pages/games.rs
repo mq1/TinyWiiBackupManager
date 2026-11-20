@@ -19,7 +19,7 @@ use iced::{
 };
 use itertools::Itertools;
 use twbm_common::config_contents::ViewAs;
-use twbm_gamemanager::manager::GameManager;
+use twbm_games::manager::GameManager;
 
 pub fn games(state: &AppState) -> Element<'_, Message> {
     if state.config.contents.mount_point.is_none() {

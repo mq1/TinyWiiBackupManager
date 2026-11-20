@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use twbm_gamemanager::manager::GameManager;
+use twbm_games::manager::GameManager;
 
 use crate::{
     state::{AppState, LazyState},

@@ -3,7 +3,7 @@
 
 use crate::{message::Message, ui::components::search_bar::search_bar};
 use iced::Element;
-use twbm_gamemanager::manager::GameList;
+use twbm_games::manager::GameList;
 
 pub fn game_search(games: &GameList) -> Element<'_, Message> {
     search_bar(

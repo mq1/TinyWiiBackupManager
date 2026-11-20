@@ -6,7 +6,7 @@ use iced::{
     Element, Length,
     widget::{checkbox, container, row, rule, text, tooltip},
 };
-use twbm_gamemanager::manager::GameList;
+use twbm_games::manager::GameList;
 
 fn filter<'a, T>(label: &'a str, desc: &'a str, active: bool, on_toggle: T) -> Element<'a, Message>
 where

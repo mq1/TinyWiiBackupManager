@@ -27,7 +27,7 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
-use twbm_gamemanager::{
+use twbm_games::{
     calc_sha1::calc_sha1, export::export_game, game::Game,
     has_update_partition::has_update_partition, import::import_game, manager::GameManager,
 };

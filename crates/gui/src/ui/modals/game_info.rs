@@ -19,7 +19,7 @@ use lucide_icons::{
     Icon,
     iced::{icon_file_question, icon_gamepad, icon_globe, icon_notebook_pen, icon_pin, icon_tag},
 };
-use twbm_gamemanager::game::Game;
+use twbm_games::game::Game;
 
 pub fn game_info<'a>(
     game: &'a Game,

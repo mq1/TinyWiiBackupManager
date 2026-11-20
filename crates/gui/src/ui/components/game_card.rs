@@ -11,7 +11,7 @@ use iced::{
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
-use twbm_gamemanager::game::Game;
+use twbm_games::game::Game;
 
 pub fn game_card(game: &Game, is_exporting: bool) -> Element<'_, Message> {
     let cover: Element<'_, Message> = match game.cover() {
