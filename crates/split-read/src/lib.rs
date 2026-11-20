@@ -29,7 +29,8 @@ pub struct SplitFileReader {
 
 impl SplitFileReader {
     pub fn new(files: impl IntoIterator<Item = File>) -> io::Result<Self> {
-        let mut parts = Vec::new();
+        let files = files.into_iter();
+        let mut parts = Vec::with_capacity(files.size_hint().0);
         let mut stream_len = 0;
 
         for file in files {
