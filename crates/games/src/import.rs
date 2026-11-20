@@ -11,13 +11,12 @@ use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use split_read::SplitFileReader;
+use split_read::{SharedSplitFileReader, SplitFileReader};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
     fs::{self, File},
     io::{self, BufRead, BufReader, BufWriter, Write},
-    iter::once,
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
@@ -30,12 +29,12 @@ use zip::ZipArchive;
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 pub const BUF_SIZE: usize = 4 * 1024 * 1024; // 4 MiB
 
-fn make_disc_file_reader(path: &Path) -> Result<SplitFileReader> {
+fn get_disc_files(path: &Path) -> Result<Vec<File>> {
     let is_zip = path
         .extension()
         .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
 
-    let reader = if is_zip {
+    if is_zip {
         let mut f = File::open(path)?;
         let mut zip = ZipArchive::new(&mut f)?;
         let mut entry = zip.by_index(0)?;
@@ -43,13 +42,10 @@ fn make_disc_file_reader(path: &Path) -> Result<SplitFileReader> {
         let mut tmp = tempfile()?;
         io::copy(&mut entry, &mut tmp)?;
 
-        SplitFileReader::new(once(tmp))?
+        Ok(vec![tmp])
     } else {
-        let paths = open_multi_disc_files(path)?;
-        SplitFileReader::new(paths)?
-    };
-
-    Ok(reader)
+        open_multi_disc_files(path)
+    }
 }
 
 pub fn is_fat32(path: &Path) -> bool {
@@ -75,7 +71,7 @@ pub fn import_game(
 
     send_progress(format!("›  Opening {filename}"));
 
-    let disc_file_reader = make_disc_file_reader(entry.path())?;
+    let disc_files = get_disc_files(entry.path())?;
 
     let must_split = entry.meta().is_wii() && (config.always_split || is_fat32(mount_point));
     let split_size = must_split.then_some(SPLIT_SIZE);
@@ -120,6 +116,7 @@ pub fn import_game(
     if out_format_str.eq_ignore_ascii_case(entry.meta().format().as_str()) {
         // if the input is already in the right format, just copy it
 
+        let disc_file_reader = SplitFileReader::new(disc_files)?;
         let total_size = disc_file_reader.total_size();
         let mut reader = BufReader::with_capacity(BUF_SIZE, disc_file_reader);
         let mut written = 0;
@@ -156,6 +153,7 @@ pub fn import_game(
                 ..Default::default()
             };
 
+            let disc_file_reader = SharedSplitFileReader::new(disc_files)?;
             let stream = SplitFileDiscStream(disc_file_reader);
             DiscReader::new_stream(Box::new(stream), &disc_opts)?
         };

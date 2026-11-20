@@ -4,7 +4,7 @@ use nod::{
     read::{DiscOptions, DiscReader},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use split_read::SplitFileReader;
+use split_read::SharedSplitFileReader;
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -60,7 +60,7 @@ pub fn scrub_game(
             };
 
             let disc_files = open_multi_disc_files(&disc_path)?;
-            let disc_files_reader = SplitFileReader::new(disc_files)?;
+            let disc_files_reader = SharedSplitFileReader::new(disc_files)?;
             DiscReader::new_stream(Box::new(SplitFileDiscStream(disc_files_reader)), &disc_opts)?
         };
 

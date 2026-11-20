@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nod::read::DiscStream;
-use split_read::SplitFileReader;
+use split_read::SharedSplitFileReader;
 use std::io;
 
 #[derive(Debug, Clone)]
-pub struct SplitFileDiscStream(pub SplitFileReader);
+pub struct SplitFileDiscStream(pub SharedSplitFileReader);
 
 impl DiscStream for SplitFileDiscStream {
     #[inline]
