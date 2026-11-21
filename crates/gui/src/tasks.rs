@@ -166,12 +166,19 @@ impl AppState {
             let (tx, rx) = bounded(1);
             let config = self.config.contents.clone();
 
+            let is_fat32 = match &self.drive {
+                DriveInfoState::Loaded(info) => info.is_fat32(),
+                _ => true,
+            };
+
             let _ = std::thread::spawn(move || {
                 let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
-                let _ = tx.send_blocking(match import_game(&entry, &config, send_progress) {
-                    Ok(msg) => Status::Finished(msg),
-                    Err(e) => Status::Errored(e.to_string()),
-                });
+                let _ = tx.send_blocking(
+                    match import_game(&entry, &config, is_fat32, send_progress) {
+                        Ok(msg) => Status::Finished(msg),
+                        Err(e) => Status::Errored(e.to_string()),
+                    },
+                );
             });
 
             Task::stream(rx)

@@ -4147,7 +4147,6 @@ dependencies = [
  "twbm-common",
  "twbm-idmap",
  "twbm-sha1list",
- "which-fs",
  "wii-disc-info",
  "zip",
 ]

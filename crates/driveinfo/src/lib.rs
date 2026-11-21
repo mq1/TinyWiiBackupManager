@@ -6,7 +6,7 @@ use size::Size;
 use std::path::Path;
 use which_fs::FsKind;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct DriveInfo {
     pub used_size: Size,
     pub total_size: Size,
@@ -17,6 +17,10 @@ pub struct DriveInfo {
 }
 
 impl DriveInfo {
+    pub fn is_fat32(&self) -> bool {
+        self.fs_kind == FsKind::Fat32
+    }
+
     pub fn fs_tier(&self) -> i8 {
         match self.fs_kind {
             FsKind::Unknown => -1,

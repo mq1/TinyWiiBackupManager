@@ -22,7 +22,6 @@ use std::{
 };
 use tempfile::tempfile;
 use twbm_common::config_contents::ConfigContents;
-use which_fs::FsKind;
 use wii_disc_info::game_id::GameID;
 use zip::ZipArchive;
 
@@ -48,17 +47,10 @@ fn get_disc_files(path: &Path) -> Result<Vec<File>> {
     }
 }
 
-pub fn is_fat32(path: &Path) -> bool {
-    match which_fs::FsKind::try_from_path(path) {
-        Ok(FsKind::Fat32) => true,
-        Ok(_) => false,
-        Err(_) => true, // just in case
-    }
-}
-
 pub fn import_game(
     entry: &ImportEntry,
     config: &ConfigContents,
+    is_fat32: bool,
     send_progress: impl Fn(String),
 ) -> Result<String> {
     let filename = entry
@@ -73,7 +65,7 @@ pub fn import_game(
 
     let disc_files = get_disc_files(entry.path())?;
 
-    let must_split = entry.meta().is_wii() && (config.always_split || is_fat32(mount_point));
+    let must_split = entry.meta().is_wii() && (config.always_split || is_fat32);
     let split_size = must_split.then_some(SPLIT_SIZE);
 
     let parent_dir_name = if entry.meta().is_wii() {

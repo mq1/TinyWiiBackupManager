@@ -10,8 +10,8 @@ description.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-which-fs = { workspace = true }
 size = { workspace = true }
+which-fs = "0.2"
 fs4 = { version = "1", default-features = false }
 fs_extra = { workspace = true }
 

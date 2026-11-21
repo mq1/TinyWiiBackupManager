@@ -11,6 +11,7 @@ use crate::{
 };
 use iced::Task;
 use smol::{channel::bounded, unblock};
+use twbm_driveinfo::DriveInfoState;
 use twbm_games::{convert::convert_game, import_entry::ImportEntry, scrub::scrub_game};
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
@@ -292,14 +293,21 @@ impl AppState {
                 self.current_modal = None;
                 let config = self.config.contents.clone();
 
+                let is_fat32 = match &self.drive {
+                    DriveInfoState::Loaded(info) => info.is_fat32(),
+                    _ => true,
+                };
+
                 let (tx, rx) = bounded(1);
 
                 let _ = std::thread::spawn(move || {
                     let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
-                    let _ = tx.send_blocking(match scrub_game(&game, &config, send_progress) {
-                        Ok(msg) => Status::Finished(msg),
-                        Err(e) => Status::Errored(e.to_string()),
-                    });
+                    let _ = tx.send_blocking(
+                        match scrub_game(&game, &config, is_fat32, send_progress) {
+                            Ok(msg) => Status::Finished(msg),
+                            Err(e) => Status::Errored(e.to_string()),
+                        },
+                    );
                 });
 
                 Task::stream(rx)

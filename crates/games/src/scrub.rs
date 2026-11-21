@@ -17,13 +17,14 @@ use crate::{
     OPTIMAL_THREADS,
     disc_stream::SplitFileDiscStream,
     game::Game,
-    import::{BUF_SIZE, SPLIT_SIZE, get_filename, is_fat32},
+    import::{BUF_SIZE, SPLIT_SIZE, get_filename},
     multi_disc::open_multi_disc_files,
 };
 
 pub fn scrub_game(
     game: &Game,
     config: &ConfigContents,
+    is_fat32: bool,
     send_progress: impl Fn(String),
 ) -> Result<String> {
     let disc_path = game.get_disc_path().context("disc not found")?;
@@ -50,7 +51,7 @@ pub fn scrub_game(
     };
 
     {
-        let must_split = config.always_split || is_fat32(game.path());
+        let must_split = config.always_split || is_fat32;
         let split_size = must_split.then_some(SPLIT_SIZE);
 
         let disc_reader = {

@@ -29,7 +29,6 @@ size = { version = "0.6", features = ["serde"] }
 zip = { version = "9", default-features = false, features = [
   "deflate-flate2-zlib-rs",
 ] }
-which-fs = "0.2"
 twbm-idmap = { path = "crates/idmap", features = [
   "ascii-titles",
   "gamehacking",
