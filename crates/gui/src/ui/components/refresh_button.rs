@@ -11,6 +11,7 @@ use crate::{
 };
 use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
+use twbm_driveinfo::DriveInfoState;
 use twbm_games::manager::GameManager;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
@@ -18,7 +19,7 @@ pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
 
     if !matches!(state.game_manager, GameManager::Loading)
         && !matches!(state.homebrew, LazyState::Loading)
-        && !matches!(state.drive, LazyState::Loading)
+        && !matches!(state.drive, DriveInfoState::Loading)
     {
         refresh_btn = refresh_btn.on_press(Message::RefreshGamesAndApps);
     }

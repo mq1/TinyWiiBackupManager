@@ -1,0 +1,19 @@
+[package]
+name = "twbm-driveinfo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+which-fs = { workspace = true }
+size = { workspace = true }
+fs4 = { version = "1", default-features = false }
+fs_extra = { workspace = true }
+
+[lints]
+workspace = true

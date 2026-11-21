@@ -3,33 +3,32 @@
 
 use crate::{
     message::Message,
-    state::{AppState, LazyState},
+    state::AppState,
     ui::components::{
         my_group::my_group,
         my_link::{MyLink, my_link},
     },
-    util::drive_state::DriveInfo,
 };
 use iced::{
     Element,
     widget::{column, row, text},
 };
 use lucide_icons::Icon;
-use which_fs::FsKind;
+use twbm_driveinfo::{DriveInfo, DriveInfoState};
 
 fn fs_info(info: &DriveInfo) -> (bool, Icon, &'static str) {
-    match info.fs_kind {
-        FsKind::Fat32 => (
+    match info.fs_tier() {
+        -1 => (false, Icon::TriangleAlert, "unknown support"),
+        1 => (
             true,
             Icon::Check,
             "optimal choice for game backups and homebrew apps",
         ),
-        FsKind::Ntfs | FsKind::ExFat => (
+        2 => (
             false,
             Icon::TriangleAlert,
             "limited support for game backups and homebrew apps",
         ),
-        FsKind::Unknown => (false, Icon::TriangleAlert, "unknown support"),
         _ => (
             false,
             Icon::TriangleAlert,
@@ -56,15 +55,15 @@ fn drive_formatting_guide_link() -> MyLink<&'static str, &'static str> {
 pub fn drive_info(state: &AppState) -> Element<'_, Message> {
     let (content, top_right_content): (Element<'_, Message>, Element<'_, Message>) =
         match &state.drive {
-            LazyState::NotLoaded | LazyState::Loading => (
+            DriveInfoState::Loading => (
                 text("Loading...").into(),
                 None::<Element<'_, Message>>.into(),
             ),
-            LazyState::Errored(msg) => (
+            DriveInfoState::Errored(msg) => (
                 text(msg.as_str()).into(),
                 None::<Element<'_, Message>>.into(),
             ),
-            LazyState::Loaded(info) => {
+            DriveInfoState::Loaded(info) => {
                 let (optimal_fs_info, fs_info_icon, fs_info_comment) = fs_info(info);
                 let (
                     optimal_allocation_granularity,

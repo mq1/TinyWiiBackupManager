@@ -8,7 +8,6 @@ version = "6.2.0"
 dependencies = [
  "anyhow",
  "directories",
- "fs4",
  "fs_extra",
  "humantime",
  "iced",
@@ -31,11 +30,11 @@ dependencies = [
  "strum_macros",
  "time",
  "twbm-common",
+ "twbm-driveinfo",
  "twbm-games",
  "twbm-idmap",
  "walkdir",
  "wgpu",
- "which-fs",
  "wii-disc-info",
  "wiiload",
  "winresource",
@@ -4120,6 +4119,17 @@ dependencies = [
  "strum",
  "strum_macros",
  "sys-locale",
+]
+
+[[package]]
+name = "twbm-driveinfo"
+version = "6.2.0"
+dependencies = [
+ "anyhow",
+ "fs4",
+ "fs_extra",
+ "size",
+ "which-fs",
 ]
 
 [[package]]

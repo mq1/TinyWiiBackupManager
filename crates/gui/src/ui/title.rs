@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use twbm_driveinfo::DriveInfoState;
 use twbm_games::manager::GameManager;
 
 use crate::{
@@ -22,7 +23,7 @@ pub fn title(state: &AppState) -> String {
     let label = mount_point.file_name().unwrap_or(mount_point.as_os_str());
     write!(&mut s, "{}", label.display()).unwrap();
 
-    if let LazyState::Loaded(info) = &state.drive {
+    if let DriveInfoState::Loaded(info) = &state.drive {
         write!(&mut s, "  ({}/{})", info.used_size, info.total_size).unwrap();
     }
 
@@ -32,14 +33,14 @@ pub fn title(state: &AppState) -> String {
     match state.current_page {
         Page::Games if let GameManager::Loaded(games) = &state.game_manager => {
             write!(&mut s, "  (x{}", games.count()).unwrap();
-            if let LazyState::Loaded(info) = &state.drive {
+            if let DriveInfoState::Loaded(info) = &state.drive {
                 write!(&mut s, "  ~{}", info.games_size).unwrap();
             }
             s.push(')');
         }
         Page::HomebrewApps if let LazyState::Loaded(apps) = &state.homebrew => {
             write!(&mut s, "  (x{}", apps.count()).unwrap();
-            if let LazyState::Loaded(info) = &state.drive {
+            if let DriveInfoState::Loaded(info) = &state.drive {
                 write!(&mut s, "  ~{}", info.apps_size).unwrap();
             }
             s.push(')');

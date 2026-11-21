@@ -47,12 +47,11 @@ serde = { workspace = true }
 serde_json = "1"
 directories = "6"
 size = { workspace = true }
-fs4 = { version = "1", default-features = false }
-which-fs = { workspace = true }
 open = "5"
 wii-disc-info = { workspace = true }
 twbm-common = { path = "../common" }
 twbm-games = { path = "../games" }
+twbm-driveinfo = { path = "../driveinfo" }
 twbm-idmap = { workspace = true }
 itertools = { workspace = true }
 zip = { workspace = true }
@@ -65,7 +64,7 @@ humantime = "2"
 rfd = "0.18"
 strum = { workspace = true }
 strum_macros = { workspace = true }
-fs_extra = "1"
+fs_extra = { workspace = true }
 walkdir = "2"
 
 [target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]

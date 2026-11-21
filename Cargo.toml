@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
   "crates/common",
+  "crates/driveinfo",
   "crates/games",
   "crates/gui",
   "crates/idmap",
@@ -35,6 +36,7 @@ twbm-idmap = { path = "crates/idmap", features = [
 ] }
 strum = "0.28"
 strum_macros = "0.28"
+fs_extra = "1"
 
 # tiny and fast release builds
 [profile.release]

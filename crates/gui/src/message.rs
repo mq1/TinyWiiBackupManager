@@ -10,11 +10,11 @@ use crate::{
     state::LazyState,
     toolbox::ToolboxItem,
     ui::pages::Page,
-    util::drive_state::DriveInfo,
 };
 
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
+use twbm_driveinfo::DriveInfoState;
 use twbm_games::{game::Game, import_entry::ImportEntry, manager::GameManager};
 use wii_disc_info::game_id::GameID;
 
@@ -33,7 +33,7 @@ pub enum Message {
     GotConfig(Config),
     GotGames(GameManager),
     GotHomebrew(LazyState<HomebrewAppList>),
-    GotDrive(LazyState<DriveInfo>),
+    GotDrive(DriveInfoState),
     Open(OsString),
     OpenGameInfo(Game),
     OpenHomebrewAppInfo(Box<HomebrewApp>),

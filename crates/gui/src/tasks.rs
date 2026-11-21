@@ -12,7 +12,7 @@ use crate::{
     state::{AppState, LazyState},
     toolbox::{ToolContext, ToolboxItem},
     ui::{dialogs, pages::Page},
-    util::{self, drive_state::DriveInfo, updates},
+    util::{self, updates},
 };
 use anyhow::{Context, Result};
 use iced::Task;
@@ -27,6 +27,7 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
+use twbm_driveinfo::DriveInfoState;
 use twbm_games::{
     calc_sha1::calc_sha1, export::export_game, game::Game,
     has_update_partition::has_update_partition, import::import_game, manager::GameManager,
@@ -105,10 +106,10 @@ impl AppState {
         };
 
         let mount_point = <Box<Path>>::from(mount_point);
-        self.drive = LazyState::Loading;
+        self.drive = DriveInfoState::Loading;
 
         Task::perform(
-            async move { DriveInfo::load(&mount_point).await },
+            unblock(move || DriveInfoState::load(&mount_point)),
             Message::GotDrive,
         )
     }

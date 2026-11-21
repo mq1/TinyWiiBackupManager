@@ -9,7 +9,6 @@ use crate::{
     notifications::notification_list::NotificationList,
     osc::osc_state::OscAppList,
     ui::{modals::Modal, pages::Page, theme},
-    util::drive_state::DriveInfo,
 };
 use iced::{
     Subscription, Task, Theme,
@@ -18,6 +17,7 @@ use iced::{
 use semver::Version;
 use std::path::Path;
 use twbm_common::config_contents::ThemePreference;
+use twbm_driveinfo::DriveInfoState;
 use twbm_games::{import_entry::ImportEntry, manager::GameManager};
 use wii_disc_info::game_id::GameID;
 
@@ -33,7 +33,7 @@ pub struct AppState {
     pub config: Config,
     pub data_dir: &'static Path,
     pub notifications: NotificationList,
-    pub drive: LazyState<DriveInfo>,
+    pub drive: DriveInfoState,
     pub game_manager: GameManager,
     pub homebrew: LazyState<HomebrewAppList>,
     pub current_page: Page,
@@ -52,7 +52,7 @@ impl AppState {
                 data_dir,
                 config: Config::default(),
                 notifications: NotificationList::new(data_dir),
-                drive: LazyState::NotLoaded,
+                drive: DriveInfoState::Loading,
                 game_manager: GameManager::Loading,
                 homebrew: LazyState::NotLoaded,
                 current_page: Page::Games,
