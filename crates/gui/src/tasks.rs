@@ -165,11 +165,7 @@ impl AppState {
 
             let (tx, rx) = bounded(1);
             let config = self.config.contents.clone();
-
-            let has_4gib_filesize_limit = match &self.drive {
-                DriveInfoState::Loaded(info) => info.has_4gib_filesize_limit(),
-                _ => true,
-            };
+            let has_4gib_filesize_limit = self.drive.has_4gib_filesize_limit();
 
             let _ = std::thread::spawn(move || {
                 let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));

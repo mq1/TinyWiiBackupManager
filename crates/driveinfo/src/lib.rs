@@ -17,10 +17,6 @@ pub struct DriveInfo {
 }
 
 impl DriveInfo {
-    pub fn has_4gib_filesize_limit(&self) -> bool {
-        self.fs_kind == FsKind::Fat32
-    }
-
     pub fn fs_tier(&self) -> i8 {
         match self.fs_kind {
             FsKind::Unknown => -1,
@@ -92,6 +88,13 @@ impl DriveInfoState {
         match res {
             Ok(info) => DriveInfoState::Loaded(info),
             Err(err) => DriveInfoState::Errored(err.to_string()),
+        }
+    }
+
+    pub fn has_4gib_filesize_limit(&self) -> bool {
+        match self {
+            Self::Loaded(info) => info.fs_kind == FsKind::Fat32,
+            _ => true, // if in doubt, be conservative
         }
     }
 }

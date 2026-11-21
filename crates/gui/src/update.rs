@@ -11,7 +11,6 @@ use crate::{
 };
 use iced::Task;
 use smol::{channel::bounded, unblock};
-use twbm_driveinfo::DriveInfoState;
 use twbm_games::{convert::convert_game, import_entry::ImportEntry, scrub::scrub_game};
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
@@ -292,11 +291,7 @@ impl AppState {
             Message::Scrub(game) => {
                 self.current_modal = None;
                 let config = self.config.contents.clone();
-
-                let has_4gib_filesize_limit = match &self.drive {
-                    DriveInfoState::Loaded(info) => info.has_4gib_filesize_limit(),
-                    _ => true,
-                };
+                let has_4gib_filesize_limit = self.drive.has_4gib_filesize_limit();
 
                 let (tx, rx) = bounded(1);
 
