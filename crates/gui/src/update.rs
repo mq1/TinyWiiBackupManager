@@ -293,8 +293,8 @@ impl AppState {
                 self.current_modal = None;
                 let config = self.config.contents.clone();
 
-                let is_fat32 = match &self.drive {
-                    DriveInfoState::Loaded(info) => info.is_fat32(),
+                let has_4gib_filesize_limit = match &self.drive {
+                    DriveInfoState::Loaded(info) => info.has_4gib_filesize_limit(),
                     _ => true,
                 };
 
@@ -303,7 +303,7 @@ impl AppState {
                 let _ = std::thread::spawn(move || {
                     let send_progress = |msg| _ = tx.try_send(Status::Progress(msg));
                     let _ = tx.send_blocking(
-                        match scrub_game(&game, &config, is_fat32, send_progress) {
+                        match scrub_game(&game, &config, has_4gib_filesize_limit, send_progress) {
                             Ok(msg) => Status::Finished(msg),
                             Err(e) => Status::Errored(e.to_string()),
                         },

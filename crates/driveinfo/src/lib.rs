@@ -12,12 +12,12 @@ pub struct DriveInfo {
     pub total_size: Size,
     pub games_size: Size,
     pub apps_size: Size,
-    pub fs_kind: FsKind,
+    fs_kind: FsKind,
     pub allocation_granularity: Size,
 }
 
 impl DriveInfo {
-    pub fn is_fat32(&self) -> bool {
+    pub fn has_4gib_filesize_limit(&self) -> bool {
         self.fs_kind == FsKind::Fat32
     }
 
@@ -28,6 +28,10 @@ impl DriveInfo {
             FsKind::Ntfs | FsKind::ExFat => 2,
             _ => i8::MAX,
         }
+    }
+
+    pub fn fs_name(&self) -> &'static str {
+        self.fs_kind.into_str()
     }
 
     pub fn has_optimal_allocation_granularity(&self) -> bool {

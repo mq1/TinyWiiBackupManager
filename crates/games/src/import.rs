@@ -50,7 +50,7 @@ fn get_disc_files(path: &Path) -> Result<Vec<File>> {
 pub fn import_game(
     entry: &ImportEntry,
     config: &ConfigContents,
-    is_fat32: bool,
+    has_4gib_filesize_limit: bool,
     send_progress: impl Fn(String),
 ) -> Result<String> {
     let filename = entry
@@ -65,7 +65,7 @@ pub fn import_game(
 
     let disc_files = get_disc_files(entry.path())?;
 
-    let must_split = entry.meta().is_wii() && (config.always_split || is_fat32);
+    let must_split = entry.meta().is_wii() && (config.always_split || has_4gib_filesize_limit);
     let split_size = must_split.then_some(SPLIT_SIZE);
 
     let parent_dir_name = if entry.meta().is_wii() {

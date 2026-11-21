@@ -78,7 +78,7 @@ pub fn drive_info(state: &AppState) -> Element<'_, Message> {
                 let content = column![
                     row![
                         fs_info_icon.widget(),
-                        text!("Filesystem: {}  ({})", info.fs_kind, fs_info_comment)
+                        text!("Filesystem: {}  ({})", info.fs_name(), fs_info_comment)
                     ]
                     .spacing(5),
                     row![
