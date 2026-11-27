@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{osc::osc_app::OscApp, state::LazyState, util::http::download_file};
+use jiff::{SignedDuration, Unit};
 use smol::fs;
 use std::{
     path::Path,
@@ -39,6 +40,7 @@ impl OscAppList {
             }
 
             let refreshed = fs::metadata(&cache_path).await?.modified()?;
+
             let contents = fs::read_to_string(&cache_path).await?;
             let apps = serde_json::from_str(&contents)?;
 
@@ -78,11 +80,11 @@ impl OscAppList {
         self.apps.into_iter()
     }
 
-    pub fn last_refresh(&self) -> Duration {
-        self.refreshed
-            .elapsed()
-            .map(|d| Duration::from_mins(d.as_secs() / 60))
-            .unwrap_or(Duration::MAX)
+    pub fn last_refresh(&self) -> SignedDuration {
+        SignedDuration::system_until(self.refreshed, SystemTime::now())
+            .ok()
+            .and_then(|d| d.round(Unit::Second).ok())
+            .unwrap_or(SignedDuration::MAX)
     }
 
     pub fn reload_icon(&mut self, idx: usize, data_dir: &Path) {

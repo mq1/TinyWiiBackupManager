@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use jiff::{Unit, ZonedDateTime};
 use std::fmt;
-use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NotificationLevel {
@@ -33,7 +33,7 @@ impl fmt::Display for NotificationLevel {
 pub struct Notification {
     label: Box<str>,
     level: NotificationLevel,
-    created: Option<OffsetDateTime>,
+    created: Option<ZonedDateTime>,
 }
 
 impl Notification {
@@ -41,7 +41,7 @@ impl Notification {
         Self {
             label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Info,
-            created: OffsetDateTime::now_local().ok(),
+            created: ZonedDateTime::now().round(Unit::Second).ok(),
         }
     }
 
@@ -49,7 +49,7 @@ impl Notification {
         Self {
             label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Warning,
-            created: OffsetDateTime::now_local().ok(),
+            created: ZonedDateTime::now().round(Unit::Second).ok(),
         }
     }
 
@@ -57,7 +57,7 @@ impl Notification {
         Self {
             label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Error,
-            created: OffsetDateTime::now_local().ok(),
+            created: ZonedDateTime::now().round(Unit::Second).ok(),
         }
     }
 
@@ -65,7 +65,7 @@ impl Notification {
         Self {
             label: label.to_string().into_boxed_str(),
             level: NotificationLevel::Success,
-            created: OffsetDateTime::now_local().ok(),
+            created: ZonedDateTime::now().round(Unit::Second).ok(),
         }
     }
 
@@ -80,17 +80,8 @@ impl Notification {
 
 impl std::fmt::Display for Notification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(created) = self.created {
-            write!(
-                f,
-                "{:04}-{:02}-{:02} {:02}:{:02}:{:02} > ",
-                created.year(),
-                u8::from(created.month()),
-                created.day(),
-                created.hour(),
-                created.minute(),
-                created.second()
-            )?;
+        if let Some(created) = &self.created {
+            write!(f, "{created} > ")?;
         }
 
         write!(f, "[{}] {}", self.level, self.label)

@@ -4,10 +4,35 @@
 use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 use anyhow::Result;
 use iced::widget::image;
+use jiff::Timestamp;
 use serde::Deserialize;
 use size::Size;
 use std::path::Path;
-use time::OffsetDateTime;
+
+fn make_osc_url(slug: &str) -> Box<str> {
+    const BASE: &str = "https://oscwii.org/library/app/";
+
+    let mut url = String::with_capacity(BASE.len() + slug.len());
+    url.push_str(BASE);
+    url.push_str(slug);
+
+    url.into()
+}
+
+fn make_search_term(app_name: &str, slug: &str) -> Box<str> {
+    let mut term = String::with_capacity(app_name.len() + 1 + slug.len());
+    term.push_str(app_name);
+    term.push('\0');
+    term.push_str(slug);
+
+    if term.is_ascii() {
+        term.make_ascii_lowercase();
+    } else {
+        term = term.to_lowercase();
+    };
+
+    term.into()
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppAsset {
@@ -34,8 +59,10 @@ pub struct OscAppMeta {
     version: Box<str>,
     assets: OscAppAssets,
     uncompressed_size: Size,
-    release_date: i64,
     description: OscAppDescription,
+
+    #[serde(with = "jiff::fmt::serde::timestamp::second::required")]
+    release_date: Timestamp,
 }
 
 #[derive(Debug, Clone)]
@@ -43,7 +70,6 @@ pub struct OscApp {
     meta: OscAppMeta,
     icon: Option<image::Handle>,
     search_term_lowercase: Box<str>,
-    release_date_str: Option<Box<str>>,
     osc_url: Box<str>,
 }
 
@@ -54,21 +80,13 @@ impl<'de> serde::Deserialize<'de> for OscApp {
     {
         let meta = OscAppMeta::deserialize(deserializer)?;
 
-        let search_term_lowercase = format!("{}\0{}", meta.name, meta.slug)
-            .to_lowercase()
-            .into_boxed_str();
-
-        let release_date_str = OffsetDateTime::from_unix_timestamp(meta.release_date)
-            .ok()
-            .map(|dt| format!("{:04}-{:02}-{:02}", dt.year(), dt.month(), dt.day()).into());
-
-        let osc_url = format!("https://oscwii.org/library/app/{}", meta.slug).into_boxed_str();
+        let search_term_lowercase = make_search_term(&meta.name, &meta.slug);
+        let osc_url = make_osc_url(&meta.slug);
 
         Ok(OscApp {
             meta,
             icon: None,
             search_term_lowercase,
-            release_date_str,
             osc_url,
         })
     }
@@ -129,8 +147,8 @@ impl OscApp {
         &self.meta.slug
     }
 
-    pub fn release_date_str(&self) -> Option<&str> {
-        self.release_date_str.as_deref()
+    pub fn release_date(&self) -> Timestamp {
+        self.meta.release_date
     }
 
     pub fn coder(&self) -> &str {

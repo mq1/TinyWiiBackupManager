@@ -58,15 +58,14 @@ itertools = { workspace = true }
 zip = { workspace = true }
 wiiload = { version = "0.9", features = ["async", "compression-async"] }
 anyhow = { workspace = true }
-time = { version = "0.3", features = ["local-offset"] }
 minreq = { version = "3", features = ["json-using-serde"] }
 semver = "1"
-humantime = "2"
 rfd = "0.18"
 strum = { workspace = true }
 strum_macros = { workspace = true }
 fs_extra = { workspace = true }
 walkdir = "2"
+jiff = { version = "1", features = ["serde"] }
 
 [target.'cfg(any(target_os = "linux", all(target_os = "macos", target_arch = "aarch64")))'.dependencies]
 mundy = { version = "0.2", default-features = false, features = [

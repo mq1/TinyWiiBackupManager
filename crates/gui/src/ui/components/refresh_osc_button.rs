@@ -9,7 +9,6 @@ use crate::{
         my_card::my_card,
     },
 };
-use humantime::format_duration;
 use iced::{
     Element,
     widget::{text, tooltip},
@@ -25,8 +24,8 @@ pub fn refresh_osc_button(state: &AppState) -> Element<'_, Message> {
 
     let tooltip_text = if let LazyState::Loaded(apps) = &state.osc_contents {
         text!(
-            "Refresh OSC contents cache (refreshed {} ago)",
-            format_duration(apps.last_refresh())
+            "Refresh OSC contents cache (refreshed {:#} ago)",
+            apps.last_refresh()
         )
     } else {
         text("Refresh OSC contents cache")
