@@ -5,8 +5,7 @@ use crate::{
     config::{Config, message::ConfigMessage},
     long_operation::message::LongOperationsMessage,
     notifications::notification::Notification,
-    osc::{osc_app::OscApp, osc_state::OscAppList},
-    state::LazyState,
+    osc::{osc_app::OscApp, osc_state::OscAppManager},
     toolbox::ToolboxItem,
     ui::pages::Page,
 };
@@ -65,7 +64,7 @@ pub enum Message {
     SendViaWiiload(PathBuf),
     SendOscAppViaWiiload(OscApp),
     RefreshOscContents,
-    GotOscContents(LazyState<OscAppList>),
+    GotOsc(OscAppManager),
     SearchOscApps(String),
     OpenOscAppInfo(OscApp),
     InstallOscApp(OscApp),

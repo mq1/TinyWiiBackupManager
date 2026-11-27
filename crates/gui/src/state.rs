@@ -6,7 +6,7 @@ use crate::{
     long_operation::LongOperations,
     message::Message,
     notifications::notification_list::NotificationList,
-    osc::{osc_app::OscApp, osc_state::OscAppList},
+    osc::{osc_app::OscApp, osc_state::OscAppManager},
     ui::{modals::Modal, pages::Page, theme},
 };
 use iced::{
@@ -21,14 +21,6 @@ use twbm_games::{import_entry::ImportEntry, manager::GameManager};
 use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
 use wii_disc_info::game_id::GameID;
 
-#[derive(Debug, Clone)]
-pub enum LazyState<T> {
-    NotLoaded,
-    Loading,
-    Loaded(T),
-    Errored(String),
-}
-
 pub struct AppState {
     pub config: Config,
     pub data_dir: &'static Path,
@@ -40,7 +32,7 @@ pub struct AppState {
     pub current_modal: Option<Modal>,
     pub long_operations: LongOperations,
     pub import_queue: Vec<ImportEntry>,
-    pub osc_contents: LazyState<OscAppList>,
+    pub osc: OscAppManager,
     pub animation_state: bool,
     pub new_version: Option<Version>,
     pub local_to_osc_app_map: HashMap<Box<str>, OscApp>,
@@ -59,7 +51,7 @@ impl AppState {
                 current_page: Page::Games,
                 current_modal: None,
                 import_queue: Vec::new(),
-                osc_contents: LazyState::NotLoaded,
+                osc: OscAppManager::NotLoaded,
                 animation_state: false,
                 new_version: None,
                 long_operations: LongOperations::new(),
@@ -106,13 +98,13 @@ impl AppState {
     }
 
     pub fn reload_osc_icon(&mut self, idx: usize) {
-        if let LazyState::Loaded(apps) = &mut self.osc_contents {
+        if let OscAppManager::Loaded(apps) = &mut self.osc {
             apps.reload_icon(idx, self.data_dir);
         }
     }
 
     pub fn reload_all_osc_icons(&mut self) {
-        if let LazyState::Loaded(apps) = &mut self.osc_contents {
+        if let OscAppManager::Loaded(apps) = &mut self.osc {
             apps.reload_all_icons(self.data_dir);
         }
     }
@@ -121,7 +113,7 @@ impl AppState {
         self.local_to_osc_app_map.clear();
 
         if let HomebrewAppManager::Loaded(homebrew) = &mut self.homebrew
-            && let LazyState::Loaded(osc_apps) = &self.osc_contents
+            && let OscAppManager::Loaded(osc_apps) = &self.osc
         {
             for local_app in homebrew.iter() {
                 if let Some(osc_app) = osc_apps
@@ -140,8 +132,8 @@ impl AppState {
         self.make_local_to_osc_app_map();
     }
 
-    pub fn set_osc_contents(&mut self, contents: LazyState<OscAppList>) {
-        self.osc_contents = contents;
+    pub fn set_osc_contents(&mut self, osc: OscAppManager) {
+        self.osc = osc;
         self.make_local_to_osc_app_map();
     }
 
@@ -158,7 +150,7 @@ impl AppState {
     }
 
     pub fn search_osc_apps(&mut self, search_term: &str) {
-        if let LazyState::Loaded(apps) = &mut self.osc_contents {
+        if let OscAppManager::Loaded(apps) = &mut self.osc {
             apps.set_search_term(search_term.to_lowercase());
         }
     }

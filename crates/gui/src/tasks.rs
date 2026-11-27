@@ -7,8 +7,8 @@ use crate::{
     long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
-    osc::{self, osc_app::OscApp, osc_state::OscAppList},
-    state::{AppState, LazyState},
+    osc::{self, osc_app::OscApp, osc_state::OscAppManager},
+    state::AppState,
     toolbox::{ToolContext, ToolboxItem},
     ui::{dialogs, pages::Page},
     util::{self, updates},
@@ -38,10 +38,7 @@ impl AppState {
     pub fn init_task(&self) -> Task<Message> {
         Task::batch([
             Task::perform(Config::load(self.data_dir), Message::GotConfig),
-            Task::perform(
-                OscAppList::load(self.data_dir, false),
-                Message::GotOscContents,
-            ),
+            Task::perform(OscAppManager::load(self.data_dir, false), Message::GotOsc),
             Task::perform(updates::check(), |res| match res {
                 Ok(Some(version)) => Message::GotUpdate(version),
                 Ok(None) => Message::NoOp,
@@ -78,7 +75,7 @@ impl AppState {
     }
 
     pub fn download_osc_icons_task(&mut self) -> Task<Message> {
-        if let LazyState::Loaded(apps) = &self.osc_contents {
+        if let OscAppManager::Loaded(apps) = &self.osc {
             Task::stream(osc::icons::download_all_icons(apps.clone(), self.data_dir))
                 .map(Message::ReloadOscIcon)
         } else {
@@ -260,7 +257,7 @@ impl AppState {
     pub fn navigate_to_task(&mut self, page: Page) -> Task<Message> {
         self.current_page = page;
 
-        if page == Page::Osc && matches!(self.osc_contents, LazyState::Loaded(_)) {
+        if page == Page::Osc && matches!(self.osc, OscAppManager::Loaded(_)) {
             self.reload_all_osc_icons();
             self.download_osc_icons_task()
         } else {
@@ -269,10 +266,7 @@ impl AppState {
     }
 
     pub fn load_osc_state_task(&self) -> Task<Message> {
-        Task::perform(
-            OscAppList::load(self.data_dir, true),
-            Message::GotOscContents,
-        )
+        Task::perform(OscAppManager::load(self.data_dir, true), Message::GotOsc)
     }
 
     pub fn calc_game_sha1_task(&mut self, game: Game) -> Task<Message> {

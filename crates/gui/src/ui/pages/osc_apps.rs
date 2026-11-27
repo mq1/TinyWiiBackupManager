@@ -3,7 +3,8 @@
 
 use crate::{
     message::Message,
-    state::{AppState, LazyState},
+    osc::osc_state::OscAppManager,
+    state::AppState,
     ui::{
         components::{
             my_card::my_card, osc_app_card::osc_app_card, osc_app_row::osc_app_row,
@@ -20,10 +21,10 @@ use itertools::Itertools;
 use twbm_common::config_contents::ViewAs;
 
 pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
-    match &state.osc_contents {
-        LazyState::NotLoaded | LazyState::Loading => loading(),
-        LazyState::Errored(e) => errored(e),
-        LazyState::Loaded(apps) => {
+    match &state.osc {
+        OscAppManager::NotLoaded | OscAppManager::Loading => loading(),
+        OscAppManager::Errored(e) => errored(e),
+        OscAppManager::Loaded(apps) => {
             let content: Element<'_, Message> = match state.config.contents.view_as {
                 ViewAs::Grid => apps
                     .iter()

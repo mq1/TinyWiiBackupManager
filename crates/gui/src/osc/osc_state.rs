@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{osc::osc_app::OscApp, state::LazyState, util::http::download_file};
+use crate::{osc::osc_app::OscApp, util::http::download_file};
 use jiff::{SignedDuration, Unit};
 use smol::fs;
 use std::{
@@ -18,8 +18,16 @@ pub struct OscAppList {
     search_term: String,
 }
 
-impl OscAppList {
-    pub async fn load(data_dir: &Path, force_refresh: bool) -> LazyState<OscAppList> {
+#[derive(Debug, Clone)]
+pub enum OscAppManager {
+    NotLoaded,
+    Loading,
+    Loaded(OscAppList),
+    Errored(String),
+}
+
+impl OscAppManager {
+    pub async fn load(data_dir: &Path, force_refresh: bool) -> OscAppManager {
         let cache_path = data_dir.join("osc-cache.json");
 
         let res = async move {
@@ -55,8 +63,8 @@ impl OscAppList {
         .await;
 
         match res {
-            Ok(apps) => LazyState::Loaded(apps),
-            Err(err) => LazyState::Errored(err.to_string()),
+            Ok(apps) => OscAppManager::Loaded(apps),
+            Err(err) => OscAppManager::Errored(err.to_string()),
         }
     }
 }
@@ -95,13 +103,5 @@ impl OscAppList {
         for app in &mut self.apps {
             app.load_icon_blocking(data_dir);
         }
-    }
-}
-
-impl std::ops::Index<usize> for OscAppList {
-    type Output = OscApp;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.apps[index]
     }
 }

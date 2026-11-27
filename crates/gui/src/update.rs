@@ -6,7 +6,8 @@ use crate::{
     long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
-    state::{AppState, LazyState},
+    osc::osc_state::OscAppManager,
+    state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
@@ -221,12 +222,10 @@ impl AppState {
                 self.send_via_wiiload_task(path),
             ]),
             Message::RefreshOscContents => self.load_osc_state_task(),
-            Message::GotOscContents(contents) => {
+            Message::GotOsc(contents) => {
                 self.set_osc_contents(contents);
 
-                if self.current_page == Page::Osc
-                    && matches!(self.osc_contents, LazyState::Loaded(_))
-                {
+                if self.current_page == Page::Osc && matches!(self.osc, OscAppManager::Loaded(_)) {
                     self.reload_all_osc_icons();
                     self.download_osc_icons_task()
                 } else {
