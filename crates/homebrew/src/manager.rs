@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::homebrew_app::HomebrewApp;
+use crate::app::HomebrewApp;
 use itertools::Either;
 use std::{fs, io, path::Path};
 use twbm_common::config_contents::SortBy;

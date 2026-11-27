@@ -8,9 +8,9 @@ use std::{
 };
 use zip::ZipArchive;
 
-pub mod homebrew_app;
-pub mod homebrew_app_manager;
-pub mod homebrew_app_meta;
+pub mod app;
+pub mod manager;
+pub mod meta;
 
 pub fn import(root_path: &Path, paths: &[PathBuf], remove_sources: bool) -> Result<usize> {
     for path in paths {

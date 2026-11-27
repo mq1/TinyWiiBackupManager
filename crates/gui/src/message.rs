@@ -5,16 +5,15 @@ use crate::{
     config::{Config, message::ConfigMessage},
     long_operation::message::LongOperationsMessage,
     notifications::notification::Notification,
-    osc::{osc_app::OscApp, osc_state::OscAppManager},
     toolbox::ToolboxItem,
     ui::pages::Page,
 };
-
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::{game::Game, import_entry::ImportEntry, manager::GameManager};
-use twbm_homebrew::{homebrew_app::HomebrewApp, homebrew_app_manager::HomebrewAppManager};
+use twbm_homebrew::{app::HomebrewApp, manager::HomebrewAppManager};
+use twbm_osc::{app::OscApp, manager::OscAppManager};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -52,7 +51,7 @@ pub enum Message {
     CancelAllImports,
     ToggleAnimationState,
     ReloadCover(GameID),
-    ReloadOscIcon(usize),
+    ReloadOscIcon(Box<str>),
     SearchGames(String),
     ToggleShowWii(bool),
     ToggleShowNgc(bool),

@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, osc::osc_app::OscApp, ui::components::row_button::row_button};
+use crate::{message::Message, ui::components::row_button::row_button};
 use iced::{
     Element, Length, padding,
     widget::{row, rule, space, text},
 };
 use lucide_icons::Icon;
+use twbm_osc::app::OscApp;
 
 pub fn osc_app_row(app: &OscApp) -> Element<'_, Message> {
     row![

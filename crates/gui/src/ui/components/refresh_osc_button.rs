@@ -3,7 +3,6 @@
 
 use crate::{
     message::Message,
-    osc::osc_state::OscAppManager,
     state::AppState,
     ui::components::{
         my_button::{MyButtonKind, my_button},
@@ -15,6 +14,7 @@ use iced::{
     widget::{text, tooltip},
 };
 use lucide_icons::Icon;
+use twbm_osc::manager::OscAppManager;
 
 pub fn refresh_osc_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);

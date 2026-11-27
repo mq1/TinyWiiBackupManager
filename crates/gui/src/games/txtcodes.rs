@@ -1,15 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    config::Config,
-    util::http::{download_file, post_then_download_file},
-};
+use crate::config::Config;
 use anyhow::{Context, Result, bail};
 use twbm_common::config_contents::TxtCodesSource;
+use twbm_http::{download_file, post_then_download_file};
 use wii_disc_info::game_id::GameID;
 
-pub async fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
+pub fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
     let mount_point = config
         .contents
         .mount_point
@@ -27,7 +25,7 @@ pub async fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
                 "https://raw.githubusercontent.com/mq1/GeckoArchive/refs/heads/main/codes/{game_id}.txt"
             );
 
-            download_file(&uri, &dest).await?;
+            download_file(&uri, &dest)?;
         }
         TxtCodesSource::GameHacking => {
             let Some(ghid) = twbm_idmap::get_ghid(game_id) else {
@@ -39,12 +37,12 @@ pub async fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
             let data =
                 format!("format=Text&filename={game_id}&sysID=22&gamID={ghid}&download=true");
 
-            post_then_download_file(&uri, data, &dest).await?;
+            post_then_download_file(&uri, data, &dest)?;
         }
         TxtCodesSource::Rc24 => {
             let uri = format!("https://codes.rc24.xyz/txt.php?txt={game_id}");
 
-            download_file(&uri, &dest).await?;
+            download_file(&uri, &dest)?;
         }
     };
 

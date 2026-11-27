@@ -6,7 +6,6 @@ use crate::{
     long_operation::LongOperations,
     message::Message,
     notifications::notification_list::NotificationList,
-    osc::{osc_app::OscApp, osc_state::OscAppManager},
     ui::{modals::Modal, pages::Page, theme},
 };
 use iced::{
@@ -18,7 +17,8 @@ use std::{collections::HashMap, path::Path};
 use twbm_common::config_contents::ThemePreference;
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::{import_entry::ImportEntry, manager::GameManager};
-use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
+use twbm_homebrew::manager::HomebrewAppManager;
+use twbm_osc::{app::OscApp, manager::OscAppManager};
 use wii_disc_info::game_id::GameID;
 
 pub struct AppState {
@@ -97,9 +97,9 @@ impl AppState {
         }
     }
 
-    pub fn reload_osc_icon(&mut self, idx: usize) {
+    pub fn reload_osc_icon(&mut self, slug: &str) {
         if let OscAppManager::Loaded(apps) = &mut self.osc {
-            apps.reload_icon(idx, self.data_dir);
+            apps.reload_icon(slug, self.data_dir);
         }
     }
 

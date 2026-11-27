@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::http::download_file_with_fallback;
 use anyhow::Result;
-use smol::stream::{self, StreamExt};
-use std::{convert::identity, path::Path};
+use std::path::Path;
+use twbm_http::download_file_with_fallback;
 use wii_disc_info::game_id::GameID;
 
-pub async fn download_banner(game_id: GameID, root_dir: &Path) -> Result<()> {
+pub fn download_banner(game_id: GameID, root_dir: &Path) -> Result<()> {
     let uri = format!("https://banner.rc24.xyz/{game_id}.bnr");
 
     let dest = root_dir
@@ -17,7 +16,8 @@ pub async fn download_banner(game_id: GameID, root_dir: &Path) -> Result<()> {
 
     let fallback = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_partial_str());
 
-    download_file_with_fallback(&uri, &dest, &fallback).await
+    let _ = download_file_with_fallback(&uri, &dest, &fallback)?;
+    Ok(())
 }
 
 fn is_ngc(game_id: &GameID) -> bool {
@@ -25,20 +25,14 @@ fn is_ngc(game_id: &GameID) -> bool {
     system_code == b'D' || system_code == b'G'
 }
 
-pub async fn download_all_banners(
-    game_ids: impl IntoIterator<Item = GameID>,
-    root_dir: &Path,
-) -> Vec<GameID> {
-    let it = game_ids.into_iter().filter(is_ngc);
+pub fn download_all_banners(game_ids: Box<[GameID]>, root_dir: &Path) -> Vec<GameID> {
+    let mut errored = Vec::new();
 
-    stream::iter(it)
-        .then(move |game_id| async move {
-            download_banner(game_id, root_dir)
-                .await
-                .is_err()
-                .then_some(game_id)
-        })
-        .filter_map(identity)
-        .collect::<Vec<_>>()
-        .await
+    for game_id in game_ids.into_iter().filter(is_ngc) {
+        if download_banner(game_id, root_dir).is_err() {
+            errored.push(game_id);
+        }
+    }
+
+    errored
 }

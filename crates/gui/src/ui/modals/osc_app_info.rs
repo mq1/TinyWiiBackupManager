@@ -3,7 +3,6 @@
 
 use crate::{
     message::Message,
-    osc::osc_app::OscApp,
     ui::{
         components::{
             my_button::{MyButtonKind, my_button},
@@ -18,6 +17,7 @@ use iced::{
     widget::{column, image, row, rule, space, text},
 };
 use lucide_icons::iced::{icon_calendar, icon_notepad_text, icon_tag};
+use twbm_osc::app::OscApp;
 
 pub fn osc_app_info(app: &OscApp) -> Element<'_, Message> {
     let content = row![

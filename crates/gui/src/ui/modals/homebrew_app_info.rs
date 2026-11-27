@@ -20,7 +20,7 @@ use lucide_icons::{
     Icon,
     iced::{icon_calendar, icon_notepad_text, icon_tag},
 };
-use twbm_homebrew::homebrew_app::HomebrewApp;
+use twbm_homebrew::app::HomebrewApp;
 
 pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
     let content = row![

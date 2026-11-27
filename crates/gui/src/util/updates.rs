@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::http::get_json;
 use anyhow::Result;
 use semver::Version;
+use twbm_http::get_string;
 
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const URL: &str = "https://api.github.com/repos/mq1/TinyWiiBackupManager/releases/latest";
@@ -18,7 +18,8 @@ pub async fn check() -> Result<Option<Version>> {
         return Ok(None);
     }
 
-    let resp = get_json::<Response>(URL).await?;
+    let resp = get_string(URL)?;
+    let resp = serde_json::from_str::<Response>(&resp)?;
 
     let version = match resp.tag_name.strip_prefix('v') {
         Some(v) => v,

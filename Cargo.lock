@@ -32,7 +32,9 @@ dependencies = [
  "twbm-driveinfo",
  "twbm-games",
  "twbm-homebrew",
+ "twbm-http",
  "twbm-idmap",
+ "twbm-osc",
  "walkdir",
  "wgpu",
  "wii-disc-info",
@@ -1865,12 +1867,10 @@ checksum = "107f2e89536b6818514025f6787b0d94d819e54fe3b40365275fc753de485b3f"
 dependencies = [
  "jiff-core",
  "jiff-static",
- "jiff-tzdb-platform",
  "log",
  "portable-atomic",
  "portable-atomic-util",
  "serde_core",
- "windows-link",
 ]
 
 [[package]]
@@ -1892,21 +1892,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
-]
-
-[[package]]
-name = "jiff-tzdb"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12e71a1b68a875a44a33bb7a1dd84392cb77145a3367a552a3cfe6a4f5cf3afc"
-
-[[package]]
-name = "jiff-tzdb-platform"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc65b284afcfa8f6cf189c7274c805505314a7ab975c60e1f548bff56525420e"
-dependencies = [
- "jiff-tzdb",
 ]
 
 [[package]]
@@ -2256,8 +2241,6 @@ dependencies = [
  "rustls",
  "rustls-platform-verifier",
  "rustls-webpki",
- "serde",
- "serde_json",
  "webpki-roots",
 ]
 
@@ -4113,10 +4096,12 @@ dependencies = [
 name = "twbm-common"
 version = "6.2.0"
 dependencies = [
+ "anyhow",
  "serde",
  "strum",
  "strum_macros",
  "sys-locale",
+ "zip",
 ]
 
 [[package]]
@@ -4162,10 +4147,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "twbm-http"
+version = "6.2.0"
+dependencies = [
+ "anyhow",
+ "minreq",
+ "twbm-common",
+ "wiiload",
+ "zip",
+]
+
+[[package]]
 name = "twbm-idmap"
 version = "0.7.2"
 dependencies = [
  "miniz_oxide 0.9.1",
+]
+
+[[package]]
+name = "twbm-osc"
+version = "6.2.0"
+dependencies = [
+ "anyhow",
+ "jiff",
+ "serde",
+ "serde_json",
+ "size",
+ "twbm-http",
 ]
 
 [[package]]

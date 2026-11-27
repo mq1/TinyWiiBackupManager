@@ -3,7 +3,6 @@
 
 use crate::{
     message::Message,
-    osc::osc_state::OscAppManager,
     state::AppState,
     ui::{
         components::{
@@ -19,6 +18,7 @@ use iced::{
 };
 use itertools::Itertools;
 use twbm_common::config_contents::ViewAs;
+use twbm_osc::manager::OscAppManager;
 
 pub fn osc_apps(state: &AppState) -> Element<'_, Message> {
     match &state.osc {

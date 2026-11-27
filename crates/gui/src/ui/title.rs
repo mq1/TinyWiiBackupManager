@@ -5,7 +5,7 @@ use crate::{state::AppState, ui::pages::Page};
 use std::fmt::Write;
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::manager::GameManager;
-use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
+use twbm_homebrew::manager::HomebrewAppManager;
 
 pub fn title(state: &AppState) -> String {
     let mut s = String::with_capacity(128);

@@ -6,13 +6,13 @@ use crate::{
     long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
-    osc::osc_state::OscAppManager,
     state::AppState,
     ui::{dialogs, modals::Modal, pages::Page},
 };
 use iced::Task;
 use smol::{channel::bounded, unblock};
 use twbm_games::{convert::convert_game, import_entry::ImportEntry, scrub::scrub_game};
+use twbm_osc::manager::OscAppManager;
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed)\nA path normalization run is recommended\nYou can find it in the Toolbox page";
 
@@ -188,8 +188,8 @@ impl AppState {
                 self.reload_cover(game_id);
                 Task::none()
             }
-            Message::ReloadOscIcon(idx) => {
-                self.reload_osc_icon(idx);
+            Message::ReloadOscIcon(slug) => {
+                self.reload_osc_icon(&slug);
                 Task::none()
             }
             Message::SearchGames(search_term) => {

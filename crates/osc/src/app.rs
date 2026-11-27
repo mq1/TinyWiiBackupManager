@@ -1,13 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 use anyhow::Result;
-use iced::widget::image;
 use jiff::Timestamp;
 use serde::Deserialize;
 use size::Size;
-use std::path::Path;
+use std::{
+    hash::{Hash, Hasher},
+    path::Path,
+};
+use twbm_http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 
 fn make_osc_url(slug: &str) -> Box<str> {
     const BASE: &str = "https://oscwii.org/library/app/";
@@ -68,7 +70,7 @@ pub struct OscAppMeta {
 #[derive(Debug, Clone)]
 pub struct OscApp {
     meta: OscAppMeta,
-    icon: Option<image::Handle>,
+    icon: Option<Box<Path>>,
     search_term_lowercase: Box<str>,
     osc_url: Box<str>,
 }
@@ -93,30 +95,30 @@ impl<'de> serde::Deserialize<'de> for OscApp {
 }
 
 impl OscApp {
-    pub async fn download_icon(&self, data_dir: &Path) -> Result<()> {
+    pub fn download_icon(&self, data_dir: &Path) -> Result<bool> {
         let icon_path = data_dir
             .join("osc-icons")
             .join(&*self.meta.slug)
             .with_added_extension("png");
 
-        download_file(&self.meta.assets.icon.url, &icon_path).await
+        download_file(&self.meta.assets.icon.url, &icon_path)
     }
 
-    pub fn load_icon_blocking(&mut self, data_dir: &Path) {
+    pub fn set_icon(&mut self, data_dir: &Path) {
         let icon_path = data_dir
             .join("osc-icons")
             .join(&*self.meta.slug)
             .with_added_extension("png");
 
-        self.icon = std::fs::read(icon_path).map(image::Handle::from_bytes).ok();
+        self.icon = icon_path.exists().then(|| icon_path.into())
     }
 
-    pub async fn install(&self, root_dir: &Path) -> Result<()> {
-        download_and_extract_zip(&self.meta.assets.archive.url, root_dir).await
+    pub fn install(&self, root_dir: &Path) -> Result<()> {
+        download_and_extract_zip(&self.meta.assets.archive.url, root_dir)
     }
 
-    pub async fn wiiload(&self, wii_ip: &str) -> Result<Vec<String>> {
-        download_and_send_via_wiiload(&self.meta.assets.archive.url, wii_ip).await
+    pub fn wiiload(&self, wii_ip: &str) -> Result<Vec<String>> {
+        download_and_send_via_wiiload(&self.meta.assets.archive.url, wii_ip)
     }
 
     pub fn version(&self) -> &str {
@@ -139,8 +141,8 @@ impl OscApp {
         &self.meta.assets.icon.url
     }
 
-    pub fn icon(&self) -> Option<&image::Handle> {
-        self.icon.as_ref()
+    pub fn icon(&self) -> Option<&Path> {
+        self.icon.as_deref()
     }
 
     pub fn slug(&self) -> &str {
@@ -165,5 +167,11 @@ impl OscApp {
 
     pub fn osc_url(&self) -> &str {
         &self.osc_url
+    }
+}
+
+impl Hash for OscApp {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.meta.slug.hash(state);
     }
 }

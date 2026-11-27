@@ -3,7 +3,7 @@
 
 use crate::{message::Message, ui::components::search_bar::search_bar};
 use iced::Element;
-use twbm_homebrew::homebrew_app_manager::HomebrewAppList;
+use twbm_homebrew::manager::HomebrewAppList;
 
 pub fn homebrew_app_search(apps: &HomebrewAppList) -> Element<'_, Message> {
     search_bar(

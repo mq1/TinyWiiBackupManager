@@ -4,7 +4,6 @@
 use crate::{
     config::ui::{view_as::view_as, wii_ip::wii_ip},
     message::Message,
-    osc::osc_state::OscAppList,
     state::AppState,
     ui::components::{osc_app_search::osc_app_search, refresh_osc_button::refresh_osc_button},
 };
@@ -12,6 +11,7 @@ use iced::{
     Alignment, Element,
     widget::{row, space},
 };
+use twbm_osc::manager::OscAppList;
 
 pub fn osc_apps_titlebar<'a>(apps: &'a OscAppList, state: &'a AppState) -> Element<'a, Message> {
     row![

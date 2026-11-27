@@ -14,27 +14,25 @@ pub const ALL: &[ToolboxGroup] = {
         icon: Icon::Skull,
         items: &[ToolboxItem {
             label: "Download cheats for all games (source configurable in settings)",
-            run_fn: |ctx| {
-                Box::pin(async move {
-                    let mut failed = Vec::with_capacity(ctx.game_ids.len());
+            run: |ctx| {
+                let mut failed = Vec::with_capacity(ctx.game_ids.len());
 
-                    for game_id in ctx.game_ids {
-                        if download_cheats(game_id, &ctx.config).await.is_err() {
-                            failed.push(game_id);
-                        }
+                for game_id in ctx.game_ids {
+                    if download_cheats(game_id, &ctx.config).is_err() {
+                        failed.push(game_id);
                     }
+                }
 
-                    let msg = if failed.is_empty() {
-                        "Downloaded cheats for all games".to_string()
-                    } else {
-                        format!(
-                            "Downloaded cheats for all games except for: {}",
-                            failed.iter().format(", ")
-                        )
-                    };
+                let msg = if failed.is_empty() {
+                    "Downloaded cheats for all games".to_string()
+                } else {
+                    format!(
+                        "Downloaded cheats for all games except for: {}",
+                        failed.iter().format(", ")
+                    )
+                };
 
-                    Ok(msg)
-                })
+                Ok(msg)
             },
         }],
     }]

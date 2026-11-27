@@ -18,7 +18,7 @@ use iced::{
 };
 use itertools::Itertools;
 use twbm_common::config_contents::ViewAs;
-use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
+use twbm_homebrew::manager::HomebrewAppManager;
 
 pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
     if state.config.contents.mount_point.is_none() {

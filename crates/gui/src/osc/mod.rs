@@ -2,5 +2,3 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod icons;
-pub mod osc_app;
-pub mod osc_state;

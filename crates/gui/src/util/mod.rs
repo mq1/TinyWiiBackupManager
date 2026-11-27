@@ -3,6 +3,5 @@
 
 pub mod data_dir;
 pub mod fs;
-pub mod http;
 pub mod updates;
 pub mod wiiload;

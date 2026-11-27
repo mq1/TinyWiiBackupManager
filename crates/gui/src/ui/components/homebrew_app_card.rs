@@ -3,7 +3,6 @@
 
 use crate::{
     message::Message,
-    osc::osc_app::OscApp,
     ui::components::{my_button::my_button, my_card::my_card},
 };
 use iced::{
@@ -15,7 +14,8 @@ use lucide_icons::{
     Icon,
     iced::{icon_check, icon_message_circle_warning, icon_tag},
 };
-use twbm_homebrew::homebrew_app::HomebrewApp;
+use twbm_homebrew::app::HomebrewApp;
+use twbm_osc::app::OscApp;
 
 pub fn homebrew_app_card<'a>(
     app: &'a HomebrewApp,

@@ -4,15 +4,12 @@
 use crate::config::Config;
 use anyhow::Result;
 use lucide_icons::Icon;
-use std::pin::Pin;
 use wii_disc_info::game_id::GameID;
 
 mod cleanup;
 mod game_backup_loaders;
 mod os_specific;
 mod txtcodes;
-
-type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 #[derive(Debug, Clone)]
 pub struct ToolContext {
@@ -23,7 +20,7 @@ pub struct ToolContext {
 #[derive(Debug)]
 pub struct ToolboxItem {
     label: &'static str,
-    run_fn: fn(ToolContext) -> BoxFuture<'static, Result<String>>,
+    run: fn(ToolContext) -> Result<String>,
 }
 
 impl ToolboxItem {
@@ -31,8 +28,8 @@ impl ToolboxItem {
         self.label
     }
 
-    pub async fn run(&self, context: ToolContext) -> Result<String> {
-        (self.run_fn)(context).await
+    pub fn run(&self, ctx: ToolContext) -> Result<String> {
+        (self.run)(ctx)
     }
 }
 

@@ -17,7 +17,7 @@ use iced::{
     widget::{row, space, tooltip},
 };
 use lucide_icons::Icon;
-use twbm_homebrew::homebrew_app_manager::HomebrewAppList;
+use twbm_homebrew::manager::HomebrewAppList;
 
 pub fn homebrew_apps_titlebar<'a>(
     apps: &'a HomebrewAppList,

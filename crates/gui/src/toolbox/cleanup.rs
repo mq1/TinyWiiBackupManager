@@ -2,35 +2,28 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::toolbox::{ToolboxGroup, ToolboxItem};
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use lucide_icons::Icon;
-use smol::{
-    fs::{self, DirEntry, File},
-    stream::{self, Stream, StreamExt},
-};
 use std::{
-    convert::identity,
     ffi::OsStr,
+    fs::{self, DirEntry, File},
     path::{Path, PathBuf},
 };
 use twbm_games::import::make_game_dir_name;
 
-async fn scan_dir_for_discs(
-    path: &Path,
-) -> Result<impl Stream<Item = (PathBuf, wii_disc_info::Meta)>> {
-    async fn try_open_entry(
+fn scan_dir_for_discs(path: &Path) -> Result<Vec<(PathBuf, wii_disc_info::Meta)>> {
+    fn try_open_entry(
         entry: Result<DirEntry, std::io::Error>,
-    ) -> Result<(PathBuf, wii_disc_info::Meta)> {
-        let path = entry?.path();
-        let mut f = File::open(&path).await?;
-        let meta = wii_disc_info::Meta::read_async(&mut f).await?;
-        Ok((path, meta))
+    ) -> Option<(PathBuf, wii_disc_info::Meta)> {
+        let path = entry.ok()?.path();
+        let mut f = File::open(&path).ok()?;
+        let meta = wii_disc_info::Meta::read(&mut f).ok()?;
+        Some((path, meta))
     }
 
-    fs::read_dir(path)
-        .await
-        .map_err(anyhow::Error::from)
-        .map(|entries| entries.then(try_open_entry).filter_map(Result::ok))
+    let discs = fs::read_dir(path)?.filter_map(try_open_entry).collect();
+
+    Ok(discs)
 }
 
 fn make_disc_filename(path: &Path, meta: &wii_disc_info::Meta) -> String {
@@ -53,7 +46,7 @@ fn make_disc_filename(path: &Path, meta: &wii_disc_info::Meta) -> String {
     }
 }
 
-async fn rename_split_files(
+fn rename_split_files(
     disc_path: &Path,
     meta: &wii_disc_info::Meta,
     new_disc_path: &Path,
@@ -63,17 +56,17 @@ async fn rename_split_files(
         let wbf1_path = disc_path.with_extension("wbf1");
         if wbf1_path.exists() {
             let new_wbf1_path = new_disc_path.with_extension("wbf1");
-            fs::rename(wbf1_path, new_wbf1_path).await?;
+            fs::rename(wbf1_path, new_wbf1_path)?;
         }
         let wbf2_path = disc_path.with_extension("wbf2");
         if wbf2_path.exists() {
             let new_wbf2_path = new_disc_path.with_extension("wbf2");
-            fs::rename(wbf2_path, new_wbf2_path).await?;
+            fs::rename(wbf2_path, new_wbf2_path)?;
         }
         let wbf3_path = disc_path.with_extension("wbf3");
         if wbf3_path.exists() {
             let new_wbf3_path = new_disc_path.with_extension("wbf3");
-            fs::rename(wbf3_path, new_wbf3_path).await?;
+            fs::rename(wbf3_path, new_wbf3_path)?;
         }
     } else if let Some(filename) = disc_path.file_name().and_then(OsStr::to_str).and_then(|s| {
         s.strip_suffix(".part0.iso")
@@ -87,119 +80,88 @@ async fn rename_split_files(
             .with_added_extension("iso");
 
         if part1_orig.exists() {
-            fs::rename(part1_orig, part1_new).await?;
+            fs::rename(part1_orig, part1_new)?;
         } else if part1_orig_uppercase.exists() {
-            fs::rename(part1_orig_uppercase, part1_new).await?;
+            fs::rename(part1_orig_uppercase, part1_new)?;
         }
     }
 
     Ok(())
 }
 
-async fn adopt_orphaned_discs(games_dir: &Path) -> Result<()> {
-    let entries = scan_dir_for_discs(games_dir).await?;
+fn adopt_orphaned_discs(games_dir: &Path) -> Result<()> {
+    let entries = scan_dir_for_discs(games_dir)?;
 
-    let results = entries
-        .then(|(path, meta)| async move {
-            let new_parent_name = make_game_dir_name(meta.game_id(), meta.game_title());
-            let new_disc_filename = make_disc_filename(&path, &meta);
+    for (path, meta) in entries {
+        let new_parent_name = make_game_dir_name(meta.game_id(), meta.game_title());
+        let new_disc_filename = make_disc_filename(&path, &meta);
 
-            let new_disc_parent = games_dir.join(new_parent_name);
-            let new_path = new_disc_parent.join(&new_disc_filename);
+        let new_disc_parent = games_dir.join(new_parent_name);
+        let new_path = new_disc_parent.join(&new_disc_filename);
 
-            fs::create_dir_all(&new_disc_parent).await?;
-            fs::rename(&path, &new_path).await?;
+        fs::create_dir_all(&new_disc_parent)?;
+        fs::rename(&path, &new_path)?;
 
-            // handle split files
-            rename_split_files(&path, &meta, &new_path, games_dir).await
-        })
-        .collect::<Vec<_>>()
-        .await;
-
-    let errors = results
-        .into_iter()
-        .filter_map(Result::err)
-        .collect::<Vec<_>>();
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => bail!("{errors:?}"),
+        // handle split files
+        rename_split_files(&path, &meta, &new_path, games_dir)?;
     }
+
+    Ok(())
 }
 
-async fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
-    let all_dirs = fs::read_dir(games_dir)
-        .await?
+fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
+    let all_dirs = fs::read_dir(games_dir)?
         .filter_map(Result::ok)
-        .then(|entry| async move {
-            entry
-                .file_type()
-                .await
-                .is_ok_and(|ft| ft.is_dir())
-                .then_some(entry.path())
-        })
-        .filter_map(identity);
+        .filter_map(|e| e.file_type().is_ok_and(|ft| ft.is_dir()).then_some(e));
 
-    let results = all_dirs
-        .then(|path| async move {
-            let discs = scan_dir_for_discs(&path).await?.collect::<Vec<_>>().await;
+    for dir in all_dirs {
+        let path = dir.path();
+        let discs = scan_dir_for_discs(&path)?;
 
-            match &discs[..] {
-                [(disc_path, meta)] => {
-                    // rename disc
-                    let new_disc_filename = make_disc_filename(disc_path, meta);
-                    let new_disc_path = path.join(&new_disc_filename);
-                    fs::rename(&disc_path, &new_disc_path).await?;
+        match &discs[..] {
+            [(disc_path, meta)] => {
+                // rename disc
+                let new_disc_filename = make_disc_filename(disc_path, meta);
+                let new_disc_path = path.join(&new_disc_filename);
+                fs::rename(disc_path, &new_disc_path)?;
 
-                    // rename eventual split files
-                    rename_split_files(disc_path, meta, &new_disc_path, games_dir).await?;
-                }
-                [(disc0_path, _), (disc1_path, _)] => {
-                    let stem0 = disc0_path.file_stem().unwrap_or_default().to_string_lossy();
-                    let stem1 = disc1_path.file_stem().unwrap_or_default().to_string_lossy();
+                // rename eventual split files
+                rename_split_files(disc_path, meta, &new_disc_path, games_dir)?;
+            }
+            [(disc0_path, _), (disc1_path, _)] => {
+                let stem0 = disc0_path.file_stem().unwrap_or_default().to_string_lossy();
+                let stem1 = disc1_path.file_stem().unwrap_or_default().to_string_lossy();
 
-                    if !((stem0 == "game" && stem1.starts_with("disc"))
-                        || (stem1 == "game" && stem0.starts_with("disc")))
-                    {
-                        // ignore unknown layouts
-                        return Ok(());
-                    }
-
-                    // rename discs
-                    for (disc_path, meta) in &discs {
-                        let new_disc_filename = make_disc_filename(disc_path, meta);
-                        let new_disc_path = path.join(&new_disc_filename);
-                        fs::rename(&disc_path, &new_disc_path).await?;
-                    }
-                }
-                _ => {
+                if !((stem0 == "game" && stem1.starts_with("disc"))
+                    || (stem1 == "game" && stem0.starts_with("disc")))
+                {
                     // ignore unknown layouts
                     return Ok(());
                 }
+
+                // rename discs
+                for (disc_path, meta) in &discs {
+                    let new_disc_filename = make_disc_filename(disc_path, meta);
+                    let new_disc_path = path.join(&new_disc_filename);
+                    fs::rename(disc_path, &new_disc_path)?;
+                }
             }
-
-            let (_, meta) = &discs[0];
-            let new_dir_name = make_game_dir_name(meta.game_id(), meta.game_title());
-            let new_path = path.with_file_name(new_dir_name);
-
-            if !new_path.exists() {
-                fs::rename(path, &new_path).await?;
+            _ => {
+                // ignore unknown layouts
+                return Ok(());
             }
+        }
 
-            Ok::<_, anyhow::Error>(())
-        })
-        .collect::<Vec<_>>()
-        .await;
+        let (_, meta) = &discs[0];
+        let new_dir_name = make_game_dir_name(meta.game_id(), meta.game_title());
+        let new_path = path.with_file_name(new_dir_name);
 
-    let errors = results
-        .into_iter()
-        .filter_map(Result::err)
-        .collect::<Vec<_>>();
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => bail!("{errors:?}"),
+        if !new_path.exists() {
+            fs::rename(path, &new_path)?;
+        }
     }
+
+    Ok(())
 }
 
 pub const ALL: &[ToolboxGroup] = {
@@ -208,29 +170,21 @@ pub const ALL: &[ToolboxGroup] = {
         icon: Icon::BrushCleaning,
         items: &[ToolboxItem {
             label: "Normalize paths (makes the game directories' layouts consistent)",
-            run_fn: |ctx| {
-                Box::pin(async move {
-                    let mount_point = ctx
-                        .config
-                        .contents
-                        .mount_point
-                        .context("Invalid mount point")?;
+            run: |ctx| {
+                let mount_point = ctx
+                    .config
+                    .contents
+                    .mount_point
+                    .context("Invalid mount point")?;
 
-                    stream::iter([mount_point.join("wbfs"), mount_point.join("games")])
-                        .then(|path| async move {
-                            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_dir()) {
-                                adopt_orphaned_discs(&path).await?;
-                                readopt_parented_discs(&path).await?;
-                            }
+                for dir in [mount_point.join("wbfs"), mount_point.join("games")] {
+                    if fs::metadata(&dir).is_ok_and(|meta| meta.is_dir()) {
+                        adopt_orphaned_discs(&dir)?;
+                        readopt_parented_discs(&dir)?;
+                    }
+                }
 
-                            Ok(())
-                        })
-                        .collect::<Vec<_>>()
-                        .await
-                        .into_iter()
-                        .collect::<Result<Vec<_>, _>>()
-                        .map(|_| "Paths successfully normalized".to_string())
-                })
+                Ok("Paths successfully normalized".into())
             },
         }],
     }]

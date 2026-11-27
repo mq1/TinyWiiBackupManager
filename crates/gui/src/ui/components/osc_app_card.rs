@@ -3,7 +3,6 @@
 
 use crate::{
     message::Message,
-    osc::osc_app::OscApp,
     ui::components::{my_button::my_button, my_card::my_card},
 };
 use iced::{
@@ -12,6 +11,7 @@ use iced::{
 };
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
+use twbm_osc::app::OscApp;
 
 pub fn osc_app_card(app: &OscApp) -> Element<'_, Message> {
     let icon: Element<'_, Message> = match app.icon() {

@@ -13,7 +13,7 @@ use iced::{Element, widget::tooltip};
 use lucide_icons::Icon;
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::manager::GameManager;
-use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
+use twbm_homebrew::manager::HomebrewAppManager;
 
 pub fn refresh_button(state: &AppState) -> Element<'_, Message> {
     let mut refresh_btn = my_button().icon(Icon::RotateCw).kind(MyButtonKind::Toolbar);

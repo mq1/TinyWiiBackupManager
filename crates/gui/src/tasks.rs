@@ -7,11 +7,11 @@ use crate::{
     long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
-    osc::{self, osc_app::OscApp, osc_state::OscAppManager},
+    osc,
     state::AppState,
     toolbox::{ToolContext, ToolboxItem},
     ui::{dialogs, pages::Page},
-    util::{self, updates},
+    util::updates,
 };
 use anyhow::{Context, Result};
 use iced::Task;
@@ -26,19 +26,24 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
+use twbm_common::wiiload_util;
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::{
     calc_sha1::calc_sha1, export::export_game, game::Game,
     has_update_partition::has_update_partition, import::import_game, manager::GameManager,
 };
-use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
+use twbm_homebrew::manager::HomebrewAppManager;
+use twbm_osc::{app::OscApp, manager::OscAppManager};
 use wiiload::WIILOAD_PORT;
 
 impl AppState {
     pub fn init_task(&self) -> Task<Message> {
         Task::batch([
             Task::perform(Config::load(self.data_dir), Message::GotConfig),
-            Task::perform(OscAppManager::load(self.data_dir, false), Message::GotOsc),
+            Task::perform(
+                unblock(|| OscAppManager::load(self.data_dir, false)),
+                Message::GotOsc,
+            ),
             Task::perform(updates::check(), |res| match res {
                 Ok(Some(version)) => Message::GotUpdate(version),
                 Ok(None) => Message::NoOp,
@@ -200,7 +205,9 @@ impl AppState {
             tool.label()
         )));
 
-        Task::perform(tool.run(ctx), |res| Message::Notify(res.into()))
+        Task::perform(unblock(move || tool.run(ctx)), |res| {
+            Message::Notify(res.into())
+        })
     }
 
     pub fn send_via_wiiload_task(&self, path: PathBuf) -> Task<Message> {
@@ -223,7 +230,7 @@ impl AppState {
                 let msg = if is_zip {
                     let (data, excluded_files) = smol::unblock(move || {
                         let mut file = std::fs::File::open(path)?;
-                        util::wiiload::rebuild_zip(&mut file)
+                        wiiload_util::rebuild_zip(&mut file)
                     })
                     .await?;
 
@@ -266,7 +273,10 @@ impl AppState {
     }
 
     pub fn load_osc_state_task(&self) -> Task<Message> {
-        Task::perform(OscAppManager::load(self.data_dir, true), Message::GotOsc)
+        Task::perform(
+            unblock(|| OscAppManager::load(self.data_dir, true)),
+            Message::GotOsc,
+        )
     }
 
     pub fn calc_game_sha1_task(&mut self, game: Game) -> Task<Message> {
@@ -319,7 +329,7 @@ impl AppState {
         )));
 
         Task::perform(
-            async move { download_cheats(game.id(), &config).await },
+            unblock(move || download_cheats(game.id(), &config)),
             move |res| match res {
                 Ok(()) => Notification::success(format!("Downloaded cheats for {game_title}")),
                 Err(err) => Notification::error(err.to_string()),
@@ -341,10 +351,10 @@ impl AppState {
                 .update(ConfigMessage::Write)
                 .map(Message::Config),
             Task::perform(
-                {
+                unblock({
                     let wii_ip = wii_ip.clone();
-                    async move { app.wiiload(&wii_ip).await }
-                },
+                    move || app.wiiload(&wii_ip)
+                }),
                 move |res| match res {
                     Ok(excluded_files) if excluded_files.is_empty() => {
                         Notification::success(format!("Sent {app_name} to {wii_ip}"))
@@ -390,7 +400,7 @@ impl AppState {
         let mount_point = <Box<Path>>::from(mount_point);
 
         Task::perform(
-            async move { app.install(&mount_point).await },
+            unblock(move || app.install(&mount_point)),
             move |res| match res {
                 Ok(()) => Message::OscAppInstalled(Ok(app_name)),
                 Err(e) => Message::OscAppInstalled(Err(e.to_string())),

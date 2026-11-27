@@ -1,19 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    config::Config,
-    util::http::{download_file, download_file_with_fallback},
-};
+use crate::config::Config;
 use anyhow::Result;
-use itertools::Itertools;
-use smol::stream::{self, Stream, StreamExt};
+use smol::{channel::unbounded, stream::Stream};
 use std::{
-    convert::identity,
     fmt,
     path::{Path, PathBuf},
 };
 use twbm_common::config_contents::PreferredLanguage;
+use twbm_http::{download_file, download_file_with_fallback};
 use wii_disc_info::{RegionCode, game_id::GameID};
 
 #[derive(Debug, Clone, Copy)]
@@ -69,7 +65,7 @@ fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
     }
 }
 
-pub async fn download_cover(
+pub fn download_cover(
     game_id: GameID,
     cover_type: CoverType,
     dir: &Path,
@@ -84,59 +80,56 @@ pub async fn download_cover(
     let cover_url = format!("https://art.gametdb.com/wii/{cover_type}/{lang_str}/{game_id}.png");
 
     if lang_str == "EN" {
-        download_file(&cover_url, &cover_path).await?;
+        download_file(&cover_url, &cover_path)?;
     } else {
         let fallback = format!("https://art.gametdb.com/wii/{cover_type}/EN/{game_id}.png");
-        download_file_with_fallback(&cover_url, &cover_path, &fallback).await?;
+        download_file_with_fallback(&cover_url, &cover_path, &fallback)?;
     }
 
     Ok(true)
 }
 
 pub fn download_ui_covers(
-    ids: impl IntoIterator<Item = GameID>,
-    data_dir: &'static Path,
+    game_ids: Box<[GameID]>,
+    data_dir: &Path,
     preferred_language: PreferredLanguage,
 ) -> impl Stream<Item = GameID> {
     let covers_dir = data_dir.join("covers");
-    let it = ids.into_iter().zip(std::iter::repeat(covers_dir));
 
-    stream::iter(it)
-        .then(move |(id, covers_dir)| async move {
-            download_cover(id, CoverType::Cover3D, &covers_dir, preferred_language)
-                .await
-                .unwrap_or(false)
-                .then_some(id)
-        })
-        .filter_map(identity)
+    let (tx, rx) = unbounded();
+
+    std::thread::spawn(move || {
+        for game_id in game_ids.into_iter() {
+            if download_cover(game_id, CoverType::Cover3D, &covers_dir, preferred_language).is_ok()
+            {
+                let _ = tx.try_send(game_id);
+            }
+        }
+    });
+
+    rx
 }
 
-async fn download_all_covers(
-    ids: impl IntoIterator<Item = GameID>,
+fn download_all_covers(
+    game_ids: Box<[GameID]>,
     pairs: &[(PathBuf, CoverType)],
-    config: &Config,
+    preferred_language: PreferredLanguage,
 ) -> Vec<GameID> {
-    let it = ids.into_iter().cartesian_product(pairs);
+    let mut errored = Vec::new();
 
-    stream::iter(it)
-        .then(|(game_id, (dir, cover_type))| async move {
-            download_cover(
-                game_id,
-                *cover_type,
-                dir,
-                config.contents.preferred_language,
-            )
-            .await
-            .is_err()
-            .then_some(game_id)
-        })
-        .filter_map(identity)
-        .collect::<Vec<_>>()
-        .await
+    for game_id in game_ids {
+        for (dir, cover_type) in pairs {
+            if download_cover(game_id, *cover_type, dir, preferred_language).is_err() {
+                errored.push(game_id);
+            }
+        }
+    }
+
+    errored
 }
 
-pub async fn download_all_covers_for_usbloadergx(
-    ids: impl IntoIterator<Item = GameID>,
+pub fn download_all_covers_for_usbloadergx(
+    game_ids: Box<[GameID]>,
     config: &Config,
 ) -> Vec<GameID> {
     let Some(mount_point) = config.contents.mount_point.as_deref() else {
@@ -152,13 +145,10 @@ pub async fn download_all_covers_for_usbloadergx(
         (covers_dir.join("disc"), CoverType::Disc),
     ];
 
-    download_all_covers(ids, &pairs, config).await
+    download_all_covers(game_ids, &pairs, config.contents.preferred_language)
 }
 
-pub async fn download_all_covers_for_wiiflow(
-    ids: impl IntoIterator<Item = GameID>,
-    config: &Config,
-) -> Vec<GameID> {
+pub fn download_all_covers_for_wiiflow(game_ids: Box<[GameID]>, config: &Config) -> Vec<GameID> {
     let Some(mount_point) = config.contents.mount_point.as_deref() else {
         return Vec::new();
     };
@@ -170,5 +160,5 @@ pub async fn download_all_covers_for_wiiflow(
         (covers_dir.join("covers"), CoverType::Cover2D),
     ];
 
-    download_all_covers(ids, &pairs, config).await
+    download_all_covers(game_ids, &pairs, config.contents.preferred_language)
 }

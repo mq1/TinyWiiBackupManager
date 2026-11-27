@@ -1,19 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{osc::osc_app::OscApp, util::http::download_file};
+use crate::app::OscApp;
 use jiff::{SignedDuration, Unit};
-use smol::fs;
 use std::{
+    collections::HashMap,
+    fs,
     path::Path,
     time::{Duration, SystemTime},
 };
+use twbm_http::download_file;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
 #[derive(Clone, Debug)]
 pub struct OscAppList {
-    apps: Box<[OscApp]>,
+    apps: HashMap<Box<str>, OscApp>,
     refreshed: SystemTime,
     search_term: String,
 }
@@ -27,12 +29,11 @@ pub enum OscAppManager {
 }
 
 impl OscAppManager {
-    pub async fn load(data_dir: &Path, force_refresh: bool) -> OscAppManager {
+    pub fn load(data_dir: &Path, force_refresh: bool) -> OscAppManager {
         let cache_path = data_dir.join("osc-cache.json");
 
-        let res = async move {
+        let res = (move || {
             let is_old = fs::metadata(&cache_path)
-                .await
                 .ok()
                 .and_then(|meta| meta.modified().ok())
                 .and_then(|modified| modified.elapsed().ok())
@@ -42,15 +43,20 @@ impl OscAppManager {
 
             if should_refresh {
                 let new_path = data_dir.join("osc-cache-new.json");
-                if download_file(CONTENTS_URL, &new_path).await.is_ok() {
-                    fs::rename(&new_path, &cache_path).await?;
+                if download_file(CONTENTS_URL, &new_path).is_ok() {
+                    fs::rename(&new_path, &cache_path)?;
                 }
             }
 
-            let refreshed = fs::metadata(&cache_path).await?.modified()?;
+            let refreshed = fs::metadata(&cache_path)?.modified()?;
 
-            let contents = fs::read_to_string(&cache_path).await?;
-            let apps = serde_json::from_str(&contents)?;
+            let contents = fs::read_to_string(&cache_path)?;
+            let apps = serde_json::from_str::<Vec<OscApp>>(&contents)?;
+
+            let apps = apps
+                .into_iter()
+                .map(|app| (app.slug().into(), app))
+                .collect();
 
             let list = OscAppList {
                 apps,
@@ -59,8 +65,7 @@ impl OscAppManager {
             };
 
             Ok::<_, anyhow::Error>(list)
-        }
-        .await;
+        })();
 
         match res {
             Ok(apps) => OscAppManager::Loaded(apps),
@@ -80,12 +85,8 @@ impl OscAppList {
 
     pub fn iter(&self) -> impl Iterator<Item = &OscApp> {
         self.apps
-            .iter()
+            .values()
             .filter(|app| app.matches_search(&self.search_term))
-    }
-
-    pub fn into_iter(self) -> impl Iterator<Item = OscApp> {
-        self.apps.into_iter()
     }
 
     pub fn last_refresh(&self) -> SignedDuration {
@@ -95,13 +96,15 @@ impl OscAppList {
             .unwrap_or(SignedDuration::MAX)
     }
 
-    pub fn reload_icon(&mut self, idx: usize, data_dir: &Path) {
-        self.apps[idx].load_icon_blocking(data_dir);
+    pub fn reload_icon(&mut self, slug: &str, data_dir: &Path) {
+        if let Some(app) = self.apps.get_mut(slug) {
+            app.set_icon(data_dir);
+        }
     }
 
     pub fn reload_all_icons(&mut self, data_dir: &Path) {
-        for app in &mut self.apps {
-            app.load_icon_blocking(data_dir);
+        for app in self.apps.values_mut() {
+            app.set_icon(data_dir);
         }
     }
 }

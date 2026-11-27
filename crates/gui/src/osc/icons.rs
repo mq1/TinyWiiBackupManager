@@ -1,30 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{osc::osc_state::OscAppList, util::http::download_file};
+use smol::{channel::unbounded, stream::Stream};
+use std::path::Path;
+use twbm_http::download_file;
+use twbm_osc::manager::OscAppList;
 
-use smol::{
-    fs,
-    stream::{self, Stream, StreamExt},
-};
-use std::{convert::identity, path::Path};
-
-pub fn download_all_icons(apps: OscAppList, data_dir: &'static Path) -> impl Stream<Item = usize> {
+pub fn download_all_icons(apps: OscAppList, data_dir: &Path) -> impl Stream<Item = Box<str>> {
     let icons_dir = data_dir.join("osc-icons");
 
-    stream::iter(apps.into_iter().enumerate())
-        .then(move |(idx, app)| {
-            let icons_dir = icons_dir.clone();
+    let (tx, rx) = unbounded();
 
-            async move {
-                let path = icons_dir.join(app.slug()).with_added_extension("png");
-
-                if fs::metadata(&path).await.is_ok_and(|meta| meta.is_file()) {
-                    None
-                } else {
-                    download_file(app.icon_uri(), &path).await.ok().map(|_| idx)
-                }
+    std::thread::spawn(move || {
+        for app in apps.iter() {
+            let path = icons_dir.join(format!("{}.png", app.slug()));
+            if matches!(download_file(app.icon_uri(), &path), Ok(true)) {
+                let _ = tx.try_send(app.slug().into());
             }
-        })
-        .filter_map(identity)
+        }
+    });
+
+    rx
 }
