@@ -3,7 +3,6 @@
 
 use crate::{
     config::ui::{sort_by::sort_by, view_as::view_as},
-    homebrew::homebrew_state::HomebrewAppList,
     message::Message,
     state::AppState,
     ui::components::{
@@ -18,6 +17,7 @@ use iced::{
     widget::{row, space, tooltip},
 };
 use lucide_icons::Icon;
+use twbm_homebrew::homebrew_app_manager::HomebrewAppList;
 
 pub fn homebrew_apps_titlebar<'a>(
     apps: &'a HomebrewAppList,

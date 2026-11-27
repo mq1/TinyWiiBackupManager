@@ -44,11 +44,15 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn try_from_path(path: impl AsRef<Path>, is_wii: bool, data_dir: &Path) -> Result<Self> {
-        let path = path.as_ref();
+    pub fn try_from_path(
+        path: impl Into<Box<Path>>,
+        is_wii: bool,
+        data_dir: &Path,
+    ) -> Result<Self> {
+        let path = path.into();
 
         // Check if the path is a directory
-        if !fs::metadata(path)?.is_dir() {
+        if !fs::metadata(&path)?.is_dir() {
             bail!("{} is not a directory", path.display());
         }
 
@@ -76,7 +80,7 @@ impl Game {
             None => GameTitle::FromFileName(title_raw.trim().into()),
         };
 
-        let size = fs_extra::dir::get_size(path).ok().map(Size::from_bytes);
+        let size = fs_extra::dir::get_size(&path).ok().map(Size::from_bytes);
 
         let search_term_lowercase = format!("{title}\0{id}").to_lowercase().into_boxed_str();
 
@@ -89,10 +93,10 @@ impl Game {
 
         let cover = fs::exists(&cover_path)
             .unwrap_or(false)
-            .then(|| cover_path.into_boxed_path());
+            .then(|| cover_path.into());
 
         Ok(Self {
-            path: path.into(),
+            path,
             id,
             title,
             size,

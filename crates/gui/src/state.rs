@@ -3,11 +3,10 @@
 
 use crate::{
     config::Config,
-    homebrew::homebrew_state::HomebrewAppList,
     long_operation::LongOperations,
     message::Message,
     notifications::notification_list::NotificationList,
-    osc::osc_state::OscAppList,
+    osc::{osc_app::OscApp, osc_state::OscAppList},
     ui::{modals::Modal, pages::Page, theme},
 };
 use iced::{
@@ -15,10 +14,11 @@ use iced::{
     time::{self, milliseconds},
 };
 use semver::Version;
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 use twbm_common::config_contents::ThemePreference;
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::{import_entry::ImportEntry, manager::GameManager};
+use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -35,7 +35,7 @@ pub struct AppState {
     pub notifications: NotificationList,
     pub drive: DriveInfoState,
     pub game_manager: GameManager,
-    pub homebrew: LazyState<HomebrewAppList>,
+    pub homebrew: HomebrewAppManager,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
     pub long_operations: LongOperations,
@@ -43,6 +43,7 @@ pub struct AppState {
     pub osc_contents: LazyState<OscAppList>,
     pub animation_state: bool,
     pub new_version: Option<Version>,
+    pub local_to_osc_app_map: HashMap<Box<str>, OscApp>,
 }
 
 impl AppState {
@@ -54,7 +55,7 @@ impl AppState {
                 notifications: NotificationList::new(data_dir),
                 drive: DriveInfoState::Loading,
                 game_manager: GameManager::Loading,
-                homebrew: LazyState::NotLoaded,
+                homebrew: HomebrewAppManager::Loading,
                 current_page: Page::Games,
                 current_modal: None,
                 import_queue: Vec::new(),
@@ -62,6 +63,7 @@ impl AppState {
                 animation_state: false,
                 new_version: None,
                 long_operations: LongOperations::new(),
+                local_to_osc_app_map: HashMap::new(),
             };
 
             let task = state.init_task();
@@ -115,24 +117,32 @@ impl AppState {
         }
     }
 
-    pub fn set_homebrew_apps(&mut self, homebrew: LazyState<HomebrewAppList>) {
-        self.homebrew = homebrew;
+    fn make_local_to_osc_app_map(&mut self) {
+        self.local_to_osc_app_map.clear();
 
-        if let LazyState::Loaded(apps) = &mut self.homebrew
+        if let HomebrewAppManager::Loaded(homebrew) = &mut self.homebrew
             && let LazyState::Loaded(osc_apps) = &self.osc_contents
         {
-            apps.set_osc_apps(osc_apps);
+            for local_app in homebrew.iter() {
+                if let Some(osc_app) = osc_apps
+                    .iter()
+                    .find(|osc_app| osc_app.slug() == local_app.dirname())
+                {
+                    self.local_to_osc_app_map
+                        .insert(local_app.dirname().into(), osc_app.clone());
+                }
+            }
         }
+    }
+
+    pub fn set_homebrew_apps(&mut self, homebrew: HomebrewAppManager) {
+        self.homebrew = homebrew;
+        self.make_local_to_osc_app_map();
     }
 
     pub fn set_osc_contents(&mut self, contents: LazyState<OscAppList>) {
         self.osc_contents = contents;
-
-        if let LazyState::Loaded(osc_apps) = &self.osc_contents
-            && let LazyState::Loaded(apps) = &mut self.homebrew
-        {
-            apps.set_osc_apps(osc_apps);
-        }
+        self.make_local_to_osc_app_map();
     }
 
     pub fn search_games(&mut self, search_term: &str) {
@@ -142,7 +152,7 @@ impl AppState {
     }
 
     pub fn search_homebrew_apps(&mut self, search_term: &str) {
-        if let LazyState::Loaded(apps) = &mut self.homebrew {
+        if let HomebrewAppManager::Loaded(apps) = &mut self.homebrew {
             apps.set_search_term(search_term.to_lowercase());
         }
     }

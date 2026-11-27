@@ -76,17 +76,10 @@ impl GameList {
             SortBy::SizeDescending => (self.order_by_size.as_ref(), true),
         };
 
-        let matches_console = |game: &&Game| {
-            (self.filter.show_wii && game.is_wii()) || (self.filter.show_ngc && game.is_ngc())
-        };
-
-        let matches_search = |game: &&Game| game.matches_search(&self.filter.search_term);
-
-        let iter = order
-            .iter()
-            .map(|&i| &self.games[i])
-            .filter(matches_console)
-            .filter(matches_search);
+        let iter = order.iter().map(|&i| &self.games[i]).filter(|game| {
+            ((self.filter.show_wii && game.is_wii()) || (self.filter.show_ngc && game.is_ngc()))
+                && game.matches_search(&self.filter.search_term)
+        });
 
         if reversed {
             Either::Right(iter.rev())

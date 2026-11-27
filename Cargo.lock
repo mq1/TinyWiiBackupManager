@@ -32,6 +32,7 @@ dependencies = [
  "twbm-common",
  "twbm-driveinfo",
  "twbm-games",
+ "twbm-homebrew",
  "twbm-idmap",
  "walkdir",
  "wgpu",
@@ -4148,6 +4149,18 @@ dependencies = [
  "twbm-idmap",
  "twbm-sha1list",
  "wii-disc-info",
+ "zip",
+]
+
+[[package]]
+name = "twbm-homebrew"
+version = "6.2.0"
+dependencies = [
+ "anyhow",
+ "fs_extra",
+ "itertools 0.15.0",
+ "size",
+ "twbm-common",
  "zip",
 ]
 

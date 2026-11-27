@@ -51,6 +51,7 @@ open = "5"
 wii-disc-info = { workspace = true }
 twbm-common = { path = "../common" }
 twbm-games = { path = "../games" }
+twbm-homebrew = { path = "../homebrew" }
 twbm-driveinfo = { path = "../driveinfo" }
 twbm-idmap = { workspace = true }
 itertools = { workspace = true }

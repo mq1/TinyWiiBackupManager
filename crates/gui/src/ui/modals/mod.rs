@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{homebrew::homebrew_app::HomebrewApp, osc::osc_app::OscApp};
+use crate::osc::osc_app::OscApp;
 use std::path::PathBuf;
 use twbm_games::game::Game;
+use twbm_homebrew::homebrew_app::HomebrewApp;
 
 pub mod confirm_scub;
 pub mod delete_dir;
@@ -14,7 +15,7 @@ pub mod osc_app_info;
 #[derive(Debug, Clone)]
 pub enum Modal {
     GameInfo((Game, Option<wii_disc_info::Meta>, bool)),
-    HomebrewAppInfo(Box<HomebrewApp>),
+    HomebrewAppInfo(HomebrewApp),
     OscAppInfo(OscApp),
     DeleteDir(PathBuf),
     ConfirmScrub(Game),

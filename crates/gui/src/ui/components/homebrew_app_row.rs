@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    homebrew::homebrew_app::HomebrewApp,
     message::Message,
+    osc::osc_app::OscApp,
     ui::components::{my_card::my_card, row_button::row_button},
 };
 use iced::{
@@ -14,37 +14,43 @@ use lucide_icons::{
     Icon,
     iced::{icon_check, icon_message_circle_warning, icon_tag},
 };
+use twbm_homebrew::homebrew_app::HomebrewApp;
 
-pub fn homebrew_app_row(app: &HomebrewApp) -> Element<'_, Message> {
-    let version_icon: Element<'_, Message> = if let Some(osc_app) = app.osc_app() {
-        if osc_app.version() == app.version() {
-            tooltip(icon_check(), my_card("Up to date"), tooltip::Position::Top).into()
-        } else {
-            tooltip(
-                icon_message_circle_warning(),
-                my_card(text!("Update available ({})", osc_app.version())),
-                tooltip::Position::Top,
+pub fn homebrew_app_row<'a>(
+    app: &'a HomebrewApp,
+    osc_app: Option<&'a OscApp>,
+) -> Element<'a, Message> {
+    let (version_icon, newer_osc_app): (Element<'_, Message>, _) = if let Some(osc_app) = osc_app {
+        if osc_app.version() == app.meta().version() {
+            (
+                tooltip(icon_check(), my_card("Up to date"), tooltip::Position::Top).into(),
+                Some(osc_app),
             )
-            .into()
+        } else {
+            (
+                tooltip(
+                    icon_message_circle_warning(),
+                    my_card(text!("Update available ({})", osc_app.version())),
+                    tooltip::Position::Top,
+                )
+                .into(),
+                None,
+            )
         }
     } else {
-        icon_tag().into()
+        (icon_tag().into(), None)
     };
 
-    let update_button = app
-        .osc_app()
-        .as_ref()
-        .filter(|osc_app| osc_app.version() != app.version())
-        .map(|osc_app| {
-            row_button(
-                Icon::CloudDownload,
-                "Update (from oscwii.org)",
-                Some(|| Message::InstallOscApp(osc_app.clone())),
-            )
-        });
+    let update_button = newer_osc_app.map(|osc_app| {
+        row_button(
+            Icon::CloudDownload,
+            "Update (from oscwii.org)",
+            Some(|| Message::InstallOscApp(osc_app.clone())),
+        )
+    });
 
     row![
-        text!("{} ({})", app.name(), app.version()),
+        text!("{} ({})", app.meta().name(), app.meta().version()),
         version_icon,
         space::horizontal(),
         text!("{}", app.size().unwrap_or_default()),

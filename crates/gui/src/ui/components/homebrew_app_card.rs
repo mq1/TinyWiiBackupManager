@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    homebrew::homebrew_app::HomebrewApp,
     message::Message,
+    osc::osc_app::OscApp,
     ui::components::{my_button::my_button, my_card::my_card},
 };
 use iced::{
@@ -15,52 +15,58 @@ use lucide_icons::{
     Icon,
     iced::{icon_check, icon_message_circle_warning, icon_tag},
 };
+use twbm_homebrew::homebrew_app::HomebrewApp;
 
-pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
+pub fn homebrew_app_card<'a>(
+    app: &'a HomebrewApp,
+    osc_app: Option<&'a OscApp>,
+) -> Element<'a, Message> {
     let icon: Element<'_, Message> = match app.icon() {
         Some(icon) => image(icon).height(96).into(),
         None => space().height(96).into(),
     };
 
-    let version_icon: Element<'_, Message> = if let Some(osc_app) = app.osc_app() {
-        if osc_app.version() == app.version() {
-            tooltip(
-                icon_check(),
-                my_card("Up to date"),
-                tooltip::Position::Bottom,
+    let (version_icon, newer_osc_app): (Element<'_, Message>, _) = if let Some(osc_app) = osc_app {
+        if osc_app.version() == app.meta().version() {
+            (
+                tooltip(
+                    icon_check(),
+                    my_card("Up to date"),
+                    tooltip::Position::Bottom,
+                )
+                .into(),
+                Some(osc_app),
             )
-            .into()
         } else {
-            tooltip(
-                icon_message_circle_warning(),
-                my_card(text!("Update available ({})", osc_app.version())),
-                tooltip::Position::Bottom,
+            (
+                tooltip(
+                    icon_message_circle_warning(),
+                    my_card(text!("Update available ({})", osc_app.version())),
+                    tooltip::Position::Bottom,
+                )
+                .into(),
+                None,
             )
-            .into()
         }
     } else {
-        icon_tag().into()
+        (icon_tag().into(), None)
     };
 
-    let update_button = app
-        .osc_app()
-        .as_ref()
-        .filter(|osc_app| osc_app.version() != app.version())
-        .map(|osc_app| {
-            tooltip(
-                my_button()
-                    .icon(Icon::CloudDownload)
-                    .on_press_with(|| Message::InstallOscApp(osc_app.clone())),
-                my_card("Update (from oscwii.org)"),
-                tooltip::Position::Bottom,
-            )
-        });
+    let update_button = newer_osc_app.map(|osc_app| {
+        tooltip(
+            my_button()
+                .icon(Icon::CloudDownload)
+                .on_press_with(|| Message::InstallOscApp(osc_app.clone())),
+            my_card("Update (from oscwii.org)"),
+            tooltip::Position::Bottom,
+        )
+    });
 
     my_card(
         column![
             row![
                 version_icon,
-                ellipsized_text(app.version())
+                ellipsized_text(app.meta().version())
                     .wrapping(text::Wrapping::None)
                     .width(60),
                 space::horizontal(),
@@ -68,7 +74,7 @@ pub fn homebrew_app_card(app: &HomebrewApp) -> Element<'_, Message> {
             ]
             .spacing(5),
             icon,
-            ellipsized_text(app.name()).wrapping(text::Wrapping::None),
+            ellipsized_text(app.meta().name()).wrapping(text::Wrapping::None),
             row![
                 my_button()
                     .label("Info")

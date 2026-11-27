@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    homebrew::homebrew_app::HomebrewApp,
     message::Message,
     ui::{
         components::{
@@ -21,24 +20,31 @@ use lucide_icons::{
     Icon,
     iced::{icon_calendar, icon_notepad_text, icon_tag},
 };
+use twbm_homebrew::homebrew_app::HomebrewApp;
 
 pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
     let content = row![
         column![
-            row![icon_tag(), text!("Version: {}", app.version())].spacing(5),
+            row![icon_tag(), text!("Version: {}", app.meta().version())].spacing(5),
             row![
                 icon_calendar(),
-                text!("Release date: {}", app.release_date())
+                text!("Release date: {}", app.meta().release_date())
             ]
             .spacing(5),
-            row![get_dev_icon(app.coder()), text!("Coder: {}", app.coder())].spacing(5),
+            row![
+                get_dev_icon(app.meta().coder()),
+                text!("Coder: {}", app.meta().coder())
+            ]
+            .spacing(5),
             row![
                 icon_notepad_text(),
-                text!("Description: {}", app.short_description())
+                text!("Description: {}", app.meta().short_description())
             ]
             .spacing(5),
             rule::horizontal(1),
-            text(app.long_description()).height(100).width(Length::Fill)
+            text(app.meta().long_description())
+                .height(100)
+                .width(Length::Fill)
         ]
         .spacing(5),
         app.icon().map(|icon| image(icon).height(200)),
@@ -50,7 +56,7 @@ pub fn homebrew_app_info(app: &HomebrewApp) -> Element<'_, Message> {
     my_card(
         column![
             column![
-                text(app.name()).size(18),
+                text(app.meta().name()).size(18),
                 my_link(app.path().to_string_lossy(), app.path()).icon(Icon::Folder)
             ]
             .spacing(10)

@@ -3,7 +3,6 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    homebrew::{homebrew_app::HomebrewApp, homebrew_state::HomebrewAppList},
     long_operation::message::LongOperationsMessage,
     notifications::notification::Notification,
     osc::{osc_app::OscApp, osc_state::OscAppList},
@@ -16,6 +15,7 @@ use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 use twbm_driveinfo::DriveInfoState;
 use twbm_games::{game::Game, import_entry::ImportEntry, manager::GameManager};
+use twbm_homebrew::{homebrew_app::HomebrewApp, homebrew_app_manager::HomebrewAppManager};
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -32,7 +32,7 @@ pub enum Message {
     CloseNotification(usize),
     GotConfig(Config),
     GotGames(GameManager),
-    GotHomebrew(LazyState<HomebrewAppList>),
+    GotHomebrew(HomebrewAppManager),
     GotDrive(DriveInfoState),
     Open(OsString),
     OpenGameInfo(Game),

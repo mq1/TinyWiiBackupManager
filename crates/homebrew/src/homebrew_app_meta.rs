@@ -4,25 +4,18 @@
 use anyhow::{Context, Result};
 use std::{fs, path::Path};
 
-fn get_value<'a>(contents: &'a str, start_pattern: &str, end_pattern: &str) -> Option<&'a str> {
-    let start = contents.find(start_pattern)?;
-    let slice = &contents[start..];
-    let start = slice.find('>')? + 1;
-    let slice = &slice[start..];
-    let end = slice.find(end_pattern)?;
-    let value = &slice[..end];
+fn get_property<'a>(contents: &'a str, element: &str) -> Option<&'a str> {
+    let (_, after_open) = contents
+        .match_indices('<')
+        .find_map(|(i, _)| contents[i + 1..].strip_prefix(element))?
+        .split_once('>')?;
 
-    Some(value.trim())
-}
-
-macro_rules! get_property {
-    ($contents:expr, $element:literal) => {{
-        const START_PATTERN: &str = concat!("<", $element);
-        const END_PATTERN: &str = concat!("</", $element, ">");
-        const ERROR: &str = concat!("failed to parse meta.xml: ", $element, " not found");
-
-        get_value($contents, START_PATTERN, END_PATTERN).context(ERROR)
-    }};
+    after_open.match_indices("</").find_map(|(i, _)| {
+        after_open[i + 2..]
+            .strip_prefix(element)?
+            .starts_with('>')
+            .then(|| after_open[..i].trim())
+    })
 }
 
 fn parse_release_date(raw: &str) -> Box<str> {
@@ -35,7 +28,7 @@ fn parse_release_date(raw: &str) -> Box<str> {
         s.push('-');
         s.push_str(&raw[6..8]);
 
-        s.into_boxed_str()
+        s.into()
     } else {
         raw.into()
     }
@@ -56,15 +49,15 @@ impl HomebrewAppMeta {
         let path = app_path.join("meta.xml");
         let raw = fs::read_to_string(&path)?;
 
-        let root = get_property!(&raw, "app")?;
+        let root = get_property(&raw, "app").context("<app> not found")?;
 
-        let name = get_property!(&root, "name")?;
-        let version = get_property!(&root, "version")?;
+        let name = get_property(root, "name").context("<name> not found")?;
+        let version = get_property(root, "version").context("<version> not found")?;
 
-        let release_date = get_property!(&root, "release_date").unwrap_or_default();
-        let coder = get_property!(&root, "coder").unwrap_or_default();
-        let short_description = get_property!(&root, "short_description").unwrap_or_default();
-        let long_description = get_property!(&root, "long_description").unwrap_or_default();
+        let release_date = get_property(root, "release_date").unwrap_or_default();
+        let coder = get_property(root, "coder").unwrap_or_default();
+        let short_description = get_property(root, "short_description").unwrap_or_default();
+        let long_description = get_property(root, "long_description").unwrap_or_default();
 
         Ok(Self {
             name: name.into(),

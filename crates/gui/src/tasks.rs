@@ -4,7 +4,6 @@
 use crate::{
     config::{Config, message::ConfigMessage},
     games::{covers::download_ui_covers, txtcodes::download_cheats},
-    homebrew::{self, homebrew_state::HomebrewAppList},
     long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
@@ -32,6 +31,7 @@ use twbm_games::{
     calc_sha1::calc_sha1, export::export_game, game::Game,
     has_update_partition::has_update_partition, import::import_game, manager::GameManager,
 };
+use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
 use wiiload::WIILOAD_PORT;
 
 impl AppState {
@@ -92,10 +92,10 @@ impl AppState {
         };
 
         let mount_point = <Box<Path>>::from(mount_point);
-        self.set_homebrew_apps(LazyState::Loading);
+        self.set_homebrew_apps(HomebrewAppManager::Loading);
 
         Task::perform(
-            async move { HomebrewAppList::load(&mount_point).await },
+            unblock(move || HomebrewAppManager::load(&mount_point)),
             Message::GotHomebrew,
         )
     }
@@ -150,7 +150,7 @@ impl AppState {
         let remove_sources = self.config.contents.remove_sources_apps;
 
         Task::perform(
-            async move { homebrew::import(&mount_point, &paths, remove_sources).await },
+            unblock(move || twbm_homebrew::import(&mount_point, &paths, remove_sources)),
             |res| match res {
                 Ok(n) => Message::HomebrewAppsImported(n),
                 Err(e) => Message::Notify(e.into()),

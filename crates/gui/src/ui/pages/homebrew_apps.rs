@@ -3,7 +3,7 @@
 
 use crate::{
     message::Message,
-    state::{AppState, LazyState},
+    state::AppState,
     ui::{
         components::{
             homebrew_app_card::homebrew_app_card, homebrew_app_row::homebrew_app_row,
@@ -18,6 +18,7 @@ use iced::{
 };
 use itertools::Itertools;
 use twbm_common::config_contents::ViewAs;
+use twbm_homebrew::homebrew_app_manager::HomebrewAppManager;
 
 pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
     if state.config.contents.mount_point.is_none() {
@@ -25,13 +26,15 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
     }
 
     match &state.homebrew {
-        LazyState::NotLoaded | LazyState::Loading => loading(),
-        LazyState::Errored(e) => errored(e),
-        LazyState::Loaded(apps) => {
+        HomebrewAppManager::Loading => loading(),
+        HomebrewAppManager::Errored(e) => errored(e),
+        HomebrewAppManager::Loaded(apps) => {
             let content: Element<'_, Message> = match state.config.contents.view_as {
                 ViewAs::Grid => apps
                     .iter_by(state.config.contents.sort_by)
-                    .map(homebrew_app_card)
+                    .map(|app| {
+                        homebrew_app_card(app, state.local_to_osc_app_map.get(app.dirname()))
+                    })
                     .collect::<Row<'_, _>>()
                     .spacing(10)
                     .wrap()
@@ -39,7 +42,9 @@ pub fn homebrew_apps(state: &AppState) -> Element<'_, Message> {
 
                 ViewAs::Table => my_card(
                     apps.iter_by(state.config.contents.sort_by)
-                        .map(homebrew_app_row)
+                        .map(|app| {
+                            homebrew_app_row(app, state.local_to_osc_app_map.get(app.dirname()))
+                        })
                         .intersperse_with(|| rule::horizontal(1).into())
                         .collect::<Column<'_, _>>(),
                 )

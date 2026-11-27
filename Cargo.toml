@@ -5,6 +5,7 @@ members = [
   "crates/driveinfo",
   "crates/games",
   "crates/gui",
+  "crates/homebrew",
   "crates/idmap",
   "crates/sha1list",
   "crates/split-read",
