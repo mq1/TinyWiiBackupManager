@@ -38,16 +38,17 @@ pub fn make_game_dir_name<GameID: AsRef<str> + Display + Copy>(
 }
 
 pub fn make_search_term(patterns: &[&str]) -> Box<str> {
-    let p_count = patterns.len();
-    let len_hint = patterns.iter().map(|p| p.len()).sum::<usize>() + p_count - 1;
+    let len_hint =
+        patterns.iter().map(|p| p.len()).sum::<usize>() + patterns.len().saturating_sub(1);
+
     let mut term = String::with_capacity(len_hint);
 
     for (i, p) in patterns.iter().enumerate() {
-        term.push_str(p);
-
-        if i < p_count {
+        if i > 0 {
             term.push('\0');
         }
+
+        term.push_str(p);
     }
 
     if term.is_ascii() {
