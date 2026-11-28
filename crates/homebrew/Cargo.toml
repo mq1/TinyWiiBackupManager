@@ -11,10 +11,13 @@ description.workspace = true
 [dependencies]
 twbm-common = { path = "../common" }
 anyhow = { workspace = true }
+serde = { workspace = true }
+serde-roxmltree = "0.11"
 size = { workspace = true }
 fs_extra = { workspace = true }
 itertools = { workspace = true }
 zip = { workspace = true }
+jiff = { workspace = true }
 
 [lints]
 workspace = true
