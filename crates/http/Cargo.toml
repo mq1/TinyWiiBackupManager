@@ -9,7 +9,6 @@ repository.workspace = true
 description.workspace = true
 
 [features]
-default = ["native-tls"]
 native-tls = ["minreq/https-native-tls"]    # uses system tls
 bundled-tls = ["minreq/https-rustls-probe"] # uses bundled tls + os certificates
 
