@@ -5,7 +5,6 @@ use crate::{
     config::{Config, message::ConfigMessage},
     long_operation::message::LongOperationsMessage,
     notifications::notification::Notification,
-    toolbox::ToolboxItem,
     ui::pages::Page,
 };
 use semver::Version;
@@ -14,6 +13,7 @@ use twbm_driveinfo::DriveInfoState;
 use twbm_games::{game::Game, import_entry::ImportEntry, manager::GameManager};
 use twbm_homebrew::{app::HomebrewApp, manager::HomebrewAppManager};
 use twbm_osc::{app::OscApp, manager::OscAppManager};
+use twbm_toolbox::ToolboxItem;
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]

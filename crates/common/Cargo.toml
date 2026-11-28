@@ -15,6 +15,7 @@ zip = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
+twbm-idmap = { path = "../idmap" }
 
 [lints]
 workspace = true

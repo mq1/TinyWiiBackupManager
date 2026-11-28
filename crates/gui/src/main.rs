@@ -5,14 +5,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
-mod games;
 mod long_operation;
 mod message;
 mod notifications;
 mod osc;
 mod state;
 mod tasks;
-mod toolbox;
 mod ui;
 mod update;
 mod util;

@@ -1,14 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::config::Config;
 use anyhow::Result;
-use smol::{channel::unbounded, stream::Stream};
 use std::{
     fmt,
     path::{Path, PathBuf},
 };
-use twbm_common::config_contents::PreferredLanguage;
+use twbm_common::config_contents::{ConfigContents, PreferredLanguage};
 use twbm_http::{download_file, download_file_with_fallback};
 use wii_disc_info::{RegionCode, game_id::GameID};
 
@@ -65,7 +63,7 @@ fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
     }
 }
 
-pub fn download_cover(
+fn download_cover(
     game_id: GameID,
     cover_type: CoverType,
     dir: &Path,
@@ -91,23 +89,16 @@ pub fn download_cover(
 
 pub fn download_ui_covers(
     game_ids: Box<[GameID]>,
-    data_dir: &Path,
+    data_dir: &'static Path,
     preferred_language: PreferredLanguage,
-) -> impl Stream<Item = GameID> {
+) -> impl Iterator<Item = GameID> {
     let covers_dir = data_dir.join("covers");
 
-    let (tx, rx) = unbounded();
-
-    std::thread::spawn(move || {
-        for game_id in game_ids.into_iter() {
-            if download_cover(game_id, CoverType::Cover3D, &covers_dir, preferred_language).is_ok()
-            {
-                let _ = tx.try_send(game_id);
-            }
-        }
-    });
-
-    rx
+    game_ids.into_iter().filter_map(move |game_id| {
+        download_cover(game_id, CoverType::Cover3D, &covers_dir, preferred_language)
+            .ok()
+            .map(|_| game_id)
+    })
 }
 
 fn download_all_covers(
@@ -130,9 +121,9 @@ fn download_all_covers(
 
 pub fn download_all_covers_for_usbloadergx(
     game_ids: Box<[GameID]>,
-    config: &Config,
+    config: &ConfigContents,
 ) -> Vec<GameID> {
-    let Some(mount_point) = config.contents.mount_point.as_deref() else {
+    let Some(mount_point) = config.mount_point.as_deref() else {
         return Vec::new();
     };
 
@@ -145,11 +136,14 @@ pub fn download_all_covers_for_usbloadergx(
         (covers_dir.join("disc"), CoverType::Disc),
     ];
 
-    download_all_covers(game_ids, &pairs, config.contents.preferred_language)
+    download_all_covers(game_ids, &pairs, config.preferred_language)
 }
 
-pub fn download_all_covers_for_wiiflow(game_ids: Box<[GameID]>, config: &Config) -> Vec<GameID> {
-    let Some(mount_point) = config.contents.mount_point.as_deref() else {
+pub fn download_all_covers_for_wiiflow(
+    game_ids: Box<[GameID]>,
+    config: &ConfigContents,
+) -> Vec<GameID> {
+    let Some(mount_point) = config.mount_point.as_deref() else {
         return Vec::new();
     };
 
@@ -160,5 +154,5 @@ pub fn download_all_covers_for_wiiflow(game_ids: Box<[GameID]>, config: &Config)
         (covers_dir.join("covers"), CoverType::Cover2D),
     ];
 
-    download_all_covers(game_ids, &pairs, config.contents.preferred_language)
+    download_all_covers(game_ids, &pairs, config.preferred_language)
 }

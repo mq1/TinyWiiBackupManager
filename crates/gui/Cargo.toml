@@ -50,6 +50,7 @@ twbm-common = { path = "../common" }
 twbm-games = { path = "../games" }
 twbm-homebrew = { path = "../homebrew" }
 twbm-driveinfo = { path = "../driveinfo" }
+twbm-toolbox = { path = "../toolbox" }
 twbm-idmap = { workspace = true }
 twbm-http = { path = "../http" }
 twbm-osc = { path = "../osc" }

@@ -35,6 +35,7 @@ dependencies = [
  "twbm-http",
  "twbm-idmap",
  "twbm-osc",
+ "twbm-toolbox",
  "walkdir",
  "wgpu",
  "wii-disc-info",
@@ -4101,6 +4102,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "sys-locale",
+ "twbm-idmap",
  "zip",
 ]
 
@@ -4181,6 +4183,18 @@ name = "twbm-sha1list"
 version = "6.2.0"
 dependencies = [
  "hex",
+]
+
+[[package]]
+name = "twbm-toolbox"
+version = "6.2.0"
+dependencies = [
+ "anyhow",
+ "itertools 0.15.0",
+ "twbm-common",
+ "twbm-http",
+ "twbm-idmap",
+ "wii-disc-info",
 ]
 
 [[package]]

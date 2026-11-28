@@ -6,7 +6,8 @@ use iced::Task;
 use rfd::AsyncFileDialog;
 use smol::unblock;
 use std::{ffi::OsStr, path::PathBuf};
-use twbm_games::{game::Game, import::sanitize_title, import_entry::keep_valid_games};
+use twbm_common::util::sanitize_title;
+use twbm_games::{game::Game, import_entry::keep_valid_games};
 use wii_disc_info::game_id::GameID;
 
 struct Filter<'a> {

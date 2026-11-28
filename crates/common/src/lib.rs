@@ -2,4 +2,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod config_contents;
+pub mod util;
 pub mod wiiload_util;

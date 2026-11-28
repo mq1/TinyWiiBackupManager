@@ -1,19 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::config::Config;
 use anyhow::Result;
-use lucide_icons::Icon;
+use twbm_common::config_contents::ConfigContents;
 use wii_disc_info::game_id::GameID;
 
 mod cleanup;
 mod game_backup_loaders;
 mod os_specific;
-mod txtcodes;
+pub mod txtcodes;
+
+pub use game_backup_loaders::covers;
 
 #[derive(Debug, Clone)]
 pub struct ToolContext {
-    pub config: Config,
+    pub config: ConfigContents,
     pub game_ids: Box<[GameID]>,
 }
 
@@ -35,7 +36,7 @@ impl ToolboxItem {
 
 pub struct ToolboxGroup {
     label: &'static str,
-    icon: Icon,
+    icon: &'static str,
     items: &'static [ToolboxItem],
 }
 
@@ -44,7 +45,7 @@ impl ToolboxGroup {
         self.label
     }
 
-    pub fn icon(&self) -> Icon {
+    pub fn icon(&self) -> &'static str {
         self.icon
     }
 

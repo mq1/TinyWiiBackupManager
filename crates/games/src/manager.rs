@@ -100,8 +100,8 @@ impl GameList {
         }
     }
 
-    pub fn get_all_game_ids(&self) -> impl ExactSizeIterator<Item = GameID> {
-        self.games.iter().map(Game::id)
+    pub fn get_all_game_ids(&self) -> Box<[GameID]> {
+        self.games.iter().map(Game::id).collect()
     }
 
     pub fn count(&self) -> usize {

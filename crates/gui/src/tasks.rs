@@ -3,20 +3,18 @@
 
 use crate::{
     config::{Config, message::ConfigMessage},
-    games::{covers::download_ui_covers, txtcodes::download_cheats},
     long_operation::{Status, message::LongOperationsMessage},
     message::Message,
     notifications::notification::Notification,
     osc,
     state::AppState,
-    toolbox::{ToolContext, ToolboxItem},
     ui::{dialogs, pages::Page},
     util::updates,
 };
 use anyhow::{Context, Result};
 use iced::Task;
 use smol::{
-    channel::bounded,
+    channel::{bounded, unbounded},
     fs::{self, File},
     io::BufReader,
     net::TcpStream,
@@ -34,6 +32,9 @@ use twbm_games::{
 };
 use twbm_homebrew::manager::HomebrewAppManager;
 use twbm_osc::{app::OscApp, manager::OscAppManager};
+use twbm_toolbox::{
+    ToolContext, ToolboxItem, covers::download_ui_covers, txtcodes::download_cheats,
+};
 use wiiload::WIILOAD_PORT;
 
 impl AppState {
@@ -69,11 +70,18 @@ impl AppState {
 
     pub fn download_ui_covers_task(&mut self) -> Task<Message> {
         if let GameManager::Loaded(games) = &self.game_manager {
-            let ids = games.get_all_game_ids().collect::<Box<[_]>>();
+            let data_dir = self.data_dir;
+            let game_ids = games.get_all_game_ids();
             let preferred_language = self.config.contents.preferred_language;
 
-            Task::stream(download_ui_covers(ids, self.data_dir, preferred_language))
-                .map(Message::ReloadCover)
+            let (tx, rx) = unbounded();
+            std::thread::spawn(move || {
+                for game_id in download_ui_covers(game_ids, data_dir, preferred_language) {
+                    let _ = tx.try_send(game_id);
+                }
+            });
+
+            Task::stream(rx).map(Message::ReloadCover)
         } else {
             Task::none()
         }
@@ -191,12 +199,12 @@ impl AppState {
 
     pub fn run_tool_task(&mut self, tool: &'static ToolboxItem) -> Task<Message> {
         let game_ids = match &self.game_manager {
-            GameManager::Loaded(games) => games.get_all_game_ids().collect::<Box<[_]>>(),
+            GameManager::Loaded(games) => games.get_all_game_ids(),
             _ => Box::new([]),
         };
 
         let ctx = ToolContext {
-            config: self.config.clone(),
+            config: self.config.contents.clone(),
             game_ids,
         };
 
@@ -299,7 +307,7 @@ impl AppState {
 
     pub fn pick_games_recursively_task(&self) -> Task<Message> {
         if let GameManager::Loaded(games) = &self.game_manager {
-            let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
+            let existing_ids = games.get_all_game_ids();
 
             dialogs::init_file_dialog_task().then(move |base| {
                 dialogs::make_pick_games_recursively_dialog_task(base, existing_ids.clone())
@@ -311,7 +319,7 @@ impl AppState {
 
     pub fn pick_games_task(&self) -> Task<Message> {
         if let GameManager::Loaded(games) = &self.game_manager {
-            let existing_ids = games.get_all_game_ids().collect::<Box<[_]>>();
+            let existing_ids = games.get_all_game_ids();
 
             dialogs::init_file_dialog_task()
                 .then(move |base| dialogs::make_pick_games_dialog_task(base, existing_ids.clone()))
@@ -321,17 +329,18 @@ impl AppState {
     }
 
     pub fn download_txt_codes_task(&mut self, game: Game) -> Task<Message> {
-        let game_title: Box<str> = game.title().into();
-        let config = self.config.clone();
+        let game_id = game.id();
+        let config = self.config.contents.clone();
 
         self.notifications.push(Notification::info(format!(
-            "Downloading cheats for {game_title}",
+            "Downloading cheats for {}",
+            game.title()
         )));
 
         Task::perform(
-            unblock(move || download_cheats(game.id(), &config)),
+            unblock(move || download_cheats(game_id, &config)),
             move |res| match res {
-                Ok(()) => Notification::success(format!("Downloaded cheats for {game_title}")),
+                Ok(()) => Notification::success(format!("Downloaded cheats for {}", game.title())),
                 Err(err) => Notification::error(err.to_string()),
             },
         )

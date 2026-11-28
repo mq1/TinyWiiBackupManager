@@ -18,7 +18,7 @@ use lucide_icons::Icon;
 pub fn toolbox(state: &AppState) -> Element<'_, Message> {
     let has_drive = state.config.contents.mount_point.is_some();
 
-    let tool_groups = crate::toolbox::all()
+    let tool_groups = twbm_toolbox::all()
         .map(|tool_group| {
             let tools = tool_group
                 .items()
@@ -37,7 +37,7 @@ pub fn toolbox(state: &AppState) -> Element<'_, Message> {
                 .spacing(5);
 
             my_group(tool_group.label(), tools)
-                .icon(tool_group.icon())
+                .icon(Icon::try_from(tool_group.icon()).unwrap_or(Icon::Wrench))
                 .into()
         })
         .collect::<Column<'_, _>>()

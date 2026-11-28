@@ -1,15 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::toolbox::{ToolboxGroup, ToolboxItem};
+use crate::{ToolboxGroup, ToolboxItem};
 use anyhow::{Context, Result};
-use lucide_icons::Icon;
 use std::{
     ffi::OsStr,
     fs::{self, DirEntry, File},
     path::{Path, PathBuf},
 };
-use twbm_games::import::make_game_dir_name;
+use twbm_common::util::make_game_dir_name;
 
 fn scan_dir_for_discs(path: &Path) -> Result<Vec<(PathBuf, wii_disc_info::Meta)>> {
     fn try_open_entry(
@@ -167,15 +166,11 @@ fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
         label: "Cleanup",
-        icon: Icon::BrushCleaning,
+        icon: "brush-cleaning",
         items: &[ToolboxItem {
             label: "Normalize paths (makes the game directories' layouts consistent)",
             run: |ctx| {
-                let mount_point = ctx
-                    .config
-                    .contents
-                    .mount_point
-                    .context("Invalid mount point")?;
+                let mount_point = ctx.config.mount_point.context("Invalid mount point")?;
 
                 for dir in [mount_point.join("wbfs"), mount_point.join("games")] {
                     if fs::metadata(&dir).is_ok_and(|meta| meta.is_dir()) {

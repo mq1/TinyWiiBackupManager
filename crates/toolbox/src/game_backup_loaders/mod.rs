@@ -1,22 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod banners;
+pub mod covers;
+
 use crate::{
-    games::{
+    ToolboxGroup, ToolboxItem,
+    game_backup_loaders::{
         banners::download_all_banners,
         covers::{download_all_covers_for_usbloadergx, download_all_covers_for_wiiflow},
     },
-    toolbox::{ToolboxGroup, ToolboxItem},
 };
 use anyhow::{Context, anyhow};
 use itertools::Itertools;
-use lucide_icons::Icon;
 use twbm_http::download_and_extract_zip;
 
 pub const ALL: &[ToolboxGroup] = {
     &[ToolboxGroup {
         label: "Game Backup Loaders",
-        icon: Icon::Loader,
+        icon: "loader",
         items: &[
             ToolboxItem {
                 label: "Download covers for USB Loader GX",
@@ -33,7 +35,6 @@ pub const ALL: &[ToolboxGroup] = {
                 run: |ctx| {
                     let mount_point = ctx
                         .config
-                        .contents
                         .mount_point
                         .as_deref()
                         .context("Invalid mount point")?;
@@ -52,7 +53,6 @@ pub const ALL: &[ToolboxGroup] = {
                 run: |ctx| {
                     let mount_point = ctx
                         .config
-                        .contents
                         .mount_point
                         .as_deref()
                         .context("Invalid mount point")?;

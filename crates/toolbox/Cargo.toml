@@ -1,0 +1,20 @@
+[package]
+name = "twbm-toolbox"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+itertools = { workspace = true }
+wii-disc-info = { workspace = true }
+twbm-common = { path = "../common" }
+twbm-http = { path = "../http" }
+twbm-idmap = { path = "../idmap" }
+
+[lints]
+workspace = true

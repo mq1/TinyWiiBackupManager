@@ -10,7 +10,7 @@ members = [
   "crates/idmap",
   "crates/osc",
   "crates/sha1list",
-  "crates/split-read",
+  "crates/split-read", "crates/toolbox",
 ]
 default-members = ["crates/gui"]
 
