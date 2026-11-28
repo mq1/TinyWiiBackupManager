@@ -36,3 +36,25 @@ pub fn make_game_dir_name<GameID: AsRef<str> + Display + Copy>(
 
     format!("{game_title} [{game_id}]")
 }
+
+pub fn make_search_term(patterns: &[&str]) -> Box<str> {
+    let p_count = patterns.len();
+    let len_hint = patterns.iter().map(|p| p.len()).sum::<usize>() + p_count - 1;
+    let mut term = String::with_capacity(len_hint);
+
+    for (i, p) in patterns.iter().enumerate() {
+        term.push_str(p);
+
+        if i < p_count {
+            term.push('\0');
+        }
+    }
+
+    if term.is_ascii() {
+        term.make_ascii_lowercase();
+    } else {
+        term = term.to_lowercase();
+    };
+
+    term.into()
+}

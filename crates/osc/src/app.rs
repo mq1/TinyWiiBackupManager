@@ -9,6 +9,7 @@ use std::{
     hash::{Hash, Hasher},
     path::Path,
 };
+use twbm_common::util::make_search_term;
 use twbm_http::{download_and_extract_zip, download_and_send_via_wiiload, download_file};
 
 fn make_osc_url(slug: &str) -> Box<str> {
@@ -19,21 +20,6 @@ fn make_osc_url(slug: &str) -> Box<str> {
     url.push_str(slug);
 
     url.into()
-}
-
-fn make_search_term(app_name: &str, slug: &str) -> Box<str> {
-    let mut term = String::with_capacity(app_name.len() + 1 + slug.len());
-    term.push_str(app_name);
-    term.push('\0');
-    term.push_str(slug);
-
-    if term.is_ascii() {
-        term.make_ascii_lowercase();
-    } else {
-        term = term.to_lowercase();
-    };
-
-    term.into()
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -82,7 +68,7 @@ impl<'de> serde::Deserialize<'de> for OscApp {
     {
         let meta = OscAppMeta::deserialize(deserializer)?;
 
-        let search_term_lowercase = make_search_term(&meta.name, &meta.slug);
+        let search_term_lowercase = make_search_term(&[&meta.name, &meta.slug]);
         let osc_url = make_osc_url(&meta.slug);
 
         Ok(OscApp {

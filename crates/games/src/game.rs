@@ -8,6 +8,7 @@ use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
 };
+use twbm_common::util::make_search_term;
 use wii_disc_info::game_id::GameID;
 
 #[derive(Debug, Clone)]
@@ -82,7 +83,7 @@ impl Game {
 
         let size = fs_extra::dir::get_size(&path).ok().map(Size::from_bytes);
 
-        let search_term_lowercase = format!("{title}\0{id}").to_lowercase().into_boxed_str();
+        let search_term_lowercase = make_search_term(&[title.as_str(), id.as_str()]);
 
         let gametdb_url = format!("https://www.gametdb.com/Wii/{id}").into_boxed_str();
 

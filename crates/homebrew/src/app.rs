@@ -10,6 +10,7 @@ use std::{
     hash::{Hash, Hasher},
     path::Path,
 };
+use twbm_common::util::make_search_term;
 
 fn make_osc_url(dirname: &str) -> Box<str> {
     const BASE: &str = "https://oscwii.org/library/app/";
@@ -19,21 +20,6 @@ fn make_osc_url(dirname: &str) -> Box<str> {
     url.push_str(dirname);
 
     url.into()
-}
-
-fn make_search_term(app_name: &str, dirname: &str) -> Box<str> {
-    let mut term = String::with_capacity(app_name.len() + 1 + dirname.len());
-    term.push_str(app_name);
-    term.push('\0');
-    term.push_str(dirname);
-
-    if term.is_ascii() {
-        term.make_ascii_lowercase();
-    } else {
-        term = term.to_lowercase();
-    };
-
-    term.into()
 }
 
 #[derive(Debug, Clone)]
@@ -76,7 +62,7 @@ impl HomebrewApp {
             .then(|| icon_path.into());
 
         let osc_url = make_osc_url(dirname);
-        let search_term_lowercase = make_search_term(meta.name(), dirname);
+        let search_term_lowercase = make_search_term(&[meta.name(), dirname]);
 
         Ok(Self {
             dirname: dirname.into(),
