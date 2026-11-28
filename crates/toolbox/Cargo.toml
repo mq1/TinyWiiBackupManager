@@ -12,9 +12,9 @@ description.workspace = true
 anyhow = { workspace = true }
 itertools = { workspace = true }
 wii-disc-info = { workspace = true }
+twbm-idmap = { workspace = true }
 twbm-common = { path = "../common" }
 twbm-http = { path = "../http" }
-twbm-idmap = { path = "../idmap" }
 
 [lints]
 workspace = true
